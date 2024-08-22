@@ -1,0 +1,6 @@
+framework module Pods_ProtonDriveFileProviderMac_LoadTesting {
+  umbrella header "Pods-ProtonDriveFileProviderMac-LoadTesting-umbrella.h"
+
+  export *
+  module * { export * }
+}

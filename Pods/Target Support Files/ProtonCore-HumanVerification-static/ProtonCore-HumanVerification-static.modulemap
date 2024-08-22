@@ -1,0 +1,6 @@
+framework module ProtonCoreHumanVerification {
+  umbrella header "ProtonCore-HumanVerification-static-umbrella.h"
+
+  export *
+  module * { export * }
+}

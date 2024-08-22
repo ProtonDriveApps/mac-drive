@@ -1,0 +1,1715 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		31CDDF542A9E04D800FB8285 /* PDUploadVerifier.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 31CDDF532A9E04D800FB8285 /* PDUploadVerifier.framework */; };
+		3E0ABD932C6315C3009CABB5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 3E0ABD922C6315C3009CABB5 /* Localizable.xcstrings */; };
+		3E0ABD942C6315C3009CABB5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 3E0ABD922C6315C3009CABB5 /* Localizable.xcstrings */; };
+		3E0ABD962C6315C3009CABB5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 3E0ABD922C6315C3009CABB5 /* Localizable.xcstrings */; };
+		5664614E2967CE5024E07321 /* Pods_ProtonDriveFileProviderMac.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EA4EE95A8E0D4A83370E4DB /* Pods_ProtonDriveFileProviderMac.framework */; };
+		6604B9572B3240AA00A2ADB7 /* CompletionBlockWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6604B9562B3240AA00A2ADB7 /* CompletionBlockWrapper.swift */; };
+		66196E672BA468A800363D89 /* DomainOperationsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66196E662BA468A800363D89 /* DomainOperationsService.swift */; };
+		66196E682BA468A800363D89 /* DomainOperationsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66196E662BA468A800363D89 /* DomainOperationsService.swift */; };
+		6619712C2BA2EA49008E4244 /* SyncMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6619712B2BA2EA49008E4244 /* SyncMonitor.swift */; };
+		6619712D2BA2EA49008E4244 /* SyncMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6619712B2BA2EA49008E4244 /* SyncMonitor.swift */; };
+		662365892AF946DE008E62C6 /* ReleaseNotesCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662365882AF946DE008E62C6 /* ReleaseNotesCoordinator.swift */; };
+		6623658A2AF946DE008E62C6 /* ReleaseNotesCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662365882AF946DE008E62C6 /* ReleaseNotesCoordinator.swift */; };
+		6623658C2AF94737008E62C6 /* ReleaseNotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6623658B2AF94737008E62C6 /* ReleaseNotesView.swift */; };
+		6623658D2AF94737008E62C6 /* ReleaseNotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6623658B2AF94737008E62C6 /* ReleaseNotesView.swift */; };
+		6623658F2AF94892008E62C6 /* ReleaseNotesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6623658E2AF94892008E62C6 /* ReleaseNotesViewModel.swift */; };
+		662365902AF94892008E62C6 /* ReleaseNotesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6623658E2AF94892008E62C6 /* ReleaseNotesViewModel.swift */; };
+		662365922AFA3D98008E62C6 /* ReleaseNotes.html in Resources */ = {isa = PBXBuildFile; fileRef = 662365912AFA3D98008E62C6 /* ReleaseNotes.html */; };
+		662365932AFA3D98008E62C6 /* ReleaseNotes.html in Resources */ = {isa = PBXBuildFile; fileRef = 662365912AFA3D98008E62C6 /* ReleaseNotes.html */; };
+		663D194B2B05043C00DC9DC1 /* PDUploadVerifier.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 663D194A2B05043C00DC9DC1 /* PDUploadVerifier.framework */; };
+		663D194C2B05043C00DC9DC1 /* PDUploadVerifier.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 663D194A2B05043C00DC9DC1 /* PDUploadVerifier.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		663D194E2B05044C00DC9DC1 /* PDUploadVerifier.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 663D194D2B05044C00DC9DC1 /* PDUploadVerifier.framework */; };
+		663D194F2B05044C00DC9DC1 /* PDUploadVerifier.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 663D194D2B05044C00DC9DC1 /* PDUploadVerifier.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		667AECD82AE10D8700E2EAC1 /* AppUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 667AECD72AE10D8700E2EAC1 /* AppUpdateService.swift */; };
+		6690C7FE2AD49DD60005FC8F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6690C7FD2AD49DD60005FC8F /* main.swift */; };
+		6690C80D2AD49E570005FC8F /* ProtonDriveMacLauncher.app in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6690C7FB2AD49DD60005FC8F /* ProtonDriveMacLauncher.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		669776D72AF15BE700929E9A /* InitialsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CA67C7290FAD4A00F4AEBF /* InitialsView.swift */; };
+		669776D82AF15BE700929E9A /* RemoteChangeSignaler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CC491A28717CC600C6E83F /* RemoteChangeSignaler.swift */; };
+		669776D92AF15BE700929E9A /* QASettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44C325D2A30D11200D2BA77 /* QASettingsView.swift */; };
+		669776DA2AF15BE700929E9A /* AppContentDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CEAF462A6CFDE3000586F4 /* AppContentDelegate.swift */; };
+		669776DB2AF15BE700929E9A /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A3C5282ACC7324009286D5 /* SettingsViewModel.swift */; };
+		669776DC2AF15BE700929E9A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB71532324274ED900543720 /* AppDelegate.swift */; };
+		669776DD2AF15BE700929E9A /* PostLoginServicesBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D458EEE4286DA94200C325C1 /* PostLoginServicesBuilder.swift */; };
+		669776DE2AF15BE700929E9A /* MetadataMonitorBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CC491C28717CF500C6E83F /* MetadataMonitorBuilder.swift */; };
+		669776DF2AF15BE700929E9A /* QASettingsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44C325B2A30D05700D2BA77 /* QASettingsCoordinator.swift */; };
+		669776E02AF15BE700929E9A /* MenuBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A97F87291132AE00147E9C /* MenuBarCoordinator.swift */; };
+		669776E12AF15BE700929E9A /* OnboardingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CEAF442A6CF695000586F4 /* OnboardingCoordinator.swift */; };
+		669776E22AF15BE700929E9A /* DriveCoreAlertListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F28D2929E97AAE00065CD3 /* DriveCoreAlertListener.swift */; };
+		669776E32AF15BE700929E9A /* NSImage+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4B837F32848FB00005488F6 /* NSImage+Extension.swift */; };
+		669776E42AF15BE700929E9A /* LaunchOnBootService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66FAB3322AD55EF000ADAB83 /* LaunchOnBootService.swift */; };
+		669776E52AF15BE700929E9A /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABE2313025FF8147009FEAF7 /* AppCoordinator.swift */; };
+		669776E62AF15BE700929E9A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CEAF422A6CF67A000586F4 /* OnboardingView.swift */; };
+		669776E72AF15BE700929E9A /* SettingsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41E952529126BF800A586C9 /* SettingsCoordinator.swift */; };
+		669776E82AF15BE700929E9A /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB75A83725D1560D000681AF /* Constants.swift */; };
+		669776E92AF15BE700929E9A /* AppUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 667AECD72AE10D8700E2EAC1 /* AppUpdateService.swift */; };
+		669776EA2AF15BE700929E9A /* MetadataMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49F4C19286C67B6009F70D7 /* MetadataMonitor.swift */; };
+		669776EB2AF15BE700929E9A /* QASettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44C325F2A30D2CD00D2BA77 /* QASettingsViewModel.swift */; };
+		669776EC2AF15BE700929E9A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CA67C9290FAD5100F4AEBF /* SettingsView.swift */; };
+		669776ED2AF15BE700929E9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D4CC491828705C7F00C6E83F /* main.m */; };
+		669776F02AF15BE700929E9A /* PDUIComponents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB23B7ED25FB50EE00EA10D1 /* PDUIComponents.framework */; };
+		669776F12AF15BE700929E9A /* PDLogin_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D432531C28DDB59E009D7B62 /* PDLogin_macOS.framework */; };
+		669776F22AF15BE700929E9A /* PDCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA9E19025592C8300507BE3 /* PDCore.framework */; };
+		669776F32AF15BE700929E9A /* PDFileProvider.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB75AC5F25D18511000681AF /* PDFileProvider.framework */; };
+		669776F52AF15BE700929E9A /* PDClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB22ED1F242AB5F400A97350 /* PDClient.framework */; };
+		669776F72AF15BE700929E9A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB71532724274EDA00543720 /* Assets.xcassets */; };
+		669776F82AF15BE700929E9A /* Menu.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AB71532924274EDA00543720 /* Menu.storyboard */; };
+		669776FA2AF15BE700929E9A /* PDCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = ABA9E19025592C8300507BE3 /* PDCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		669776FB2AF15BE700929E9A /* PDUIComponents.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = AB23B7ED25FB50EE00EA10D1 /* PDUIComponents.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		669776FC2AF15BE700929E9A /* PDLogin_macOS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D432531C28DDB59E009D7B62 /* PDLogin_macOS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		669776FD2AF15BE700929E9A /* PDClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = AB22ED1F242AB5F400A97350 /* PDClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		669776FE2AF15BE700929E9A /* PDFileProvider.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = AB75AC5F25D18511000681AF /* PDFileProvider.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		669777012AF15BE700929E9A /* ProtonDriveMacLauncher.app in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6690C7FB2AD49DD60005FC8F /* ProtonDriveMacLauncher.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		669777032AF15BE700929E9A /* ProtonDriveFileProviderMac.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = ABD1908D25A30FF7005D3E29 /* ProtonDriveFileProviderMac.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		66A3C5292ACC7324009286D5 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A3C5282ACC7324009286D5 /* SettingsViewModel.swift */; };
+		66C25E732BFC9AB8004D7F8D /* InitializationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C25E712BFC9AB8004D7F8D /* InitializationView.swift */; };
+		66C25E742BFC9AB8004D7F8D /* InitializationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C25E712BFC9AB8004D7F8D /* InitializationView.swift */; };
+		66C25E762BFC9AB8004D7F8D /* InitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C25E722BFC9AB8004D7F8D /* InitializationCoordinator.swift */; };
+		66C25E772BFC9AB8004D7F8D /* InitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C25E722BFC9AB8004D7F8D /* InitializationCoordinator.swift */; };
+		66F061992B850C5600A6B067 /* stress-tests in Resources */ = {isa = PBXBuildFile; fileRef = 66F061982B850C5600A6B067 /* stress-tests */; };
+		66FAB3332AD55EF000ADAB83 /* LaunchOnBootService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66FAB3322AD55EF000ADAB83 /* LaunchOnBootService.swift */; };
+		7652544F2BBD9FCD00E5A4B1 /* SyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7652544E2BBD9FCD00E5A4B1 /* SyncCoordinator.swift */; };
+		765254502BBD9FCD00E5A4B1 /* SyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7652544E2BBD9FCD00E5A4B1 /* SyncCoordinator.swift */; };
+		766A9B8B2AE66F35002C3AFA /* FileTypeAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766A9B8A2AE66F35002C3AFA /* FileTypeAsset.swift */; };
+		76993C7C2BF1C5B500DD4672 /* SyncStateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76993C7B2BF1C5B500DD4672 /* SyncStateService.swift */; };
+		76993C7D2BF1C5B500DD4672 /* SyncStateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76993C7B2BF1C5B500DD4672 /* SyncStateService.swift */; };
+		76A070A62AC5EE680002879C /* FileProviderExtension+SyncReporting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A070A52AC5EE680002879C /* FileProviderExtension+SyncReporting.swift */; };
+		76A2BBD82AE07E00005B77A2 /* SyncErrorRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2BBD72AE07E00005B77A2 /* SyncErrorRowView.swift */; };
+		76A2BBDA2AE25F26005B77A2 /* NotificationName+Window.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2BBD92AE25F26005B77A2 /* NotificationName+Window.swift */; };
+		76AC03E62BE2F8E90046A7F4 /* ItemListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76AC03E22BE2F8E90046A7F4 /* ItemListView.swift */; };
+		76AC03E72BE2F8E90046A7F4 /* ItemListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76AC03E22BE2F8E90046A7F4 /* ItemListView.swift */; };
+		76AC03E82BE2F8E90046A7F4 /* ItemRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76AC03E32BE2F8E90046A7F4 /* ItemRowView.swift */; };
+		76AC03E92BE2F8E90046A7F4 /* ItemRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76AC03E32BE2F8E90046A7F4 /* ItemRowView.swift */; };
+		76B3FA352971A52E0031D361 /* PDClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB22ED1F242AB5F400A97350 /* PDClient.framework */; };
+		76B3FA362971A52E0031D361 /* PDClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = AB22ED1F242AB5F400A97350 /* PDClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		76CC332E2BEA235B00011A65 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CC332D2BEA235B00011A65 /* HeaderView.swift */; };
+		76CC332F2BEA235B00011A65 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CC332D2BEA235B00011A65 /* HeaderView.swift */; };
+		76CC33322BEA2BC900011A65 /* SyncActivityViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CC33302BEA2BC900011A65 /* SyncActivityViewModel.swift */; };
+		76CC33332BEA2BC900011A65 /* SyncActivityViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CC33302BEA2BC900011A65 /* SyncActivityViewModel.swift */; };
+		76CC33342BEA2BC900011A65 /* SyncActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CC33312BEA2BC900011A65 /* SyncActivityView.swift */; };
+		76CC33352BEA2BC900011A65 /* SyncActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CC33312BEA2BC900011A65 /* SyncActivityView.swift */; };
+		76CC333C2BEB7A7400011A65 /* ToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CC33392BEB7A7300011A65 /* ToolbarView.swift */; };
+		76CC333D2BEB7A7400011A65 /* ToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CC33392BEB7A7300011A65 /* ToolbarView.swift */; };
+		76CC333E2BEB7A7400011A65 /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CC333A2BEB7A7300011A65 /* NotificationView.swift */; };
+		76CC333F2BEB7A7400011A65 /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CC333A2BEB7A7300011A65 /* NotificationView.swift */; };
+		76CC33402BEB7A7400011A65 /* StateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CC333B2BEB7A7400011A65 /* StateView.swift */; };
+		76CC33412BEB7A7400011A65 /* StateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CC333B2BEB7A7400011A65 /* StateView.swift */; };
+		76CEAF432A6CF67A000586F4 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CEAF422A6CF67A000586F4 /* OnboardingView.swift */; };
+		76CEAF452A6CF695000586F4 /* OnboardingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CEAF442A6CF695000586F4 /* OnboardingCoordinator.swift */; };
+		76CEAF472A6CFDE3000586F4 /* AppContentDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CEAF462A6CFDE3000586F4 /* AppContentDelegate.swift */; };
+		76E80FEE2ADF471700F0F4F2 /* ErrorCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E80FED2ADF471700F0F4F2 /* ErrorCoordinator.swift */; };
+		76E80FF02ADF4B1F00F0F4F2 /* SyncErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E80FEF2ADF4B1F00F0F4F2 /* SyncErrorView.swift */; };
+		76E80FF22ADF91B400F0F4F2 /* SyncErrorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E80FF12ADF91B400F0F4F2 /* SyncErrorViewModel.swift */; };
+		AB0334E5261AF9D00030167E /* PDFileProvider.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB75AC5F25D18511000681AF /* PDFileProvider.framework */; };
+		AB23B7EE25FB50EE00EA10D1 /* PDUIComponents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB23B7ED25FB50EE00EA10D1 /* PDUIComponents.framework */; };
+		AB23B7EF25FB50EE00EA10D1 /* PDUIComponents.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = AB23B7ED25FB50EE00EA10D1 /* PDUIComponents.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		AB71532424274ED900543720 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB71532324274ED900543720 /* AppDelegate.swift */; };
+		AB71532824274EDA00543720 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB71532724274EDA00543720 /* Assets.xcassets */; };
+		AB71532B24274EDA00543720 /* Menu.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AB71532924274EDA00543720 /* Menu.storyboard */; };
+		AB75A84925D15883000681AF /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB75A83725D1560D000681AF /* Constants.swift */; };
+		AB75A84E25D15884000681AF /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB75A83725D1560D000681AF /* Constants.swift */; };
+		AB75AD4825D18A76000681AF /* PDFileProvider.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB75AC5F25D18511000681AF /* PDFileProvider.framework */; };
+		AB75AD4925D18A76000681AF /* PDFileProvider.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = AB75AC5F25D18511000681AF /* PDFileProvider.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		AB83A13025A382BF00EB1435 /* ProtonDriveFileProviderMac.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = ABD1908D25A30FF7005D3E29 /* ProtonDriveFileProviderMac.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		ABA9E19125592C8300507BE3 /* PDCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA9E19025592C8300507BE3 /* PDCore.framework */; };
+		ABA9E19225592C8300507BE3 /* PDCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = ABA9E19025592C8300507BE3 /* PDCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		ABD1909025A30FF7005D3E29 /* FileProviderExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABD1908F25A30FF7005D3E29 /* FileProviderExtension.swift */; };
+		ABE2313125FF8147009FEAF7 /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABE2313025FF8147009FEAF7 /* AppCoordinator.swift */; };
+		BA20D65780848543C4D77A57 /* Pods_ProtonDriveMac_Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7EC2CE887ED2A30E722383BB /* Pods_ProtonDriveMac_Sparkle.framework */; };
+		D073FDFCC8D3652B69D33FF0 /* Pods_ProtonDriveMac_AppStore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6F195F143CA763FFBA4A269A /* Pods_ProtonDriveMac_AppStore.framework */; };
+		D41E952629126BF800A586C9 /* SettingsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41E952529126BF800A586C9 /* SettingsCoordinator.swift */; };
+		D432531D28DDB59E009D7B62 /* PDLogin_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D432531C28DDB59E009D7B62 /* PDLogin_macOS.framework */; };
+		D432531E28DDB59E009D7B62 /* PDLogin_macOS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D432531C28DDB59E009D7B62 /* PDLogin_macOS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D43A7D3B2AF4FCD400DCA64E /* ErrorCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E80FED2ADF471700F0F4F2 /* ErrorCoordinator.swift */; };
+		D43A7D3C2AF4FCDA00DCA64E /* SyncErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E80FEF2ADF4B1F00F0F4F2 /* SyncErrorView.swift */; };
+		D43A7D3D2AF4FCDC00DCA64E /* SyncErrorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E80FF12ADF91B400F0F4F2 /* SyncErrorViewModel.swift */; };
+		D43A7D3E2AF4FCDF00DCA64E /* SyncErrorRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2BBD72AE07E00005B77A2 /* SyncErrorRowView.swift */; };
+		D43A7D3F2AF4FCE200DCA64E /* FileTypeAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766A9B8A2AE66F35002C3AFA /* FileTypeAsset.swift */; };
+		D43A7D402AF4FDB100DCA64E /* NotificationName+Window.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2BBD92AE25F26005B77A2 /* NotificationName+Window.swift */; };
+		D44C325C2A30D05700D2BA77 /* QASettingsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44C325B2A30D05700D2BA77 /* QASettingsCoordinator.swift */; };
+		D44C325E2A30D11200D2BA77 /* QASettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44C325D2A30D11200D2BA77 /* QASettingsView.swift */; };
+		D44C32602A30D2CD00D2BA77 /* QASettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44C325F2A30D2CD00D2BA77 /* QASettingsViewModel.swift */; };
+		D458EEE5286DA94200C325C1 /* PostLoginServicesBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D458EEE4286DA94200C325C1 /* PostLoginServicesBuilder.swift */; };
+		D4989F862C18AADF003DFF5E /* ProtonDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4989F852C18AADF003DFF5E /* ProtonDocument.swift */; };
+		D4989F872C18AADF003DFF5E /* ProtonDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4989F852C18AADF003DFF5E /* ProtonDocument.swift */; };
+		D49F4C1A286C67B6009F70D7 /* MetadataMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49F4C19286C67B6009F70D7 /* MetadataMonitor.swift */; };
+		D4A97F88291132AE00147E9C /* MenuBarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A97F87291132AE00147E9C /* MenuBarCoordinator.swift */; };
+		D4B837F42848FB00005488F6 /* NSImage+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4B837F32848FB00005488F6 /* NSImage+Extension.swift */; };
+		D4CA67C8290FAD4A00F4AEBF /* InitialsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CA67C7290FAD4A00F4AEBF /* InitialsView.swift */; };
+		D4CA67CA290FAD5100F4AEBF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CA67C9290FAD5100F4AEBF /* SettingsView.swift */; };
+		D4CC491928705C7F00C6E83F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D4CC491828705C7F00C6E83F /* main.m */; };
+		D4CC491B28717CC600C6E83F /* RemoteChangeSignaler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CC491A28717CC600C6E83F /* RemoteChangeSignaler.swift */; };
+		D4CC491D28717CF500C6E83F /* MetadataMonitorBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CC491C28717CF500C6E83F /* MetadataMonitorBuilder.swift */; };
+		D4D84DC92C2FF3A0007079B4 /* ProtonDocumentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D84DC82C2FF3A0007079B4 /* ProtonDocumentController.swift */; };
+		D4D84DCA2C2FF3A0007079B4 /* ProtonDocumentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D84DC82C2FF3A0007079B4 /* ProtonDocumentController.swift */; };
+		D4D84DCC2C300FBB007079B4 /* macOSURLCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D84DCB2C300FBB007079B4 /* macOSURLCoordinator.swift */; };
+		D4D84DCD2C300FBB007079B4 /* macOSURLCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D84DCB2C300FBB007079B4 /* macOSURLCoordinator.swift */; };
+		D4D84DD62C315546007079B4 /* UserMessageHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D84DD52C315546007079B4 /* UserMessageHandler.swift */; };
+		D4D84DD72C315546007079B4 /* UserMessageHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D84DD52C315546007079B4 /* UserMessageHandler.swift */; };
+		D4E50F822B838485006E94F6 /* ActivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E50F812B838485006E94F6 /* ActivityService.swift */; };
+		D4E50F832B838485006E94F6 /* ActivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E50F812B838485006E94F6 /* ActivityService.swift */; };
+		D4EEDF0B284A0D2000DF99B3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB71532724274EDA00543720 /* Assets.xcassets */; };
+		D4F28D2A29E97AAE00065CD3 /* DriveCoreAlertListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F28D2929E97AAE00065CD3 /* DriveCoreAlertListener.swift */; };
+		D8262F312C40364B00867704 /* PDLocalization in Frameworks */ = {isa = PBXBuildFile; productRef = D8262F302C40364B00867704 /* PDLocalization */; };
+		D8D6FB912B503E2400FB71AE /* Dumper.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8D6FB902B503E2400FB71AE /* Dumper.swift */; };
+		D8D6FB922B503E2400FB71AE /* Dumper.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8D6FB902B503E2400FB71AE /* Dumper.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		66613B882AD93E8D00C7676B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AB71531824274ED900543720 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6690C7FA2AD49DD60005FC8F;
+			remoteInfo = ProtonDriveMacLauncher;
+		};
+		669776D12AF15BE700929E9A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AB71531824274ED900543720 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6690C7FA2AD49DD60005FC8F;
+			remoteInfo = ProtonDriveMacLauncher;
+		};
+		669776D32AF15BE700929E9A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AB71531824274ED900543720 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = ABD1908C25A30FF7005D3E29;
+			remoteInfo = PDFileProvider;
+		};
+		AB83A13125A382BF00EB1435 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AB71531824274ED900543720 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = ABD1908C25A30FF7005D3E29;
+			remoteInfo = PDFileProvider;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		6690C80C2AD49E3A0005FC8F /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LoginItems;
+			dstSubfolderSpec = 1;
+			files = (
+				6690C80D2AD49E570005FC8F /* ProtonDriveMacLauncher.app in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		669776F92AF15BE700929E9A /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				669776FA2AF15BE700929E9A /* PDCore.framework in Embed Frameworks */,
+				669776FB2AF15BE700929E9A /* PDUIComponents.framework in Embed Frameworks */,
+				669776FC2AF15BE700929E9A /* PDLogin_macOS.framework in Embed Frameworks */,
+				669776FD2AF15BE700929E9A /* PDClient.framework in Embed Frameworks */,
+				669776FE2AF15BE700929E9A /* PDFileProvider.framework in Embed Frameworks */,
+				663D194C2B05043C00DC9DC1 /* PDUploadVerifier.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		669777002AF15BE700929E9A /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LoginItems;
+			dstSubfolderSpec = 1;
+			files = (
+				669777012AF15BE700929E9A /* ProtonDriveMacLauncher.app in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		669777022AF15BE700929E9A /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				669777032AF15BE700929E9A /* ProtonDriveFileProviderMac.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AB48E8D52428BB590016E4E2 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				ABA9E19225592C8300507BE3 /* PDCore.framework in Embed Frameworks */,
+				AB23B7EF25FB50EE00EA10D1 /* PDUIComponents.framework in Embed Frameworks */,
+				D432531E28DDB59E009D7B62 /* PDLogin_macOS.framework in Embed Frameworks */,
+				76B3FA362971A52E0031D361 /* PDClient.framework in Embed Frameworks */,
+				AB75AD4925D18A76000681AF /* PDFileProvider.framework in Embed Frameworks */,
+				663D194F2B05044C00DC9DC1 /* PDUploadVerifier.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AB83A13325A382BF00EB1435 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AB83A13025A382BF00EB1435 /* ProtonDriveFileProviderMac.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		059423BD2D1EA2EBE9A938CD /* Pods-ProtonDriveFileProvider.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProvider.debug.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProvider/Pods-ProtonDriveFileProvider.debug.xcconfig"; sourceTree = "<group>"; };
+		0D3297C5A605708C3140E11D /* Pods-ProtonDriveMac-Sparkle.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-Sparkle.debug.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-Sparkle/Pods-ProtonDriveMac-Sparkle.debug.xcconfig"; sourceTree = "<group>"; };
+		0DCB432AC1FE85D6FC084A60 /* Pods-ProtonDriveFileProviderMac.release-store.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProviderMac.release-store.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProviderMac/Pods-ProtonDriveFileProviderMac.release-store.xcconfig"; sourceTree = "<group>"; };
+		0F603AC8A5DC740E8B2CB552 /* Pods-ProtonDriveMac-AppStore.loadtesting-build.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-AppStore.loadtesting-build.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-AppStore/Pods-ProtonDriveMac-AppStore.loadtesting-build.xcconfig"; sourceTree = "<group>"; };
+		1513F45E0A3D305B7BD66234 /* Pods-ProtonDriveFileProviderMac-LoadTesting.release-qa.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProviderMac-LoadTesting.release-qa.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProviderMac-LoadTesting/Pods-ProtonDriveFileProviderMac-LoadTesting.release-qa.xcconfig"; sourceTree = "<group>"; };
+		1903D75C3F294B5E0297265E /* Pods-ProtonDriveMacUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacUITests.debug.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacUITests/Pods-ProtonDriveMacUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		2760F74386F4110A0D0444BC /* Pods-ProtonDriveMacUITests.release-store.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacUITests.release-store.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacUITests/Pods-ProtonDriveMacUITests.release-store.xcconfig"; sourceTree = "<group>"; };
+		2A6C011EB803AF669A699AAE /* Pods-ProtonDriveFileProviderMac.release-external.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProviderMac.release-external.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProviderMac/Pods-ProtonDriveFileProviderMac.release-external.xcconfig"; sourceTree = "<group>"; };
+		2CCD051A07CEB73B8914EF03 /* Pods-ProtonDriveMacUnitTests.loadtesting-development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacUnitTests.loadtesting-development.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacUnitTests/Pods-ProtonDriveMacUnitTests.loadtesting-development.xcconfig"; sourceTree = "<group>"; };
+		2EB5D317774EA232A9082B41 /* Pods-ProtonDriveMac-AppStore.loadtesting-development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-AppStore.loadtesting-development.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-AppStore/Pods-ProtonDriveMac-AppStore.loadtesting-development.xcconfig"; sourceTree = "<group>"; };
+		3190944D5C8016F7C4BF691C /* Pods-ProtonDriveFileProviderMac-LoadTesting.release-external.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProviderMac-LoadTesting.release-external.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProviderMac-LoadTesting/Pods-ProtonDriveFileProviderMac-LoadTesting.release-external.xcconfig"; sourceTree = "<group>"; };
+		31CDDF512A9E04CE00FB8285 /* PDUploadVerifier.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDUploadVerifier.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		31CDDF532A9E04D800FB8285 /* PDUploadVerifier.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDUploadVerifier.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		33C2EAE82F237BB017747579 /* Pods-ProtonDriveFileProviderMac.loadtesting-development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProviderMac.loadtesting-development.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProviderMac/Pods-ProtonDriveFileProviderMac.loadtesting-development.xcconfig"; sourceTree = "<group>"; };
+		34227D3CA411436D401DA449 /* Pods-ProtonDriveFileProvider.release-external.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProvider.release-external.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProvider/Pods-ProtonDriveFileProvider.release-external.xcconfig"; sourceTree = "<group>"; };
+		34BF1B9AEDB50ECD1734495B /* Pods-ProtonDriveMac-AppStore.release-external.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-AppStore.release-external.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-AppStore/Pods-ProtonDriveMac-AppStore.release-external.xcconfig"; sourceTree = "<group>"; };
+		36E0B2B604EA4B784CDFB033 /* Pods-ProtonDriveMacUnitTests.loadtesting-build.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacUnitTests.loadtesting-build.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacUnitTests/Pods-ProtonDriveMacUnitTests.loadtesting-build.xcconfig"; sourceTree = "<group>"; };
+		3B3517E7FE859D941258A2F5 /* Pods-ProtonDriveFileProviderMac.release-qa.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProviderMac.release-qa.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProviderMac/Pods-ProtonDriveFileProviderMac.release-qa.xcconfig"; sourceTree = "<group>"; };
+		3E0ABD922C6315C3009CABB5 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		3F6D85919890931E9963DFB1 /* Pods-ProtonDriveFileProviderMac.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProviderMac.debug.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProviderMac/Pods-ProtonDriveFileProviderMac.debug.xcconfig"; sourceTree = "<group>"; };
+		3F76AC8A66049B798B7D9A46 /* Pods-ProtonDriveMac-LoadTesting.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-LoadTesting.debug.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-LoadTesting/Pods-ProtonDriveMac-LoadTesting.debug.xcconfig"; sourceTree = "<group>"; };
+		400C64AD28A78ACB81DFC8D1 /* Pods-ProtonDriveMacUITests.release-qa.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacUITests.release-qa.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacUITests/Pods-ProtonDriveMacUITests.release-qa.xcconfig"; sourceTree = "<group>"; };
+		407A2E694C1D5B42C727F73B /* Pods-ProtonDrive.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDrive.debug.xcconfig"; path = "Target Support Files/Pods-ProtonDrive/Pods-ProtonDrive.debug.xcconfig"; sourceTree = "<group>"; };
+		425FCDDAD2878F73E6A1398E /* Pods-ProtonDriveMacIntegrationTests.release-qa.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacIntegrationTests.release-qa.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacIntegrationTests/Pods-ProtonDriveMacIntegrationTests.release-qa.xcconfig"; sourceTree = "<group>"; };
+		4669DB9E39C8E8B6780B83E1 /* Pods-ProtonDriveMacStressTests.loadtesting-build.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacStressTests.loadtesting-build.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacStressTests/Pods-ProtonDriveMacStressTests.loadtesting-build.xcconfig"; sourceTree = "<group>"; };
+		46C7C1CA4D504C5DF558A28F /* Pods-ProtonDriveFileProviderMac.loadtesting-build.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProviderMac.loadtesting-build.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProviderMac/Pods-ProtonDriveFileProviderMac.loadtesting-build.xcconfig"; sourceTree = "<group>"; };
+		49F065FC27204A7050915E67 /* Pods-ProtonDriveMac-Sparkle.loadtesting-build.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-Sparkle.loadtesting-build.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-Sparkle/Pods-ProtonDriveMac-Sparkle.loadtesting-build.xcconfig"; sourceTree = "<group>"; };
+		513A82B1FA5F0261FE9289BB /* Pods-ProtonDriveMacIntegrationTests.loadtesting-build.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacIntegrationTests.loadtesting-build.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacIntegrationTests/Pods-ProtonDriveMacIntegrationTests.loadtesting-build.xcconfig"; sourceTree = "<group>"; };
+		5222CD09DC62DF2E2AB6EB07 /* Pods-ProtonDriveMacIntegrationTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacIntegrationTests.debug.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacIntegrationTests/Pods-ProtonDriveMacIntegrationTests.debug.xcconfig"; sourceTree = "<group>"; };
+		5990E90688A6D1FC4778DC13 /* Pods-ProtonDriveMacStressTests.release-store.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacStressTests.release-store.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacStressTests/Pods-ProtonDriveMacStressTests.release-store.xcconfig"; sourceTree = "<group>"; };
+		603A9F3FE5DFC61218F9BD60 /* Pods-ProtonDriveMacUITests.loadtesting-build.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacUITests.loadtesting-build.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacUITests/Pods-ProtonDriveMacUITests.loadtesting-build.xcconfig"; sourceTree = "<group>"; };
+		638C383BFFF232571C2C8368 /* Pods-ProtonDriveMac-Sparkle.loadtesting-development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-Sparkle.loadtesting-development.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-Sparkle/Pods-ProtonDriveMac-Sparkle.loadtesting-development.xcconfig"; sourceTree = "<group>"; };
+		64A085B297F980C3897B6183 /* Pods-ProtonDriveMacStressTests.release-external.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacStressTests.release-external.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacStressTests/Pods-ProtonDriveMacStressTests.release-external.xcconfig"; sourceTree = "<group>"; };
+		6604B9562B3240AA00A2ADB7 /* CompletionBlockWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletionBlockWrapper.swift; sourceTree = "<group>"; };
+		66196E662BA468A800363D89 /* DomainOperationsService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DomainOperationsService.swift; sourceTree = "<group>"; };
+		6619712B2BA2EA49008E4244 /* SyncMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncMonitor.swift; sourceTree = "<group>"; };
+		662365882AF946DE008E62C6 /* ReleaseNotesCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReleaseNotesCoordinator.swift; sourceTree = "<group>"; };
+		6623658B2AF94737008E62C6 /* ReleaseNotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesView.swift; sourceTree = "<group>"; };
+		6623658E2AF94892008E62C6 /* ReleaseNotesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesViewModel.swift; sourceTree = "<group>"; };
+		662365912AFA3D98008E62C6 /* ReleaseNotes.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = ReleaseNotes.html; sourceTree = "<group>"; };
+		663D194A2B05043C00DC9DC1 /* PDUploadVerifier.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDUploadVerifier.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		663D194D2B05044C00DC9DC1 /* PDUploadVerifier.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDUploadVerifier.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		667AECD72AE10D8700E2EAC1 /* AppUpdateService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppUpdateService.swift; sourceTree = "<group>"; };
+		6690C7FB2AD49DD60005FC8F /* ProtonDriveMacLauncher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProtonDriveMacLauncher.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6690C7FD2AD49DD60005FC8F /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		6690C8062AD49DD70005FC8F /* ProtonDriveMacLauncher.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ProtonDriveMacLauncher.entitlements; sourceTree = "<group>"; };
+		6697770A2AF15BE700929E9A /* Proton Drive.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Proton Drive.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		66A3C5282ACC7324009286D5 /* SettingsViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
+		66C25E712BFC9AB8004D7F8D /* InitializationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InitializationView.swift; sourceTree = "<group>"; };
+		66C25E722BFC9AB8004D7F8D /* InitializationCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InitializationCoordinator.swift; sourceTree = "<group>"; };
+		66E277E42C3D24F500E9B877 /* Proton Drive.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Proton Drive.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		66E277E52C3D24F500E9B877 /* LoadTesting-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "LoadTesting-Info.plist"; sourceTree = "<group>"; };
+		66E277F92C3D254C00E9B877 /* ProtonDriveFileProviderMac.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ProtonDriveFileProviderMac.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		66E277FA2C3D254D00E9B877 /* LoadTesting-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "LoadTesting-Info.plist"; sourceTree = "<group>"; };
+		66E278162C3D36B200E9B877 /* ProtonDrive-Config-LoadTesting-Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "ProtonDrive-Config-LoadTesting-Development.xcconfig"; sourceTree = "<group>"; };
+		66E278172C3D36B200E9B877 /* ProtonDrive-Config-LoadTesting-Build.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "ProtonDrive-Config-LoadTesting-Build.xcconfig"; sourceTree = "<group>"; };
+		66E278182C3D375000E9B877 /* ProtonDriveFileProvider-Config-LoadTesting-Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "ProtonDriveFileProvider-Config-LoadTesting-Development.xcconfig"; sourceTree = "<group>"; };
+		66E278192C3D375000E9B877 /* ProtonDriveFileProvider-Config-LoadTesting-Build.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "ProtonDriveFileProvider-Config-LoadTesting-Build.xcconfig"; sourceTree = "<group>"; };
+		66F061982B850C5600A6B067 /* stress-tests */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = "stress-tests"; sourceTree = "<group>"; };
+		66FAB3322AD55EF000ADAB83 /* LaunchOnBootService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LaunchOnBootService.swift; sourceTree = "<group>"; };
+		6DA1D41E4BD5A4B055DED750 /* Pods-ProtonDriveFileProviderMac-LoadTesting.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProviderMac-LoadTesting.debug.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProviderMac-LoadTesting/Pods-ProtonDriveFileProviderMac-LoadTesting.debug.xcconfig"; sourceTree = "<group>"; };
+		6EA4EE95A8E0D4A83370E4DB /* Pods_ProtonDriveFileProviderMac.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ProtonDriveFileProviderMac.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6F195F143CA763FFBA4A269A /* Pods_ProtonDriveMac_AppStore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ProtonDriveMac_AppStore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		73556AC69B0A93824F455123 /* Pods-ProtonDriveMac-Sparkle.release-external.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-Sparkle.release-external.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-Sparkle/Pods-ProtonDriveMac-Sparkle.release-external.xcconfig"; sourceTree = "<group>"; };
+		763AA3F129374F9F00AEE68E /* Config-Release-Store.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Config-Release-Store.xcconfig"; sourceTree = "<group>"; };
+		763AA3F22937503A00AEE68E /* ProtonDrive-Config-Release-Store.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "ProtonDrive-Config-Release-Store.xcconfig"; sourceTree = "<group>"; };
+		763AA3F329376D3700AEE68E /* ProtonDriveFileProvider-Config-Release-Store.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "ProtonDriveFileProvider-Config-Release-Store.xcconfig"; sourceTree = "<group>"; };
+		7652544E2BBD9FCD00E5A4B1 /* SyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncCoordinator.swift; sourceTree = "<group>"; };
+		766A9B8A2AE66F35002C3AFA /* FileTypeAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTypeAsset.swift; sourceTree = "<group>"; };
+		76993C7B2BF1C5B500DD4672 /* SyncStateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncStateService.swift; sourceTree = "<group>"; };
+		76A070A52AC5EE680002879C /* FileProviderExtension+SyncReporting.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FileProviderExtension+SyncReporting.swift"; sourceTree = "<group>"; };
+		76A2BBD72AE07E00005B77A2 /* SyncErrorRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncErrorRowView.swift; sourceTree = "<group>"; };
+		76A2BBD92AE25F26005B77A2 /* NotificationName+Window.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotificationName+Window.swift"; sourceTree = "<group>"; };
+		76AC03E22BE2F8E90046A7F4 /* ItemListView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemListView.swift; sourceTree = "<group>"; };
+		76AC03E32BE2F8E90046A7F4 /* ItemRowView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemRowView.swift; sourceTree = "<group>"; };
+		76CC332D2BEA235B00011A65 /* HeaderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
+		76CC33302BEA2BC900011A65 /* SyncActivityViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SyncActivityViewModel.swift; sourceTree = "<group>"; };
+		76CC33312BEA2BC900011A65 /* SyncActivityView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SyncActivityView.swift; sourceTree = "<group>"; };
+		76CC33392BEB7A7300011A65 /* ToolbarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolbarView.swift; sourceTree = "<group>"; };
+		76CC333A2BEB7A7300011A65 /* NotificationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationView.swift; sourceTree = "<group>"; };
+		76CC333B2BEB7A7400011A65 /* StateView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StateView.swift; sourceTree = "<group>"; };
+		76CEAF422A6CF67A000586F4 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		76CEAF442A6CF695000586F4 /* OnboardingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCoordinator.swift; sourceTree = "<group>"; };
+		76CEAF462A6CFDE3000586F4 /* AppContentDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContentDelegate.swift; sourceTree = "<group>"; };
+		76E80FED2ADF471700F0F4F2 /* ErrorCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorCoordinator.swift; sourceTree = "<group>"; };
+		76E80FEF2ADF4B1F00F0F4F2 /* SyncErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncErrorView.swift; sourceTree = "<group>"; };
+		76E80FF12ADF91B400F0F4F2 /* SyncErrorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncErrorViewModel.swift; sourceTree = "<group>"; };
+		77685DE9005373213CD836AA /* Pods-ProtonDriveMacUnitTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacUnitTests.debug.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacUnitTests/Pods-ProtonDriveMacUnitTests.debug.xcconfig"; sourceTree = "<group>"; };
+		7B0F20064D2D9D9EDD51954E /* Pods-ProtonDriveMacUnitTests.release-qa.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacUnitTests.release-qa.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacUnitTests/Pods-ProtonDriveMacUnitTests.release-qa.xcconfig"; sourceTree = "<group>"; };
+		7EC2CE887ED2A30E722383BB /* Pods_ProtonDriveMac_Sparkle.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ProtonDriveMac_Sparkle.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		7F537C61053A6448F5AE2BEB /* Pods-ProtonDriveFileProviderMac-LoadTesting.loadtesting-development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProviderMac-LoadTesting.loadtesting-development.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProviderMac-LoadTesting/Pods-ProtonDriveFileProviderMac-LoadTesting.loadtesting-development.xcconfig"; sourceTree = "<group>"; };
+		812DB596F4549F55415B2A42 /* Pods-ProtonDriveMacStressTests.release-qa.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacStressTests.release-qa.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacStressTests/Pods-ProtonDriveMacStressTests.release-qa.xcconfig"; sourceTree = "<group>"; };
+		849BB71998360D8B2F353DA5 /* Pods-ProtonDriveMac-LoadTesting.loadtesting-development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-LoadTesting.loadtesting-development.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-LoadTesting/Pods-ProtonDriveMac-LoadTesting.loadtesting-development.xcconfig"; sourceTree = "<group>"; };
+		907C65338674E7169CDA22B3 /* Pods-ProtonDriveFileProvider.release-qa.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProvider.release-qa.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProvider/Pods-ProtonDriveFileProvider.release-qa.xcconfig"; sourceTree = "<group>"; };
+		92557422B48D3917FA92FA37 /* Pods-ProtonDriveMac-LoadTesting.release-external.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-LoadTesting.release-external.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-LoadTesting/Pods-ProtonDriveMac-LoadTesting.release-external.xcconfig"; sourceTree = "<group>"; };
+		9AB31DF2467D470DBE4BBBA1 /* Pods-ProtonDriveFileProviderMac-LoadTesting.release-store.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProviderMac-LoadTesting.release-store.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProviderMac-LoadTesting/Pods-ProtonDriveFileProviderMac-LoadTesting.release-store.xcconfig"; sourceTree = "<group>"; };
+		9DE0473BB9D943288F0CA036 /* Pods-ProtonDriveFileProviderMac-LoadTesting.loadtesting-build.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveFileProviderMac-LoadTesting.loadtesting-build.xcconfig"; path = "Target Support Files/Pods-ProtonDriveFileProviderMac-LoadTesting/Pods-ProtonDriveFileProviderMac-LoadTesting.loadtesting-build.xcconfig"; sourceTree = "<group>"; };
+		A40D5234AD16FF37D953C1CD /* Pods-ProtonDriveMac-AppStore.release-store.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-AppStore.release-store.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-AppStore/Pods-ProtonDriveMac-AppStore.release-store.xcconfig"; sourceTree = "<group>"; };
+		A48E0707281BDA7FD70BE193 /* Pods-ProtonDriveMacUnitTests.release-external.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacUnitTests.release-external.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacUnitTests/Pods-ProtonDriveMacUnitTests.release-external.xcconfig"; sourceTree = "<group>"; };
+		A789ABCC84A5E05A0A083B8A /* Pods-ProtonDriveMacIntegrationTests.release-external.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacIntegrationTests.release-external.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacIntegrationTests/Pods-ProtonDriveMacIntegrationTests.release-external.xcconfig"; sourceTree = "<group>"; };
+		AB178DDD244D694B00010811 /* ProtonDrive-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ProtonDrive-Bridging-Header.h"; sourceTree = "<group>"; };
+		AB22ED1F242AB5F400A97350 /* PDClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB23B7ED25FB50EE00EA10D1 /* PDUIComponents.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDUIComponents.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB3531312430C63200F7DF85 /* PDFileSystemEvents.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDFileSystemEvents.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB36A2832542D52600A2BD0A /* PDClientMac.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDClientMac.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB36A2842542D52600A2BD0A /* PDCoreMac.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDCoreMac.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB48E8D22428BB590016E4E2 /* PDCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB71532024274ED900543720 /* Proton Drive.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Proton Drive.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB71532324274ED900543720 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		AB71532724274EDA00543720 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AB71532A24274EDA00543720 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Menu.storyboard; sourceTree = "<group>"; };
+		AB71532C24274EDA00543720 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AB71532D24274EDA00543720 /* ProtonDrive.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ProtonDrive.entitlements; sourceTree = "<group>"; };
+		AB75A83725D1560D000681AF /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		AB75AC5F25D18511000681AF /* PDFileProvider.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDFileProvider.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		ABA9E18925592C7F00507BE3 /* PDClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		ABA9E19025592C8300507BE3 /* PDCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		ABA9E240255930B100507BE3 /* PDFileSystemEvents.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDFileSystemEvents.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		ABA9E243255930C100507BE3 /* PDFileSystemEvents.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDFileSystemEvents.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		ABD1908D25A30FF7005D3E29 /* ProtonDriveFileProviderMac.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ProtonDriveFileProviderMac.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		ABD1908F25A30FF7005D3E29 /* FileProviderExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderExtension.swift; sourceTree = "<group>"; };
+		ABD1909525A30FF7005D3E29 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		ABD1909625A30FF7005D3E29 /* ProtonDriveFileProvider.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ProtonDriveFileProvider.entitlements; sourceTree = "<group>"; };
+		ABD190B225A31107005D3E29 /* FileProvider.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FileProvider.framework; path = System/Library/Frameworks/FileProvider.framework; sourceTree = SDKROOT; };
+		ABE2313025FF8147009FEAF7 /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
+		ABE233502600E387009FEAF7 /* ProtonDrive-Config-Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "ProtonDrive-Config-Debug.xcconfig"; sourceTree = "<group>"; };
+		ABE233512600E387009FEAF7 /* ProtonDrive-Config-Release-QA.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "ProtonDrive-Config-Release-QA.xcconfig"; sourceTree = "<group>"; };
+		ABE233522600E387009FEAF7 /* ProtonDrive-Config-Release-External.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "ProtonDrive-Config-Release-External.xcconfig"; sourceTree = "<group>"; };
+		ABE234492600E693009FEAF7 /* ProtonDriveFileProvider-Config-Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "ProtonDriveFileProvider-Config-Debug.xcconfig"; sourceTree = "<group>"; };
+		ABE2344A2600E693009FEAF7 /* ProtonDriveFileProvider-Config-Release-QA.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "ProtonDriveFileProvider-Config-Release-QA.xcconfig"; sourceTree = "<group>"; };
+		ABE2344B2600E693009FEAF7 /* ProtonDriveFileProvider-Config-Release-External.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "ProtonDriveFileProvider-Config-Release-External.xcconfig"; sourceTree = "<group>"; };
+		B64A7485C15A9BEDFCE4BF66 /* Pods-ProtonDriveMacStressTests.loadtesting-development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacStressTests.loadtesting-development.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacStressTests/Pods-ProtonDriveMacStressTests.loadtesting-development.xcconfig"; sourceTree = "<group>"; };
+		C655B8ACADAF31B56CA723A8 /* Pods-ProtonDrive.release-external.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDrive.release-external.xcconfig"; path = "Target Support Files/Pods-ProtonDrive/Pods-ProtonDrive.release-external.xcconfig"; sourceTree = "<group>"; };
+		CA447FBE76C96EED71A90258 /* Pods-ProtonDriveMac-AppStore.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-AppStore.debug.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-AppStore/Pods-ProtonDriveMac-AppStore.debug.xcconfig"; sourceTree = "<group>"; };
+		CD3E73E85A4F7D65BFAEA9F6 /* Pods-ProtonDriveMacIntegrationTests.loadtesting-development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacIntegrationTests.loadtesting-development.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacIntegrationTests/Pods-ProtonDriveMacIntegrationTests.loadtesting-development.xcconfig"; sourceTree = "<group>"; };
+		CFBA0809BB7B94BEB6AE471A /* Pods-ProtonDriveMac-Sparkle.release-store.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-Sparkle.release-store.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-Sparkle/Pods-ProtonDriveMac-Sparkle.release-store.xcconfig"; sourceTree = "<group>"; };
+		D0A09404F2CBDD94A3AB2655 /* Pods-ProtonDriveMacUnitTests.release-store.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacUnitTests.release-store.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacUnitTests/Pods-ProtonDriveMacUnitTests.release-store.xcconfig"; sourceTree = "<group>"; };
+		D282FA56A178BBCE55348772 /* Pods-ProtonDriveMacStressTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacStressTests.debug.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacStressTests/Pods-ProtonDriveMacStressTests.debug.xcconfig"; sourceTree = "<group>"; };
+		D41E952529126BF800A586C9 /* SettingsCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCoordinator.swift; sourceTree = "<group>"; };
+		D432531C28DDB59E009D7B62 /* PDLogin_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDLogin_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D44C325B2A30D05700D2BA77 /* QASettingsCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QASettingsCoordinator.swift; sourceTree = "<group>"; };
+		D44C325D2A30D11200D2BA77 /* QASettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QASettingsView.swift; sourceTree = "<group>"; };
+		D44C325F2A30D2CD00D2BA77 /* QASettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QASettingsViewModel.swift; sourceTree = "<group>"; };
+		D458EEE4286DA94200C325C1 /* PostLoginServicesBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostLoginServicesBuilder.swift; sourceTree = "<group>"; };
+		D4989F852C18AADF003DFF5E /* ProtonDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtonDocument.swift; sourceTree = "<group>"; };
+		D49F4C19286C67B6009F70D7 /* MetadataMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataMonitor.swift; sourceTree = "<group>"; };
+		D4A97F87291132AE00147E9C /* MenuBarCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarCoordinator.swift; sourceTree = "<group>"; };
+		D4B837F32848FB00005488F6 /* NSImage+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSImage+Extension.swift"; sourceTree = "<group>"; };
+		D4C433482AF2BA27001240B2 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		D4CA67C7290FAD4A00F4AEBF /* InitialsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InitialsView.swift; sourceTree = "<group>"; };
+		D4CA67C9290FAD5100F4AEBF /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		D4CC491828705C7F00C6E83F /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		D4CC491A28717CC600C6E83F /* RemoteChangeSignaler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteChangeSignaler.swift; sourceTree = "<group>"; };
+		D4CC491C28717CF500C6E83F /* MetadataMonitorBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataMonitorBuilder.swift; sourceTree = "<group>"; };
+		D4D84DC82C2FF3A0007079B4 /* ProtonDocumentController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtonDocumentController.swift; sourceTree = "<group>"; };
+		D4D84DCB2C300FBB007079B4 /* macOSURLCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = macOSURLCoordinator.swift; sourceTree = "<group>"; };
+		D4D84DD52C315546007079B4 /* UserMessageHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMessageHandler.swift; sourceTree = "<group>"; };
+		D4E50F812B838485006E94F6 /* ActivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityService.swift; sourceTree = "<group>"; };
+		D4F28D2929E97AAE00065CD3 /* DriveCoreAlertListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveCoreAlertListener.swift; sourceTree = "<group>"; };
+		D8D6FB902B503E2400FB71AE /* Dumper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dumper.swift; sourceTree = "<group>"; };
+		DAE669BD814DEEE10EDAAE1B /* Pods-ProtonDriveMac-Sparkle.release-qa.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-Sparkle.release-qa.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-Sparkle/Pods-ProtonDriveMac-Sparkle.release-qa.xcconfig"; sourceTree = "<group>"; };
+		DAEFA315C4D245BAF6636E1E /* Pods-ProtonDriveMac-LoadTesting.release-store.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-LoadTesting.release-store.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-LoadTesting/Pods-ProtonDriveMac-LoadTesting.release-store.xcconfig"; sourceTree = "<group>"; };
+		DCC5AA15443CF8B70DDAC01F /* Pods-ProtonDriveMacUITests.loadtesting-development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacUITests.loadtesting-development.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacUITests/Pods-ProtonDriveMacUITests.loadtesting-development.xcconfig"; sourceTree = "<group>"; };
+		E0EC5A2DA9A09C43E1FEFC5D /* Pods-ProtonDriveMac-LoadTesting.loadtesting-build.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-LoadTesting.loadtesting-build.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-LoadTesting/Pods-ProtonDriveMac-LoadTesting.loadtesting-build.xcconfig"; sourceTree = "<group>"; };
+		E2C4B26100C4D3F7EA7CC0BC /* Pods-ProtonDriveMac-AppStore.release-qa.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-AppStore.release-qa.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-AppStore/Pods-ProtonDriveMac-AppStore.release-qa.xcconfig"; sourceTree = "<group>"; };
+		F8840E03A68C47EA46A5EAB4 /* Pods-ProtonDriveMacIntegrationTests.release-store.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacIntegrationTests.release-store.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacIntegrationTests/Pods-ProtonDriveMacIntegrationTests.release-store.xcconfig"; sourceTree = "<group>"; };
+		FA1D6DBEBB8B242B34DE7543 /* Pods-ProtonDriveMacUITests.release-external.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMacUITests.release-external.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMacUITests/Pods-ProtonDriveMacUITests.release-external.xcconfig"; sourceTree = "<group>"; };
+		FBC7C72DA58514BA41C2A229 /* Pods-ProtonDriveMac-LoadTesting.release-qa.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ProtonDriveMac-LoadTesting.release-qa.xcconfig"; path = "Target Support Files/Pods-ProtonDriveMac-LoadTesting/Pods-ProtonDriveMac-LoadTesting.release-qa.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6690C7F82AD49DD60005FC8F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		669776EF2AF15BE700929E9A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				669776F02AF15BE700929E9A /* PDUIComponents.framework in Frameworks */,
+				669776F12AF15BE700929E9A /* PDLogin_macOS.framework in Frameworks */,
+				669776F22AF15BE700929E9A /* PDCore.framework in Frameworks */,
+				D8262F312C40364B00867704 /* PDLocalization in Frameworks */,
+				663D194B2B05043C00DC9DC1 /* PDUploadVerifier.framework in Frameworks */,
+				669776F32AF15BE700929E9A /* PDFileProvider.framework in Frameworks */,
+				669776F52AF15BE700929E9A /* PDClient.framework in Frameworks */,
+				D073FDFCC8D3652B69D33FF0 /* Pods_ProtonDriveMac_AppStore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AB71531D24274ED900543720 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AB23B7EE25FB50EE00EA10D1 /* PDUIComponents.framework in Frameworks */,
+				D432531D28DDB59E009D7B62 /* PDLogin_macOS.framework in Frameworks */,
+				ABA9E19125592C8300507BE3 /* PDCore.framework in Frameworks */,
+				663D194E2B05044C00DC9DC1 /* PDUploadVerifier.framework in Frameworks */,
+				AB75AD4825D18A76000681AF /* PDFileProvider.framework in Frameworks */,
+				76B3FA352971A52E0031D361 /* PDClient.framework in Frameworks */,
+				BA20D65780848543C4D77A57 /* Pods_ProtonDriveMac_Sparkle.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ABD1908A25A30FF7005D3E29 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				31CDDF542A9E04D800FB8285 /* PDUploadVerifier.framework in Frameworks */,
+				AB0334E5261AF9D00030167E /* PDFileProvider.framework in Frameworks */,
+				5664614E2967CE5024E07321 /* Pods_ProtonDriveFileProviderMac.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		6616F52E2B7E606C0001C751 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				66F061982B850C5600A6B067 /* stress-tests */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+		662365872AF946C4008E62C6 /* ReleaseNotes */ = {
+			isa = PBXGroup;
+			children = (
+				662365882AF946DE008E62C6 /* ReleaseNotesCoordinator.swift */,
+				6623658B2AF94737008E62C6 /* ReleaseNotesView.swift */,
+				6623658E2AF94892008E62C6 /* ReleaseNotesViewModel.swift */,
+			);
+			path = ReleaseNotes;
+			sourceTree = "<group>";
+		};
+		6690C7FC2AD49DD60005FC8F /* ProtonDriveMacLauncher */ = {
+			isa = PBXGroup;
+			children = (
+				6690C7FD2AD49DD60005FC8F /* main.swift */,
+				6690C8062AD49DD70005FC8F /* ProtonDriveMacLauncher.entitlements */,
+			);
+			path = ProtonDriveMacLauncher;
+			sourceTree = "<group>";
+		};
+		66C25E702BFC9AA6004D7F8D /* Initialization */ = {
+			isa = PBXGroup;
+			children = (
+				66C25E722BFC9AB8004D7F8D /* InitializationCoordinator.swift */,
+				66C25E712BFC9AB8004D7F8D /* InitializationView.swift */,
+			);
+			path = Initialization;
+			sourceTree = "<group>";
+		};
+		7652544D2BBD9FA700E5A4B1 /* Syncing */ = {
+			isa = PBXGroup;
+			children = (
+				7652544E2BBD9FCD00E5A4B1 /* SyncCoordinator.swift */,
+				76993C7B2BF1C5B500DD4672 /* SyncStateService.swift */,
+				76AC03E52BE2F8E90046A7F4 /* TrayApp */,
+				76E80FEC2ADF46DF00F0F4F2 /* Errors */,
+			);
+			path = Syncing;
+			sourceTree = "<group>";
+		};
+		76AC03E42BE2F8E90046A7F4 /* Subviews */ = {
+			isa = PBXGroup;
+			children = (
+				76CC332D2BEA235B00011A65 /* HeaderView.swift */,
+				76AC03E22BE2F8E90046A7F4 /* ItemListView.swift */,
+				76AC03E32BE2F8E90046A7F4 /* ItemRowView.swift */,
+				76CC333A2BEB7A7300011A65 /* NotificationView.swift */,
+				76CC333B2BEB7A7400011A65 /* StateView.swift */,
+				76CC33392BEB7A7300011A65 /* ToolbarView.swift */,
+			);
+			path = Subviews;
+			sourceTree = "<group>";
+		};
+		76AC03E52BE2F8E90046A7F4 /* TrayApp */ = {
+			isa = PBXGroup;
+			children = (
+				76CC33312BEA2BC900011A65 /* SyncActivityView.swift */,
+				76CC33302BEA2BC900011A65 /* SyncActivityViewModel.swift */,
+				76AC03E42BE2F8E90046A7F4 /* Subviews */,
+			);
+			path = TrayApp;
+			sourceTree = "<group>";
+		};
+		76CEAF412A6CF64B000586F4 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				76CEAF442A6CF695000586F4 /* OnboardingCoordinator.swift */,
+				76CEAF422A6CF67A000586F4 /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		76E80FEC2ADF46DF00F0F4F2 /* Errors */ = {
+			isa = PBXGroup;
+			children = (
+				76E80FED2ADF471700F0F4F2 /* ErrorCoordinator.swift */,
+				76E80FEF2ADF4B1F00F0F4F2 /* SyncErrorView.swift */,
+				76E80FF12ADF91B400F0F4F2 /* SyncErrorViewModel.swift */,
+				76A2BBD72AE07E00005B77A2 /* SyncErrorRowView.swift */,
+				766A9B8A2AE66F35002C3AFA /* FileTypeAsset.swift */,
+			);
+			path = Errors;
+			sourceTree = "<group>";
+		};
+		AB0333C2261AF7D30030167E /* SharedBuildConfigs */ = {
+			isa = PBXGroup;
+			children = (
+				763AA3F129374F9F00AEE68E /* Config-Release-Store.xcconfig */,
+			);
+			path = SharedBuildConfigs;
+			sourceTree = "<group>";
+		};
+		AB48E8D12428BB590016E4E2 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				663D194D2B05044C00DC9DC1 /* PDUploadVerifier.framework */,
+				663D194A2B05043C00DC9DC1 /* PDUploadVerifier.framework */,
+				31CDDF532A9E04D800FB8285 /* PDUploadVerifier.framework */,
+				31CDDF512A9E04CE00FB8285 /* PDUploadVerifier.framework */,
+				D432531C28DDB59E009D7B62 /* PDLogin_macOS.framework */,
+				AB23B7ED25FB50EE00EA10D1 /* PDUIComponents.framework */,
+				AB75AC5F25D18511000681AF /* PDFileProvider.framework */,
+				ABD190B225A31107005D3E29 /* FileProvider.framework */,
+				ABA9E243255930C100507BE3 /* PDFileSystemEvents.framework */,
+				ABA9E240255930B100507BE3 /* PDFileSystemEvents.framework */,
+				ABA9E19025592C8300507BE3 /* PDCore.framework */,
+				ABA9E18925592C7F00507BE3 /* PDClient.framework */,
+				AB36A2832542D52600A2BD0A /* PDClientMac.framework */,
+				AB36A2842542D52600A2BD0A /* PDCoreMac.framework */,
+				AB3531312430C63200F7DF85 /* PDFileSystemEvents.framework */,
+				AB22ED1F242AB5F400A97350 /* PDClient.framework */,
+				AB48E8D22428BB590016E4E2 /* PDCore.framework */,
+				6F195F143CA763FFBA4A269A /* Pods_ProtonDriveMac_AppStore.framework */,
+				7EC2CE887ED2A30E722383BB /* Pods_ProtonDriveMac_Sparkle.framework */,
+				6EA4EE95A8E0D4A83370E4DB /* Pods_ProtonDriveFileProviderMac.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		AB71531724274ED900543720 = {
+			isa = PBXGroup;
+			children = (
+				6616F52E2B7E606C0001C751 /* Packages */,
+				662365912AFA3D98008E62C6 /* ReleaseNotes.html */,
+				AB75A83725D1560D000681AF /* Constants.swift */,
+				D4C433482AF2BA27001240B2 /* README.md */,
+				AB0333C2261AF7D30030167E /* SharedBuildConfigs */,
+				AB71532224274ED900543720 /* ProtonDriveMac */,
+				ABD1908E25A30FF7005D3E29 /* ProtonDriveFileProviderMac */,
+				6690C7FC2AD49DD60005FC8F /* ProtonDriveMacLauncher */,
+				AB71532124274ED900543720 /* Products */,
+				AB48E8D12428BB590016E4E2 /* Frameworks */,
+				C930CCEFF4951F4B327DDE18 /* Pods */,
+			);
+			sourceTree = "<group>";
+		};
+		AB71532124274ED900543720 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AB71532024274ED900543720 /* Proton Drive.app */,
+				ABD1908D25A30FF7005D3E29 /* ProtonDriveFileProviderMac.appex */,
+				6690C7FB2AD49DD60005FC8F /* ProtonDriveMacLauncher.app */,
+				6697770A2AF15BE700929E9A /* Proton Drive.app */,
+				66E277E42C3D24F500E9B877 /* Proton Drive.app */,
+				66E277F92C3D254C00E9B877 /* ProtonDriveFileProviderMac.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AB71532224274ED900543720 /* ProtonDriveMac */ = {
+			isa = PBXGroup;
+			children = (
+				D4CC491828705C7F00C6E83F /* main.m */,
+				D4E50F812B838485006E94F6 /* ActivityService.swift */,
+				AB71532324274ED900543720 /* AppDelegate.swift */,
+				ABE2313025FF8147009FEAF7 /* AppCoordinator.swift */,
+				76CEAF462A6CFDE3000586F4 /* AppContentDelegate.swift */,
+				D4A97F87291132AE00147E9C /* MenuBarCoordinator.swift */,
+				D49F4C19286C67B6009F70D7 /* MetadataMonitor.swift */,
+				6619712B2BA2EA49008E4244 /* SyncMonitor.swift */,
+				66196E662BA468A800363D89 /* DomainOperationsService.swift */,
+				D4CC491A28717CC600C6E83F /* RemoteChangeSignaler.swift */,
+				D4F28D2929E97AAE00065CD3 /* DriveCoreAlertListener.swift */,
+				D8D6FB902B503E2400FB71AE /* Dumper.swift */,
+				D458EEE3286DA92000C325C1 /* Builders */,
+				ABB3787C245EAD1400931539 /* Scenes */,
+				7652544D2BBD9FA700E5A4B1 /* Syncing */,
+				D44C325A2A30D02900D2BA77 /* QA Settings */,
+				D40E5C8A2C2F692400BB50DA /* Proton Document */,
+				D4B837F22848FABB005488F6 /* Extensions */,
+				AB178DDD244D694B00010811 /* ProtonDrive-Bridging-Header.h */,
+				AB71532724274EDA00543720 /* Assets.xcassets */,
+				AB71532924274EDA00543720 /* Menu.storyboard */,
+				AB71532C24274EDA00543720 /* Info.plist */,
+				66E277E52C3D24F500E9B877 /* LoadTesting-Info.plist */,
+				AB71532D24274EDA00543720 /* ProtonDrive.entitlements */,
+				ABE2334F2600E387009FEAF7 /* BuildConfigs */,
+				3E0ABD922C6315C3009CABB5 /* Localizable.xcstrings */,
+			);
+			path = ProtonDriveMac;
+			sourceTree = "<group>";
+		};
+		ABB3787C245EAD1400931539 /* Scenes */ = {
+			isa = PBXGroup;
+			children = (
+				66C25E702BFC9AA6004D7F8D /* Initialization */,
+				D4D84DD42C31551F007079B4 /* MessageHandler */,
+				76CEAF412A6CF64B000586F4 /* Onboarding */,
+				D4CA67C4290FAD2A00F4AEBF /* Settings */,
+			);
+			path = Scenes;
+			sourceTree = "<group>";
+		};
+		ABD1908E25A30FF7005D3E29 /* ProtonDriveFileProviderMac */ = {
+			isa = PBXGroup;
+			children = (
+				ABD1908F25A30FF7005D3E29 /* FileProviderExtension.swift */,
+				76A070A52AC5EE680002879C /* FileProviderExtension+SyncReporting.swift */,
+				6604B9562B3240AA00A2ADB7 /* CompletionBlockWrapper.swift */,
+				ABD1909525A30FF7005D3E29 /* Info.plist */,
+				66E277FA2C3D254D00E9B877 /* LoadTesting-Info.plist */,
+				ABD1909625A30FF7005D3E29 /* ProtonDriveFileProvider.entitlements */,
+				ABE234482600E693009FEAF7 /* BuildConfigs */,
+			);
+			path = ProtonDriveFileProviderMac;
+			sourceTree = "<group>";
+		};
+		ABE2334F2600E387009FEAF7 /* BuildConfigs */ = {
+			isa = PBXGroup;
+			children = (
+				66E278172C3D36B200E9B877 /* ProtonDrive-Config-LoadTesting-Build.xcconfig */,
+				66E278162C3D36B200E9B877 /* ProtonDrive-Config-LoadTesting-Development.xcconfig */,
+				ABE233502600E387009FEAF7 /* ProtonDrive-Config-Debug.xcconfig */,
+				ABE233512600E387009FEAF7 /* ProtonDrive-Config-Release-QA.xcconfig */,
+				ABE233522600E387009FEAF7 /* ProtonDrive-Config-Release-External.xcconfig */,
+				763AA3F22937503A00AEE68E /* ProtonDrive-Config-Release-Store.xcconfig */,
+			);
+			path = BuildConfigs;
+			sourceTree = "<group>";
+		};
+		ABE234482600E693009FEAF7 /* BuildConfigs */ = {
+			isa = PBXGroup;
+			children = (
+				66E278192C3D375000E9B877 /* ProtonDriveFileProvider-Config-LoadTesting-Build.xcconfig */,
+				66E278182C3D375000E9B877 /* ProtonDriveFileProvider-Config-LoadTesting-Development.xcconfig */,
+				ABE234492600E693009FEAF7 /* ProtonDriveFileProvider-Config-Debug.xcconfig */,
+				ABE2344A2600E693009FEAF7 /* ProtonDriveFileProvider-Config-Release-QA.xcconfig */,
+				ABE2344B2600E693009FEAF7 /* ProtonDriveFileProvider-Config-Release-External.xcconfig */,
+				763AA3F329376D3700AEE68E /* ProtonDriveFileProvider-Config-Release-Store.xcconfig */,
+			);
+			path = BuildConfigs;
+			sourceTree = "<group>";
+		};
+		C930CCEFF4951F4B327DDE18 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				407A2E694C1D5B42C727F73B /* Pods-ProtonDrive.debug.xcconfig */,
+				C655B8ACADAF31B56CA723A8 /* Pods-ProtonDrive.release-external.xcconfig */,
+				059423BD2D1EA2EBE9A938CD /* Pods-ProtonDriveFileProvider.debug.xcconfig */,
+				34227D3CA411436D401DA449 /* Pods-ProtonDriveFileProvider.release-external.xcconfig */,
+				907C65338674E7169CDA22B3 /* Pods-ProtonDriveFileProvider.release-qa.xcconfig */,
+				3F6D85919890931E9963DFB1 /* Pods-ProtonDriveFileProviderMac.debug.xcconfig */,
+				2A6C011EB803AF669A699AAE /* Pods-ProtonDriveFileProviderMac.release-external.xcconfig */,
+				3B3517E7FE859D941258A2F5 /* Pods-ProtonDriveFileProviderMac.release-qa.xcconfig */,
+				77685DE9005373213CD836AA /* Pods-ProtonDriveMacUnitTests.debug.xcconfig */,
+				A48E0707281BDA7FD70BE193 /* Pods-ProtonDriveMacUnitTests.release-external.xcconfig */,
+				7B0F20064D2D9D9EDD51954E /* Pods-ProtonDriveMacUnitTests.release-qa.xcconfig */,
+				5222CD09DC62DF2E2AB6EB07 /* Pods-ProtonDriveMacIntegrationTests.debug.xcconfig */,
+				A789ABCC84A5E05A0A083B8A /* Pods-ProtonDriveMacIntegrationTests.release-external.xcconfig */,
+				425FCDDAD2878F73E6A1398E /* Pods-ProtonDriveMacIntegrationTests.release-qa.xcconfig */,
+				1903D75C3F294B5E0297265E /* Pods-ProtonDriveMacUITests.debug.xcconfig */,
+				FA1D6DBEBB8B242B34DE7543 /* Pods-ProtonDriveMacUITests.release-external.xcconfig */,
+				400C64AD28A78ACB81DFC8D1 /* Pods-ProtonDriveMacUITests.release-qa.xcconfig */,
+				0DCB432AC1FE85D6FC084A60 /* Pods-ProtonDriveFileProviderMac.release-store.xcconfig */,
+				F8840E03A68C47EA46A5EAB4 /* Pods-ProtonDriveMacIntegrationTests.release-store.xcconfig */,
+				2760F74386F4110A0D0444BC /* Pods-ProtonDriveMacUITests.release-store.xcconfig */,
+				D0A09404F2CBDD94A3AB2655 /* Pods-ProtonDriveMacUnitTests.release-store.xcconfig */,
+				CA447FBE76C96EED71A90258 /* Pods-ProtonDriveMac-AppStore.debug.xcconfig */,
+				34BF1B9AEDB50ECD1734495B /* Pods-ProtonDriveMac-AppStore.release-external.xcconfig */,
+				A40D5234AD16FF37D953C1CD /* Pods-ProtonDriveMac-AppStore.release-store.xcconfig */,
+				E2C4B26100C4D3F7EA7CC0BC /* Pods-ProtonDriveMac-AppStore.release-qa.xcconfig */,
+				0D3297C5A605708C3140E11D /* Pods-ProtonDriveMac-Sparkle.debug.xcconfig */,
+				73556AC69B0A93824F455123 /* Pods-ProtonDriveMac-Sparkle.release-external.xcconfig */,
+				CFBA0809BB7B94BEB6AE471A /* Pods-ProtonDriveMac-Sparkle.release-store.xcconfig */,
+				DAE669BD814DEEE10EDAAE1B /* Pods-ProtonDriveMac-Sparkle.release-qa.xcconfig */,
+				D282FA56A178BBCE55348772 /* Pods-ProtonDriveMacStressTests.debug.xcconfig */,
+				64A085B297F980C3897B6183 /* Pods-ProtonDriveMacStressTests.release-external.xcconfig */,
+				5990E90688A6D1FC4778DC13 /* Pods-ProtonDriveMacStressTests.release-store.xcconfig */,
+				812DB596F4549F55415B2A42 /* Pods-ProtonDriveMacStressTests.release-qa.xcconfig */,
+				33C2EAE82F237BB017747579 /* Pods-ProtonDriveFileProviderMac.loadtesting-development.xcconfig */,
+				46C7C1CA4D504C5DF558A28F /* Pods-ProtonDriveFileProviderMac.loadtesting-build.xcconfig */,
+				6DA1D41E4BD5A4B055DED750 /* Pods-ProtonDriveFileProviderMac-LoadTesting.debug.xcconfig */,
+				7F537C61053A6448F5AE2BEB /* Pods-ProtonDriveFileProviderMac-LoadTesting.loadtesting-development.xcconfig */,
+				3190944D5C8016F7C4BF691C /* Pods-ProtonDriveFileProviderMac-LoadTesting.release-external.xcconfig */,
+				9AB31DF2467D470DBE4BBBA1 /* Pods-ProtonDriveFileProviderMac-LoadTesting.release-store.xcconfig */,
+				9DE0473BB9D943288F0CA036 /* Pods-ProtonDriveFileProviderMac-LoadTesting.loadtesting-build.xcconfig */,
+				1513F45E0A3D305B7BD66234 /* Pods-ProtonDriveFileProviderMac-LoadTesting.release-qa.xcconfig */,
+				2EB5D317774EA232A9082B41 /* Pods-ProtonDriveMac-AppStore.loadtesting-development.xcconfig */,
+				0F603AC8A5DC740E8B2CB552 /* Pods-ProtonDriveMac-AppStore.loadtesting-build.xcconfig */,
+				3F76AC8A66049B798B7D9A46 /* Pods-ProtonDriveMac-LoadTesting.debug.xcconfig */,
+				849BB71998360D8B2F353DA5 /* Pods-ProtonDriveMac-LoadTesting.loadtesting-development.xcconfig */,
+				92557422B48D3917FA92FA37 /* Pods-ProtonDriveMac-LoadTesting.release-external.xcconfig */,
+				DAEFA315C4D245BAF6636E1E /* Pods-ProtonDriveMac-LoadTesting.release-store.xcconfig */,
+				E0EC5A2DA9A09C43E1FEFC5D /* Pods-ProtonDriveMac-LoadTesting.loadtesting-build.xcconfig */,
+				FBC7C72DA58514BA41C2A229 /* Pods-ProtonDriveMac-LoadTesting.release-qa.xcconfig */,
+				638C383BFFF232571C2C8368 /* Pods-ProtonDriveMac-Sparkle.loadtesting-development.xcconfig */,
+				49F065FC27204A7050915E67 /* Pods-ProtonDriveMac-Sparkle.loadtesting-build.xcconfig */,
+				CD3E73E85A4F7D65BFAEA9F6 /* Pods-ProtonDriveMacIntegrationTests.loadtesting-development.xcconfig */,
+				513A82B1FA5F0261FE9289BB /* Pods-ProtonDriveMacIntegrationTests.loadtesting-build.xcconfig */,
+				B64A7485C15A9BEDFCE4BF66 /* Pods-ProtonDriveMacStressTests.loadtesting-development.xcconfig */,
+				4669DB9E39C8E8B6780B83E1 /* Pods-ProtonDriveMacStressTests.loadtesting-build.xcconfig */,
+				DCC5AA15443CF8B70DDAC01F /* Pods-ProtonDriveMacUITests.loadtesting-development.xcconfig */,
+				603A9F3FE5DFC61218F9BD60 /* Pods-ProtonDriveMacUITests.loadtesting-build.xcconfig */,
+				2CCD051A07CEB73B8914EF03 /* Pods-ProtonDriveMacUnitTests.loadtesting-development.xcconfig */,
+				36E0B2B604EA4B784CDFB033 /* Pods-ProtonDriveMacUnitTests.loadtesting-build.xcconfig */,
+			);
+			name = Pods;
+			path = ../Pods;
+			sourceTree = "<group>";
+		};
+		D40E5C8A2C2F692400BB50DA /* Proton Document */ = {
+			isa = PBXGroup;
+			children = (
+				D4D84DD22C3154AE007079B4 /* Application */,
+				D4D84DD32C3154BF007079B4 /* Platform */,
+			);
+			path = "Proton Document";
+			sourceTree = "<group>";
+		};
+		D44C325A2A30D02900D2BA77 /* QA Settings */ = {
+			isa = PBXGroup;
+			children = (
+				D44C325B2A30D05700D2BA77 /* QASettingsCoordinator.swift */,
+				D44C325D2A30D11200D2BA77 /* QASettingsView.swift */,
+				D44C325F2A30D2CD00D2BA77 /* QASettingsViewModel.swift */,
+			);
+			path = "QA Settings";
+			sourceTree = "<group>";
+		};
+		D458EEE3286DA92000C325C1 /* Builders */ = {
+			isa = PBXGroup;
+			children = (
+				D458EEE4286DA94200C325C1 /* PostLoginServicesBuilder.swift */,
+				D4CC491C28717CF500C6E83F /* MetadataMonitorBuilder.swift */,
+			);
+			path = Builders;
+			sourceTree = "<group>";
+		};
+		D4B837F22848FABB005488F6 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				D4B837F32848FB00005488F6 /* NSImage+Extension.swift */,
+				76A2BBD92AE25F26005B77A2 /* NotificationName+Window.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		D4CA67C4290FAD2A00F4AEBF /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				662365872AF946C4008E62C6 /* ReleaseNotes */,
+				66FAB3322AD55EF000ADAB83 /* LaunchOnBootService.swift */,
+				667AECD72AE10D8700E2EAC1 /* AppUpdateService.swift */,
+				66A3C5282ACC7324009286D5 /* SettingsViewModel.swift */,
+				D4CA67C9290FAD5100F4AEBF /* SettingsView.swift */,
+				D4CA67C7290FAD4A00F4AEBF /* InitialsView.swift */,
+				D41E952529126BF800A586C9 /* SettingsCoordinator.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		D4D84DD22C3154AE007079B4 /* Application */ = {
+			isa = PBXGroup;
+			children = (
+				D4D84DC82C2FF3A0007079B4 /* ProtonDocumentController.swift */,
+				D4989F852C18AADF003DFF5E /* ProtonDocument.swift */,
+			);
+			path = Application;
+			sourceTree = "<group>";
+		};
+		D4D84DD32C3154BF007079B4 /* Platform */ = {
+			isa = PBXGroup;
+			children = (
+				D4D84DCB2C300FBB007079B4 /* macOSURLCoordinator.swift */,
+			);
+			path = Platform;
+			sourceTree = "<group>";
+		};
+		D4D84DD42C31551F007079B4 /* MessageHandler */ = {
+			isa = PBXGroup;
+			children = (
+				D4D84DD52C315546007079B4 /* UserMessageHandler.swift */,
+			);
+			path = MessageHandler;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6690C7FA2AD49DD60005FC8F /* ProtonDriveMacLauncher */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6690C80B2AD49DD70005FC8F /* Build configuration list for PBXNativeTarget "ProtonDriveMacLauncher" */;
+			buildPhases = (
+				6690C7F72AD49DD60005FC8F /* Sources */,
+				6690C7F82AD49DD60005FC8F /* Frameworks */,
+				6690C7F92AD49DD60005FC8F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ProtonDriveMacLauncher;
+			productName = ProtonDriveMacLauncher;
+			productReference = 6690C7FB2AD49DD60005FC8F /* ProtonDriveMacLauncher.app */;
+			productType = "com.apple.product-type.application";
+		};
+		669776CF2AF15BE700929E9A /* ProtonDriveMac-AppStore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 669777052AF15BE700929E9A /* Build configuration list for PBXNativeTarget "ProtonDriveMac-AppStore" */;
+			buildPhases = (
+				669776D42AF15BE700929E9A /* [CP] Check Pods Manifest.lock */,
+				669776D52AF15BE700929E9A /* Sources */,
+				669776EE2AF15BE700929E9A /* Linter */,
+				669776EF2AF15BE700929E9A /* Frameworks */,
+				669776F62AF15BE700929E9A /* Resources */,
+				669776F92AF15BE700929E9A /* Embed Frameworks */,
+				669776FF2AF15BE700929E9A /* [CP] Embed Pods Frameworks */,
+				669777002AF15BE700929E9A /* CopyFiles */,
+				669777022AF15BE700929E9A /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				669776D02AF15BE700929E9A /* PBXTargetDependency */,
+				669776D22AF15BE700929E9A /* PBXTargetDependency */,
+			);
+			name = "ProtonDriveMac-AppStore";
+			packageProductDependencies = (
+				D8262F302C40364B00867704 /* PDLocalization */,
+			);
+			productName = ProtonDrive;
+			productReference = 6697770A2AF15BE700929E9A /* Proton Drive.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AB71531F24274ED900543720 /* ProtonDriveMac-Sparkle */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AB71534624274EDA00543720 /* Build configuration list for PBXNativeTarget "ProtonDriveMac-Sparkle" */;
+			buildPhases = (
+				546AE8731B9D5D7E46F25F52 /* [CP] Check Pods Manifest.lock */,
+				AB71531C24274ED900543720 /* Sources */,
+				ABD8F159260110A500EAACD8 /* Linter */,
+				AB71531D24274ED900543720 /* Frameworks */,
+				AB71531E24274ED900543720 /* Resources */,
+				AB48E8D52428BB590016E4E2 /* Embed Frameworks */,
+				B35C2EFB5C0AC0342B791525 /* [CP] Embed Pods Frameworks */,
+				6690C80C2AD49E3A0005FC8F /* CopyFiles */,
+				AB83A13325A382BF00EB1435 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				66613B892AD93E8D00C7676B /* PBXTargetDependency */,
+				AB83A13225A382BF00EB1435 /* PBXTargetDependency */,
+			);
+			name = "ProtonDriveMac-Sparkle";
+			packageProductDependencies = (
+			);
+			productName = ProtonDrive;
+			productReference = AB71532024274ED900543720 /* Proton Drive.app */;
+			productType = "com.apple.product-type.application";
+		};
+		ABD1908C25A30FF7005D3E29 /* ProtonDriveFileProviderMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ABD1909925A30FF7005D3E29 /* Build configuration list for PBXNativeTarget "ProtonDriveFileProviderMac" */;
+			buildPhases = (
+				9B1345ACED6AE8F17FA65015 /* [CP] Check Pods Manifest.lock */,
+				ABD1908925A30FF7005D3E29 /* Sources */,
+				AB0337AB261AFE1E0030167E /* Linter */,
+				ABD1908A25A30FF7005D3E29 /* Frameworks */,
+				ABD1908B25A30FF7005D3E29 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ProtonDriveFileProviderMac;
+			productName = FileProvider;
+			productReference = ABD1908D25A30FF7005D3E29 /* ProtonDriveFileProviderMac.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AB71531824274ED900543720 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1430;
+				LastUpgradeCheck = 1130;
+				ORGANIZATIONNAME = ProtonMail;
+				TargetAttributes = {
+					6690C7FA2AD49DD60005FC8F = {
+						CreatedOnToolsVersion = 14.3.1;
+					};
+					AB71531F24274ED900543720 = {
+						CreatedOnToolsVersion = 11.3.1;
+					};
+					ABD1908C25A30FF7005D3E29 = {
+						CreatedOnToolsVersion = 12.3;
+					};
+				};
+			};
+			buildConfigurationList = AB71531B24274ED900543720 /* Build configuration list for PBXProject "ProtonDrive-macOS" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AB71531724274ED900543720;
+			productRefGroup = AB71532124274ED900543720 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AB71531F24274ED900543720 /* ProtonDriveMac-Sparkle */,
+				669776CF2AF15BE700929E9A /* ProtonDriveMac-AppStore */,
+				ABD1908C25A30FF7005D3E29 /* ProtonDriveFileProviderMac */,
+				6690C7FA2AD49DD60005FC8F /* ProtonDriveMacLauncher */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6690C7F92AD49DD60005FC8F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		669776F62AF15BE700929E9A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				669776F72AF15BE700929E9A /* Assets.xcassets in Resources */,
+				662365932AFA3D98008E62C6 /* ReleaseNotes.html in Resources */,
+				3E0ABD942C6315C3009CABB5 /* Localizable.xcstrings in Resources */,
+				669776F82AF15BE700929E9A /* Menu.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AB71531E24274ED900543720 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				66F061992B850C5600A6B067 /* stress-tests in Resources */,
+				3E0ABD932C6315C3009CABB5 /* Localizable.xcstrings in Resources */,
+				AB71532824274EDA00543720 /* Assets.xcassets in Resources */,
+				662365922AFA3D98008E62C6 /* ReleaseNotes.html in Resources */,
+				AB71532B24274EDA00543720 /* Menu.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ABD1908B25A30FF7005D3E29 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3E0ABD962C6315C3009CABB5 /* Localizable.xcstrings in Resources */,
+				D4EEDF0B284A0D2000DF99B3 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		546AE8731B9D5D7E46F25F52 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ProtonDriveMac-Sparkle-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		669776D42AF15BE700929E9A /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ProtonDriveMac-AppStore-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		669776EE2AF15BE700929E9A /* Linter */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = Linter;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [[ $CI ]]; then\n  echo \"Skipping linting on the CI\"\n  exit 0\nfi\n\nif [[ -f \"${PODS_ROOT}/SwiftLint/swiftlint\" ]]; then\n  ${PODS_ROOT}/SwiftLint/swiftlint --config ${PROJECT_DIR}/../.swiftlint.yml\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+		669776FF2AF15BE700929E9A /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ProtonDriveMac-AppStore/Pods-ProtonDriveMac-AppStore-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ProtonDriveMac-AppStore/Pods-ProtonDriveMac-AppStore-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ProtonDriveMac-AppStore/Pods-ProtonDriveMac-AppStore-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		9B1345ACED6AE8F17FA65015 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ProtonDriveFileProviderMac-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		AB0337AB261AFE1E0030167E /* Linter */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = Linter;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [[ $CI ]]; then\n  echo \"Skipping linting on the CI\"\n  exit 0\nfi\n\nif [[ -f \"${PODS_ROOT}/SwiftLint/swiftlint\" ]]; then\n  ${PODS_ROOT}/SwiftLint/swiftlint --config ${PROJECT_DIR}/../.swiftlint.yml\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+		ABD8F159260110A500EAACD8 /* Linter */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = Linter;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [[ $CI ]]; then\n  echo \"Skipping linting on the CI\"\n  exit 0\nfi\n\nif [[ -f \"${PODS_ROOT}/SwiftLint/swiftlint\" ]]; then\n  ${PODS_ROOT}/SwiftLint/swiftlint --config ${PROJECT_DIR}/../.swiftlint.yml\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+		B35C2EFB5C0AC0342B791525 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ProtonDriveMac-Sparkle/Pods-ProtonDriveMac-Sparkle-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ProtonDriveMac-Sparkle/Pods-ProtonDriveMac-Sparkle-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ProtonDriveMac-Sparkle/Pods-ProtonDriveMac-Sparkle-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6690C7F72AD49DD60005FC8F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6690C7FE2AD49DD60005FC8F /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		669776D52AF15BE700929E9A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				662365902AF94892008E62C6 /* ReleaseNotesViewModel.swift in Sources */,
+				669776D72AF15BE700929E9A /* InitialsView.swift in Sources */,
+				76CC33412BEB7A7400011A65 /* StateView.swift in Sources */,
+				D43A7D3C2AF4FCDA00DCA64E /* SyncErrorView.swift in Sources */,
+				669776D82AF15BE700929E9A /* RemoteChangeSignaler.swift in Sources */,
+				669776D92AF15BE700929E9A /* QASettingsView.swift in Sources */,
+				669776DA2AF15BE700929E9A /* AppContentDelegate.swift in Sources */,
+				669776DB2AF15BE700929E9A /* SettingsViewModel.swift in Sources */,
+				D4D84DCA2C2FF3A0007079B4 /* ProtonDocumentController.swift in Sources */,
+				76993C7D2BF1C5B500DD4672 /* SyncStateService.swift in Sources */,
+				669776DC2AF15BE700929E9A /* AppDelegate.swift in Sources */,
+				6619712D2BA2EA49008E4244 /* SyncMonitor.swift in Sources */,
+				669776DD2AF15BE700929E9A /* PostLoginServicesBuilder.swift in Sources */,
+				76AC03E92BE2F8E90046A7F4 /* ItemRowView.swift in Sources */,
+				669776DE2AF15BE700929E9A /* MetadataMonitorBuilder.swift in Sources */,
+				669776DF2AF15BE700929E9A /* QASettingsCoordinator.swift in Sources */,
+				669776E02AF15BE700929E9A /* MenuBarCoordinator.swift in Sources */,
+				76CC333F2BEB7A7400011A65 /* NotificationView.swift in Sources */,
+				669776E12AF15BE700929E9A /* OnboardingCoordinator.swift in Sources */,
+				669776E22AF15BE700929E9A /* DriveCoreAlertListener.swift in Sources */,
+				D43A7D3F2AF4FCE200DCA64E /* FileTypeAsset.swift in Sources */,
+				D4D84DCD2C300FBB007079B4 /* macOSURLCoordinator.swift in Sources */,
+				669776E32AF15BE700929E9A /* NSImage+Extension.swift in Sources */,
+				669776E42AF15BE700929E9A /* LaunchOnBootService.swift in Sources */,
+				669776E52AF15BE700929E9A /* AppCoordinator.swift in Sources */,
+				669776E62AF15BE700929E9A /* OnboardingView.swift in Sources */,
+				76CC332F2BEA235B00011A65 /* HeaderView.swift in Sources */,
+				669776E72AF15BE700929E9A /* SettingsCoordinator.swift in Sources */,
+				76CC333D2BEB7A7400011A65 /* ToolbarView.swift in Sources */,
+				D4D84DD72C315546007079B4 /* UserMessageHandler.swift in Sources */,
+				6623658A2AF946DE008E62C6 /* ReleaseNotesCoordinator.swift in Sources */,
+				669776E82AF15BE700929E9A /* Constants.swift in Sources */,
+				6623658D2AF94737008E62C6 /* ReleaseNotesView.swift in Sources */,
+				D43A7D3B2AF4FCD400DCA64E /* ErrorCoordinator.swift in Sources */,
+				66C25E742BFC9AB8004D7F8D /* InitializationView.swift in Sources */,
+				669776E92AF15BE700929E9A /* AppUpdateService.swift in Sources */,
+				66C25E772BFC9AB8004D7F8D /* InitializationCoordinator.swift in Sources */,
+				D43A7D3D2AF4FCDC00DCA64E /* SyncErrorViewModel.swift in Sources */,
+				D4E50F832B838485006E94F6 /* ActivityService.swift in Sources */,
+				D43A7D3E2AF4FCDF00DCA64E /* SyncErrorRowView.swift in Sources */,
+				669776EA2AF15BE700929E9A /* MetadataMonitor.swift in Sources */,
+				669776EB2AF15BE700929E9A /* QASettingsViewModel.swift in Sources */,
+				765254502BBD9FCD00E5A4B1 /* SyncCoordinator.swift in Sources */,
+				669776EC2AF15BE700929E9A /* SettingsView.swift in Sources */,
+				76AC03E72BE2F8E90046A7F4 /* ItemListView.swift in Sources */,
+				669776ED2AF15BE700929E9A /* main.m in Sources */,
+				76CC33332BEA2BC900011A65 /* SyncActivityViewModel.swift in Sources */,
+				76CC33352BEA2BC900011A65 /* SyncActivityView.swift in Sources */,
+				D43A7D402AF4FDB100DCA64E /* NotificationName+Window.swift in Sources */,
+				D8D6FB922B503E2400FB71AE /* Dumper.swift in Sources */,
+				66196E682BA468A800363D89 /* DomainOperationsService.swift in Sources */,
+				D4989F872C18AADF003DFF5E /* ProtonDocument.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AB71531C24274ED900543720 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				76E80FF02ADF4B1F00F0F4F2 /* SyncErrorView.swift in Sources */,
+				6623658F2AF94892008E62C6 /* ReleaseNotesViewModel.swift in Sources */,
+				76CC33402BEB7A7400011A65 /* StateView.swift in Sources */,
+				D4CA67C8290FAD4A00F4AEBF /* InitialsView.swift in Sources */,
+				D4CC491B28717CC600C6E83F /* RemoteChangeSignaler.swift in Sources */,
+				D44C325E2A30D11200D2BA77 /* QASettingsView.swift in Sources */,
+				76CEAF472A6CFDE3000586F4 /* AppContentDelegate.swift in Sources */,
+				66A3C5292ACC7324009286D5 /* SettingsViewModel.swift in Sources */,
+				D4D84DC92C2FF3A0007079B4 /* ProtonDocumentController.swift in Sources */,
+				76993C7C2BF1C5B500DD4672 /* SyncStateService.swift in Sources */,
+				AB71532424274ED900543720 /* AppDelegate.swift in Sources */,
+				6619712C2BA2EA49008E4244 /* SyncMonitor.swift in Sources */,
+				D458EEE5286DA94200C325C1 /* PostLoginServicesBuilder.swift in Sources */,
+				76AC03E82BE2F8E90046A7F4 /* ItemRowView.swift in Sources */,
+				D4CC491D28717CF500C6E83F /* MetadataMonitorBuilder.swift in Sources */,
+				D44C325C2A30D05700D2BA77 /* QASettingsCoordinator.swift in Sources */,
+				76A2BBD82AE07E00005B77A2 /* SyncErrorRowView.swift in Sources */,
+				76CC333E2BEB7A7400011A65 /* NotificationView.swift in Sources */,
+				D4A97F88291132AE00147E9C /* MenuBarCoordinator.swift in Sources */,
+				76CEAF452A6CF695000586F4 /* OnboardingCoordinator.swift in Sources */,
+				766A9B8B2AE66F35002C3AFA /* FileTypeAsset.swift in Sources */,
+				D4D84DCC2C300FBB007079B4 /* macOSURLCoordinator.swift in Sources */,
+				D4F28D2A29E97AAE00065CD3 /* DriveCoreAlertListener.swift in Sources */,
+				D4B837F42848FB00005488F6 /* NSImage+Extension.swift in Sources */,
+				66FAB3332AD55EF000ADAB83 /* LaunchOnBootService.swift in Sources */,
+				ABE2313125FF8147009FEAF7 /* AppCoordinator.swift in Sources */,
+				76CC332E2BEA235B00011A65 /* HeaderView.swift in Sources */,
+				76CEAF432A6CF67A000586F4 /* OnboardingView.swift in Sources */,
+				76CC333C2BEB7A7400011A65 /* ToolbarView.swift in Sources */,
+				D4D84DD62C315546007079B4 /* UserMessageHandler.swift in Sources */,
+				662365892AF946DE008E62C6 /* ReleaseNotesCoordinator.swift in Sources */,
+				D41E952629126BF800A586C9 /* SettingsCoordinator.swift in Sources */,
+				6623658C2AF94737008E62C6 /* ReleaseNotesView.swift in Sources */,
+				AB75A84925D15883000681AF /* Constants.swift in Sources */,
+				66C25E732BFC9AB8004D7F8D /* InitializationView.swift in Sources */,
+				667AECD82AE10D8700E2EAC1 /* AppUpdateService.swift in Sources */,
+				66C25E762BFC9AB8004D7F8D /* InitializationCoordinator.swift in Sources */,
+				76E80FEE2ADF471700F0F4F2 /* ErrorCoordinator.swift in Sources */,
+				D4E50F822B838485006E94F6 /* ActivityService.swift in Sources */,
+				D49F4C1A286C67B6009F70D7 /* MetadataMonitor.swift in Sources */,
+				D44C32602A30D2CD00D2BA77 /* QASettingsViewModel.swift in Sources */,
+				D4CA67CA290FAD5100F4AEBF /* SettingsView.swift in Sources */,
+				7652544F2BBD9FCD00E5A4B1 /* SyncCoordinator.swift in Sources */,
+				D4CC491928705C7F00C6E83F /* main.m in Sources */,
+				76AC03E62BE2F8E90046A7F4 /* ItemListView.swift in Sources */,
+				76E80FF22ADF91B400F0F4F2 /* SyncErrorViewModel.swift in Sources */,
+				76CC33322BEA2BC900011A65 /* SyncActivityViewModel.swift in Sources */,
+				76CC33342BEA2BC900011A65 /* SyncActivityView.swift in Sources */,
+				76A2BBDA2AE25F26005B77A2 /* NotificationName+Window.swift in Sources */,
+				D8D6FB912B503E2400FB71AE /* Dumper.swift in Sources */,
+				66196E672BA468A800363D89 /* DomainOperationsService.swift in Sources */,
+				D4989F862C18AADF003DFF5E /* ProtonDocument.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ABD1908925A30FF7005D3E29 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				76A070A62AC5EE680002879C /* FileProviderExtension+SyncReporting.swift in Sources */,
+				6604B9572B3240AA00A2ADB7 /* CompletionBlockWrapper.swift in Sources */,
+				ABD1909025A30FF7005D3E29 /* FileProviderExtension.swift in Sources */,
+				AB75A84E25D15884000681AF /* Constants.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		66613B892AD93E8D00C7676B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6690C7FA2AD49DD60005FC8F /* ProtonDriveMacLauncher */;
+			targetProxy = 66613B882AD93E8D00C7676B /* PBXContainerItemProxy */;
+		};
+		669776D02AF15BE700929E9A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6690C7FA2AD49DD60005FC8F /* ProtonDriveMacLauncher */;
+			targetProxy = 669776D12AF15BE700929E9A /* PBXContainerItemProxy */;
+		};
+		669776D22AF15BE700929E9A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = ABD1908C25A30FF7005D3E29 /* ProtonDriveFileProviderMac */;
+			targetProxy = 669776D32AF15BE700929E9A /* PBXContainerItemProxy */;
+		};
+		AB83A13225A382BF00EB1435 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = ABD1908C25A30FF7005D3E29 /* ProtonDriveFileProviderMac */;
+			targetProxy = AB83A13125A382BF00EB1435 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		AB71532924274EDA00543720 /* Menu.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AB71532A24274EDA00543720 /* Base */,
+			);
+			name = Menu.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		6690C8092AD49DD70005FC8F /* Release-Store */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = ProtonDriveMacLauncher/ProtonDriveMacLauncher.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = 2SB5Z68H26;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSBackgroundOnly = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 ProtonMail. All rights reserved.";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = ch.protonmail.drive.launcher.ProtonDriveMacLauncher;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = "Release-Store";
+		};
+		669777082AF15BE700929E9A /* Release-Store */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 763AA3F22937503A00AEE68E /* ProtonDrive-Config-Release-Store.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = "$(ICON_NAME)";
+				CODE_SIGN_ENTITLEMENTS = ProtonDriveMac/ProtonDrive.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_ASSET_PATHS = SharedBuildConfigs;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = ProtonDriveMac/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.8.0;
+				OTHER_CODE_SIGN_FLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = ch.protonmail.drive;
+				PRODUCT_MODULE_NAME = ProtonDriveMac;
+				PRODUCT_NAME = "Proton Drive";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "ProtonDriveMac/ProtonDrive-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+			};
+			name = "Release-Store";
+		};
+		763AA3F429376F5900AEE68E /* Release-Store */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZED_STRING_SWIFTUI_SUPPORT = NO;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = "Release-Store";
+		};
+		763AA3F529376F5900AEE68E /* Release-Store */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 763AA3F22937503A00AEE68E /* ProtonDrive-Config-Release-Store.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = "$(ICON_NAME)";
+				CODE_SIGN_ENTITLEMENTS = ProtonDriveMac/ProtonDrive.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_ASSET_PATHS = SharedBuildConfigs;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = ProtonDriveMac/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.8.0;
+				OTHER_CODE_SIGN_FLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = ch.protonmail.drive;
+				PRODUCT_MODULE_NAME = ProtonDriveMac;
+				PRODUCT_NAME = "Proton Drive";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "ProtonDriveMac/ProtonDrive-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+			};
+			name = "Release-Store";
+		};
+		763AA3F629376F5900AEE68E /* Release-Store */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 763AA3F329376D3700AEE68E /* ProtonDriveFileProvider-Config-Release-Store.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "$(ICON_NAME)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = "$(inherited)";
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = ProtonDriveFileProviderMac/ProtonDriveFileProvider.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_ASSET_PATHS = SharedBuildConfigs;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = ProtonDriveFileProviderMac/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.8.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				OTHER_CODE_SIGN_FLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = ch.protonmail.drive.fileprovider;
+				PRODUCT_NAME = ProtonDriveFileProviderMac;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Release-Store";
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6690C80B2AD49DD70005FC8F /* Build configuration list for PBXNativeTarget "ProtonDriveMacLauncher" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6690C8092AD49DD70005FC8F /* Release-Store */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Release-External";
+		};
+		669777052AF15BE700929E9A /* Build configuration list for PBXNativeTarget "ProtonDriveMac-AppStore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				669777082AF15BE700929E9A /* Release-Store */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Release-External";
+		};
+		AB71531B24274ED900543720 /* Build configuration list for PBXProject "ProtonDrive-macOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				763AA3F429376F5900AEE68E /* Release-Store */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Release-Store";
+		};
+		AB71534624274EDA00543720 /* Build configuration list for PBXNativeTarget "ProtonDriveMac-Sparkle" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				763AA3F529376F5900AEE68E /* Release-Store */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Release-External";
+		};
+		ABD1909925A30FF7005D3E29 /* Build configuration list for PBXNativeTarget "ProtonDriveFileProviderMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				763AA3F629376F5900AEE68E /* Release-Store */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Release-External";
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D8262F302C40364B00867704 /* PDLocalization */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PDLocalization;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = AB71531824274ED900543720 /* Project object */;
+}

@@ -1,0 +1,14 @@
+//
+//  ProtonDriveFileProvider-Config-Release-Store.xcconfig
+//  ProtonDrive-macOS
+//
+//  Created by Audrey SOBGOU ZEBAZE on 28/11/2022.
+//  Copyright © 2022 ProtonMail. All rights reserved.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+#include "../Pods/Target Support Files/Pods-ProtonDriveFileProviderMac/Pods-ProtonDriveFileProviderMac.release-store.xcconfig"
+
+#include "SharedBuildConfigs/Config-Release-Store.xcconfig"
