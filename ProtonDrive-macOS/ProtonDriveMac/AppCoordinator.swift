@@ -219,6 +219,15 @@ class AppCoordinator: NSObject, ObservableObject {
         }
     }
     
+    var globalDownloadProgress: Progress?
+    var globalUploadProgress: Progress?
+    var globalProgressObservers: [NSKeyValueObservation] = []
+        
+    @MainActor
+    func updateGlobalSyncStatusUI() {
+        menuBarCoordinator?.globalSyncStatusChanged(downloadProgress: globalDownloadProgress, uploadProgress: globalUploadProgress)
+    }
+    
     @MainActor
     func start() async throws {
         #if HAS_BUILTIN_UPDATER
@@ -239,15 +248,19 @@ class AppCoordinator: NSObject, ObservableObject {
             Log.info("AppCoordinator start - logged in", domain: .application)
             
             try await domainOperationsService.identifyDomain()
-
+            
             await fetchFeatureFlags()
+            
+            // must happen after the domain identification and feature flag fetching
+            await GroupContainerMigrator.instance.migrateDatabasesForLoggedInUser(domainOperationsService: domainOperationsService,
+                                                                                  featureFlags: initialServices.featureFlagsRepository,
+                                                                                  logoutClosure: { [unowned self] in self.initialServices.sessionVault.signOut() })
 
             let postLoginServices = preparePostLoginServices()
             
             try await postLoginServices.tower.cleanUpLockedVolumeIfNeeded(using: domainOperationsService)
 
             // error fetching feature flags should not cause the login process to fail, we will use the default values
-            try? await FeatureFlagsRepository.shared.fetchFlags()
             try? await postLoginServices.tower.featureFlags.startAsync()
 
             if try await !domainOperationsService.domainExists() {
@@ -274,6 +287,11 @@ class AppCoordinator: NSObject, ObservableObject {
                 // we ignore the error because it's handled internally in startPostLoginServices
                 return
             }
+            
+            if GroupContainerMigrator.instance.hasGroupContainerMigrationHappened {
+                await GroupContainerMigrator.instance.presentDatabaseMigrationPopup()
+            }
+            
             menuBarCoordinator?.featureFlags = self.featureFlags
             if wasRefreshingNodes {
                 shouldReenumerateItems = true
@@ -283,6 +301,13 @@ class AppCoordinator: NSObject, ObservableObject {
                 await configureForUITests()
             }
         } else {
+            
+            await GroupContainerMigrator.instance.migrateDatabasesBeforeLogin(featureFlags: initialServices.featureFlagsRepository)
+            
+            if GroupContainerMigrator.instance.hasGroupContainerMigrationHappened {
+                await GroupContainerMigrator.instance.presentDatabaseMigrationPopup()
+            }
+            
             Log.info("AppCoordinator start - not logged in", domain: .application)
             if Constants.isInUITests {
                 await configureForUITests()
@@ -328,7 +353,7 @@ class AppCoordinator: NSObject, ObservableObject {
             try await domainOperationsService.signalEnumerator()
         } else {
             let migrationPerformer = MigrationPerformer()
-            try await domainOperationsService.disconnectDomainsTemporarily(
+            try await domainOperationsService.disconnectDomainsForQA(
                 reason: { $0.map { "\($0.displayName) domain disconnected" } ?? "" }
             )
             menuBarCoordinator?.cacheRefreshSyncState = .syncing
@@ -348,9 +373,7 @@ class AppCoordinator: NSObject, ObservableObject {
         do {
             coordinator.update(progress: .init())
             
-            try await tower.refresher.refreshUsingEagerSyncApproach(root: rootFolder) { identifier in
-                try await domainOperationsService.evictItem(identifier: identifier)
-            }
+            try await tower.refresher.refreshUsingEagerSyncApproach(root: rootFolder)
         } catch {
             coordinator.showFailure(error: error) { [weak self] in
                 try await self?.refreshUsingEagerSyncApproach(tower: tower)
@@ -372,8 +395,6 @@ class AppCoordinator: NSObject, ObservableObject {
                     let progress = InitializationProgress(currentValue: current, totalValue: total)
                     self.initializationCoordinator?.update(progress: progress)
                 }
-            } evictItem: {
-                try await domainOperationsService.evictItem(identifier: $0)
             }
         } catch {
             // this cannot just return, because we will go on to the onboarding
@@ -752,7 +773,7 @@ extension AppCoordinator {
             try? await FeatureFlagsRepository.shared.fetchFlags()
             try? await postLoginServices.tower.featureFlags.startAsync()
             
-            try? await domainOperationsService.tearDownDomain()
+            try? await domainOperationsService.tearDownConnectionToAllDomains()
             await postLoginServices.tower.cleanUpEventsAndMetadata(cleanupStrategy: domainOperationsService.cacheCleanupStrategy)
         } catch {
             await errorHandler(error)
@@ -853,7 +874,30 @@ extension AppCoordinator {
                 )
             }
             activityService = ActivityService(repository: postLoginServices.tower.client, frequency: Constants.activeFrequency)
-
+            
+            // Configure the global probress observers
+            globalDownloadProgress = domainOperationsService.globalProgress(for: .downloading)
+            globalUploadProgress = domainOperationsService.globalProgress(for: .uploading)
+            for progress in [globalDownloadProgress, globalUploadProgress] {
+                guard let progress else {
+                    continue
+                }
+                var observer = progress.observe(\.description) { progress, change in
+                    self.updateGlobalSyncStatusUI()
+                }
+                globalProgressObservers.append(observer)
+                
+                observer = progress.observe(\.localizedAdditionalDescription) { progress, change in
+                    self.updateGlobalSyncStatusUI()
+                }
+                globalProgressObservers.append(observer)
+                
+                observer = progress.observe(\.fractionCompleted) { progress, change in
+                    self.updateGlobalSyncStatusUI()
+                }
+                globalProgressObservers.append(observer)
+            }
+            
             menuBarCoordinator?.startSyncMonitoring(eventsProcessor: postLoginServices.tower,
                                                     syncErrorsSubject: metadataMonitor?.syncErrorDBUpdatePublisher)
             menuBarCoordinator?.errorsCount = menuSyncErrorsCount
@@ -938,6 +982,11 @@ extension AppCoordinator {
     }
 
     private func didLogout() {
+        globalProgressObservers.forEach { $0.invalidate() }
+        globalProgressObservers.removeAll()
+        globalDownloadProgress = nil
+        globalUploadProgress = nil
+        
         configureDocumentController(with: nil)
         postLoginServices = nil
         metadataMonitor = nil
@@ -952,6 +1001,10 @@ extension AppCoordinator {
         Log.info("Begin post-migration step", domain: .application)
         let migrationDetector = MigrationDetector()
         let migrationPerformer = MigrationPerformer()
+        
+        if GroupContainerMigrator.instance.hasGroupContainerMigrationHappened {
+            migrationDetector.groupContainerMigrationHappened()
+        }
         
         guard migrationDetector.requiresPostMigrationStep else {
             hasPostMigrationStepRun = nil
@@ -997,9 +1050,7 @@ extension AppCoordinator {
 
         // Drop system FileProvider cache
         postLoginServices.tower.pauseEventsSystem()
-        try await domainOperationsService.disconnectDomainsTemporarily(
-            reason: "Attempting to reconnect. This may take a few minutes. Please do not quit the application"
-        )
+        try await domainOperationsService.disconnectDomainsDuringMainKeyCleanup()
         
         menuBarCoordinator?.cacheRefreshSyncState = .syncing
         

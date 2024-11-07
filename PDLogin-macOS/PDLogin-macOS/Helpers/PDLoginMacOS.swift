@@ -18,5 +18,5 @@
 import Foundation
 
 public class PDLoginMacOS {
-    public static let bundle = Bundle(for: PDLoginMacOS.self)
+    public static let bundle = Bundle.module
 }

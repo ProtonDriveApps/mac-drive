@@ -40,7 +40,7 @@ public final class MoveModel: FinderModel, NodesListing, NodesFetching, NodesSor
     // MARK: NodesFetching
     public let node: Folder // should be from main thread context
     public var currentNodeID: NodeIdentifier!
-    public let pageSize = Constants.pageSizeForRefreshes
+    public let pageSize = Constants.pageSizeForChildrenFetchAndEnumeration
     public var lastFetchedPage = 0
     
     // MARK: others

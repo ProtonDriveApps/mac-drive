@@ -2,7 +2,7 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
- 
+
 let package = Package(
     name: "PDUploadVerifier",
     platforms: [
@@ -13,7 +13,6 @@ let package = Package(
         .library(name: "PDUploadVerifier", targets: ["PDUploadVerifier"]),
     ],
     dependencies: [
-        .package(name: "CommonDependencies", path: "../CommonDependencies"),
         .package(name: "PDCore", path: "../PDCore"),
     ],
     targets: [
@@ -23,15 +22,6 @@ let package = Package(
                 .product(name: "PDCore", package: "PDCore"),
             ],
             path: "PDUploadVerifier"
-        ),
-        .testTarget(
-            name: "PDUploadVerifierTests",
-            dependencies: [
-                .target(name: "PDUploadVerifier"),
-                
-                .product(name: "ProtonCoreTestingToolkit", package: "CommonDependencies"),
-            ],
-            path: "PDUploadVerifierTests"
         ),
     ]
 )

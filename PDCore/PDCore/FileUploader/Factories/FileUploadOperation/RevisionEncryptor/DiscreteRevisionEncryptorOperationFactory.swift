@@ -21,13 +21,16 @@ class DiscreteRevisionEncryptorOperationFactory: FileUploadOperationFactory {
 
     let signersKitFactory: SignersKitFactoryProtocol
     let moc: NSManagedObjectContext
+    let configuration: FileUploadConfiguration
 
     init(
         signersKitFactory: SignersKitFactoryProtocol,
-        moc: NSManagedObjectContext
+        moc: NSManagedObjectContext,
+        configuration: FileUploadConfiguration
     ) {
         self.signersKitFactory = signersKitFactory
         self.moc = moc
+        self.configuration = configuration
     }
 
     func make(from draft: FileDraft, completion: @escaping OnUploadCompletion) -> any UploadOperation {
@@ -51,7 +54,7 @@ class DiscreteRevisionEncryptorOperationFactory: FileUploadOperationFactory {
     }
 
     func makeBlocksRevisionEncryptor(progress: Progress, moc: NSManagedObjectContext, digestBuilder: DigestBuilder) -> RevisionEncryptor {
-        DiscreteBlocksRevisionEncryptor(signersKitFactory: signersKitFactory, maxBlockSize: maxBlockSize(), progress: progress, moc: moc, digestBuilder: digestBuilder)
+        DiscreteBlocksRevisionEncryptor(signersKitFactory: signersKitFactory, maxBlockSize: maxBlockSize(), progress: progress, moc: moc, digestBuilder: digestBuilder, configuration: configuration)
     }
 
     func makeThumbnailRevisionEncryptor(progress: Progress, moc: NSManagedObjectContext) -> RevisionEncryptor {

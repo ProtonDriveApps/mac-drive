@@ -41,16 +41,21 @@ public final class NodeMover {
     }
 
     public func move(_ node: Node, to newParent: Folder, name: String) async throws {
-        let signersKit = try signersKitFactory.make(forSigner: .main)
         let validatedNewName = try name.validateNodeName(validator: NameValidations.iosName)
 
-        let (nodeID, shareID, oldNodeName, oldNodePassphrase, oldNameHash, oldParentKey, oldParentPassphrase, newParentKey, newParentHashKey, newParentNodeID) = try await moc.perform {
+        let (nodeID, shareID, oldNodeName, oldNodePassphrase, oldNameHash, oldParentKey, oldParentPassphrase, newParentKey, newParentHashKey, newParentNodeID, signersKit) = try await moc.perform {
             let node = node.in(moc: self.moc)
+#if os(macOS)
+            let signersKit = try self.signersKitFactory.make(forSigner: .main)
+#else
+            let addressID = try node.getContextShareAddressID()
+            let signersKit = try self.signersKitFactory.make(forAddressID: addressID)
+#endif
             let newParent = newParent.in(moc: self.moc)
             guard let oldParent = node.parentLink else { throw node.invalidState("The moving Node should have a parent.") }
 
             let nodeID = node.id
-            let shareID = node.shareID
+            let shareID = try node.getContextShare().id
             guard let oldNodeName = node.name else { throw node.invalidState("The renaming Node should have a valid old name.") }
             let oldNodePassphrase = node.nodePassphrase
             let oldNameHash = node.nodeHash
@@ -61,7 +66,7 @@ public final class NodeMover {
             let newParentKey = newParent.nodeKey
             let newParentHashKey = try newParent.decryptNodeHashKey()
 
-            return (nodeID, shareID, oldNodeName, oldNodePassphrase, oldNameHash, oldParentKey, oldParentPassphrase, newParentKey, newParentHashKey, newParent.id)
+            return (nodeID, shareID, oldNodeName, oldNodePassphrase, oldNameHash, oldParentKey, oldParentPassphrase, newParentKey, newParentHashKey, newParent.id, signersKit)
         }
 
         let newNodePassphrase = try node.reencryptNodePassphrase(

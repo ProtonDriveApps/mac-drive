@@ -51,13 +51,13 @@ extension Node {
                 return passphrase
 
             case .unverified(let passphrase, let error):
-                Log.error(SignatureError(error, "Node", description: "LinkID: \(id) \nShareID: \(shareID)"), domain: .encryption)
+                Log.error(SignatureError(error, "Node", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
                 self.clearPassphrase = passphrase
                 return passphrase
             }
 
         } catch {
-            Log.error(DecryptionError(error, "Node", description: "LinkID: \(id) \nShareID: \(shareID)"), domain: .encryption)
+            Log.error(DecryptionError(error, "Node", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
             throw error
         }
     }
@@ -86,19 +86,32 @@ extension Node {
 extension Node {
     
     private func getAddressPublicKeysOfNodeCreatorWithFallbackToShareCreator() throws -> [PublicKey] {
+#if os(macOS)
         if let signatureEmail = signatureEmail, let publicKeys = try? getAddressPublicKeys(email: signatureEmail) {
             return publicKeys
         }
-        
+
         if let share = self.primaryDirectShare {
             return try share.getAddressPublicKeysOfShareCreator()
         }
 
         throw SessionVault.Errors.noRequiredAddressKey
+#else
+        let addressID = try getContextShareAddressID()
+
+        if let publicKeys = try? getAddressPublicKeys(email: signatureEmail ?? "", addressID: addressID) {
+            return publicKeys
+        }
+
+        throw SessionVault.Errors.noRequiredAddressKey
+#endif
+    }
+
+    internal func getAddressPublicKeys(email: String, addressID: String) throws -> [PublicKey] {
+        SessionVault.current.getPublicKeys(email: email, addressID: addressID)
     }
 
     internal func getAddressPublicKeys(email: String) throws -> [PublicKey] {
         SessionVault.current.getPublicKeys(for: email)
     }
-    
 }

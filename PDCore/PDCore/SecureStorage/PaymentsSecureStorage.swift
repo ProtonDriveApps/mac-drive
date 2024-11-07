@@ -26,9 +26,8 @@ public final class PaymentsSecureStorage: Keychain {
     @SecureStorage(label: Key.currentSubscription) private(set) var _currentSubscription: Subscription?
     
     public init(mainKeyProvider: MainKeyProvider) {
-        let keychainGroup = Constants.developerGroup + Constants.appGroup
         self.mainKeyProvider = mainKeyProvider
-        super.init(service: "ch.protonmail", accessGroup: keychainGroup)
+        super.init(service: "ch.protonmail", accessGroup: Constants.keychainGroup)
         
         self.__currentSubscription.configure(with: mainKeyProvider)
     }

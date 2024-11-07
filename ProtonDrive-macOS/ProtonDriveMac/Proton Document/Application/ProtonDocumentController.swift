@@ -82,7 +82,7 @@ class ProtonDocumentController: NSDocumentController {
         documents.forEach { document in
             if let protonDocument = document as? ProtonDocument {
                 if let tower {
-                    protonDocument.interactor = ProtonDocumentOpeningFactory().makeInteractor(tower: tower)
+                    protonDocument.interactor = ProtonDocumentOpeningFactory().makeNonAuthenticatedURLInteractor(tower: tower)
                 }
 
                 protonDocument.finishReading()

@@ -180,6 +180,7 @@ public class StorageManager: NSObject, ManagedStorage {
         return container
     }
     
+    @SettingsStorage("finishedFetchingSharedByMe") public var finishedFetchingSharedByMe: Bool?
     @SettingsStorage("finishedFetchingShareURLs") var finishedFetchingShareURLs: Bool?
     @SettingsStorage("finishedFetchingTrash") var finishedFetchingTrash: Bool?
     private let persistentContainer: NSPersistentContainer
@@ -194,6 +195,7 @@ public class StorageManager: NSObject, ManagedStorage {
         }
         
         self._finishedFetchingShareURLs.configure(with: suite)
+        self._finishedFetchingSharedByMe.configure(with: suite)
         self._finishedFetchingTrash.configure(with: suite)
     }
 
@@ -231,12 +233,12 @@ public class StorageManager: NSObject, ManagedStorage {
     
     public func prepareForTermination() {
         self.mainContext.performAndWait {
-            try? self.mainContext.saveWithParentLinkCheck()
+            try? self.mainContext.saveOrRollback()
         }
         
         // remove everything per entity
         self.backgroundContext.performAndWait {
-            try? self.backgroundContext.saveWithParentLinkCheck()
+            try? self.backgroundContext.saveOrRollback()
         }
     }
     
@@ -275,13 +277,6 @@ public class StorageManager: NSObject, ManagedStorage {
         context.mergePolicy = NSMergePolicy.mergeByPropertyStoreTrump
         return context
     }
-    
-    lazy var eventsContext: NSManagedObjectContext = {
-        let context = self.persistentContainer.newBackgroundContext()
-        context.automaticallyMergesChangesFromParent = true
-        context.mergePolicy = NSMergePolicy.mergeByPropertyStoreTrump
-        return context
-    }()
 
     func privateChildContext(of parent: NSManagedObjectContext) -> NSManagedObjectContext {
         let child = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
@@ -293,6 +288,7 @@ public class StorageManager: NSObject, ManagedStorage {
     
     func clearUp() async {
         finishedFetchingTrash = nil
+        finishedFetchingSharedByMe = nil
         finishedFetchingShareURLs = nil
 
         userDefaults.removeObject(forKey: UserDefaults.NotificationPropertyKeys.metadataDBUpdateKey.rawValue)

@@ -234,19 +234,25 @@ extension OfflineSaver: NSFetchedResultsControllerDelegate {
                            for type: NSFetchedResultsChangeType,
                            newIndexPath: IndexPath?)
     {
-        switch type {
-        case .insert where anObject is File:
-            self.checkMarkedAndInheriting(files: [anObject as! File])
-        case .insert where anObject is Folder:
-            self.checkMarkedAndInheriting(folders: [anObject as! Folder])
-        case .delete where anObject is File:
-            self.uncheckMarked(files: [anObject as! File])
-        case .delete where anObject is Folder:
-            self.uncheckMarked(folders: [anObject as! Folder])
-        
-        /* Cases of updates are handled by CloudSlot components of EventsProvider */
-            
-        default: return // no need to rebuld progresses block for other cases of updates
+        // To break possible recursive call
+        // When recursive call happens, coreData will throw error 132001 when save
+        DispatchQueue.global().async {
+            controller.managedObjectContext.perform {
+                switch type {
+                case .insert where anObject is File:
+                    self.checkMarkedAndInheriting(files: [anObject as! File])
+                case .insert where anObject is Folder:
+                    self.checkMarkedAndInheriting(folders: [anObject as! Folder])
+                case .delete where anObject is File:
+                    self.uncheckMarked(files: [anObject as! File])
+                case .delete where anObject is Folder:
+                    self.uncheckMarked(folders: [anObject as! Folder])
+                    
+                    /* Cases of updates are handled by CloudSlot components of EventsProvider */
+                    
+                default: return // no need to rebuld progresses block for other cases of updates
+                }
+            }
         }
         
         Log.info("Offline available state did change. Attemot rebuild progress.", domain: .downloader)

@@ -30,7 +30,7 @@ Contributions are not accepted at the moment.
 
 ## Dependencies
 
-This app uses CocoaPods for most dependencies. Everything is inside this repository, so no need to run `pod install`.
+All dependencies are managed by SPM.
 
 ## License
 
@@ -38,4 +38,4 @@ The code and data files in this distribution are licensed under the terms of the
 
 See [LICENSE](LICENSE) file
 
-Copyright (c) 2023 Proton AG
+Copyright (c) 2024 Proton AG

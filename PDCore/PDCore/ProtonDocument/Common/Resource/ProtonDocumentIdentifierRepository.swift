@@ -50,7 +50,7 @@ final class ProtonDocumentIdentifierRepository: ProtonDocumentIdentifierReposito
         guard let volumeId = share.volume?.id else {
             throw ProtonDocumentOpeningError.missingVolume
         }
-        return ProtonDocumentIdentifier(volumeId: volumeId, linkId: file.id, email: email)
+        return ProtonDocumentIdentifier(volumeId: volumeId, shareId: share.id, linkId: file.id, email: email)
     }
 
     private func getEmailFromShare(_ share: Share) -> String? {

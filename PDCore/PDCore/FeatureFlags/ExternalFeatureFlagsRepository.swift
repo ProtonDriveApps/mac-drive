@@ -103,6 +103,7 @@ class ExternalFeatureFlagsRepository: FeatureFlagsRepository {
         case .driveDisablePhotosForB2B: return .driveDisablePhotosForB2B
             // Sharing
         case .driveSharingMigration: return .driveSharingMigration
+        case .driveiOSSharing: return .driveiOSSharing
         case .driveSharingDevelopment: return .driveSharingDevelopment
         case .driveSharingInvitations: return .driveSharingInvitations
         case .driveSharingExternalInvitations: return .driveSharingExternalInvitations
@@ -111,6 +112,8 @@ class ExternalFeatureFlagsRepository: FeatureFlagsRepository {
         case .driveSharingEditingDisabled: return .driveSharingEditingDisabled
             // ProtonDoc
         case .driveDocsWebView: return .driveDocsWebView
+        case .driveDocsDisabled: return .driveDocsDisabled
+        case .parallelEncryptionAndVerification: return .parallelEncryptionAndVerification
         }
     }
 }

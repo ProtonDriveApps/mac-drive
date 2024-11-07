@@ -80,9 +80,10 @@ extension Errors {
     public static func mapToFileProviderError(_ error: Error?) -> NSFileProviderError? {
         if let error = error {
             #if os(iOS)
-            ConsoleLogger.shared?.fireWarning(error: error)
+            Log.fireWarning(error: error as NSError)
             #endif
             Log.error(error, domain: .fileProvider)
+            
         }
         
         switch error {

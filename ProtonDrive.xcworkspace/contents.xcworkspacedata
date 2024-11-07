@@ -2,37 +2,40 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:PDClient/PDClient.xcodeproj">
-   </FileRef>
-   <FileRef
-      location = "group:PDCore/PDCore.xcodeproj">
-   </FileRef>
-   <FileRef
-      location = "group:PDFileProvider/PDFileProvider.xcodeproj">
-   </FileRef>
-   <FileRef
-      location = "group:PDUIComponents/PDUIComponents.xcodeproj">
-   </FileRef>
-   <FileRef
-      location = "group:PDUploadVerifier/PDUploadVerifier.xcodeproj">
-   </FileRef>
-   <FileRef
-      location = "group:PDLogin-macOS/PDLogin-macOS.xcodeproj">
-   </FileRef>
-   <FileRef
-      location = "group:Pods/Pods.xcodeproj">
-   </FileRef>
-   <FileRef
       location = "group:ProtonDrive-macOS/ProtonDrive-macOS.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:PMEventsManager">
+   </FileRef>
+   <FileRef
+      location = "group:PDLocalization">
+   </FileRef>
+   <FileRef
+      location = "group:PDCore">
+   </FileRef>
+   <FileRef
+      location = "group:PDClient">
+   </FileRef>
+   <FileRef
+      location = "group:PDLoadTesting">
+   </FileRef>
+   <FileRef
+      location = "group:PDUploadVerifier">
+   </FileRef>
+   <FileRef
+      location = "group:PDFileProvider">
+   </FileRef>
+   <FileRef
+      location = "group:PDUIComponents">
+   </FileRef>
+   <FileRef
+      location = "group:PDLogin-macOS">
    </FileRef>
    <FileRef
       location = "group:.swiftlint.yml">
    </FileRef>
    <FileRef
       location = "group:LICENSE">
-   </FileRef>
-   <FileRef
-      location = "group:Podfile.lock">
    </FileRef>
    <FileRef
       location = "group:ProtonDrive-macOS/README.md">

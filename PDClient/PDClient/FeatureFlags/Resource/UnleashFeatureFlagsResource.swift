@@ -147,6 +147,8 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
             return "DriveOneDollarPlanUpsell"
         case .driveSharingMigration:
             return "DriveSharingMigration"
+        case .driveiOSSharing:
+            return "DriveiOSSharing"
         case .driveSharingDevelopment:
             return "DriveSharingDevelopment"
         case .driveSharingInvitations:
@@ -163,6 +165,10 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
             return "DriveDisablePhotosForB2B"
         case .driveDocsWebView:
             return "DriveDocsWebView"
+        case .parallelEncryptionAndVerification:
+            return "DriveMacParallelEncryptionAndVerification"
+        case .driveDocsDisabled:
+            return "DriveDocsDisabled"
         }
     }
 

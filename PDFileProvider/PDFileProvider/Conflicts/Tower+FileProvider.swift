@@ -32,7 +32,7 @@ extension Tower {
             return (try storage.fetchChildrenUploadedByClientsOtherThan(clientUID,
                                                                         with: hash,
                                                                         of: parent.id,
-                                                                        share: parent.shareID,
+                                                                        share: parent.shareId,
                                                                         moc: moc)).first
         }
     }
@@ -77,7 +77,7 @@ extension Tower {
         }
 
         return moc.performAndWait {
-            return fileSystemSlot?.getDraft(item.itemIdentifier.rawValue, shareID: parent.shareID) as? File
+            return fileSystemSlot?.getDraft(item.itemIdentifier.rawValue, shareID: parent.shareId) as? File
         }
     }
 

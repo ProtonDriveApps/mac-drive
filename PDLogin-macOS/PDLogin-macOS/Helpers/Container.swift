@@ -17,6 +17,7 @@
 
 import Foundation
 import TrustKit
+import PDLoadTesting
 import ProtonCoreAPIClient
 import ProtonCoreAuthentication
 import ProtonCoreDataModel
@@ -25,10 +26,6 @@ import ProtonCoreLogin
 import ProtonCoreNetworking
 import ProtonCoreServices
 import ProtonCoreEnvironment
-
-#if LOAD_TESTING && SSL_PINNING
-#error("Load testing requires turning off SSL pinning, so it cannot be set for SSL-pinning targets")
-#endif
 
 final class Container {
     private let login: Login
@@ -48,9 +45,9 @@ final class Container {
         }
         api = PMAPIService.createAPIServiceWithoutSession(environment: environment,
                                                           challengeParametersProvider: .empty)
-        #if LOAD_TESTING && !SSL_PINNING
-        api.getSession()?.setChallenge(noTrustKit: true, trustKit: nil)
-        #endif
+        if LoadTesting.isEnabled {
+            api.getSession()?.setChallenge(noTrustKit: true, trustKit: nil)
+        }
         api.forceUpgradeDelegate = forceUpgradeDelegate
         api.serviceDelegate = apiServiceDelegate
         // this is just an in-memory cache. It doesn't store the credentials to keychain

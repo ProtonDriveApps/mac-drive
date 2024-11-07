@@ -28,6 +28,7 @@ class StreamRevisionUploaderOperationFactory: FileUploadOperationFactory {
     let signersKitFactory: SignersKitFactoryProtocol
     let verifierFactory: UploadVerifierFactory
     let moc: NSManagedObjectContext
+    let configuration: FileUploadConfiguration
 
     init(
         storage: StorageManager,
@@ -37,7 +38,8 @@ class StreamRevisionUploaderOperationFactory: FileUploadOperationFactory {
         credentialProvider: CredentialProvider,
         signersKitFactory: SignersKitFactoryProtocol,
         verifierFactory: UploadVerifierFactory,
-        moc: NSManagedObjectContext
+        moc: NSManagedObjectContext,
+        configuration: FileUploadConfiguration
     ) {
         self.storage = storage
         self.client = client
@@ -47,6 +49,7 @@ class StreamRevisionUploaderOperationFactory: FileUploadOperationFactory {
         self.signersKitFactory = signersKitFactory
         self.verifierFactory = verifierFactory
         self.moc = moc
+        self.configuration = configuration
     }
 
     func make(from draft: FileDraft, completion: @escaping OnUploadCompletion) -> any UploadOperation {
@@ -68,7 +71,8 @@ class StreamRevisionUploaderOperationFactory: FileUploadOperationFactory {
             },
             signersKitFactory: signersKitFactory,
             queue: OperationQueue(maxConcurrentOperation: Constants.maxConcurrentPageOperations),
-            moc: moc
+            moc: moc,
+            configuration: configuration
         )
 
         return PaginatedRevisionUploaderOperation(

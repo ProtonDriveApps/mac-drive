@@ -26,4 +26,127 @@ public enum DriveCrypto {
         }
         return keyPacketsCount
     }
+    
+    // For String input
+    public static func sign(
+        _ input: String,
+        context: SignContext,
+        privateKey: ArmoredKey,
+        passphrase: Passphrase
+    ) throws -> Data {
+        let message = try unwrap { CryptoNewPlainMessageFromString(input.trimTrailingSpaces()) }
+        let context = CryptoSigningContext(context.value, isCritical: context.isCritical)
+        return try signInternal(
+            plainMessage: message,
+            context: context,
+            privateKey: privateKey,
+            passphrase: passphrase
+        )
+    }
+    
+    // For Data input
+    public static func sign(
+        _ input: Data,
+        context: String,
+        privateKey: ArmoredKey,
+        passphrase: Passphrase
+    ) throws -> Data {
+        let message = try unwrap { CryptoNewPlainMessage(input) }
+        let context = CryptoSigningContext(context, isCritical: true)
+        return try signInternal(
+            plainMessage: message,
+            context: context,
+            privateKey: privateKey,
+            passphrase: passphrase
+        )
+    }
+    
+    // Shared internal implementation
+    private static func signInternal(
+        plainMessage: CryptoPlainMessage,
+        context: CryptoSigningContext?,
+        privateKey: String,
+        passphrase: String
+    ) throws -> Data {
+        let privateKey = try executeAndUnwrap { CryptoNewKeyFromArmored(privateKey, &$0) }
+        let unlockedKey = try privateKey.unlock(passphrase.data(using: .utf8))
+        let keyRing = try executeAndUnwrap { CryptoNewKeyRing(unlockedKey, &$0) }
+        defer { keyRing.clearPrivateParams() }
+        let pgpSignature = try keyRing.signDetached(withContext: plainMessage, context: context)
+        let signature = try executeAndUnwrap { _ in pgpSignature.getBinary() }
+        
+        return signature
+    }
+    
+    public static func verifyDetached(
+        _ signature: Data,
+        clearText: String,
+        key: ArmoredKey,
+        context: VerificationContext,
+        verifyTime: Int64? = nil
+    ) throws {
+        let key = try executeAndUnwrap { CryptoNewKeyFromArmored(key, &$0) }
+        let signature = CryptoPGPSignature(signature)
+        let message = CryptoNewPlainMessageFromString(clearText.trimTrailingSpaces())
+        let keyRing = try executeAndUnwrap { CryptoNewKeyRing(key, &$0) }
+        let context = context.toCryptoVerificationContext()
+        try keyRing.verifyDetached(
+            withContext: message,
+            signature: signature,
+            verifyTime: verifyTime ?? Decryptor.cryptoTime,
+            verificationContext: context
+        )
+    }
+    
+    public struct VerificationContext {
+        let value: String
+        let required: Required
+        
+        public enum Required {
+            case nonRequired
+            case required(since: Date)
+            
+            var isCritical: Bool {
+                switch self {
+                case .nonRequired:
+                    return false
+                case .required:
+                    return true
+                }
+            }
+            
+            var requirementDetails: (isRequired: Bool, since: Date) {
+                switch self {
+                case .nonRequired:
+                    return (false, Date())
+                case .required(let since):
+                    return (true, since)
+                }
+            }
+        }
+        
+        public init(value: String, required: Required) {
+            self.value = value
+            self.required = required
+        }
+        
+        func toCryptoVerificationContext() -> CryptoVerificationContext? {
+            let detail = required.requirementDetails
+            return CryptoVerificationContext(
+                value,
+                isRequired: detail.isRequired,
+                requiredAfter: Int64(detail.since.timeIntervalSince1970)
+            )
+        }
+    }
+}
+
+public struct SignContext {
+    let value: String
+    let isCritical: Bool
+    
+    public init(value: String, isCritical: Bool) {
+        self.value = value
+        self.isCritical = isCritical
+    }
 }

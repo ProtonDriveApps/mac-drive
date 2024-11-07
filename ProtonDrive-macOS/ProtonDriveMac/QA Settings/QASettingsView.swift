@@ -89,17 +89,6 @@ struct QASettingsView: View {
                             .buttonStyle(.bordered)
                             .frame(maxWidth: .infinity)
                         }
-
-                        Picker(selection: $vm.disconnectDomainOnSignOut) {
-                            ForEach(QASettingsViewModel.DomainDisconnectionOptions.allCases.map(\.rawValue), id: \.self) {
-                                Text($0)
-                            }
-                        } label: {
-                            Text("Disconnect domain")
-                        }
-                        .pickerStyle(SegmentedPickerStyle())
-                        
-                        Text("Disconnect domain feature flag value: \(vm.domainReconnectionFeatureFlagValue ? "true" : "false")")
                         
                         Button("Clear credentials and crash") {
                             vm.clearCredentials()
@@ -126,6 +115,43 @@ struct QASettingsView: View {
                     .padding(16)
                 } label: {
                     Text("File Provider Domain")
+                        .font(.headline)
+                        .padding(.bottom, 10)
+                        .padding(.top, 20)
+                }
+                
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 16) {
+                        
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Picker(selection: $vm.disconnectDomainOnSignOut) {
+                                ForEach(QASettingsViewModel.FeatureFlagOptions.allCases.map(\.rawValue), id: \.self) {
+                                    Text($0)
+                                }
+                            } label: {
+                                Text("Disconnect domain")
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                            
+                            Text("Backend feature flag value: \(vm.parallelEncryptionAndVerificationFeatureFlagValue ? "true" : "false")")
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Picker(selection: $vm.parallelEncryptionAndVerification) {
+                                ForEach(QASettingsViewModel.FeatureFlagOptions.allCases.map(\.rawValue), id: \.self) {
+                                    Text($0)
+                                }
+                            } label: {
+                                Text("Parallel encryption and verification")
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                            
+                            Text("Backend feature flag value: \(vm.parallelEncryptionAndVerificationFeatureFlagValue ? "true" : "false")")
+                        }
+                    }
+                } label: {
+                    Text("Feature flags")
                         .font(.headline)
                         .padding(.bottom, 10)
                         .padding(.top, 20)

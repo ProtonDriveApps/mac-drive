@@ -47,6 +47,10 @@ class Decryptor {
 
 extension Decryptor {
 
+    static var cryptoTime: Int64 {
+        CryptoGo.CryptoGetUnixTime()
+    }
+
     static func decryptAndVerifySharePassphrase(
         _ armoredPassphrase: ArmoredMessage,
         armoredSignature: ArmoredSignature,

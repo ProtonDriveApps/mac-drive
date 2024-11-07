@@ -30,6 +30,7 @@ public final class CloseBarButton: UIBarButtonItem {
         button.setSizeContraint(height: 24, width: 24)
         button.tintColor = ColorProvider.IconNorm
         button.setBackgroundImage(IconProvider.cross, for: .normal)
+        button.accessibilityIdentifier = "SimpleCloseButtonView.Button.Close"
         super.init()
         customView = button
         button.addTarget(self, action: #selector(onTap), for: .touchUpInside)

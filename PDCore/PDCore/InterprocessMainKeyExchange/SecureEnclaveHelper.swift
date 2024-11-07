@@ -19,7 +19,7 @@
 import Foundation
 import Security
 
-private var kKeychainGroupName = DriveKeychain.keychainGroup
+private var kKeychainGroupName = Constants.keychainGroup
 
 @objc final class SecureEnclaveKeyReference: NSObject {
     

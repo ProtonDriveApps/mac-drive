@@ -13,9 +13,8 @@ let package = Package(
         .library(name: "PMEventsManager", targets: ["PMEventsManager"]),
     ],
     dependencies: [
-        .package(name: "CommonDependencies", path: "../CommonDependencies"),
-        
-        // exact version is defined by CommonDependencies
+
+        // exact version is defined by PDClient
         .package(url: "https://github.com/ProtonMail/protoncore_ios.git", .suitable),
     ],
     targets: [
@@ -28,13 +27,6 @@ let package = Package(
                 .product(name: "ProtonCorePayments", package: "protoncore_ios"),
             ],
             path: "Sources"
-        ),
-        .testTarget(
-            name: "PMEventsManagerTests",
-            dependencies: [
-                .target(name: "PMEventsManager")
-            ],
-            path: "Tests"
         ),
     ]
 )

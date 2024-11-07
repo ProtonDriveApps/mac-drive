@@ -20,7 +20,7 @@ import CoreData
 import PDClient
 
 @objc(Node)
-public class Node: NSManagedObject {
+public class Node: NSManagedObject, VolumeUnique {
     public enum State: Int, Codable {
         case active = 1
         case deleted = 2

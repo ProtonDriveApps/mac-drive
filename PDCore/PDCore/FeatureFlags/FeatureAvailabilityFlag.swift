@@ -29,10 +29,12 @@ public enum FeatureAvailabilityFlag: CaseIterable {
     case logCollectionDisabled
     case oneDollarPlanUpsellEnabled
     case driveDisablePhotosForB2B
+    case parallelEncryptionAndVerification
 
     // Sharing
     case driveSharingMigration
     case driveSharingDevelopment
+    case driveiOSSharing
     case driveSharingInvitations
     case driveSharingExternalInvitations
     case driveSharingDisabled
@@ -41,4 +43,5 @@ public enum FeatureAvailabilityFlag: CaseIterable {
 
     // ProtonDoc
     case driveDocsWebView
+    case driveDocsDisabled
 }

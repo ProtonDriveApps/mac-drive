@@ -17,7 +17,7 @@
 
 import Foundation
 import CoreData
-import ProtonCoreCryptoGoImplementation
+import ProtonCoreCryptoGoInterface
 
 @available(iOS, unavailable)
 public final class MigrationPerformer {

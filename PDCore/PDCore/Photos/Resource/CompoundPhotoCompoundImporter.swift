@@ -45,6 +45,7 @@ public final class CompoundPhotoCompoundImporter: PhotoCompoundImporter {
         var newCompounds = [PhotoAssetCompound]()
         var existingCompounds = [RawExistingCompound]()
         let shareID = try getEncryptingFolder().shareID
+        let volumeID = try getEncryptingFolder().volumeID
 
         for compound in compounds {
             switch compound {
@@ -52,7 +53,7 @@ public final class CompoundPhotoCompoundImporter: PhotoCompoundImporter {
                 newCompounds.append(assetCompound)
                 
             case .existing(linkID: let linkID, secondary: let assetCompound):
-                existingCompounds.append(RawExistingCompound(shareID: shareID, mainPhotoID: linkID, assets: assetCompound))
+                existingCompounds.append(RawExistingCompound(shareID: shareID, mainPhotoID: linkID, assets: assetCompound, volumeID: volumeID))
             }
         }
 

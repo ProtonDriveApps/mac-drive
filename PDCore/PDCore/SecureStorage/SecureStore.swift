@@ -21,15 +21,15 @@ import ProtonCoreKeymaker
 class SecureStore<T: Codable> {
     internal weak var keyProvider: MainKeyProvider?
     private let label: String
-    private let keychain: DriveKeychain
+    private let keychain: DriveKeychainProtocol
     
-    internal init(label: String, keychain: DriveKeychain = .shared) {
+    internal init(label: String, keychain: DriveKeychainProtocol = KeychainProvider.shared.keychain) {
         self.label = label
         self.keychain = keychain
     }
     
     internal func hasCyphertext() -> Bool {
-        keychain.data(forKey: label) != nil
+        keychain.data(forKey: label, attributes: nil) != nil
     }
     
     internal func update(_ newValue: T) throws {
@@ -40,7 +40,7 @@ class SecureStore<T: Codable> {
         let locked = try Locked<Data>(clearValue: data, with: key)
         let cypherdata = locked.encryptedValue
         
-        try keychain.setOrError(cypherdata, forKey: label)
+        try keychain.setOrError(cypherdata, forKey: label, attributes: nil)
     }
     
     internal func retrieve() throws -> T? {
@@ -48,7 +48,7 @@ class SecureStore<T: Codable> {
         guard let key = try keyProvider.mainKeyOrError else { return nil }
         
         // Read value from Keychain
-        guard let cypherdata = try keychain.dataOrError(forKey: label) else { return nil }
+        guard let cypherdata = try keychain.dataOrError(forKey: label, attributes: nil) else { return nil }
         
         let locked = Locked<Data>(encryptedValue: cypherdata)
         let data = try locked.unlock(with: key)
@@ -63,9 +63,9 @@ class SecureStore<T: Codable> {
     }
     
     internal func duplicate(to newLabel: String) throws {
-        guard let cypherdata = try keychain.dataOrError(forKey: label) else {
+        guard let cypherdata = try keychain.dataOrError(forKey: label, attributes: nil) else {
             return keychain.remove(forKey: newLabel)
         }
-        try keychain.setOrError(cypherdata, forKey: newLabel)
+        try keychain.setOrError(cypherdata, forKey: newLabel, attributes: nil)
     }
 }

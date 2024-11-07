@@ -17,12 +17,14 @@
 
 import Cocoa
 import FileProvider
+import GoLibs
 import PDCore
 import PDClient
+import PDLoadTesting
 import UserNotifications
 import ProtonCoreFeatureFlags
 import ProtonCoreServices
-import ProtonCoreCryptoGoImplementation
+import ProtonCoreCryptoPatchedGoImplementation
 import ProtonCoreLog
 
 #if LOAD_TESTING && SSL_PINNING
@@ -33,10 +35,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @SettingsStorage("firstLaunchHappened") private var firstLaunchHappened: Bool?
     private lazy var coordinator = AppCoordinator()
     private var isTerminatingDueToAppCoordinatorError = false
-    
+    private let memoryWarningObserver: MemoryWarningObserver
+
     override init() {
+        injectDefaultCryptoImplementation()
+        
+        // this must be done before the first access to the user defaults
+        GroupContainerMigrator.instance.checkIfMigrationIsNessesary()
+        GroupContainerMigrator.instance.migrateUserDefaults()
+        
         self._firstLaunchHappened.configure(with: Constants.appGroup)
         PDFileManager.configure(with: Constants.appGroup)
+        self.memoryWarningObserver = MemoryWarningObserver(memoryDiagnosticResource: DeviceMemoryDiagnosticsResource())
+
+        super.init()
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
@@ -52,16 +64,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         UNUserNotificationCenter.current().delegate = self
         
-        injectDefaultCryptoImplementation()
+        // Inject build type to enable build differentiation. (Build macros don't work in SPM)
+        PDCore.Constants.buildType = Constants.buildType
+        #if LOAD_TESTING && !SSL_PINNING
+        LoadTesting.enableLoadTesting()
+        #endif
         
+        var keychainCleared = false
         if self.firstLaunchHappened != true {
             // first launch after install is a good time for Keychain leftovers cleanup
             DriveKeychain.shared.removeEverything()
             self.firstLaunchHappened = true
+            keychainCleared = true
         }
+        
         Constants.loadConfiguration()
         configureCoreLogger()
-        setupLogger { [weak self] in self?.coordinator.client }
+        setUpLogger { [weak self] in self?.coordinator.client }
+        if keychainCleared {
+            Log.info("Keychain was cleared due to firstLaunchHappened != true", domain: .application)
+        }
 
         Log.info("AppDelegate did launch", domain: .application)
         
@@ -87,7 +109,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         PMLog.setEnvironment(environment: environment)
     }
 
-    private func setupLogger(clientGetter: @escaping () -> PDClient.Client?) {
+    private func setUpLogger(clientGetter: @escaping () -> PDClient.Client?) {
         let localSettings = LocalSettings(suite: Constants.appGroup)
         SentryClient.shared.start(localSettings: localSettings, clientGetter: clientGetter)
         Log.configuration = LogConfiguration(system: .macOSApp)
@@ -143,7 +165,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Log.info("Notification.Name.NSApplicationProtectedDataWillBecomeUnavailable", domain: .application)
         }
     }
-    
+
     func applicationProtectedDataDidBecomeAvailable(_ notification: Notification) {
         Log.info("AppDelegate.applicationProtectedDataDidBecomeAvailable", domain: .application)
     }
@@ -151,17 +173,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationProtectedDataWillBecomeUnavailable(_ notification: Notification) {
         Log.info("AppDelegate.applicationProtectedDataWillBecomeUnavailable", domain: .application)
     }
-    
+
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        let currentEvent = NSAppleEventManager.shared().currentAppleEvent
+        let pid = currentEvent?.attributeDescriptor(forKeyword: keySenderPIDAttr)?.int32Value
+        let bundleIdentifier = pid.flatMap { NSRunningApplication(processIdentifier: $0)?.bundleIdentifier } ?? Bundle.main.bundleIdentifier
+        let reason = currentEvent?.attributeDescriptor(forKeyword: kAEQuitReason)?.stringValue
+
+        // TODO: Add observability - observability.terminated(by bundleIdentifier: bundleIdentifier)
+
+        let sendToSentry = bundleIdentifier != Bundle.main.bundleIdentifier
+                        || bundleIdentifier != "com.apple.loginwindow"
+                        || reason != nil
+
+        Log.info("AppDelegate.applicationShouldTerminate, at request of: \(bundleIdentifier ?? ""), for reason: \(reason ?? "")", domain: .application, sendToSentryIfPossible: sendToSentry)
+
         disconnectDomainsBeforeClosing(sender)
         return .terminateLater
     }
-    
+
     func disconnectDomainsBeforeClosing(_ sender: NSApplication) {
         Task {
-            try? await coordinator.domainOperationsService.disconnectDomainsTemporarily(
-                reason: "Proton Drive needs to be running in order to sync these files."
-            )
+            try? await coordinator.domainOperationsService.disconnectDomainBeforeAppClosing()
             if isTerminatingDueToAppCoordinatorError {
                 // crashing with fatalError because calling the reply(toApplicationShouldTerminate:) was somehow hanging the app (blocking the main thread)
                 // regardless of making sure it's been called only from the main thread (using DispatchQueue.main or MainActor.run)
@@ -273,23 +306,6 @@ extension AppDelegate {
         guard recoveryAttempter == nil else { return }
         isTerminatingDueToAppCoordinatorError = true
         NSApp.terminate(nil)
-    }
-}
-
-private class RecoveryAttempter: NSObject {
-    private var options = [(title: String, block: (Error) -> Bool)]()
-    
-    func option(with title: String, block: @escaping (Error) -> Bool) {
-        options.append((title, block))
-    }
-    
-    var localizedRecoveryOptions: [String] {
-        return options.map(\.title)
-    }
-    
-    override func attemptRecovery(fromError error: Error, optionIndex recoveryOptionIndex: Int) -> Bool {
-        let option = options[recoveryOptionIndex]
-        return option.block(error)
     }
 }
 

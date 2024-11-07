@@ -120,3 +120,18 @@ public extension TemporalMetadata {
         self = metadata
     }
 }
+
+extension Photo {
+    /// There is no solid way to check given content is live photo or not
+    /// If the childrenURLs has only one video URL
+    /// The given content has chance to be a live photo
+    public var canBeLivePhoto: Bool {
+        guard let context = managedObjectContext else { return false }
+        return context.performAndWait {
+            let mainMime = MimeType(value: mimeType)
+            let childrenMime = children.map { MimeType(value: $0.mimeType) }
+            
+            return mainMime.isImage && childrenMime.count == 1 && (childrenMime.first?.isVideo ?? false)
+        }
+    }
+}

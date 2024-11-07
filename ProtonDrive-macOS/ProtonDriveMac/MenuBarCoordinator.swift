@@ -21,6 +21,7 @@ import FileProvider
 import PDCore
 import PDFileProvider
 import ProtonCoreUIFoundations
+import PDLocalization
 
 protocol LoggedInStateReporter {
     var isLoggedIn: Bool { get }
@@ -66,6 +67,62 @@ final class MenuBarCoordinator {
     var featureFlags: FeatureFlagsRepository?
 
     private var statusItem: NSStatusItem!
+    #if DEBUG
+    // Debug only code to show the current download/upload state in the menu bar.
+    // This is independant from the code that shows the real state in statusItem's menu.
+    var progressStatusItem: NSStatusItem!
+    var showHideProgressStatusMenuItem: NSMenuItem?
+    let hideProgressStatusItemDefaultsKey = "DEBUG_hideProgressStatusItem"
+
+    @objc
+    private func toggleProgressStatusItemShown() {
+        let hidden = !UserDefaults.standard.bool(forKey: hideProgressStatusItemDefaultsKey)
+        UserDefaults.standard.set(hidden, forKey: hideProgressStatusItemDefaultsKey)
+        showHideProgressStatusMenuItem?.title = hidden ? "Show" : "Hide"
+        if hidden {
+            updateProgressStatusItem(downloadProgress: nil, uploadProgress: nil)
+        }
+        // Note - We don't update when reshowing, we have to wait until next progress update as we don't have access
+        // to the global progresses from here.
+    }
+    
+    internal func updateProgressStatusItem(downloadProgress: Progress?, uploadProgress: Progress?)
+    {
+        var accumulated = ""
+        if !UserDefaults.standard.bool(forKey: hideProgressStatusItemDefaultsKey) {
+            for progress in [downloadProgress, uploadProgress].compactMap({ $0 }) {
+                let text: String
+                let isDownload = progress == downloadProgress
+                let direction = isDownload ? "⬇️" : "⬆️"
+                if progress.isFinished {
+                    text = "\(direction) Not Busy"
+                } else {
+                    let fileTotalCount = progress.fileTotalCount ?? 0
+                    let currentFileIndex = min(fileTotalCount, 1 + (progress.fileCompletedCount ?? 0))
+                    let additionalDescription = progress.localizedAdditionalDescription ?? ""
+                    let percent = 100 * progress.fractionCompleted
+                    if fileTotalCount == 0, additionalDescription.isEmpty {
+                        text = "\(direction) Confused??"
+                    } else {
+                        let countInfo = fileTotalCount == 1 ? "1 file"
+                        : "\(currentFileIndex) of \(fileTotalCount) files"
+                        text = "\(direction) \(countInfo): \(additionalDescription) \(String(format: "(%.2f%%)", percent))"
+                    }
+                }
+                
+                if !accumulated.isEmpty {
+                    accumulated.append(" | ")
+                }
+                accumulated.append(text)
+            }
+        }
+        
+        // If we are hidden (or end up with an empty string), we use a space as otherwise our status item ends up
+        // unclickable with zero width so we can't show it again.
+        progressStatusItem.button?.title = accumulated.isEmpty ? " " : accumulated
+        progressStatusItem.button?.sizeToFit()
+    }
+    #endif
 
     #if DEBUG
     private let observationCenter = UserDefaultsObservationCenter(userDefaults: Constants.appGroup.userDefaults,
@@ -85,6 +142,10 @@ final class MenuBarCoordinator {
     }
 
     private var syncActivityMenuItem = NSMenuItem()
+    private let globalProgressMenuItem1: NSMenuItem
+    private let globalProgressMenuItem2: NSMenuItem
+    private let globalProgressMenuItem3: NSMenuItem
+    private let globalProgressMenuItems: [NSMenuItem]
     private var updateAvailable: MenuBarUpdateAvailabilityStatus = .noStatus {
         didSet {
             guard updateAvailable != oldValue else { return }
@@ -130,7 +191,7 @@ final class MenuBarCoordinator {
             updateMenu()
         }
     }
-    // this is the sync state as presented to the user. It's not identicat to real `syncState` because:
+    // this is the sync state as presented to the user. It's not identical to real `syncState` because:
     // * if we are paused, we show always `synced`, even if real state is `syncing`
     // * there's a delay introduced between receiving `synced` state and showing `synced` state to the user.
     //   this delay ensures that in case there are multitple sync state changes done one after the other, we are smoothing them out
@@ -182,6 +243,17 @@ final class MenuBarCoordinator {
          networkStateService: NetworkStateInteractor,
          syncStateService: SyncStateService,
          domainOperationsService: DomainOperationsService) {
+        self.globalProgressMenuItem1 = NSMenuItem()
+        self.globalProgressMenuItem2 = NSMenuItem()
+        self.globalProgressMenuItem3 = NSMenuItem()
+        self.globalProgressMenuItems = [globalProgressMenuItem1, globalProgressMenuItem2, globalProgressMenuItem3]
+
+        self.globalProgressMenuItems.forEach { $0.title = "" }
+        self.globalProgressMenuItems.forEach { $0.isHidden = true }
+        self.globalProgressMenuItems.forEach { $0.action = #selector(self.doNothing) }
+
+        self.globalProgressMenuItem1.image = NSImage(named: "syncing")
+
         self.appUpdaterService = appUpdaterService
         self.networkStateService = networkStateService
         self.syncStateService = syncStateService
@@ -189,6 +261,17 @@ final class MenuBarCoordinator {
         self.loggedInStateReporter = loggedInStateReporter
         self.delegate = delegate
         self.statusItem = self.makeStatusItem()
+        
+        #if DEBUG
+        self.progressStatusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        self.progressStatusItem.button?.font = NSFont.labelFont(ofSize: NSFont.labelFontSize)
+        self.progressStatusItem.menu = NSMenu()
+        let hidden = UserDefaults.standard.bool(forKey: hideProgressStatusItemDefaultsKey)
+        self.showHideProgressStatusMenuItem = self.progressStatusItem.menu?.addItem(withTitle: hidden ? "Show" : "Hide", action: #selector(toggleProgressStatusItemShown), keyEquivalent: "")
+        self.showHideProgressStatusMenuItem?.target = self
+        
+        #endif
+        
         Log.info("MenuBarCoordinator init: \(instanceIdentifier.uuidString)", domain: .syncing)
         setupObservations()
     }
@@ -255,6 +338,11 @@ final class MenuBarCoordinator {
 
     func updateMenu() {
         DispatchQueue.main.async { [unowned self] in
+            if presentedSyncState == .synced {
+                // Force the global progress items to disappear no, regardless of their true state.
+                globalSyncStatusChanged(downloadProgress: nil, uploadProgress: nil)
+            }
+            
             statusItem.button?.image = menuIconImage()
             guard let menu = statusItem.menu else {
                 return
@@ -326,6 +414,143 @@ final class MenuBarCoordinator {
             RunLoop.current.add(syncTimer, forMode: .common)
         }
     }
+    
+    func globalSyncStatusChanged(downloadProgress: Progress?, uploadProgress: Progress?) {
+        #if DEBUG
+        updateProgressStatusItem(downloadProgress: downloadProgress, uploadProgress: uploadProgress)
+        #endif
+        
+        struct GlobalSyncState {
+            let totalFileCount: Int
+            let completedFileCount: Int
+            let fractionCompleted: Double
+            let totalByteCount: Int64
+            let completedByteCount: Int64
+            /// This is the '7' in "7 of 33 files" part of the text and indicates what file its currently doing, not how many completed files there are.
+            let currentFileIndex: Int
+            
+            init?(progress: Progress?) {
+                guard let progress,
+                      !progress.isFinished,
+                      progress.fileTotalCount ?? 0 != 0 else {
+                    return nil
+                }
+                
+                totalFileCount = progress.fileTotalCount ?? 0
+                guard totalFileCount != 0 else { return nil }
+                completedFileCount = progress.fileCompletedCount ?? 0
+                currentFileIndex = completedFileCount + 1
+                totalByteCount = progress.totalUnitCount
+                completedByteCount = progress.completedUnitCount
+                fractionCompleted = progress.fractionCompleted
+            }
+            
+            init(byMerging a: GlobalSyncState, with b: GlobalSyncState) {
+                totalFileCount = a.totalFileCount + b.totalFileCount
+                completedFileCount = a.completedFileCount + b.completedFileCount
+                currentFileIndex = a.currentFileIndex + b.currentFileIndex
+                totalByteCount = a.totalByteCount + b.totalByteCount
+                completedByteCount = a.completedByteCount + b.completedByteCount
+                fractionCompleted = Double(completedByteCount) / Double(totalByteCount)
+            }
+        }
+        
+        let downloadState = GlobalSyncState(progress: downloadProgress)
+        let uploadState = GlobalSyncState(progress: uploadProgress)
+        
+        let actualState: GlobalSyncState?
+        var overview = ""
+        
+        if presentedSyncState == .synced {
+            if downloadState != nil || uploadState != nil {
+                Log.debug("Not showing available global progress as presentedSyncState says it is synced", domain: .syncing)
+            }
+            actualState = nil
+        } else {
+            switch (downloadState, uploadState) {
+            case (nil, nil):
+                actualState = nil
+                overview = ""
+            case(let dl, nil):
+                actualState = dl
+                overview = "Downloading"
+            case (nil, let ul):
+                actualState = ul
+                overview = "Uploading"
+            case (let dl, let ul):
+                actualState = GlobalSyncState(byMerging: dl!, with: ul!)
+                overview = "Syncing"
+            }
+        }
+
+        var normalString: NSMutableAttributedString?
+
+        // Don't show progress for very small syncs (as these can be enumerations)
+        if let actualState, actualState.totalByteCount > 100 {
+            let overviewAttributes = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 0, weight: .bold),
+                                      NSAttributedString.Key.foregroundColor: NSColor.selectedMenuItemTextColor]
+            let subTextAttributes = [NSAttributedString.Key.font: NSFont.menuFont(ofSize: 0),
+                                     NSAttributedString.Key.foregroundColor: NSColor.secondaryLabelColor]
+
+            var percentText: String
+            let percentFormat = "%.0f%%"
+            percentText = String(format: percentFormat, actualState.fractionCompleted * 100)
+            if actualState.fractionCompleted < 1, percentText.starts(with: "100") {
+                // We don't want to show 100% unless we really are at the end.
+                percentText = "99%"
+            }
+            
+            overview += " \(percentText)"
+            normalString = NSMutableAttributedString(string: overview, attributes: overviewAttributes)
+
+            let done = Measurement(value: Double(actualState.completedByteCount), unit: UnitInformationStorage.bytes)
+            let toDo = Measurement(value: Double(actualState.totalByteCount), unit: UnitInformationStorage.bytes)
+            
+            let byteCountText: String
+            let doneBytesText = done.formatted(.byteCount(style: .file, allowedUnits: .all, spellsOutZero: true))
+            let toDoBytestext = toDo.formatted(.byteCount(style: .file, allowedUnits: .all, spellsOutZero: true))
+            byteCountText = "      \(doneBytesText) of \(toDoBytestext)"
+
+            let line2 = NSAttributedString(string: byteCountText, attributes: subTextAttributes)
+            globalProgressMenuItem2.title = line2.string
+            globalProgressMenuItem2.attributedTitle = line2
+
+            let countInfo = actualState.totalFileCount == 1
+            ? "\(NumberFormatter.localizedString(from: 1, number: .decimal)) file" // for a single file it makes no sense to do "x of y" files
+            : "\(NumberFormatter.localizedString(from: actualState.currentFileIndex as NSNumber, number: .decimal)) of \(NumberFormatter.localizedString(from: actualState.totalFileCount as NSNumber, number: .decimal)) files"
+
+            let countText = "      \(countInfo)"
+            let line3 = NSAttributedString(string: countText, attributes: subTextAttributes)
+            globalProgressMenuItem3.title = line3.string
+            globalProgressMenuItem3.attributedTitle = line3
+        }
+
+        let wasShowingStatus = !globalProgressMenuItem1.title.isEmpty
+
+        globalProgressMenuItem1.title = normalString?.string ?? ""
+        globalProgressMenuItem1.attributedTitle = normalString
+        globalProgressMenuItems.forEach { $0.target = self }
+        globalProgressMenuItems.forEach { $0.isHidden = normalString == nil }
+
+        syncActivityMenuItem.isHidden = !globalProgressMenuItem1.isHidden
+
+        #if DEBUG
+        // Temporarily set to true to show all items, regardless of their preferred state.
+        // Helpful if you think the progress items are not in tune with what syncActivityMenuItem would show
+        let alwaysShowAllItems = false
+        if alwaysShowAllItems {
+            globalProgressMenuItems.forEach { $0.isHidden = false }
+            syncActivityMenuItem.isHidden = false
+        }
+        #endif
+        
+        if wasShowingStatus, globalProgressMenuItem1.title.isEmpty, let menu = statusItem.menu {
+            // If we were previously showing global status, but now we are not, then we have to repopulate
+            // the menu immediately to ensure that if the user is holding down option to see alternate status
+            // and the menu is being displayed across the transition they won't see artifacts in the menu.
+            populateMenu(menu)
+        }
+    }
 
     private func subscribeToSyncErrorUpdates() {
         syncErrorsCancellable = self.errorsCountSubject?
@@ -364,6 +589,7 @@ final class MenuBarCoordinator {
         statusItem.button?.target = self
         statusItem.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
         statusItem.button?.action = #selector(statusBarButtonTapped(_:))
+        statusItem.button?.setAccessibilityIdentifier("Proton Drive")
         return statusItem
     }
 
@@ -412,6 +638,8 @@ final class MenuBarCoordinator {
 
         if loggedInStateReporter.isLoggedIn {
             menu.addItem(syncActivityMenuItem)
+            globalProgressMenuItems.forEach { menu.addItem($0) }
+
             self.updateSyncActivityMenuItem()
             if offline {
                 menu.addItem(offlineMenuItem)
@@ -425,7 +653,6 @@ final class MenuBarCoordinator {
                 menu.addItem(eventSyncMenuItem)
             }
 
-            menu.addItem(NSMenuItem.separator())
             menu.addItem(NSMenuItem.separator())
             menu.addItem(openDriveMenuItem)
             if case .availableForInstall = updateAvailable {
@@ -456,6 +683,15 @@ final class MenuBarCoordinator {
     private func updateSyncActivityMenuItem() {
         let title = presentedSyncState == .syncing ? "Syncing" : titleWhenSynced()
         syncActivityMenuItem.title = title
+        if presentedSyncState == .syncing {
+            let attributes = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 0, weight: .bold),
+                              NSAttributedString.Key.foregroundColor: NSColor.selectedMenuItemTextColor]
+            let attributedTitle = NSAttributedString(string: title, attributes: attributes)
+            syncActivityMenuItem.attributedTitle = attributedTitle
+        } else {
+            syncActivityMenuItem.attributedTitle = nil
+        }
+
         syncActivityMenuItem.image = NSImage(named: presentedSyncState == .syncing ? "syncing" : "synced")
         syncActivityMenuItem.target = self
         syncActivityMenuItem.action = #selector(self.doNothing)
@@ -484,7 +720,7 @@ final class MenuBarCoordinator {
     }
     
     private var quitAppMenuItem: NSMenuItem {
-        let quitApp = NSMenuItem(title: "Quit", action: #selector(delegate.quitApp), keyEquivalent: "")
+        let quitApp = NSMenuItem(title: "Quit Proton Drive", action: #selector(delegate.quitApp), keyEquivalent: "")
         quitApp.target = delegate
         return quitApp
     }
@@ -506,7 +742,7 @@ final class MenuBarCoordinator {
     }
 
     private var syncErrorMenuItem: NSMenuItem {
-        let errorItem = NSMenuItem(title: "\(errorsCountTitle)", action: #selector(delegate.showErrorView), keyEquivalent: "E")
+        let errorItem = NSMenuItem(title: "\(errorsCountTitle)", action: #selector(delegate.showErrorView), keyEquivalent: "")
         errorItem.target = delegate
         errorItem.image = NSImage(named: "cross-circle")
         errorItem.isHidden = !(errorsCount > 0)
@@ -516,7 +752,7 @@ final class MenuBarCoordinator {
 
     private var eventSyncMenuItem: NSMenuItem {
         let isPaused = pauseState == .paused
-        let title = isPaused ? "Resume syncing" : "Pause syncing"
+        let title = isPaused ? "Resume Syncing" : "Pause Syncing"
         let selector = isPaused ? #selector(resumeSyncing) : #selector(pauseSyncing)
         let eventSyncItem = NSMenuItem(title: title, action: selector, keyEquivalent: "")
         eventSyncItem.image = NSImage(named: isPaused ? "resume" : "pause")

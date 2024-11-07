@@ -21,8 +21,8 @@ import FileProvider
 import ProtonCoreKeymaker
 
 public enum CrossProcessMainKeyExchange {
-    private static var publicLabel = DriveKeychain.keychainGroup + ".ephemeral.public"
-    private static var privateLabel = DriveKeychain.keychainGroup + ".ephemeral.private"
+    private static var publicLabel = Constants.keychainGroup + ".ephemeral.public"
+    private static var privateLabel = Constants.keychainGroup + ".ephemeral.private"
 
     private static var errorKey = "publicKeyEncoded"
     private static var keychainLabel = "encryptedPin"
@@ -33,18 +33,16 @@ public enum CrossProcessMainKeyExchange {
 // this happens in FileProvider process
 extension CrossProcessMainKeyExchange {
     public static func getMainKeyOrThrowEphemeralKeypair() throws -> MainKey  {
-        let keychain = DriveKeychain.shared
+        let keychain = KeychainProvider.shared.keychain
         let secureEnclave = SecureEnclaveHelper(publicLabel: self.publicLabel, privateLabel: self.privateLabel)
         
-        guard let pinData = keychain.data(forKey: self.keychainLabel),
+        guard let pinData = keychain.data(forKey: self.keychainLabel, attributes: nil),
             let privateKey = self.privateEphemeralKey,
             let pinDataDecrypted = try? secureEnclave.decrypt(pinData, privateKey: privateKey) else
         {
-            // swiftlint:disable force_try
-            let accessControl = try! secureEnclave.accessControl(with: kSecAttrAccessibleWhenUnlockedThisDeviceOnly, flags: .privateKeyUsage)
+            let accessControl = try secureEnclave.accessControl(with: kSecAttrAccessibleWhenUnlockedThisDeviceOnly, flags: .privateKeyUsage)
             
-            // swiftlint:disable force_try
-            let keypair = try! secureEnclave.generateKeyPair(accessControl: accessControl)
+            let keypair = try secureEnclave.generateKeyPair(accessControl: accessControl)
             self.privateEphemeralKey = keypair.private
 
             let publicKeyData: Data = SecKeyCopyExternalRepresentation(keypair.public.underlying, nil)! as Data
@@ -72,14 +70,15 @@ extension CrossProcessMainKeyExchange {
             return
         }
 
-        let keychain = DriveKeychain.shared
+        let keychain = KeychainProvider.shared.keychain
         let secureEnclave = SecureEnclaveHelper(publicLabel: publicLabel, privateLabel: privateLabel)
         let publicKey = secureEnclave.createKey(ofClass: kSecAttrKeyClassPublic, from: publicKeyData)
 
         // swiftlint:disable force_try
         let encryptedPin = try! secureEnclave.encrypt(Data(mainKey), publicKey: publicKey)
+        // swiftlint:enable force_try
         
-        keychain.set(encryptedPin, forKey: keychainLabel)
+        keychain.set(encryptedPin, forKey: keychainLabel, attributes: nil)
     }
 }
 #endif

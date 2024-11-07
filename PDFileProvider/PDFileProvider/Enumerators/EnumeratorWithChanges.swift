@@ -22,7 +22,7 @@ protocol EnumeratorWithChanges: AnyObject {
     var shareID: String { get }
     var eventsManager: EventsSystemManager { get }
     var fileSystemSlot: FileSystemSlot { get }
-    var cloudSlot: CloudSlot { get }
+    var cloudSlot: CloudSlotProtocol { get }
     var changeObserver: FileProviderChangeObserver? { get }
     var shouldReenumerateItems: Bool { get set }
 }
@@ -203,11 +203,11 @@ extension EnumeratorWithChanges {
         switch row.event.genericType {
         case .delete:
             let shareID = !row.share.isEmpty ? row.share : shareID
-            let nodeIdentifier = NodeIdentifier(row.event.inLaneNodeId, shareID)
+            let nodeIdentifier = NodeIdentifier(row.event.inLaneNodeId, shareID, "")
             itemsToDelete.append(.init(nodeIdentifier))
             
         case .updateContent, .updateMetadata, .create:
-            let nodeIdentifier = NodeIdentifier(row.event.inLaneNodeId, row.share)
+            let nodeIdentifier = NodeIdentifier(row.event.inLaneNodeId, row.share, "")
             guard let node = self.fileSystemSlot.getNode(nodeIdentifier) else {
                 Log.info("Event's node not found in storage - event has not yet been processed", domain: .events)
                 return

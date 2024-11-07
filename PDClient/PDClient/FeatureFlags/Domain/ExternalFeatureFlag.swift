@@ -26,9 +26,11 @@ public enum ExternalFeatureFlag: CaseIterable {
     case logCollectionDisabled
     case oneDollarPlanUpsellEnabled
     case driveDisablePhotosForB2B
+    case parallelEncryptionAndVerification
 
     // MARK: - Sharing 
     case driveSharingMigration
+    case driveiOSSharing
     case driveSharingDevelopment
     case driveSharingInvitations
     case driveSharingExternalInvitations
@@ -38,4 +40,5 @@ public enum ExternalFeatureFlag: CaseIterable {
 
     // ProtonDoc
     case driveDocsWebView
+    case driveDocsDisabled
 }

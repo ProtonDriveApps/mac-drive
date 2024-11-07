@@ -33,6 +33,7 @@ public class SessionVault: CredentialProvider, ObservableObject {
         case addressNotFound
         case addressHasNoActiveKeys
         case userNotFound
+        case addressByIDNotFound
     }
 
     static var current: SessionVault! // 🧨
@@ -61,13 +62,13 @@ public class SessionVault: CredentialProvider, ObservableObject {
             if Constants.runningInExtension {
                 fileProviderChildSessionCredential = newValue
                 if let newValue {
-                    #if HAS_QA_FEATURES
-                    Log.info("New child session credentials \(newValue.UID) stored in the extension",
-                             domain: .sessionManagement)
-                    #else
-                    Log.info("New child session credentials stored in the extension",
-                             domain: .sessionManagement)
-                    #endif
+                    if Constants.buildType.isQaOrBelow {
+                        Log.info("New child session credentials \(newValue.UID) stored in the extension",
+                                 domain: .sessionManagement)
+                    } else {
+                        Log.info("New child session credentials stored in the extension",
+                                 domain: .sessionManagement)
+                    }
                 } else {
                     Log.info("Child session credentials removed from storage in the extension",
                              domain: .sessionManagement)
@@ -75,13 +76,13 @@ public class SessionVault: CredentialProvider, ObservableObject {
             } else {
                 parentSessionCredential = newValue
                 if let newValue {
-                    #if HAS_QA_FEATURES
-                    Log.info("New parent session credentials \(newValue.UID) stored in the main app",
-                             domain: .sessionManagement)
-                    #else
-                    Log.info("New parent session credentials stored in the main app",
-                             domain: .sessionManagement)
-                    #endif
+                    if Constants.buildType.isQaOrBelow {
+                        Log.info("New parent session credentials \(newValue.UID) stored in the main app",
+                                 domain: .sessionManagement)
+                    } else {
+                        Log.info("New parent session credentials stored in the main app",
+                                 domain: .sessionManagement)
+                    }
                 } else {
                     Log.info("Parent session credentials removed from storage in the main app",
                              domain: .sessionManagement)
@@ -106,24 +107,25 @@ public class SessionVault: CredentialProvider, ObservableObject {
 
     @SecureStorage(label: "passphrases", caching: Constants.runningInExtension) private(set) var passphrases: [AddressID: String]?
     @SecureStorage(label: "publicKeys", caching: Constants.runningInExtension) private(set) var publicKeys: [String: [PublicKey]]?
-    @SecureStorage(label: "addresses", caching: Constants.runningInExtension) private(set) var addresses: [Address]? {
+    @SecureStorage(label: "addressIDPublicKeys", caching: Constants.runningInExtension) private(set) var addressIDPublicKeys: [String: [PublicKey]]?
+    @SecureStorage(label: "addresses", caching: Constants.runningInExtension) public private(set) var addresses: [Address]? {
         didSet { objectWillChange.send() }
     }
-    @SecureStorage(label: "userInfo") private(set) var userInfo: User? {
+    @SecureStorage(label: "userInfo") public private(set) var userInfo: User? {
         didSet { objectWillChange.send() }
     }
     @SecureStorage(label: "uploadClientUID", caching: Constants.runningInExtension) private var uploadClientUID: String?
     @SecureStorage(label: "deviceUUID", caching: Constants.runningInExtension) private var deviceUUID: String?
-    
-    #if HAS_QA_FEATURES
+
+    // QA only
     public var parentSessionUID: String? {
         parentSessionCredential?.UID
     }
+    // QA only
     public var childSessionUID: String? {
         (fileProviderChildSessionCredential ?? temporaryLockerStorageForChildSessionCredentials)?.UID
     }
-    #endif
-    
+
     public init(mainKeyProvider: MainKeyProvider) {
         self.mainKeyProvider = mainKeyProvider
         
@@ -133,16 +135,17 @@ public class SessionVault: CredentialProvider, ObservableObject {
         } else {
             self._parentSessionCredential.configure(with: mainKeyProvider)
             self._temporaryLockerStorageForChildSessionCredentials.configure(with: mainKeyProvider)
-            #if HAS_QA_FEATURES
-            // in QA builds, we do read the child session to expose its UID. It doesn't happen in the release builds
-            self._fileProviderChildSessionCredential.configure(with: mainKeyProvider)
-            #endif
+            if Constants.buildType.isQaOrBelow {
+                // in QA builds, we do read the child session to expose its UID. It doesn't happen in the release builds
+                self._fileProviderChildSessionCredential.configure(with: mainKeyProvider)
+            }
         }
         self._unauthorizedCredential.configure(with: mainKeyProvider)
         self._userInfo.configure(with: mainKeyProvider)
         self._passphrases.configure(with: mainKeyProvider, notifying: true)
         self._addresses.configure(with: mainKeyProvider, notifying: true)
         self._publicKeys.configure(with: mainKeyProvider, notifying: true)
+        self._addressIDPublicKeys.configure(with: mainKeyProvider, notifying: true)
         self._uploadClientUID.configure(with: mainKeyProvider)
         self._deviceUUID.configure(with: mainKeyProvider)
         
@@ -278,13 +281,13 @@ extension SessionVault: SessionStore {
                              """)
             return
         }
-        #if HAS_QA_FEATURES
-        Log.info("New child session credentials \(credentialToStore.UID) stored to the locker in the main app",
-                 domain: .sessionManagement)
-        #else
-        Log.info("New child session credentials stored to the locker in the main app",
-                 domain: .sessionManagement)
-        #endif
+        if Constants.buildType.isQaOrBelow {
+            Log.info("New child session credentials \(credentialToStore.UID) stored to the locker in the main app",
+                     domain: .sessionManagement)
+        } else {
+            Log.info("New child session credentials stored to the locker in the main app",
+                     domain: .sessionManagement)
+        }
         temporaryLockerStorageForChildSessionCredentials = credentialToStore
     }
     
@@ -299,13 +302,13 @@ extension SessionVault: SessionStore {
         guard let newChildSessionCredentials = temporaryLockerStorageForChildSessionCredentials else {
             return
         }
-        #if HAS_QA_FEATURES
-        Log.info("New child session credentials \(newChildSessionCredentials.UID) consumed in the extension",
-                 domain: .sessionManagement)
-        #else
-        Log.info("New child session credentials consumed in the extension",
-                 domain: .sessionManagement)
-        #endif
+        if Constants.buildType.isQaOrBelow {
+            Log.info("New child session credentials \(newChildSessionCredentials.UID) consumed in the extension",
+                     domain: .sessionManagement)
+        } else {
+            Log.info("New child session credentials consumed in the extension",
+                     domain: .sessionManagement)
+        }
         fileProviderChildSessionCredential = newChildSessionCredentials
         temporaryLockerStorageForChildSessionCredentials = nil
     }
@@ -336,7 +339,8 @@ extension SessionVault: SessionStore {
         try? _passphrases.wipeValue()
         try? _addresses.wipeValue()
         try? _uploadClientUID.wipeValue()
-        
+        try? _publicKeys.wipeValue()
+        try? _addressIDPublicKeys.wipeValue()
         #if os(iOS)
         mainKeyProvider.wipeMainKey()
         #endif
@@ -361,6 +365,7 @@ public protocol SessionStore {
     func storeUser(_ user: User)
     func storeAddresses(_ addresses: [Address])
     func storePassphrases(_ passphrases: [AddressID: Passphrase])
+    func getUserPassphrase() throws -> String
 
     func signOut()
 }
@@ -411,8 +416,8 @@ extension SessionVault {
         
         return isValid
     }
-    
-    func userPassphrase() throws -> String {
+
+    public func getUserPassphrase() throws -> String {
         guard let passphrases = self.passphrases, let userInfo = self.userInfo else {
             throw Errors.passphrasesVaultEmpty
         }
@@ -428,7 +433,7 @@ extension SessionVault {
         guard let userInfo = self.userInfo else {
             throw Errors.passphrasesVaultEmpty
         }
-        let userPassphrase = try self.userPassphrase()
+        let userPassphrase = try getUserPassphrase()
         let addressKeyPassphrase = try addressKey._passphrase(userKeys: userInfo.keys, mailboxPassphrase: userPassphrase)
         return addressKeyPassphrase
     }
@@ -497,6 +502,14 @@ extension SessionVault {
         return self.addresses?.first(where: { $0.email.canonicalEmailForm == canonicalForm })
     }
 
+    public func getAddress(withId id: String) -> Address? {
+        return self.addresses?.first(where: { $0.addressID == id })
+    }
+
+    public func getAddress(withID addressID: String) -> Address? {
+        return self.addresses?.first(where: { $0.addressID == addressID })
+    }
+
     public func getEmail(addressId: String) -> String? {
         return addresses?.first(where: { $0.addressID == addressId })?.email
     }
@@ -508,7 +521,26 @@ extension SessionVault {
         }
         return cachedPublicKeys[email.canonicalEmailForm] ?? []
     }
-    
+
+    public func getPublicKeys(addressID: String) -> [PublicKey] {
+        if let cachedPublicKeys = addressIDPublicKeys {
+            return cachedPublicKeys[addressID] ?? []
+        } else {
+            var keys = [String: [PublicKey]]()
+            for address in (addresses ?? []) {
+                keys[address.addressID] = address.activePublicKeys
+            }
+            self.addressIDPublicKeys = keys
+            return self.addressIDPublicKeys?[addressID] ?? []
+        }
+    }
+
+    public func getPublicKeys(email: String, addressID: String) -> [PublicKey] {
+        let creatorKeys = getPublicKeys(for: email)
+        let addressIDKeys = getPublicKeys(addressID: addressID)
+        return creatorKeys + addressIDKeys
+    }
+
     public var allAddresses: [String] {
         guard let addresses else { return [] }
         return addresses.map(\.email)
@@ -532,7 +564,14 @@ extension SessionVault {
         guard let info = self.userInfo else {
             return nil
         }
-        return .init(usedSpace: Double(info.usedSpace), maxSpace: Double(info.maxSpace), invoiceState: InvoiceUserState(rawValue: info.delinquent) ?? .onTime, isPaid: info.hasAnySubscription, lockedFlags: info.lockedFlags)
+
+        return UserInfo(
+            usedSpace: Double(info.usedDriveSpace ?? info.usedSpace),
+            maxSpace: Double(info.maxDriveSpace ?? info.maxSpace),
+            invoiceState: InvoiceUserState(rawValue: info.delinquent) ?? .onTime,
+            isPaid: info.hasAnySubscription, 
+            lockedFlags: info.lockedFlags
+        )
     }
 
     public func getCoreUserInfo() -> ProtonCoreDataModel.UserInfo? {
@@ -672,6 +711,7 @@ extension SessionVault.Errors: LocalizedError {
         case .addressNotFound: return "Could not find Address for the specified email"
         case .addressHasNoActiveKeys: return "Could not find any active key in the Address"
         case .userNotFound: return "Could not find any User locally"
+        case .addressByIDNotFound: return "Could not find address with provided id"
         }
     }
 }

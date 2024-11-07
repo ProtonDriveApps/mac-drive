@@ -2,7 +2,7 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
- 
+
 let package = Package(
     name: "PDFileProvider",
     platforms: [
@@ -13,41 +13,19 @@ let package = Package(
         .library(name: "PDFileProvider", targets: ["PDFileProvider"]),
     ],
     dependencies: [
-        .package(name: "CommonDependencies", path: "../CommonDependencies"),
         .package(name: "PDCore", path: "../PDCore"),
         .package(name: "PDUploadVerifier", path: "../PDUploadVerifier"),
-        
-        // exact version is defined by CommonDependencies>ProtonCore
+
+        // exact version is defined by PDClient>ProtonCore
         .package(url: "https://github.com/AliSoftware/OHHTTPStubs", .suitable),
     ],
     targets: [
         .target(
             name: "PDFileProvider",
             dependencies: [
-                .product(name: "PDCore", package: "PDCore"),
+                .product(name: "PDCore", package: "PDCore")
             ],
             path: "PDFileProvider"
-        ),
-        .testTarget(
-            name: "PDFileProviderTests",
-            dependencies: [
-                .target(name: "PDFileProvider", condition: .when(platforms: [.iOS])),
-                .product(name: "PDUploadVerifier", package: "PDUploadVerifier"),
-                
-                .product(name: "ProtonCoreTestingToolkit", package: "CommonDependencies"),
-            ],
-            path: "PDFileProviderTests"
-        ),
-        .testTarget(
-            name: "PDFileProviderMacTests",
-            dependencies: [
-                .target(name: "PDFileProvider", condition: .when(platforms: [.macOS])),
-                .product(name: "PDUploadVerifier", package: "PDUploadVerifier"),
-                
-                .product(name: "ProtonCoreTestingToolkit", package: "CommonDependencies"),
-                .product(name: "OHHTTPStubs", package: "OHHTTPStubs"),
-            ],
-            path: "PDFileProviderMacTests"
         ),
     ]
 )

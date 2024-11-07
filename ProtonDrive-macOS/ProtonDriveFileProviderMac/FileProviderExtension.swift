@@ -21,13 +21,18 @@ import Foundation
 import PDCore
 import PDClient
 import PDFileProvider
+import PDLoadTesting
 import ProtonCoreLog
 import ProtonCoreKeymaker
 import ProtonCoreFeatureFlags
-import ProtonCoreCryptoGoImplementation
+import ProtonCoreCryptoPatchedGoImplementation
 import ProtonCoreUtilities
 import PDUploadVerifier
 import Combine
+
+#if LOAD_TESTING && SSL_PINNING
+#error("Load testing requires turning off SSL pinning, so it cannot be set for SSL-pinning targets")
+#endif
 
 class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     
@@ -46,7 +51,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         postLoginServices.tower.syncStorage ?? SyncStorageManager(suite: Constants.appGroup)
     }
     var downloader: SuspendableDownloader { SuspendableDownloader(downloader: tower.downloader) }
-    var fileUploader: SuspendableFileUploader { SuspendableFileUploader(uploader: tower.fileUploader) }
+    var fileUploader: SuspendableFileUploader { SuspendableFileUploader(uploader: tower.fileUploader, progress: nil) }
     private lazy var itemProvider = ItemProvider()
     private lazy var itemActionsOutlet = ItemActionsOutlet(fileProviderManager: manager)
     private lazy var keymaker = DriveKeymaker(autolocker: nil, keychain: DriveKeychain.shared,
@@ -79,6 +84,12 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     
     required init(domain: NSFileProviderDomain) {
         injectDefaultCryptoImplementation()
+        // Inject build type to enable build differentiation. (Build macros don't work in SPM)
+        PDCore.Constants.buildType = Constants.buildType
+
+        #if LOAD_TESTING && !SSL_PINNING
+        LoadTesting.enableLoadTesting()
+        #endif
 
         // the logger setup happens before the super.init, hence the captured `client` and `featureFlags` variables
         var client: PDClient.Client?
@@ -96,11 +107,28 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         _shouldReenumerateItems.configure(with: Constants.appGroup)
         _cacheReset.configure(with: Constants.appGroup)
         
+        #if LOAD_TESTING
+        Log.info("LOAD_TESTING: YES", domain: .fileProvider)
+        Log.info("HOST: \(Constants.userApiConfig.baseHost)", domain: .fileProvider)
+        #else
+        Log.info("LOAD_TESTING: NO", domain: .fileProvider)
+        #endif
+        
         super.init()
         
         // expose the client and featureFlags to logger
         client = tower.client
         featureFlags = tower.featureFlags
+        
+        guard tower.rootFolderAvailable() else {
+            fatalError("No root folder means the database was not bootstrap yet by the main app. There is no point in running file provider at all.")
+        }
+        // this line covers a rare scenario in which the child session credentials
+        // were fetched and saved to keychain by the main app, but file provider extension
+        // somehow did not get informed about them through the user defaults.
+        // the one confirmed case of this scenario happening was when user denied access
+        // to group container on the Sequoia, so the user defaults were not available
+        tower.sessionVault.consumeChildSessionCredentials()
         
         do {
             let client = tower.client
@@ -131,7 +159,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         
         Log.info("FileProviderExtension init: \(instanceIdentifier.uuidString)", domain: .syncing)
         
-        self.tower.start(runEventsProcessor: false)
+        self.tower.start(options: [])
         self.startObservingRunningAppChanges()
         if let syncStorage = tower.syncStorage {
             let oldItemsRelativeDate = syncStorage.oldItemsRelativeDate
@@ -420,9 +448,24 @@ extension FileProviderExtension {
         let completionBlockWrapper = CompletionBlockWrapper(completionHandler)
         var fetchContentsProgress: Progress?
         self.forward(itemIdentifier: itemIdentifier, operation: .fetchContents, changedFields: [])
+        
+        var completionAlreadyCalled = false // See comment below
         let progress = itemProvider.fetchContents(
             for: itemIdentifier, version: requestedVersion, slot: tower.fileSystemSlot!, downloader: tower.downloader!, storage: tower.storage
         ) { [weak self] url, item, error in
+            guard !completionAlreadyCalled else {
+                // This is a temporary fix for the fact that downloadAndDecrypt(...) will call us again from
+                // its completion handler for scheduleDownloadFileProvider() after a network error.
+                // For some reason it thinks the call succeeded but then understandably fails to get the revision and calls back into here.
+                
+                // This was the cause of decrementSyncCounter sometimes having unmatched sync counts due to the double call
+                
+                // Someone with better understanding of what is going on should look into this further.
+                Log.error("Completion Handler for \(#function) was already called. Ignoring secondary call.", domain: .syncing)
+                return
+            }
+            completionAlreadyCalled = true
+            
             self?.changeObserver.decrementSyncCounter(type: .pull, error: error)
             
             fetchContentsProgress?.clearOneTimeCancellationHandler()

@@ -42,24 +42,21 @@ public class UserDefaultsPhotosSkippableStorage: PhotosSkippableStorage {
     
     @SettingsStorage("skippable-icloud-ids") private var store: Store?
     private let queue = DispatchQueue(label: "SkippableStorage", qos: .userInteractive, attributes: .concurrent)
-    private var inMemorySet: Set<InMemoryData>!
+    private var inMemorySet: Set<InMemoryData> = Set()
     
     public init(suite: SettingsStorageSuite = .standard) {
         _store.configure(with: suite)
+        queue.async(flags: .barrier) {
+            self.inMemorySet = self.loadSetFromStore()
+        }
     }
     
     public subscript(index: Identifier) -> Int? {
         get {
             queue.sync {
-                if inMemorySet == nil {
-                    inMemorySet = self.loadSetFromStore()
-                }
                 let tmp = InMemoryData(identifier: index)
-                if let idx = inMemorySet.firstIndex(of: tmp) {
-                    return inMemorySet[idx].fileNeedsToBeUploaded(on: index.modificationTime)
-                } else {
-                    return nil
-                }
+                guard let cached = inMemorySet.first(where: { $0 == tmp }) else { return nil }
+                return cached.fileNeedsToBeUploaded(on: index.modificationTime)
             }
         }
         set {
@@ -73,10 +70,6 @@ public class UserDefaultsPhotosSkippableStorage: PhotosSkippableStorage {
     
     public func batchMarkAsSkippable(data: [Identifier: Int]) {
         queue.async(flags: .barrier) { [weak self] in
-            if self?.inMemorySet == nil {
-                self?.inMemorySet = self?.loadSetFromStore()
-            }
-
             for (identifier, value) in data {
                 let tmp = InMemoryData(
                     cloudIdentifier: identifier.identifier,
@@ -92,11 +85,7 @@ public class UserDefaultsPhotosSkippableStorage: PhotosSkippableStorage {
         let tmp = InMemoryData(identifier: identifier)
         
         return queue.sync {
-            if self.inMemorySet == nil {
-                self.inMemorySet = self.loadSetFromStore()
-            }
-            guard let index = self.inMemorySet.firstIndex(of: tmp) else { return .newAsset }
-            let cached = self.inMemorySet[index]
+            guard let cached = self.inMemorySet.first(where: { $0 == tmp }) else { return .newAsset }
             if let value = cached.fileNeedsToBeUploaded(on: identifier.modificationTime) {
                 return value == 0 ? .skippable : .hasPendingUpload
             }
@@ -132,7 +121,7 @@ public class UserDefaultsPhotosSkippableStorage: PhotosSkippableStorage {
     }
 }
 
-private class InMemoryData: Hashable {
+final class InMemoryData: Hashable {
     private static let delimiter = "@"
     let cloudIdentifier: String
     /// [Modification date: file needs to be uploaded]
@@ -184,8 +173,8 @@ private class InMemoryData: Hashable {
 
 extension Set where Element == InMemoryData {
     mutating func mergeableInsert(_ element: InMemoryData) {
-        if let index = self.firstIndex(of: element) {
-            self[index].merge(other: element.data)
+        if let cached = first(where: { $0 == element }) {
+            cached.merge(other: element.data)
         } else {
             insert(element)
         }

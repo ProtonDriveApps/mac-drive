@@ -113,7 +113,7 @@ public final class SessionRelatedCommunicatorForMainApp: SessionRelatedCommunica
         isFetchingNewChildSession = true
         Log.info("Started fetching new child session", domain: .sessionManagement)
         authenticator.performForkingAndObtainChildSession(
-            parentSessionCredential, useCase: .forChildClientID(childClientID, independent: isChildSessionIndependent)
+            parentSessionCredential, useCase: .forChildClientID(childClientID, independent: isChildSessionIndependent, payload: nil)
         ) { [weak self] result in
             guard let self else { return }
             self.isFetchingNewChildSession = false
@@ -123,13 +123,13 @@ public final class SessionRelatedCommunicatorForMainApp: SessionRelatedCommunica
                 self.sessionStorage.storeNewChildSessionCredential(CoreCredential(newCredentials))
                 completionBlock(.success)
             case .failure(let error):
-                #if HAS_QA_FEATURES
-                Log.error("Failed to fetch new child session with error \(error.localizedDescription)",
-                          domain: .sessionManagement)
-                #else
-                Log.error("Failed to fetch new child session becuse of error",
-                          domain: .sessionManagement)
-                #endif
+                if Constants.buildType.isQaOrBelow {
+                    Log.error("Failed to fetch new child session with error \(error.localizedDescription)",
+                              domain: .sessionManagement)
+                } else {
+                    Log.error("Failed to fetch new child session becuse of error",
+                              domain: .sessionManagement)
+                }
                 completionBlock(.failure(error))
             }
         }

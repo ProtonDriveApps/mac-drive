@@ -35,6 +35,7 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .logCollectionDisabled: logCollectionDisabled = value
         case .oneDollarPlanUpsellEnabled: oneDollarPlanUpsellEnabled = value
         case .driveSharingMigration: driveSharingMigration = value
+        case .driveiOSSharing: driveiOSSharing = value
         case .driveSharingDevelopment: driveSharingDevelopment = value
         case .driveSharingInvitations: driveSharingInvitations = value
         case .driveSharingExternalInvitations: driveSharingExternalInvitations = value
@@ -43,6 +44,8 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .driveSharingEditingDisabled: driveSharingEditingDisabled = value
         case .driveDisablePhotosForB2B: driveDisablePhotosForB2B = value
         case .driveDocsWebView: driveDocsWebView = value
+        case .driveDocsDisabled: driveDocsDisabled = value
+        case .parallelEncryptionAndVerification: parallelEncryptionAndVerification = value
         }
     }
 
@@ -58,6 +61,7 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .logCollectionDisabled: return logCollectionDisabled
         case .oneDollarPlanUpsellEnabled: return oneDollarPlanUpsellEnabled
         case .driveSharingMigration: return driveSharingMigration
+        case .driveiOSSharing: return driveiOSSharing
         case .driveSharingDevelopment: return driveSharingDevelopment
         case .driveSharingInvitations: return driveSharingInvitations
         case .driveSharingExternalInvitations: return driveSharingExternalInvitations
@@ -66,6 +70,8 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .driveSharingEditingDisabled: return driveSharingEditingDisabled
         case .driveDisablePhotosForB2B: return driveDisablePhotosForB2B
         case .driveDocsWebView: return driveDocsWebView
+        case .driveDocsDisabled: return driveDocsDisabled
+        case .parallelEncryptionAndVerification: return parallelEncryptionAndVerification
         }
     }
 }

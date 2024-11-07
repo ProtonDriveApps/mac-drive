@@ -21,28 +21,32 @@ import ProtonCoreNetworking
 import ProtonCorePayments
 import ProtonCoreServices
 
-final class TabbarSettingUpdater {
+public protocol TabbarSettingUpdaterProtocol {
+    func updateTabSettingBasedOnUserPlan(share: Share) async
+}
+
+public final class TabbarSettingUpdater: TabbarSettingUpdaterProtocol {
     private let client: PDClient.Client
-    private let cloudSlot: CloudSlot
     private let featureFlags: any FeatureFlagsRepository
     private let localSettings: LocalSettings
     private let networking: PMAPIService
-    
-    init(
+    private let storageManager: StorageManager
+
+    public init(
         client: PDClient.Client,
-        cloudSlot: CloudSlot,
         featureFlags: any FeatureFlagsRepository,
         localSettings: LocalSettings,
-        networking: PMAPIService
+        networking: PMAPIService,
+        storageManager: StorageManager
     ) {
         self.client = client
-        self.cloudSlot = cloudSlot
         self.featureFlags = featureFlags
         self.localSettings = localSettings
         self.networking = networking
+        self.storageManager = storageManager
     }
     
-    func updateTabSettingBasedOnUserPlan(share: Share) async {
+    public func updateTabSettingBasedOnUserPlan(share: Share) async {
         guard featureFlags.isEnabled(flag: .driveDisablePhotosForB2B) else {
             await updateTabSettingForNormalUser()
             return
@@ -50,7 +54,7 @@ final class TabbarSettingUpdater {
         let req = OrganizationsRequest(api: networking)
         do {
             let resDict = try await networking.perform(request: req).1
-            let b2bPlans = ["mailpro2022", "mailbiz2024", "bundlepro2024"]
+            let b2bPlans = ["mailpro2022", "mailbiz2024", "bundlepro2024", "drivebiz2024", "bundlepro2022", "enterprise2022"]
             if let organization = resDict["Organization"] as? JSONDictionary,
                let planName = organization["PlanName"] as? String,
                b2bPlans.contains(planName) {
@@ -65,7 +69,7 @@ final class TabbarSettingUpdater {
     }
     
     private func getVolumeID(from share: Share) async throws -> String {
-        try await cloudSlot.moc.perform {
+        try await storageManager.backgroundContext.perform {
             guard let id = share.volume?.id else {
                 throw share.invalidState("Photos Share has no volume.")
             }
@@ -74,18 +78,10 @@ final class TabbarSettingUpdater {
     }
     
     private func updateTabSettingForB2BUser(share: Share) async {
-        do {
-            let volumeID = try await getVolumeID(from: share)
-            let response = try await client.getPhotosList(with: .init(volumeId: volumeID, lastId: nil, pageSize: 1))
-            await MainActor.run {
-                localSettings.isB2BUser = true
-                localSettings.isPhotoTabDisabled = response.photos.isEmpty
-                localSettings.defaultHomeTabTag = 0
-            }
-        } catch {
-            await MainActor.run {
-                localSettings.isB2BUser = true
-                localSettings.isPhotoTabDisabled = true
+        await MainActor.run {
+            localSettings.isB2BUser = true
+            // If there is cached data, do not revert the value.
+            if localSettings.defaultHomeTabTagValue == nil {
                 localSettings.defaultHomeTabTag = 0
             }
         }
@@ -94,7 +90,6 @@ final class TabbarSettingUpdater {
     private func updateTabSettingForNormalUser() async {
         await MainActor.run {
             localSettings.isB2BUser = false
-            localSettings.isPhotoTabDisabled = false
         }
     }
 }

@@ -44,9 +44,13 @@
 			</dict>
 		</array>
 		<key>NSExtensionFileProviderDocumentGroup</key>
-		<string>group.ch.protonmail.protondrive</string>
+		<string>$(TeamIdentifierPrefix)ch.protonmail.protondrive</string>
+		<key>NSExtensionFileProviderDownloadPipelineDepth</key>
+		<integer>6</integer>
 		<key>NSExtensionFileProviderSupportsEnumeration</key>
 		<true/>
+		<key>NSExtensionFileProviderUploadPipelineDepth</key>
+		<integer>4</integer>
 		<key>NSExtensionFileProviderWantsFlattenedPackages</key>
 		<true/>
 		<key>NSExtensionPointIdentifier</key>

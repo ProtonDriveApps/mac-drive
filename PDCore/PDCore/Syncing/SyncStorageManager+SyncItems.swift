@@ -42,7 +42,7 @@ public extension SyncStorageManager {
             syncItem.state = item.state
             syncItem.errorDescription = item.description
 
-            try moc.saveWithParentLinkCheck()
+            try moc.saveOrRollback()
             return syncItem
         }
     }
@@ -53,7 +53,7 @@ public extension SyncStorageManager {
                 throw SyncItemError.notFound
             }
             syncItem.state = .finished
-            try moc.saveWithParentLinkCheck()
+            try moc.saveOrRollback()
         }
     }
 
@@ -64,7 +64,7 @@ public extension SyncStorageManager {
                 throw SyncItemError.notFound
             }
             syncItem.state = state
-            try moc.saveWithParentLinkCheck()
+            try moc.saveOrRollback()
         }
     }
 
@@ -86,7 +86,7 @@ public extension SyncStorageManager {
             syncItem.state = createdItem.state
             syncItem.fileProviderOperation = createdItem.fileProviderOperation
             syncItem.errorDescription = createdItem.description
-            try moc.saveWithParentLinkCheck()
+            try moc.saveOrRollback()
         }
     }
 
@@ -107,7 +107,7 @@ public extension SyncStorageManager {
             syncItem.state = item.state
             syncItem.errorDescription = item.description
 
-            try moc.saveWithParentLinkCheck()
+            try moc.saveOrRollback()
             return syncItem
         }
     }
@@ -125,7 +125,7 @@ public extension SyncStorageManager {
                 for oldItem in oldSyncItems {
                     moc.delete(oldItem)
                 }
-                try moc.saveWithParentLinkCheck()
+                try moc.saveOrRollback()
             }
             return oldSyncItems
         }
@@ -157,7 +157,7 @@ public extension SyncStorageManager {
             for item in items {
                 moc.delete(item)
             }
-            try moc.saveWithParentLinkCheck()
+            try moc.saveOrRollback()
         }
     }
 
@@ -168,7 +168,7 @@ public extension SyncStorageManager {
             for item in items {
                 moc.delete(item)
             }
-            try moc.saveWithParentLinkCheck()
+            try moc.saveOrRollback()
         }
     }
 }

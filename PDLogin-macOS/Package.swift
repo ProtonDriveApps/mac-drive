@@ -2,7 +2,7 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
- 
+
 let package = Package(
     name: "PDLogin-macOS",
     platforms: [
@@ -12,9 +12,9 @@ let package = Package(
         .library(name: "PDLogin-macOS", targets: ["PDLogin-macOS"]),
     ],
     dependencies: [
-        .package(name: "CommonDependencies", path: "../CommonDependencies"),
-        
-        // exact version is defined by CommonDependencies
+        .package(name: "PDLoadTesting", path: "../PDLoadTesting"),
+
+        // exact version is defined by PDClient
         .package(url: "https://github.com/ProtonMail/protoncore_ios.git", .suitable),
         .package(name: "PDUIComponents", path: "../PDUIComponents"),
     ],
@@ -23,16 +23,12 @@ let package = Package(
             name: "PDLogin-macOS",
             dependencies: [
                 .product(name: "ProtonCoreLoginUI", package: "protoncore_ios"),
+                .product(name: "PDLoadTesting", package: "PDLoadTesting"),
             ],
-            path: "PDLogin-macOS"
-        ),
-        .testTarget(
-            name: "PDLogin-macOSTests",
-            dependencies: [
-                .target(name: "PDLogin-macOS"),
-                .product(name: "PDUIComponents", package: "PDUIComponents"),
-            ],
-            path: "PDLogin-macOSTests"
+            path: "PDLogin-macOS",
+            resources: [
+                .process("Resources")
+            ]
         ),
     ]
 )

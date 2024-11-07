@@ -67,7 +67,7 @@ enum Constants {
 
     private static func loadSettingValue(for key: SettingsBundleKeys) -> String {
         // values should be placed in shared UserDefaults so appex will be able to read them
-        let sharedUserDefaults = UserDefaults(suiteName: "group.ch.protonmail.protondrive")
+        let sharedUserDefaults = UserDefaults(suiteName: appContainerGroup)
         if let modifiedValue = sharedUserDefaults?.value(forKey: key.rawValue) as? String, !modifiedValue.isEmpty {
             return modifiedValue
         } else if let defaultValue = Bundle.main.infoDictionary?[key.rawValue] as? String {
@@ -84,8 +84,12 @@ enum Constants {
         case host = "DEFAULT_API_HOST"
         case shareLinkHost = "SHARE_LINK_API_HOST"
     }
+    
+    static let legacyOldNoLongerUsedAppContainerGroup = "group.ch.protonmail.protondrive"
 
-    static let appGroup: SettingsStorageSuite = .group(named: "group.ch.protonmail.protondrive")
+    static let appContainerGroup = "2SB5Z68H26.ch.protonmail.protondrive"
+    static let keychainGroup = "group.ch.protonmail.protondrive"
+    static let appGroup: SettingsStorageSuite = .group(named: appContainerGroup)
 
     static func loadConfiguration() {
         if let dynamicDomain = dynamicDomain {
@@ -110,9 +114,20 @@ enum Constants {
             loadFromSettingsBundle()
             #if LOAD_TESTING
             let host = loadSettingValue(for: .host)
-            print("NOT USING DYNAMIC_DOMAIN!!! TALKS TO \(host)")
+            let message = "NOT USING DYNAMIC_DOMAIN!!! TALKS TO \(host)"
+            Log.info(message, domain: .application)
+            print(message)
             #endif
         }
+        #if LOAD_TESTING
+        if !PDCore.Constants.runningInExtension {
+            Constants.appGroup.userDefaults.set(ProcessInfo.processInfo.environment["PARALLEL_ENCRYPTION"] != nil,
+                                                forKey: "parallelEncryptionAndVerificationQA")
+            let message = "PARALLEL_ENCRYPTION \(Constants.appGroup.userDefaults.bool(forKey: "parallelEncryptionAndVerificationQA"))"
+            Log.info(message, domain: .application)
+            print(message)
+        }
+        #endif
     }
 
     static var isInUITests: Bool {
@@ -154,13 +169,13 @@ enum Constants {
         case let ip where ip.range(of: "^(http:\\/\\/|https:\\/\\/)?\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(:\\d+)?$",
                                    options: [.regularExpression]) != nil:
             if ip.hasPrefix("http://") {
-                environment = .customHttp(ip.replacingOccurrences(of: "http://", with: ""))
+                 environment = .customHttp(ip.replacingOccurrences(of: "http://", with: ""))
             } else {
                 environment = .custom(ip.replacingOccurrences(of: "https://", with: ""))
             }
         case let localhost where localhost.contains("localhost"):
             if localhost.hasPrefix("http://") {
-                environment = .customHttp(localhost.replacingOccurrences(of: "http://", with: ""))
+                 environment = .customHttp(localhost.replacingOccurrences(of: "http://", with: ""))
             } else {
                 environment = .custom(localhost.replacingOccurrences(of: "https://", with: ""))
             }
@@ -186,11 +201,26 @@ enum Constants {
     private static var shareLinkHost = (scheme: "", host: "")
 
     private static var dynamicDomain: String? {
-        if let domain = ProcessInfo.processInfo.environment["DYNAMIC_DOMAIN"],
-            !domain.isEmpty, URL(string: "https://\(domain)") != nil {
+        if let domain = ProcessInfo.processInfo.environment["DYNAMIC_DOMAIN"], !domain.isEmpty {
             return domain
         } else {
             return nil
         }
+    }
+
+    // MARK: - Build type
+    
+    static let buildType = getBuildType()
+
+    private static func getBuildType() -> BuildType {
+        #if DEBUG
+        return .dev
+        #elseif HAS_QA_FEATURES
+        return .qa
+        #elseif HAS_BETA_FEATURES
+        return .alphaOrBeta
+        #else
+        return .prod
+        #endif
     }
 }

@@ -61,11 +61,11 @@ extension Block {
             case .verified(let cleardata):
                 return cleardata
             case .unverified(let cleardata, let error):
-                Log.error(SignatureError(error, "Block", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nShareID: \(revision.file.shareID)"), domain: .encryption)
+                Log.error(SignatureError(error, "Block", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nVolumeID: \(revision.file.volumeID)"), domain: .encryption)
                 return cleardata
             }
         } catch {
-            Log.error(DecryptionError(error, "Block", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nShareID: \(revision.file.shareID)"), domain: .encryption)
+            Log.error(DecryptionError(error, "Block", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nVolumeID: \(revision.file.volumeID)"), domain: .encryption)
             throw error
         }
     }
@@ -94,7 +94,7 @@ extension Block {
             try Decryptor.decryptStream(localUrl, clearUrl, [blockDecryptionKey], keyPacket, verificationKeys, signature)
 
         } catch {
-            Log.error(DecryptionError(error, "Block - stream", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nShareID: \(revision.file.shareID)"), domain: .encryption)
+            Log.error(DecryptionError(error, "Block - stream", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nVolumeID: \(revision.file.volumeID)"), domain: .encryption)
             throw error
         }
     }

@@ -74,7 +74,7 @@ extension UploadsListing {
     }
     
     public func cancelUpload(file: File) {
-        tower.fileUploader.deleteUploadingFile(file)
+        tower.fileUploader.deleteUploadingFile(file, error: nil)
     }
     
     public func uploadFile(_ content: URLContent, to folder: Folder) throws {

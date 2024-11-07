@@ -17,13 +17,14 @@
 
 import AppKit
 import PDCore
+import PDLocalization
 
 final class UserMessageHandler: UserMessageHandlerProtocol {
     func handleError(_ error: any LocalizedError) {
         Task { @MainActor in
             let alert = NSAlert()
             alert.messageText = error.localizedDescription
-            alert.addButton(withTitle: "Dismiss")
+            alert.addButton(withTitle: Localization.general_dismiss)
             let action = { [alert] in alert.window.close() }
             
             if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
@@ -36,7 +37,7 @@ final class UserMessageHandler: UserMessageHandlerProtocol {
         Task { @MainActor in
             let alert = NSAlert()
             alert.messageText = message
-            alert.addButton(withTitle: "Ok")
+            alert.addButton(withTitle: Localization.general_ok)
             let action = { [alert] in alert.window.close() }
 
             if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {

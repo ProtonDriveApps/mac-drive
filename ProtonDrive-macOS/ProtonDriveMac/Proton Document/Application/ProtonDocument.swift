@@ -20,7 +20,7 @@ import PDCore
 import FileProvider
 
 class ProtonDocument: NSDocument {
-    var interactor: ProtonDocumentOpeningURLInteractorProtocol?
+    var interactor: ProtonDocumentNonAuthenticatedURLInteractorProtocol?
     var urlCoordinator: URLCoordinatorProtocol?
     var errorViewModel: ProtonDocumentErrorViewModelProtocol?
 

@@ -18,6 +18,7 @@
 import SwiftUI
 import PDUIComponents
 import ProtonCoreUIFoundations
+import PDLocalization
 
 struct NotificationView: View, Equatable {
     
@@ -32,11 +33,11 @@ struct NotificationView: View, Equatable {
         case .error:
             Button(action: action, label: {
                 HStack {
-                    Text(errorsCount > 1 ? "There are \(errorsCount) issues" : "There is \(errorsCount) issue")
+                    Text(Localization.notification_issues(num: errorsCount))
                         .frame(alignment: .leading)
                     Spacer()
                     HStack(spacing: 4) {
-                        Text("Details")
+                        Text(Localization.notification_details)
                         Image("chevron-tiny-right")
                             .resizable()
                             .frame(width: 16, height: 16)
@@ -55,7 +56,7 @@ struct NotificationView: View, Equatable {
 
         case .update:
             Button(action: action, label: {
-                Text("Update available. Click to restart Proton Drive.")
+                Text(Localization.notification_update_available)
                     .font(.callout)
                     .foregroundStyle(Color(ColorProvider.SignalInfo))
             })

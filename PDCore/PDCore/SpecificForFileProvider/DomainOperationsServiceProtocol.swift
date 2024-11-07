@@ -39,9 +39,10 @@ public struct CacheCleanupStrategy: OptionSet {
 
 public protocol DomainOperationsServiceProtocol {
     var cacheCleanupStrategy: CacheCleanupStrategy { get }
-    func tearDownDomain() async throws
+    func tearDownConnectionToAllDomains() async throws
     func signalEnumerator() async throws
-    func forceDomainRemoval() async throws
+    func removeAllDomains() async throws
+    func groupContainerMigrationStarted() async throws
 }
 
 public enum DomainOperationErrors: Error {

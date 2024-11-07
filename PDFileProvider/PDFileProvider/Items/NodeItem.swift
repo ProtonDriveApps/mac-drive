@@ -67,7 +67,7 @@ public class NodeItem: NSObject, NSFileProviderItem {
             let defaultMIME = "application/octet-stream"
             let uti: UTType
             if node.mimeType == defaultMIME {
-                uti = UTType(filenameExtension: node.decryptedName.fileExtension()) ?? .data
+                uti = UTType(filenameExtension: filename.fileExtension()) ?? .data
             } else {
                 uti = UTType(mimeType: node.mimeType) ?? .data
             }

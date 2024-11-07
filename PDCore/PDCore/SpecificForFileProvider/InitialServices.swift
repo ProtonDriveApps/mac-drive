@@ -19,6 +19,7 @@ import Combine
 import Foundation
 import OSLog
 import PDClient
+import PDLoadTesting
 #if os(iOS)
 import ProtonCoreChallenge
 #endif
@@ -127,11 +128,11 @@ public class InitialServices {
 
         TrustKitFactory.make(isHardfail: true, delegate: serviceDelegate)
 
-        #if LOAD_TESTING && !SSL_PINNING
-        networking.getSession()?.setChallenge(noTrustKit: true, trustKit: nil)
-        #else
-        networking.getSession()?.setChallenge(noTrustKit: PMAPIService.noTrustKit, trustKit: PMAPIService.trustKit)
-        #endif
+        if LoadTesting.isEnabled {
+            networking.getSession()?.setChallenge(noTrustKit: true, trustKit: nil)
+        } else {
+            networking.getSession()?.setChallenge(noTrustKit: PMAPIService.noTrustKit, trustKit: PMAPIService.trustKit)
+        }
 
         networking.serviceDelegate = serviceDelegate
         networking.authDelegate = serviceDelegate

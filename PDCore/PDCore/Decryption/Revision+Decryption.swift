@@ -57,23 +57,33 @@ extension Revision {
         do {
             try checkManifestSignatureForDownloadedRevisions()
         } catch {
-            Log.error(SignatureError(error, "Revision", description: "RevisionID: \(id) \nLinkID: \(file.id) \nShareID: \(file.shareID)"), domain: .encryption)
+            Log.error(SignatureError(error, "Revision", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
         }
 
-        if Constants.runningInExtension {
+        if Constants.runningInRAMContrainedProcess {
             do {
                 return try decryptFileInStream(isCancelled: &isCancelled)
             } catch {
-                Log.error(DecryptionError(error, "Revision - stream", description: "RevisionID: \(id) \nLinkID: \(file.id) \nShareID: \(file.shareID)"), domain: .encryption)
+                Log.error(DecryptionError(error, "Revision - stream", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
                 throw error
             }
         } else {
             do {
-                return try decryptFileInMemory(isCancelled: &isCancelled)
+                let clearUrl = try clearURL()
+                return try decryptFileInMemory(toURL: clearUrl, isCancelled: &isCancelled)
             } catch {
-                Log.error(DecryptionError(error, "Revision", description: "RevisionID: \(id) \nLinkID: \(file.id) \nShareID: \(file.shareID)"), domain: .encryption)
+                Log.error(DecryptionError(error, "Revision", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
                 throw error
             }
+        }
+    }
+
+    public func decryptFileToURL(_ url: URL, isCancelled: inout Bool) throws -> URL {
+        do {
+            return try decryptFileInMemory(toURL: url, isCancelled: &isCancelled)
+        } catch {
+            Log.error(DecryptionError(error, "Revision", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
+            throw error
         }
     }
 
@@ -100,7 +110,7 @@ extension Revision {
             let filePassphrase = try file.decryptPassphrase()
             let fileKey = file.nodeKey
             let nodeDecryptionKey = DecryptionKey(privateKey: fileKey, passphrase: filePassphrase)
-            let addressKeys = try getAddressPublicKeysOfRevisionCreator()
+            let addressKeys = try getAddressPublicKeysOfRevision()
 
             let decrypted = try Decryptor.decryptAndVerifyXAttributes(
                 xAttributes,
@@ -115,14 +125,14 @@ extension Revision {
                 return xAttr
 
             case .unverified(let attributes, let error):
-                Log.error(SignatureError(error, "ExtendedAttributes", description: "RevisionID: \(id) \nLinkID: \(file.id) \nShareID: \(file.shareID)"), domain: .encryption)
+                Log.error(SignatureError(error, "ExtendedAttributes", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
                 let xAttr = try JSONDecoder().decode(ExtendedAttributes.self, from: attributes)
                 clearXAttributes = xAttr
                 return xAttr
             }
 
         } catch {
-            Log.error(DecryptionError(error, "ExtendedAttributes", description: "RevisionID: \(id) \nLinkID: \(file.id) \nShareID: \(file.shareID)"), domain: .encryption)
+            Log.error(DecryptionError(error, "ExtendedAttributes", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
             throw error
         }
     }
@@ -131,10 +141,9 @@ extension Revision {
         try file.decryptContentKeyPacket()
     }
     
-    func decryptFileInMemory(isCancelled: inout Bool) throws -> URL {
+    func decryptFileInMemory(toURL clearUrl: URL, isCancelled: inout Bool) throws -> URL {
         let sessionKey = try decryptContentSessionKey()
 
-        let clearUrl = try clearURL()
         let blocks = self.blocks.sorted(by: { $0.index < $1.index })
         guard !blocks.isEmpty, !isCancelled else {
             throw Errors.noBlocks
@@ -213,15 +222,25 @@ extension Revision {
             let oldBlocks = self.blocks
             self.blocks.removeAll()
             oldBlocks.forEach(moc.delete)
-            try? moc.saveWithParentLinkCheck()
+            try? moc.saveOrRollback()
         }
     }
 
-    internal func getAddressPublicKeysOfRevisionCreator() throws -> [PublicKey] {
+    internal func getAddressPublicKeysOfRevision() throws -> [PublicKey] {
+#if os(macOS)
         guard let signatureAddress = signatureAddress else {
             throw Errors.noSignatureAddress
         }
         return SessionVault.current.getPublicKeys(for: signatureAddress)
+
+#else
+        guard let signatureAddress = signatureAddress else {
+            throw Errors.noSignatureAddress
+        }
+        let addressID = try file.getContextShareAddressID()
+        let creatorKeys = SessionVault.current.getPublicKeys(email: signatureAddress, addressID: addressID)
+        return creatorKeys
+#endif
     }
 
     private func sortedBlocks() -> [Block] {
@@ -231,7 +250,7 @@ extension Revision {
     private func checkManifestSignatureForDownloadedRevisions() throws {
         guard let armoredManifestSignature = manifestSignature else { throw Errors.noManifestSignature }
 
-        let revisionCreatorAddressKeys = try getAddressPublicKeysOfRevisionCreator()
+        let revisionCreatorAddressKeys = try getAddressPublicKeysOfRevision()
 
         let contentHashes: [Data] = getThumbnailHashes() + sortedBlocks().compactMap { $0.sha256 }
         let localManifest = Data(contentHashes.joined())

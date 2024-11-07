@@ -48,7 +48,6 @@ public protocol FileProviderManagerProtocol {
     static func add(_ domain: NSFileProviderDomain) async throws
     static func remove(_ domain: NSFileProviderDomain, mode: NSFileProviderManager.DomainRemovalMode) async throws -> URL?
     static func domains() async throws -> [NSFileProviderDomain]
-    func evictItem(identifier itemIdentifier: NSFileProviderItemIdentifier) async throws
     func disconnect(reason localizedReason: String, options: NSFileProviderManager.DisconnectionOptions) async throws
     func reconnect() async throws
 }
@@ -63,11 +62,7 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
     @SettingsStorage(QASettingsConstants.disconnectDomainOnSignOut) private var disconnectDomainOnSignOut: Bool?
     #endif
     
-    public var cacheCleanupStrategy: PDCore.CacheCleanupStrategy {
-        hasDomainReconnectionCapability ? .doNotCleanMetadataDBNorEvents : .cleanEverything
-    }
-    
-    public var hasDomainReconnectionCapability: Bool {
+    var hasDomainReconnectionCapability: Bool {
         assert(featureFlags() != nil, "Feature flags should be available at this point")
         let domainReconnectionEnabled = featureFlags()?.isEnabled(flag: .domainReconnectionEnabled) ?? false
         #if HAS_QA_FEATURES
@@ -95,12 +90,10 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
         fileProviderDomain.flatMap(fileProviderManagerFactory.create(for:))
     }
     
-    // MARK: Public API
-    
-    public init(accountInfoProvider: AccountInfoProvider,
-                featureFlags: @escaping () -> PDCore.FeatureFlagsRepository?,
-                fileProviderManagerFactory: any FileProviderManagerFactory,
-                assertionProvider: AssertionProvider = SystemAssertionProvider.instance) {
+    init(accountInfoProvider: AccountInfoProvider,
+         featureFlags: @escaping () -> PDCore.FeatureFlagsRepository?,
+         fileProviderManagerFactory: any FileProviderManagerFactory,
+         assertionProvider: AssertionProvider = SystemAssertionProvider.instance) {
         self.accountInfoProvider = accountInfoProvider
         self.featureFlags = featureFlags
         self.fileProviderManagerFactory = fileProviderManagerFactory
@@ -111,11 +104,68 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
         #endif
     }
     
-    public func identifyDomain() async throws {
+    // MARK: Public API — DomainOperationsServiceProtocol implementation
+    
+    public var cacheCleanupStrategy: PDCore.CacheCleanupStrategy {
+        hasDomainReconnectionCapability ? .doNotCleanMetadataDBNorEvents : .cleanEverything
+    }
+    
+    public func tearDownConnectionToAllDomains() async throws {
+        if hasDomainReconnectionCapability {
+            #if HAS_QA_FEATURES
+            let reason = "User signed out by disconnecting domain"
+            #else
+            let reason = ""
+            #endif
+            try await disconnectDomains(reason: reason)
+        } else {
+            try await removeAllDomains()
+        }
+    }
+    
+    public func signalEnumerator() async throws {
+        guard let fileManagerForDomain else { throw NSFileProviderError(.providerNotFound) }
+        try await signalEnumeratorWithRetry(fileManager: fileManagerForDomain)
+    }
+    
+    public func removeAllDomains() async throws {
+        let domains = try await getDomainsWithRetry()
+
+        var finalError: DomainOperationErrors?
+        try await domains.forEach { domain in
+            do {
+                try await disconnectDomainWithRetry(
+                    domain: domain, reason: "Proton Drive location preparing for removal", options: []
+                )
+            } catch {
+                // even if we fail to disconnect, we still try removing, hence the error is only logged
+                Log.error(error.localizedDescription, domain: .fileProvider)
+            }
+
+            do {
+                try await removeDomainWithRetry(domain: domain)
+            } catch let error as DomainOperationErrors {
+                Log.error(error.localizedDescription, domain: .fileProvider)
+                finalError = error
+            }
+        }
+
+        if let finalError {
+            throw finalError
+        }
+    }
+    
+    public func groupContainerMigrationStarted() async throws {
+        try await disconnectDomain(reason: "One-time migration for Sequoia")
+    }
+    
+    // MARK: - Internal API
+    
+    func identifyDomain() async throws {
         try await identifyDomainWithRetry()
     }
     
-    public func setUpDomain() async throws {
+    func setUpDomain() async throws {
         if hasDomainReconnectionCapability {
             try await connectDomain()
         } else {
@@ -123,7 +173,7 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
         }
     }
     
-    public func connectDomain() async throws {
+    func connectDomain() async throws {
         guard let domain = fileProviderDomain else {
             // identify domain
             try await identifyDomainWithRetry()
@@ -154,36 +204,12 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
         }
     }
     
-    public func tearDownDomain() async throws {
-        if hasDomainReconnectionCapability {
-            #if HAS_QA_FEATURES
-            let reason = "User signed out by disconnecting domain"
-            #else
-            let reason = ""
-            #endif
-            try await disconnectDomainsTemporarily(reason: reason)
-        } else {
-            try await forceDomainRemoval()
-        }
-    }
-    
-    public func forceDomainRemoval() async throws {
-        try await removeFileProvider(mode: .preserveDownloadedUserData)
-    }
-    
-    public func domainExists() async throws -> Bool {
+    func domainExists() async throws -> Bool {
         guard let domain = fileProviderDomain else { return false }
         let domains = try await self.getDomainsWithRetry()
         let userDomains = domains.filter { $0.identifier == domain.identifier }
         return !userDomains.isEmpty
     }
-    
-    public func signalEnumerator() async throws {
-        guard let fileManagerForDomain else { throw NSFileProviderError(.providerNotFound) }
-        try await signalEnumeratorWithRetry(fileManager: fileManagerForDomain)
-    }
-    
-    // MARK: - Internal API
     
     func domainWasPaused() async throws {
         try await disconnectDomain(reason: pauseReason)
@@ -197,12 +223,20 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
         try await disconnectDomain(reason: offlineReason)
     }
     
-    func disconnectDomainsTemporarily(reason: String) async throws {
-        try await disconnectDomains(reason: reason)
+    func disconnectDomainsDuringMainKeyCleanup() async throws {
+        try await disconnectDomains(
+            reason: "Attempting to reconnect. This may take a few minutes. Please do not quit the application"
+        )
     }
     
-    func disconnectDomainsTemporarily(reason: (NSFileProviderDomain?) -> String) async throws {
+    #if HAS_QA_FEATURES
+    func disconnectDomainsForQA(reason: (NSFileProviderDomain?) -> String) async throws {
         try await disconnectDomains(reason: reason(fileProviderDomain))
+    }
+    #endif
+    
+    func disconnectDomainBeforeAppClosing() async throws {
+        try await disconnectDomain(reason: "Proton Drive needs to be running in order to sync these files.")
     }
     
     func dumpingStarted() async throws {
@@ -220,11 +254,6 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
     func getUserVisibleURLForRoot() async throws -> URL {
         guard let fileManagerForDomain else { throw NSFileProviderError(.providerNotFound) }
         return try await userVisibleURLForRootWithRetry(manager: fileManagerForDomain)
-    }
-    
-    func evictItem(identifier: NSFileProviderItemIdentifier) async throws {
-        guard let fileManagerForDomain else { throw NSFileProviderError(.providerNotFound) }
-        return try await evictItemWithRetry(manager: fileManagerForDomain, identifier: identifier)
     }
     
     // MARK: - Private API
@@ -302,35 +331,6 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
         } catch {
             // Domain not reconnecting is a user-recoverable situation (pause/resume), so let's only log the error
             Log.error(error.localizedDescription, domain: .fileProvider)
-        }
-    }
-    
-    private func removeFileProvider(
-        mode: NSFileProviderManager.DomainRemovalMode
-    ) async throws {
-        let domains = try await getDomainsWithRetry()
-
-        var finalError: DomainOperationErrors?
-        try await domains.forEach { domain in
-            do {
-                try await disconnectDomainWithRetry(
-                    domain: domain, reason: "Proton Drive location preparing for removal", options: []
-                )
-            } catch {
-                // even if we fail to disconnect, we still try removing, hence the error is only logged
-                Log.error(error.localizedDescription, domain: .fileProvider)
-            }
-
-            do {
-                try await removeDomainWithRetry(domain: domain)
-            } catch let error as DomainOperationErrors {
-                Log.error(error.localizedDescription, domain: .fileProvider)
-                finalError = error
-            }
-        }
-
-        if let finalError {
-            throw finalError
         }
     }
     
@@ -562,19 +562,6 @@ extension DomainOperationsService {
         )
     }
     
-    private func evictItemWithRetry(manager: FileProviderManagerProtocol,
-                                    identifier: NSFileProviderItemIdentifier) async throws {
-        try await Self.performWithRetryOnFileProviderError(
-            retryCounter: 3,
-            retryInterval: .seconds(1),
-            successMessage: { "Evicting item succeeded after retry: \($0)" },
-            errorBlock: { error, _ in DomainOperationErrors.evictItemFailed(error: error) },
-            operation: {
-                return try await manager.evictItem(identifier: identifier)
-            }
-        )
-    }
-    
     static func performWithRetryOnFileProviderError<T>(retryCounter: Int,
                                                        retryInterval: Duration,
                                                        successMessage: (Int) -> String,
@@ -645,4 +632,11 @@ extension DomainOperationsService {
     }
 }
 
+// MARK: Global Progress
+extension DomainOperationsService {
+    public func globalProgress(for kind: Progress.FileOperationKind) -> Progress? {
+        guard let fileProviderDomain, let manager = NSFileProviderManager(for: fileProviderDomain) else { return nil }
+        return manager.globalProgress(for: kind)
+    }
+}
 #endif

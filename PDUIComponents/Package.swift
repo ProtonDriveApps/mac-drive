@@ -2,7 +2,7 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
- 
+
 let package = Package(
     name: "PDUIComponents",
     platforms: [
@@ -13,9 +13,8 @@ let package = Package(
         .library(name: "PDUIComponents", targets: ["PDUIComponents"]),
     ],
     dependencies: [
-        .package(name: "CommonDependencies", path: "../CommonDependencies"),
-        
-        // exact version is defined by CommonDependencies
+        .package(name: "PDLocalization", path: "../PDLocalization"),
+        // exact version is defined by PDClient
         .package(url: "https://github.com/ProtonMail/protoncore_ios.git", .suitable),
     ],
     targets: [
@@ -23,6 +22,7 @@ let package = Package(
             name: "PDUIComponents",
             dependencies: [
                 .product(name: "ProtonCoreUIFoundations", package: "protoncore_ios"),
+                .product(name: "PDLocalization", package: "PDLocalization"),
             ],
             path: "PDUIComponents"
         ),

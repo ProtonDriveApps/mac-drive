@@ -26,7 +26,8 @@ public class LocalSettings: NSObject {
     @SettingsStorage("upsellShownValue") private var isUpsellShownValue: Bool?
     @SettingsStorage("isPhotoUpsellShownValue") private var isPhotoUpsellShownValue: Bool?
     @SettingsStorage("showPhotoUpsellInNextLaunch") public var showPhotoUpsellInNextLaunch: Bool?
-    
+    @SettingsStorage("didFetchFeatureFlags") public var didFetchFeatureFlags: Bool?
+
     @SettingsStorage("optOutFromTelemetry") var optOutFromTelemetry: Bool?
     @SettingsStorage("optOutFromCrashReports") var optOutFromCrashReports: Bool?
     @SettingsStorage("isNoticationPermissionsSkipped") public var isNoticationPermissionsSkipped: Bool?
@@ -50,9 +51,11 @@ public class LocalSettings: NSObject {
     @SettingsStorage("DriveiOSLogCollection") public var driveiOSLogCollection: Bool?
     @SettingsStorage("DriveiOSLogCollectionDisabled") public var driveiOSLogCollectionDisabled: Bool?
     @SettingsStorage("keepScreenAwakeBannerHasDismissed") public var keepScreenAwakeBannerHasDismissed: Bool?
+    @SettingsStorage("ParallelEncryptionAndVerification") public var parallelEncryptionAndVerificationValue: Bool?
 
     // Sharing flags
     @SettingsStorage("DriveSharingMigration") public var driveSharingMigrationValue: Bool?
+    @SettingsStorage("DriveiOSSharing") public var driveiOSSharingValue: Bool?
     @SettingsStorage("DriveSharingDevelopment") public var driveSharingDevelopmentValue: Bool?
     @SettingsStorage("DriveSharingInvitations") public var driveSharingInvitationsValue: Bool?
     @SettingsStorage("DriveSharingExternalInvitations") public var driveSharingExternalInvitationsValue: Bool?
@@ -61,12 +64,14 @@ public class LocalSettings: NSObject {
     @SettingsStorage("DriveSharingEditingDisabled") public var driveSharingEditingDisabledValue: Bool?
     // Photo tab for b2b user
     @SettingsStorage("IsB2BUser") public var isB2BUser: Bool?
-    @SettingsStorage("IsPhotoTabDisabled") public var isPhotoTabDisabledValue: Bool?
     /// Remote feature flag - DriveDisablePhotosForB2B
     @SettingsStorage("DriveDisablePhotosForB2B") public var driveDisablePhotosForB2BValue: Bool?
 
     // ProtonDoc
-    @SettingsStorage("DriveDocsWebView") public var driveDocsWebViewValue: Bool?
+    @SettingsStorage("DriveDocsWebView") private var driveDocsWebViewValue: Bool?
+    @SettingsStorage("DriveDocsDisabled") private var driveDocsDisabledValue: Bool?
+
+    // ⚠️ Disclaimer: when adding new `@SettingsStorage` variable, make sure you configure its suite in initializer.
 
     public init(suite: SettingsStorageSuite) {
         super.init()
@@ -96,11 +101,13 @@ public class LocalSettings: NSObject {
         self._pushNotificationIsEnabledValue.configure(with: suite)
         self._defaultHomeTabTagValue.configure(with: suite)
         self._oneDollarPlanUpsellEnabledValue.configure(with: suite)
-
         self._keepScreenAwakeBannerHasDismissed.configure(with: suite)
+        self._parallelEncryptionAndVerificationValue.configure(with: suite)
+        self._didFetchFeatureFlags.configure(with: suite)
 
         // Sharing
         self._driveSharingMigrationValue.configure(with: suite)
+        self._driveiOSSharingValue.configure(with: suite)
         self._driveSharingDevelopmentValue.configure(with: suite)
         self._driveSharingInvitationsValue.configure(with: suite)
         self._driveSharingExternalInvitationsValue.configure(with: suite)
@@ -109,8 +116,10 @@ public class LocalSettings: NSObject {
         self._driveSharingEditingDisabledValue.configure(with: suite)
         // Photo tab for b2b user
         self._isB2BUser.configure(with: suite)
-        self._isPhotoTabDisabledValue.configure(with: suite)
         self._driveDisablePhotosForB2BValue.configure(with: suite)
+        // ProtonDoc
+        self._driveDocsWebViewValue.configure(with: suite)
+        self._driveDocsDisabledValue.configure(with: suite)
 
         if let sortPreferenceCache = self.sortPreferenceCache {
             nodesSortPreference = SortPreference(rawValue: sortPreferenceCache) ?? SortPreference.default
@@ -142,6 +151,7 @@ public class LocalSettings: NSObject {
         pushNotificationIsEnabled = pushNotificationIsEnabledValue ?? false
         defaultHomeTabTag = defaultHomeTabTagValue ?? 1
         driveSharingMigration = driveSharingMigrationValue ?? false
+        driveiOSSharing = driveiOSSharingValue ?? false
         driveSharingDevelopment = driveSharingDevelopmentValue ?? false
         driveSharingInvitations = driveSharingInvitationsValue ?? false
         driveSharingExternalInvitations = driveSharingExternalInvitationsValue ?? false
@@ -150,6 +160,8 @@ public class LocalSettings: NSObject {
         driveSharingEditingDisabled = driveSharingEditingDisabledValue ?? false
         driveDisablePhotosForB2B = driveDisablePhotosForB2BValue ?? false
         driveDocsWebView = driveDocsWebViewValue ?? false
+        driveDocsDisabled = driveDocsDisabledValue ?? false
+        parallelEncryptionAndVerification = parallelEncryptionAndVerificationValue ?? false
     }
 
     public func cleanUp() {
@@ -157,9 +169,11 @@ public class LocalSettings: NSObject {
         self.layoutPreferenceCache = nil
         self.optOutFromTelemetry = nil
         self.optOutFromCrashReports = nil
+        self.didFetchFeatureFlags = nil
         // self.isOnboardedValue needs no clean up - we only show it for first login ever
         // self.isUpsellShownValue needs no clean up - we only show it once
         // self.isPhotoUpsellShownValue needs no clean up - we only show it once
+        // self.defaultHomeTabTagValue needs no clean up - we keep the setting for forever
         self.isUploadingDisclaimerActiveValue = nil
         self.isNoticationPermissionsSkipped = nil
         self.isPhotosBackupEnabledValue = nil
@@ -174,12 +188,19 @@ public class LocalSettings: NSObject {
         self.newTrayAppMenuEnabledValue = nil
         self.pushNotificationIsEnabledValue = nil
         self.keepScreenAwakeBannerHasDismissed = nil
-        self.defaultHomeTabTagValue = nil
         self.didShowPhotosNotification = nil
         self.isB2BUser = nil
-        self.isPhotoTabDisabledValue = nil
+        self.showPhotoUpsellInNextLaunch = nil
         self.driveDisablePhotosForB2BValue = nil
         self.driveDocsWebViewValue = nil
+        self.driveSharingMigrationValue = nil
+        self.driveiOSSharingValue = nil
+        self.driveSharingDevelopmentValue = nil
+        self.driveSharingInvitationsValue = nil
+        self.driveSharingExternalInvitationsValue = nil
+        self.driveSharingDisabledValue = nil
+        self.driveSharingExternalInvitationsDisabledValue = nil
+        self.driveSharingEditingDisabledValue = nil
         setDynamicVariables()
     }
 
@@ -307,6 +328,10 @@ public class LocalSettings: NSObject {
         willSet { driveSharingMigrationValue = newValue }
     }
 
+    @objc public dynamic var driveiOSSharing: Bool = false {
+        willSet { driveiOSSharingValue = newValue }
+    }
+
     @objc public dynamic var driveSharingDevelopment: Bool = false {
         willSet { driveSharingDevelopmentValue = newValue }
     }
@@ -336,17 +361,20 @@ public class LocalSettings: NSObject {
         set { isPhotoUpsellShownValue = (newValue ? true : nil) }
     }
     
-    @objc public dynamic var isPhotoTabDisabled: Bool {
-        get { isPhotoTabDisabledValue ?? false }
-        set { isPhotoTabDisabledValue = newValue }
-    }
-    
     @objc public dynamic var driveDisablePhotosForB2B: Bool = false {
         willSet { driveDisablePhotosForB2BValue = newValue }
     }
 
     public var driveDocsWebView: Bool = false {
         willSet { driveDocsWebViewValue = newValue }
+    }
+
+    public var driveDocsDisabled: Bool = false {
+        willSet { driveDocsDisabledValue = newValue }
+    }
+
+    public var parallelEncryptionAndVerification: Bool = false {
+        willSet { parallelEncryptionAndVerificationValue = newValue }
     }
 }
 

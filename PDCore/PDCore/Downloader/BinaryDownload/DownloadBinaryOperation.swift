@@ -32,7 +32,9 @@ class DownloadBinaryOperation: SynchronousOperation {
     override func cancel() {
         super.cancel()
         self.task?.cancel()
-        self.session?.invalidateAndCancel()
+        if !Constants.downloaderUsesSharedURLSession {
+            self.session?.invalidateAndCancel()
+        }
 
         self.session = nil
         self.task = nil

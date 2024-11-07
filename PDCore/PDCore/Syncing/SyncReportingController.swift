@@ -17,6 +17,7 @@
 
 import Foundation
 import FileProvider
+import PDLoadTesting
 
 public enum SyncReportingControllerError: Error {
     case failedToResolveItem
@@ -48,7 +49,7 @@ public class SyncReportingController: SyncReporting, CommunicationServiceReporte
     }
 
     public func logItemUpload(_ item: ReportableSyncItem) {
-#if LOAD_TESTING
+        guard LoadTesting.isEnabled else { return }
         guard !item.isFolder else { return }
         guard item.state != .undefined else { return }
         let timestamp = ISO8601DateFormatter().string(from: item.modificationTime)
@@ -67,7 +68,6 @@ public class SyncReportingController: SyncReporting, CommunicationServiceReporte
             jsonString = jsonString.replacingOccurrences(of: "\\/", with: "/")
             Log.info("\(jsonString)", domain: .loadTesting)
         }
-#endif
     }
 
     // MARK: - SyncReporting

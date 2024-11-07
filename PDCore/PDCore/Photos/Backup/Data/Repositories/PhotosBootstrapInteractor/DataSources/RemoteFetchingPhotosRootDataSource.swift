@@ -47,7 +47,7 @@ public final class RemoteFetchingPhotosRootDataSource: PhotosShareDataSource {
             share.type = .photos
 
             let root: Folder = self.storage.unique(with: [response.link.linkID], in: moc)[0]
-            root.shareID = response.share.shareID
+            root.setShareID(response.share.shareID)
             root.nodeKey = response.link.nodeKey
             root.nodePassphrase = response.link.nodePassphrase
             root.nodePassphraseSignature = response.link.nodePassphraseSignature

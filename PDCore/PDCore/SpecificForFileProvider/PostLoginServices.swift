@@ -88,7 +88,7 @@ public class PostLoginServices {
     #if os(macOS)
     public func signOutAsync(domainOperationsService: DomainOperationsServiceProtocol) async {
         // disconnect FileProvider extensions
-        try? await domainOperationsService.tearDownDomain()
+        try? await domainOperationsService.tearDownConnectionToAllDomains()
         // close Tower properly, close session on BE and remove credentials from session vault
         await tower.signOut(cacheCleanupStrategy: domainOperationsService.cacheCleanupStrategy)
         // intentionally, we don't clear the main key
@@ -132,7 +132,7 @@ public class PostLoginServices {
     #endif
     
     public func onLaunchAfterSignIn() {
-        tower.start(runEventsProcessor: false)
+        tower.start(options: [])
     }
 
     private func currentActivityChanged(_ activity: NSUserActivity) {

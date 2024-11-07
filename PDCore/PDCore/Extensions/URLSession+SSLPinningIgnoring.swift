@@ -16,46 +16,45 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import Foundation
-
-#if LOAD_TESTING && SSL_PINNING
-#error("Load testing requires turning off SSL pinning, so it cannot be set for SSL-pinning targets")
-#endif
+import PDLoadTesting
 
 extension URLSession {
     
     static func forUploading(delegate: URLSessionDelegate? = nil) -> URLSession {
+        let session: URLSession
         if let delegate {
-            return URLSession(configuration: .forUploading, delegate: delegate, delegateQueue: nil)
+            session = URLSession(configuration: .forUploading, delegate: delegate, delegateQueue: nil)
         } else {
-            #if LOAD_TESTING && !SSL_PINNING
-            // according to URLSession docs, the delegate is retained
-            let testDelegate = TestDelegate()
-            return URLSession(configuration: .forUploading, delegate: delegate ?? testDelegate, delegateQueue: nil)
-            #else
-            return URLSession(configuration: .forUploading)
-            #endif
+            if LoadTesting.isEnabled {
+                // according to URLSession docs, the delegate is retained
+                let testDelegate = TestDelegate()
+                session = URLSession(configuration: .forUploading, delegate: delegate ?? testDelegate, delegateQueue: nil)
+            } else {
+                session = URLSession(configuration: .forUploading)
+            }
         }
+        
+        session.sessionDescription = "Uploader"
+        return session
     }
     
     static func forDownloading() -> URLSession {
-        #if LOAD_TESTING && !SSL_PINNING
-        // according to URLSession docs, the delegate is retained
-        let testDelegate = TestDelegate()
-        return URLSession(configuration: .forUploading, delegate: testDelegate, delegateQueue: nil)
-        #else
-        return URLSession(configuration: .forUploading)
-        #endif
+        sharedDownloadSession ?? createDownloadingSession(description: "Downloader(Per File)")
     }
-}
+    
+    private static func createDownloadingSession(description: String) -> URLSession {
+        let session: URLSession
+        if LoadTesting.isEnabled {
+            // according to URLSession docs, the delegate is retained
+            let testDelegate = TestDelegate()
+            session = URLSession(configuration: .forDownloading, delegate: testDelegate, delegateQueue: nil)
+        } else {
+            session = URLSession(configuration: .forDownloading)
+        }
 
-#if LOAD_TESTING && !SSL_PINNING
-class TestDelegate: NSObject, URLSessionDelegate {
-    func urlSession(
-        _ session: URLSession, didReceive challenge: URLAuthenticationChallenge
-    ) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
-        guard let trust = challenge.protectionSpace.serverTrust else { return (.performDefaultHandling, nil) }
-        let credential = URLCredential(trust: trust)
-        return (.useCredential, credential)
+        session.sessionDescription = description
+        return session
     }
+    
+    private static let sharedDownloadSession: URLSession? = Constants.downloaderUsesSharedURLSession ? createDownloadingSession(description: "Downloader(Shared)") : nil
 }
-#endif

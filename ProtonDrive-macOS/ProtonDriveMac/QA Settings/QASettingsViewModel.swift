@@ -28,6 +28,7 @@ struct QASettingsConstants {
     static let updateChannel = "updateChannel"
     static let shouldObfuscateDumpsStorage = "shouldObfuscateDumpsStorage"
     static let disconnectDomainOnSignOut = "disconnectDomainOnSignOut"
+    static let parallelEncryptionAndVerification = "parallelEncryptionAndVerificationQA"
 }
 
 protocol EventLoopManager: AnyObject {
@@ -78,7 +79,7 @@ class QASettingsViewModel: ObservableObject {
     @SettingsStorage(QASettingsConstants.shouldObfuscateDumpsStorage) var shouldObfuscateDumpsStorage: Bool?
     @SettingsStorage("requiresPostMigrationStep") private var requiresPostMigrationCleanup: Bool?
     
-    enum DomainDisconnectionOptions: String, CaseIterable {
+    enum FeatureFlagOptions: String, CaseIterable {
         case useFF
         case enabled
         case disabled
@@ -103,10 +104,18 @@ class QASettingsViewModel: ObservableObject {
         featureFlags?.isEnabled(flag: .domainReconnectionEnabled) ?? false
     }
     @Published var domainDisconnected: Bool = false
-    @Published var disconnectDomainOnSignOut: String = DomainDisconnectionOptions.useFF.rawValue {
-        didSet { disconnectDomainOnSignOutStorage = DomainDisconnectionOptions(rawValue: disconnectDomainOnSignOut)?.toBool }
+    @Published var disconnectDomainOnSignOut: String = FeatureFlagOptions.useFF.rawValue {
+        didSet { disconnectDomainOnSignOutStorage = FeatureFlagOptions(rawValue: disconnectDomainOnSignOut)?.toBool }
     }
     @SettingsStorage(QASettingsConstants.disconnectDomainOnSignOut) var disconnectDomainOnSignOutStorage: Bool?
+    
+    var parallelEncryptionAndVerificationFeatureFlagValue: Bool {
+        featureFlags?.isEnabled(flag: .parallelEncryptionAndVerification) ?? false
+    }
+    @Published var parallelEncryptionAndVerification: String = FeatureFlagOptions.useFF.rawValue {
+        didSet { parallelEncryptionAndVerificationStorage = FeatureFlagOptions(rawValue: parallelEncryptionAndVerification)?.toBool }
+    }
+    @SettingsStorage(QASettingsConstants.parallelEncryptionAndVerification) var parallelEncryptionAndVerificationStorage: Bool?
 
     let parentSessionUID: String
     let childSessionUID: String
@@ -132,6 +141,7 @@ class QASettingsViewModel: ObservableObject {
         let suite = Constants.appGroup
         self._requiresPostMigrationCleanup.configure(with: suite)
         self._disconnectDomainOnSignOutStorage.configure(with: suite)
+        self._parallelEncryptionAndVerificationStorage.configure(with: suite)
         self.dumper = dumperDependencies.map(Dumper.init)
         self.environment = Constants.appGroup.userDefaults.string(forKey: Constants.SettingsBundleKeys.host.rawValue) ?? ""
         self.signoutManager = signoutManager
@@ -150,7 +160,8 @@ class QASettingsViewModel: ObservableObject {
         self.shouldUpdateEvenOnDebugBuild = shouldUpdateEvenOnDebugBuildStorage ?? false
         self.shouldUpdateEvenOnTestFlight = shouldUpdateEvenOnTestFlightStorage ?? false
         self.updateChannel = updateChannelStorage ?? AppUpdateChannel.stable.rawValue
-        self.disconnectDomainOnSignOut = DomainDisconnectionOptions(bool: disconnectDomainOnSignOutStorage).rawValue
+        self.disconnectDomainOnSignOut = FeatureFlagOptions(bool: disconnectDomainOnSignOutStorage).rawValue
+        self.parallelEncryptionAndVerification = FeatureFlagOptions(bool: parallelEncryptionAndVerificationStorage).rawValue
         self.updateMessage = """
                              Last update check: \(appUpdateService.updater.lastUpdateCheckDate.map(String.init) ?? "never")
                              Update check interval: \(appUpdateService.updater.updateCheckInterval)
