@@ -1,20 +1,3 @@
-// Copyright (c) 2023 Proton AG
-//
-// This file is part of Proton Drive.
-//
-// Proton Drive is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Proton Drive is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Proton Drive. If not, see https://www.gnu.org/licenses/.
-
 import Foundation
 import ProtonCoreUtilities
 
@@ -35,11 +18,13 @@ public class Client {
     public let networking: DriveAPIService
     public var errorMonitor: ErrorMonitor?
     internal let backgroundQueue = DispatchQueue(label: "Client", attributes: .concurrent)
+    public let syncDirectory: String
 
-    public init(credentialProvider: CredentialProvider, service: APIService, networking: DriveAPIService) {
+    public init(credentialProvider: CredentialProvider, service: APIService, networking: DriveAPIService, syncDirectory: String = "~/.protondrive") {
         self.credentialProvider = credentialProvider
         self.service = service
         self.networking = networking
+        self.syncDirectory = syncDirectory
     }
 
     public func credential() throws -> ClientCredential {

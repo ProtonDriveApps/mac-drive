@@ -1,20 +1,3 @@
-// Copyright (c) 2023 Proton AG
-//
-// This file is part of Proton Drive.
-//
-// Proton Drive is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Proton Drive is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Proton Drive. If not, see https://www.gnu.org/licenses/.
-
 import AppKit
 import Combine
 import PDCore
@@ -41,6 +24,7 @@ protocol SettingsViewModelProtocol: ObservableObject {
     var isSignoutInProgress: Bool { get }
     var isLaunchOnBootEnabled: Bool { get set }
     var launchOnBootUserFacingMessage: String? { get }
+    var syncDirectory: String { get set }
     #if HAS_BUILTIN_UPDATER
     var updateAvailability: UpdateAvailabilityStatus { get }
     #endif
@@ -73,6 +57,7 @@ final class SettingsViewModel: SettingsViewModelProtocol {
     @Published var isStorageFull: Bool
     @Published var isLoadingLogs: Bool = false
     @Published var isSignoutInProgress: Bool = false
+    @Published var syncDirectory: String
     #if HAS_BUILTIN_UPDATER
     @Published var updateAvailability: UpdateAvailabilityStatus
     #endif
@@ -114,6 +99,7 @@ final class SettingsViewModel: SettingsViewModelProtocol {
         self.maxStorageInBytes = Int64(userInfo.maxSpace)
         self.isStorageWarning = SettingsViewModel.calculateStorageWarning(userInfo)
         self.isStorageFull = SettingsViewModel.calculateStorageFull(userInfo)
+        self.syncDirectory = UserDefaults.standard.string(forKey: "syncDirectory") ?? "~/.protondrive"
 
         self.accountInfo = accountInfo
         self.sessionVault = sessionVault
@@ -143,6 +129,7 @@ final class SettingsViewModel: SettingsViewModelProtocol {
         self.maxStorageInBytes = Int64(userInfo.maxSpace)
         self.isStorageWarning = SettingsViewModel.calculateStorageWarning(userInfo)
         self.isStorageFull = SettingsViewModel.calculateStorageFull(userInfo)
+        self.syncDirectory = UserDefaults.standard.string(forKey: "syncDirectory") ?? "~/.protondrive"
 
         self.accountInfo = accountInfo
         self.sessionVault = sessionVault
@@ -177,6 +164,14 @@ final class SettingsViewModel: SettingsViewModelProtocol {
             .receive(on: DispatchQueue.main)
             .sink { [unowned self] in
                 self.launchOnBootUserFacingMessage = $0
+            }
+            .store(in: &cancellables)
+
+        self.$syncDirectory
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [unowned self] in
+                UserDefaults.standard.set($0, forKey: "syncDirectory")
             }
             .store(in: &cancellables)
 
