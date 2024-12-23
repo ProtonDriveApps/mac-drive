@@ -1,0 +1,32 @@
+name: macOS Build and Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Set up Swift
+      uses: fwal/setup-swift@v1
+
+    - name: Resolve Swift Package dependencies
+      run: swift package resolve
+
+    - name: Build macOS application
+      run: xcodebuild -scheme ProtonDriveMac -configuration Release -destination 'platform=macOS' CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+
+    - name: Create DMG
+      run: create-dmg --volname "ProtonDrive" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon ProtonDrive.app 200 190 --hide-extension ProtonDrive.app --app-drop-link 600 185 ProtonDrive.app ProtonDrive.dmg
+
+    - name: Upload DMG as release asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ProtonDrive.dmg
+        asset_name: ProtonDrive.dmg
+        asset_content_type: application/x-apple-diskimage
