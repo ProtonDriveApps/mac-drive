@@ -1,32 +1,84 @@
 name: macOS Build and Release
 
 on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-latest
-
+    name: Build and Release
+    runs-on: macos-14
+    
     steps:
-    - name: Check out code
-      uses: actions/checkout@v2
-
-    - name: Set up Swift
-      uses: fwal/setup-swift@v1
-
-    - name: Resolve Swift Package dependencies
-      run: swift package resolve
-
-    - name: Build macOS application
-      run: xcodebuild -scheme ProtonDriveMac -configuration Release -destination 'platform=macOS' CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
-
-    - name: Create DMG
-      run: create-dmg --volname "ProtonDrive" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon ProtonDrive.app 200 190 --hide-extension ProtonDrive.app --app-drop-link 600 185 ProtonDrive.app ProtonDrive.dmg
-
-    - name: Upload DMG as release asset
-      uses: actions/upload-release-asset@v1
+    - uses: actions/checkout@v4
       with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ProtonDrive.dmg
-        asset_name: ProtonDrive.dmg
-        asset_content_type: application/x-apple-diskimage
+        fetch-depth: 0
+        
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.1'
+        
+    - name: Setup Swift
+      uses: fwal/setup-swift@v1
+      with:
+        swift-version: 5.9.2
+        
+    - name: Install dependencies
+      run: |
+        brew install create-dmg
+        
+    - name: Set Build Number
+      run: |
+        buildNumber=$(git rev-list --count HEAD)
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $buildNumber" "ProtonDrive-macOS/Info.plist"
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $buildNumber" "ProtonDriveFileProvider-macOS/Info.plist"
+        
+    - name: Build App
+      run: |
+        xcodebuild -workspace ProtonDrive.xcworkspace \
+                  -scheme "ProtonDrive-macOS" \
+                  -configuration Release \
+                  -archivePath "build/ProtonDrive.xcarchive" \
+                  archive
+                  
+    - name: Export App
+      run: |
+        xcodebuild -exportArchive \
+                  -archivePath "build/ProtonDrive.xcarchive" \
+                  -exportOptionsPlist ExportOptions.plist \
+                  -exportPath "build/export"
+                  
+    - name: Create DMG
+      run: |
+        create-dmg \
+          --volname "Proton Drive" \
+          --window-pos 200 120 \
+          --window-size 800 400 \
+          --icon-size 100 \
+          --icon "Proton Drive.app" 200 190 \
+          --hide-extension "Proton Drive.app" \
+          --app-drop-link 600 185 \
+          "build/ProtonDrive.dmg" \
+          "build/export/Proton Drive.app"
+          
+    - name: Create Release
+      if: github.event_name != 'pull_request'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/ProtonDrive.dmg
+        tag_name: v${{ github.run_number }}
+        name: Release v${{ github.run_number }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ProtonDrive
+        path: build/ProtonDrive.dmg
