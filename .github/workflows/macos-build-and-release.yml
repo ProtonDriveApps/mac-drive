@@ -3,58 +3,48 @@ name: macOS Build and Release
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build and Release
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: recursive
-
-      - name: Set up Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '15.1'
-
-      - name: Debug Info
-        run: |
-          echo "Workspace structure:"
-          ls -R
-          echo "XCode version:"
-          xcodebuild -version
-          echo "Available schemes:"
-          xcodebuild -workspace ProtonDrive.xcworkspace -list
-
-      - name: Build App
-        run: |
-          xcodebuild -workspace ProtonDrive.xcworkspace \
-            -scheme "ProtonDriveMac-Sparkle" \
-            -configuration Release \
-            -allowProvisioningUpdates \
-            DEVELOPMENT_TEAM="" \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGN_STYLE="Manual" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            ENABLE_HARDENED_RUNTIME=NO \
-            build
-
-      - name: Upload Build
-        if: success()
-        uses: actions/upload-artifact@v3
-        with:
-          name: ProtonDrive-Unsigned
-          path: build/Release/ProtonDrive.app
-
-      - name: Upload Build Log
-        if: failure()
-        uses: actions/upload-artifact@v3
-        with:
-          name: build-logs
-          path: /Users/runner/Library/Developer/Xcode/DerivedData/**/Logs/Build
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: true
+        
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.1'
+        
+    - name: Project Structure Debug
+      run: |
+        echo "Project structure:"
+        ls -R
+        echo "\nXcode workspace search:"
+        find . -name "*.xcworkspace"
+        echo "\nXcode project search:"
+        find . -name "*.xcodeproj"
+        
+    - name: Build Setup
+      run: |
+        WORKSPACE_PATH=$(find . -name "*.xcworkspace" | head -n 1)
+        echo "Found workspace: $WORKSPACE_PATH"
+        echo "Available schemes:"
+        xcodebuild -workspace "$WORKSPACE_PATH" -list
+        
+    - name: Build App
+      run: |
+        WORKSPACE_PATH=$(find . -name "*.xcworkspace" | head -n 1)
+        xcodebuild -workspace "$WORKSPACE_PATH" \
+                  -scheme "ProtonDriveMac" \
+                  -configuration Release \
+                  -archivePath "build/ProtonDrive.xcarchive" \
+                  CODE_SIGN_IDENTITY="-" \
+                  CODE_SIGN_STYLE=Manual \
+                  CODE_SIGNING_REQUIRED=NO \
+                  CODE_SIGNING_ALLOWED=NO \
+                  ENABLE_HARDENED_RUNTIME=NO \
+                  build
