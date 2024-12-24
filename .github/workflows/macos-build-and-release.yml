@@ -1,4 +1,10 @@
+name: macOS Build and Release
+
 on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -19,27 +25,33 @@ jobs:
 
     - name: List Available Schemes
       run: |
-        echo \"Available schemes:\"
+        echo "Available schemes:"
         xcodebuild -workspace ProtonDrive.xcworkspace -list
-        echo \"Workspace structure:\"
-        ls -R
-
-    - name: Install dependencies
-      run: brew install create-dmg
 
     - name: Build App
       run: |
-        xcodebuild -workspace ProtonDrive.xcworkspace \\
-                  -scheme \"ProtonDriveMac-Sparkle\" \\
-                  -configuration Release \\
-                  -archivePath \"build/ProtonDrive.xcarchive\" \\
-                  archive CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO
-                  
+        xcodebuild -workspace ProtonDrive.xcworkspace \
+                  -scheme "ProtonDriveMac-Sparkle" \
+                  -configuration Release \
+                  -allowProvisioningUpdates \
+                  DEVELOPMENT_TEAM="" \
+                  CODE_SIGN_IDENTITY="-" \
+                  CODE_SIGN_STYLE="Manual" \
+                  CODE_SIGNING_REQUIRED=NO \
+                  CODE_SIGNING_ALLOWED=NO \
+                  ENABLE_HARDENED_RUNTIME=NO \
+                  build
+
+    - name: Upload Build
+      if: success()
+      uses: actions/upload-artifact@v3
+      with:
+        name: ProtonDrive-Unsigned
+        path: build/Release/ProtonDrive.app
+
     - name: Upload Build Log
       if: failure()
       uses: actions/upload-artifact@v3
       with:
         name: build-logs
-        path: /Users/runner/Library/Developer/Xcode/DerivedData/**/Logs/Build`,
-  `message`: `chore: optimize build workflow with scheme detection`
-}
+        path: /Users/runner/Library/Developer/Xcode/DerivedData/**/Logs/Build
