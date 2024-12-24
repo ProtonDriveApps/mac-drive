@@ -19,32 +19,23 @@ jobs:
       with:
         xcode-version: '15.1'
         
-    - name: Project Structure Debug
-      run: |
-        echo "Project structure:"
-        ls -R
-        echo "\nXcode workspace search:"
-        find . -name "*.xcworkspace"
-        echo "\nXcode project search:"
-        find . -name "*.xcodeproj"
-        
-    - name: Build Setup
-      run: |
-        WORKSPACE_PATH=$(find . -name "*.xcworkspace" | head -n 1)
-        echo "Found workspace: $WORKSPACE_PATH"
-        echo "Available schemes:"
-        xcodebuild -workspace "$WORKSPACE_PATH" -list
-        
     - name: Build App
       run: |
-        WORKSPACE_PATH=$(find . -name "*.xcworkspace" | head -n 1)
-        xcodebuild -workspace "$WORKSPACE_PATH" \
-                  -scheme "ProtonDriveMac" \
+        xcodebuild -project ProtonDrive-macOS/ProtonDrive-macOS.xcodeproj \
+                  -scheme "ProtonDriveMac-Sparkle" \
                   -configuration Release \
-                  -archivePath "build/ProtonDrive.xcarchive" \
+                  -xcconfig ProtonDrive-macOS/ProtonDriveMac/BuildConfigs/ProtonDrive-Config-Release-External.xcconfig \
                   CODE_SIGN_IDENTITY="-" \
-                  CODE_SIGN_STYLE=Manual \
-                  CODE_SIGNING_REQUIRED=NO \
-                  CODE_SIGNING_ALLOWED=NO \
-                  ENABLE_HARDENED_RUNTIME=NO \
-                  build
+                  CODE_SIGNING_REQUIRED=NO
+        
+    - name: Create DMG
+      run: |
+        brew install create-dmg
+        create-dmg \
+          --volname "Proton Drive" \
+          --window-pos 200 120 \
+          --window-size 800 400 \
+          --icon-size 100 \
+          --app-drop-link 600 185 \
+          "build/ProtonDrive.dmg" \
+          "build/Release/ProtonDrive.app"

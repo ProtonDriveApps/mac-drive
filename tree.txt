@@ -1,0 +1,833 @@
+.
+├── ExportOptions.plist
+├── LICENSE
+├── PDClient
+│   ├── PDClient
+│   │   ├── Activity
+│   │   │   ├── Domain
+│   │   │   └── Resource
+│   │   ├── Client+Async.swift
+│   │   ├── Client+AsyncSequence.swift
+│   │   ├── Client+Legacy.swift
+│   │   ├── Client.swift
+│   │   ├── CollaborativeSharing
+│   │   │   └── SharedWithMeEndpoint.swift
+│   │   ├── CoreAPIService.swift
+│   │   ├── DELETE
+│   │   │   ├── DeleteDeviceEndpoint.swift
+│   │   │   ├── DeleteExternalInvitationEndpoint.swift
+│   │   │   ├── DeleteInvitationEndpoint.swift
+│   │   │   ├── DeleteRevisionEndpoint.swift
+│   │   │   ├── DeleteSecureLinkEndpoint.swift
+│   │   │   ├── DeleteShareEndpoint.swift
+│   │   │   └── RemoveShareMemberEndpoint.swift
+│   │   ├── DriveAPIService.swift
+│   │   ├── Encoding
+│   │   │   └── Platform
+│   │   ├── FeatureFlags
+│   │   │   ├── Domain
+│   │   │   └── Resource
+│   │   ├── GET
+│   │   │   ├── ActiveEndpoint.swift
+│   │   │   ├── DownloadBlockEndpoint.swift
+│   │   │   ├── EventsEndpoint.swift
+│   │   │   ├── FolderChildrenEndpoint.swift
+│   │   │   ├── GetRevisionEndpoint.swift
+│   │   │   ├── GetShareBootstrapEndpoint.swift
+│   │   │   ├── LatestEventEndpoint.swift
+│   │   │   ├── LinkEndpoint.swift
+│   │   │   ├── ListDevicesEndpoint.swift
+│   │   │   ├── ListExternalInvitationsEndpoint.swift
+│   │   │   ├── ListShareMemberEndPoint.swift
+│   │   │   ├── ListShareURLEndpoint.swift
+│   │   │   ├── ListSharesEndpoint.swift
+│   │   │   ├── PhotosListEndpoint.swift
+│   │   │   ├── RevisionEndpoint.swift
+│   │   │   ├── RevisionThumbnailEndpoint.swift
+│   │   │   ├── RevisionsEndpoint.swift
+│   │   │   ├── ShareEndpoint.swift
+│   │   │   ├── ShareInvitationListEndpoint.swift
+│   │   │   ├── ShareSRPEndpoint.swift
+│   │   │   ├── ShareURLEndpoint.swift
+│   │   │   ├── SharesEndpoint.swift
+│   │   │   ├── TrashListingEndpoint.swift
+│   │   │   └── VolumesEndpoint.swift
+│   │   ├── Info.plist
+│   │   ├── Infrastructure
+│   │   │   ├── APIService.swift
+│   │   │   ├── BaseHeadersFactory.swift
+│   │   │   ├── ClientCredential.swift
+│   │   │   ├── Endpoint+PrettyPrinting.swift
+│   │   │   ├── Endpoint.swift
+│   │   │   ├── EndpointFactory.swift
+│   │   │   ├── ErrorMonitor.swift
+│   │   │   ├── Injection
+│   │   │   ├── KeyDecodingStrategy+Extension.swift
+│   │   │   ├── PMAPIService+CoreAPIService.swift
+│   │   │   └── PMAPIService+DriveAPIService.swift
+│   │   ├── LinksMetadata
+│   │   │   └── Domain
+│   │   ├── Model
+│   │   │   ├── LegacyModel
+│   │   │   ├── Link.swift
+│   │   │   ├── LinksMetadataParameters.swift
+│   │   │   ├── LinksResponse.swift
+│   │   │   ├── Revision.swift
+│   │   │   ├── Share.swift
+│   │   │   ├── ShareMember.swift
+│   │   │   ├── ShareURLMeta.swift
+│   │   │   └── Volume.swift
+│   │   ├── PDClient.h
+│   │   ├── POST
+│   │   │   ├── AvailableHashesEndpoint.swift
+│   │   │   ├── CreateDeviceEndpoint.swift
+│   │   │   ├── CreatePhotosShareEndpoint.swift
+│   │   │   ├── DeleteLinkEndpoint.swift
+│   │   │   ├── EmptyTrashEndpoint.swift
+│   │   │   ├── FindDuplicatesEndpoint.swift
+│   │   │   ├── GetThumbnailsByIDEndpoint.swift
+│   │   │   ├── InviteExternalUserEndpoint.swift
+│   │   │   ├── InviteProtonUserEndpoint.swift
+│   │   │   ├── LinksMetadataEndpoint.swift
+│   │   │   ├── NewBlockEndpoint
+│   │   │   ├── NewDocumentEndpoint.swift
+│   │   │   ├── NewFileEndpoint.swift
+│   │   │   ├── NewFolderEndpoint.swift
+│   │   │   ├── NewRevisionEndpoint.swift
+│   │   │   ├── NewShareEndpoint.swift
+│   │   │   ├── NewShareURLEndpoint.swift
+│   │   │   ├── NewVolumeEndpoint.swift
+│   │   │   ├── ResendExternalInvitationEmailEndpoint.swift
+│   │   │   ├── ResendInvitationEmailEndpoint.swift
+│   │   │   ├── RestoreLinkEndpoint.swift
+│   │   │   ├── TelemetryEndpoint.swift
+│   │   │   ├── TrashLinkEndpoint.swift
+│   │   │   ├── UploadBlockFromDataEndpoint.swift
+│   │   │   └── UploadBlockFromFileEndpoint.swift
+│   │   ├── PUT
+│   │   │   ├── EditShareURLEndpoint.swift
+│   │   │   ├── MoveEntryEndpoint.swift
+│   │   │   ├── RenameNodeEndpoint.swift
+│   │   │   ├── UpdateExternalInvitationPermissionsEndpoint.swift
+│   │   │   ├── UpdateInvitationPermissionsEndpoint.swift
+│   │   │   ├── UpdateRevisionEndpoint.swift
+│   │   │   ├── UpdateShareMemberPermissionsEndpoint.swift
+│   │   │   └── UpdateShareURLEndpoint.swift
+│   │   ├── Pagination
+│   │   │   └── AllChildrenSequence.swift
+│   │   ├── Photos
+│   │   │   ├── Client+Photos.swift
+│   │   │   ├── Domain
+│   │   │   └── Models
+│   │   ├── ProtonDocument
+│   │   │   ├── Domain
+│   │   │   └── Resource
+│   │   ├── Telemetry
+│   │   │   ├── Domain
+│   │   │   └── Resource
+│   │   └── Thumbnails
+│   │       ├── Domain
+│   │       └── Resource
+│   ├── PDClient.xctestplan
+│   ├── Package.resolved
+│   ├── Package.swift
+│   └── README.md
+├── PDCore
+│   ├── PDCore
+│   │   ├── AlertDelegates
+│   │   │   ├── DriveCoreAlert.swift
+│   │   │   └── PMAPIClient+FailureAlertPublisher.swift
+│   │   ├── ApplicationState
+│   │   │   ├── Domain
+│   │   │   └── Resource
+│   │   ├── Architecture
+│   │   │   ├── Domain
+│   │   │   └── Resource
+│   │   ├── AuthenticatedWebSession
+│   │   │   ├── Domain
+│   │   │   └── Resource
+│   │   ├── BackgroundModes
+│   │   │   └── BackgroundTaskScheduler
+│   │   ├── BackgroundOperationsHandler
+│   │   │   └── BackgroundOperationsHandler.swift
+│   │   ├── CleanUp
+│   │   │   └── Application
+│   │   ├── CloudSlot
+│   │   │   ├── CloudSlot.swift
+│   │   │   ├── CoreData+PDClient.swift
+│   │   │   ├── Domain
+│   │   │   ├── FolderCreator
+│   │   │   ├── Resource
+│   │   │   └── VolumeDBCloudSlot.swift
+│   │   ├── Common
+│   │   │   ├── Application
+│   │   │   ├── Primitives
+│   │   │   └── Resource
+│   │   ├── Constants
+│   │   │   ├── BuildType.swift
+│   │   │   └── DebugConstants.swift
+│   │   ├── CoreData
+│   │   │   ├── Block+CoreDataClass.swift
+│   │   │   ├── Block+CoreDataProperties.swift
+│   │   │   ├── Device
+│   │   │   ├── DownloadBlock+CoreDataClass.swift
+│   │   │   ├── DownloadBlock+CoreDataProperties.swift
+│   │   │   ├── File
+│   │   │   ├── Folder
+│   │   │   ├── Membership.swift
+│   │   │   ├── Metadata.xcdatamodeld
+│   │   │   ├── Node
+│   │   │   ├── Node+CoreDataClass.swift
+│   │   │   ├── Node+CoreDataProperties.swift
+│   │   │   ├── Photo
+│   │   │   ├── PhotoRevision
+│   │   │   ├── Revision+CoreDataClass.swift
+│   │   │   ├── Revision+CoreDataProperties.swift
+│   │   │   ├── Share+CoreDataClass.swift
+│   │   │   ├── ShareURL+CoreDataClass.swift
+│   │   │   ├── ShareURL+CoreDataProperties.swift
+│   │   │   ├── SyncingModel
+│   │   │   ├── Thumbnail
+│   │   │   ├── UploadBlock+CoreDataClass.swift
+│   │   │   ├── UploadBlock+CoreDataProperties.swift
+│   │   │   ├── Volume+CoreDataClass.swift
+│   │   │   └── Volume+CoreDataProperties.swift
+│   │   ├── CoreEvents
+│   │   │   ├── CoreEvents+Notification.swift
+│   │   │   ├── DriveEventsLoop.swift
+│   │   │   ├── DriveEventsLoopMode.swift
+│   │   │   ├── DriveEventsLoopProcessor.swift
+│   │   │   └── GeneralEventsLoopProcessor.swift
+│   │   ├── DataStorage
+│   │   │   └── Domain
+│   │   ├── Decryption
+│   │   │   ├── Block+Decryption.swift
+│   │   │   ├── CryptoTypeAlias.swift
+│   │   │   ├── DecryptedMessage.swift
+│   │   │   ├── Decryptor.swift
+│   │   │   ├── Domain
+│   │   │   ├── DriveCrypto.swift
+│   │   │   ├── Encryptor.swift
+│   │   │   ├── File+Folder+Decryption.swift
+│   │   │   ├── NameHasher.swift
+│   │   │   ├── Node+Decryption.swift
+│   │   │   ├── PDCore+ProtonCore_KeyManager.swift
+│   │   │   ├── Resource
+│   │   │   ├── Revision+Decryption.swift
+│   │   │   ├── RevisionDecryptor.swift
+│   │   │   ├── SessionKeyDecryptor.swift
+│   │   │   ├── Share+Decryption.swift
+│   │   │   ├── ShareURL+Decryption.swift
+│   │   │   ├── Streaming
+│   │   │   └── Thumbnail+Decryption.swift
+│   │   ├── DiagnosticTools
+│   │   │   ├── AnyNodeProvider.swift
+│   │   │   ├── ChildrenProvider.swift
+│   │   │   ├── Cloud
+│   │   │   ├── CoreData
+│   │   │   ├── FileSystem
+│   │   │   ├── HierarchyDumper.swift
+│   │   │   ├── NodeInterface.swift
+│   │   │   └── Tree
+│   │   ├── Downloader
+│   │   │   ├── BinaryDownload
+│   │   │   ├── DownloadFileOperation.swift
+│   │   │   ├── DownloadTreeOperation.swift
+│   │   │   ├── Downloader.swift
+│   │   │   ├── ScanNodeOperation.swift
+│   │   │   └── SuspendableDownloader.swift
+│   │   ├── Encryption
+│   │   │   └── Resource
+│   │   ├── EventsProcessor
+│   │   │   ├── Conveyor
+│   │   │   ├── EventStorageManager.swift
+│   │   │   ├── EventsListener.swift
+│   │   │   ├── GenericEvent.swift
+│   │   │   ├── PDClient+GenericEvent.swift
+│   │   │   ├── Storage
+│   │   │   └── Timing
+│   │   ├── Extensions
+│   │   │   ├── AnyScheduler+eraseToAnyScheduler.swift
+│   │   │   ├── Array+splitInGroups.swift
+│   │   │   ├── CGImage+jpegData.swift
+│   │   │   ├── CharacterSet+Extensions.swift
+│   │   │   ├── Collection+Extensions.swift
+│   │   │   ├── Combine+Extensions.swift
+│   │   │   ├── CoreData
+│   │   │   ├── Data+Extensions.swift
+│   │   │   ├── Date+Position.swift
+│   │   │   ├── ISO8601DateFormatter+date.swift
+│   │   │   ├── Int+splitByDivisor.swift
+│   │   │   ├── Key+Extension.swift
+│   │   │   ├── NotificationCenter+getPublisher.swift
+│   │   │   ├── Operation+addDependencies.swift
+│   │   │   ├── OperationQueue+init.swift
+│   │   │   ├── Progress+initUnitsOfWork.swift
+│   │   │   ├── Sequence+Extensions.swift
+│   │   │   ├── Sequence+sortByKeyPath.swift
+│   │   │   ├── String+HasMatches.swift
+│   │   │   ├── Task+Extension.swift
+│   │   │   ├── URL+isHiddenFile.swift
+│   │   │   ├── URL+metadata.swift
+│   │   │   ├── URLSession+SSLPinningIgnoring.swift
+│   │   │   └── URLSessionConfiguration+Extensions.swift
+│   │   ├── FeatureFlags
+│   │   │   ├── ExternalFeatureFlagsRepository.swift
+│   │   │   ├── ExternalFeatureFlagsStore.swift
+│   │   │   ├── FeatureAvailabilityFlag.swift
+│   │   │   ├── FeatureFlagsRepository.swift
+│   │   │   ├── Injection
+│   │   │   └── PhotosUploadDisabledFeatureFlagStore.swift
+│   │   ├── FileImporter
+│   │   │   ├── Implementations
+│   │   │   └── Protocol
+│   │   ├── FileSystemSlot
+│   │   │   └── FileSystemSlot+Scan.swift
+│   │   ├── FileUploader
+│   │   │   ├── AttemptDelayLookup.swift
+│   │   │   ├── Configuration
+│   │   │   ├── DataModels
+│   │   │   ├── DeletedPhotosIdentifierStoreResource
+│   │   │   ├── Digests
+│   │   │   ├── Factories
+│   │   │   ├── File+StateOperations.swift
+│   │   │   ├── FileUploader+Async.swift
+│   │   │   ├── FileUploader+Notifications.swift
+│   │   │   ├── FileUploader+progressPublisher.swift
+│   │   │   ├── FileUploader+typealias.swift
+│   │   │   ├── FileUploader.swift
+│   │   │   ├── FileUploaderError.swift
+│   │   │   ├── MyFilesFileUploader.swift
+│   │   │   ├── OperationProcessor.swift
+│   │   │   ├── Operations
+│   │   │   ├── OperationsProvider
+│   │   │   ├── PhotoUploader.swift
+│   │   │   ├── PhotosSkippableCache.swift
+│   │   │   ├── PhotosSkippableStorage.swift
+│   │   │   ├── ResponseError+asFileUploaderError.swift
+│   │   │   ├── ResponseError+linkIDOfPreviousFailedUploadFromCurrentClient.swift
+│   │   │   ├── SuspendableFileUploader.swift
+│   │   │   ├── UploadVerifier
+│   │   │   ├── UseCases
+│   │   │   └── WorkingNotifier.swift
+│   │   ├── FinderModels
+│   │   │   ├── Constants.swift
+│   │   │   ├── FinderModel
+│   │   │   ├── Models
+│   │   │   └── SceneModels
+│   │   ├── Helpers
+│   │   │   ├── AssertionProvider.swift
+│   │   │   ├── Date+failableInit.swift
+│   │   │   ├── DriveKeymaker.swift
+│   │   │   ├── DriveStringCryptoTransformer.swift
+│   │   │   ├── Execute+Unwrap.swift
+│   │   │   ├── FetchedResultsControllerObserver.swift
+│   │   │   ├── FetchedResultsSectionsController.swift
+│   │   │   ├── NSManagedObjectContext+saveIfNeeded.swift
+│   │   │   ├── Optional+Unwrap+NilOrEmpty.swift
+│   │   │   └── Platform.swift
+│   │   ├── IPCommunicationServices
+│   │   │   ├── AppTarget.swift
+│   │   │   ├── CommunicationService.swift
+│   │   │   ├── CoreData
+│   │   │   ├── CoreDataCommunicationService.swift
+│   │   │   └── Extensions
+│   │   ├── Info.plist
+│   │   ├── InterprocessMainKeyExchange
+│   │   │   ├── CrossProcessErrorExchange.swift
+│   │   │   ├── CrossProcessMainKeyExchange.swift
+│   │   │   └── SecureEnclaveHelper.swift
+│   │   ├── LinkIdentifier.swift
+│   │   ├── Logging
+│   │   │   ├── Errors
+│   │   │   ├── FileLogContent.swift
+│   │   │   ├── FileLogDateFormatter.swift
+│   │   │   ├── FileManager+SortDate.swift
+│   │   │   ├── Log
+│   │   │   ├── LogContentLoader.swift
+│   │   │   ├── LogExporter
+│   │   │   ├── LogSource.swift
+│   │   │   ├── OSLogEntryLog+Description.swift
+│   │   │   ├── OSLogEntryLogLevel+Description.swift
+│   │   │   └── Sentry
+│   │   ├── Memory
+│   │   │   └── Resource
+│   │   ├── MessageHandler
+│   │   │   └── Presentation
+│   │   ├── Networking
+│   │   │   ├── Domain
+│   │   │   ├── NetworkConstrained.swift
+│   │   │   ├── PMAPIClient.swift
+│   │   │   ├── Resource
+│   │   │   └── TrustKitWrapper.swift
+│   │   ├── NewRevisionImporter
+│   │   │   └── RevisionImporter.swift
+│   │   ├── NodeIdentifier.swift
+│   │   ├── Observability
+│   │   │   ├── DriveObservabilityInitiator+FileDraft.swift
+│   │   │   ├── DriveObservabilityRetry+RetryCount.swift
+│   │   │   ├── DriveObservabilityUploadShareType+FileDraft.swift
+│   │   │   ├── DriveUploadSuccessRateEvent.swift
+│   │   │   └── ObservabilityLabels.swift
+│   │   ├── OfflineSaver
+│   │   │   ├── OfflineSaver+Reachability.swift
+│   │   │   └── OfflineSaver.swift
+│   │   ├── PDCore.h
+│   │   ├── PhotoUploadTelemetry
+│   │   │   ├── Common
+│   │   │   ├── Upload
+│   │   │   └── UploadDone
+│   │   ├── PhotoUploader
+│   │   │   ├── PhotoUploadedNotifier.swift
+│   │   │   ├── PhotoUploaderFeeder.swift
+│   │   │   ├── PhotosBackupUploadAvailableController.swift
+│   │   │   ├── ReuploadingModels.swift
+│   │   │   ├── StorageUploadingPhotosRepository.swift
+│   │   │   ├── UploadingPhotosRepository.swift
+│   │   │   └── UploadingPrimaryPhotosRepository.swift
+│   │   ├── Photos
+│   │   │   ├── Backup
+│   │   │   ├── Domain
+│   │   │   ├── Injection
+│   │   │   └── Resource
+│   │   ├── Protection
+│   │   │   └── Resource
+│   │   ├── ProtonDocument
+│   │   │   ├── Authenticated
+│   │   │   ├── Common
+│   │   │   ├── Constants
+│   │   │   ├── NewDocument
+│   │   │   ├── NonAuthenticated
+│   │   │   └── ProtonDocument.md
+│   │   ├── RefreshingNodesService
+│   │   │   └── RefreshingNodesService.swift
+│   │   ├── SecureStorage
+│   │   │   ├── FastStorage.swift
+│   │   │   ├── InMemoryStore.swift
+│   │   │   ├── Keychain.swift
+│   │   │   ├── PMKeymaker+Crypto.swift
+│   │   │   ├── PaymentsSecureStorage.swift
+│   │   │   ├── SecureStorage.swift
+│   │   │   ├── SecureStore.swift
+│   │   │   └── SettingsStorage.swift
+│   │   ├── Sharing
+│   │   │   └── CollaborativeSharing
+│   │   ├── SharingManager
+│   │   │   ├── Helpers
+│   │   │   ├── Models
+│   │   │   ├── PublicLinkCreator.swift
+│   │   │   ├── PublicLinkDeleter.swift
+│   │   │   ├── PublicLinkProvider.swift
+│   │   │   ├── PublicLinkUpdater.swift
+│   │   │   ├── ShareDeleter.swift
+│   │   │   └── SharingManager.swift
+│   │   ├── SpecificForFileProvider
+│   │   │   ├── CrossProcessNotifier.swift
+│   │   │   ├── DarwinNotificationCenter.swift
+│   │   │   ├── DomainOperationsServiceProtocol.swift
+│   │   │   ├── InitialServices.swift
+│   │   │   ├── NSPersistentContainer+Extension.swift
+│   │   │   ├── NotificationName+Extension.swift
+│   │   │   ├── PostLoginServices+Extension.swift
+│   │   │   ├── PostLoginServices.swift
+│   │   │   ├── SessionRelatedCommunication.swift
+│   │   │   └── UserDefaultsObservationCenter.swift
+│   │   ├── Storage
+│   │   │   ├── GloballyUnique.swift
+│   │   │   ├── HasTransientValues.swift
+│   │   │   ├── MigrationDetector.swift
+│   │   │   ├── MigrationPerformer.swift
+│   │   │   ├── StorageManager+Input.swift
+│   │   │   ├── StorageManager+Output.swift
+│   │   │   ├── StorageManager.swift
+│   │   │   └── VolumeUnique.swift
+│   │   ├── Syncing
+│   │   │   ├── DefaultErrorConfiguration.swift
+│   │   │   ├── ErrorReporting.swift
+│   │   │   ├── ReportableSyncItem.swift
+│   │   │   ├── SyncItemState.swift
+│   │   │   ├── SyncModel.xcdatamodeld
+│   │   │   ├── SyncReporting.swift
+│   │   │   ├── SyncReportingController.swift
+│   │   │   ├── SyncStorageManager+SyncErrors.swift
+│   │   │   ├── SyncStorageManager+SyncItems.swift
+│   │   │   └── SyncStorageManager.swift
+│   │   ├── TabbarSettingUpdater
+│   │   │   └── TabbarSettingUpdater.swift
+│   │   ├── Telemetry
+│   │   │   ├── Common
+│   │   │   └── Measurements
+│   │   ├── Tower.swift
+│   │   ├── TowerExtensions
+│   │   │   ├── Tower+Events
+│   │   │   ├── Tower+Nodes.swift
+│   │   │   ├── Tower+NodesAsync.swift
+│   │   │   ├── Tower+ShareURL.swift
+│   │   │   ├── Tower+Thumbnails
+│   │   │   └── Tower+Trash.swift
+│   │   ├── UISlot
+│   │   │   └── UISlot.swift
+│   │   ├── Uploader
+│   │   │   ├── Models
+│   │   │   ├── Thumbnails
+│   │   │   └── UploaderErrors.swift
+│   │   ├── User
+│   │   │   ├── AddressManager.swift
+│   │   │   ├── CoreCredential.swift
+│   │   │   ├── GeneralSettings.swift
+│   │   │   ├── LayoutPreference.swift
+│   │   │   ├── LocalSettings.swift
+│   │   │   ├── Quota
+│   │   │   ├── SignersKit
+│   │   │   ├── SortPreferences.swift
+│   │   │   ├── UserInfo
+│   │   │   └── Vault
+│   │   ├── Utilities
+│   │   │   ├── Combine+Extension.swift
+│   │   │   ├── Emojifier.swift
+│   │   │   ├── FileManager+Extension.swift
+│   │   │   ├── FileTypes
+│   │   │   ├── ManagedEnum.swift
+│   │   │   ├── NSManagedObject+Extension.swift
+│   │   │   ├── NSUserActivity+Extension.swift
+│   │   │   ├── PDFileManager+Compression.swift
+│   │   │   ├── PDFileManager.swift
+│   │   │   ├── PDFileManagerError.swift
+│   │   │   ├── Progress
+│   │   │   ├── Result+Extension.swift
+│   │   │   ├── RetainCycleBox.swift
+│   │   │   ├── SortByComparison.swift
+│   │   │   ├── String+Extension.swift
+│   │   │   ├── SynchronousOperation.swift
+│   │   │   ├── ThreadSafe.swift
+│   │   │   ├── URL+Extension.swift
+│   │   │   └── UserDefaults+notificationExtension.swift
+│   │   └── Validator
+│   │       ├── NSRegularExpresion+Extension.swift
+│   │       ├── Validator+Extension.swift
+│   │       └── Validator.swift
+│   ├── PDCoreResources
+│   │   └── Info.plist
+│   ├── Package.resolved
+│   ├── Package.swift
+│   └── README.md
+├── PDFileProvider
+│   ├── PDFileProvider
+│   │   ├── Conflicts
+│   │   │   ├── ConflictRepresentation.swift
+│   │   │   ├── Conflicting.swift
+│   │   │   ├── NSFileProviderItem+ConflictName.swift
+│   │   │   ├── ResolutionAction.swift
+│   │   │   ├── String+ConflictNodeName.swift
+│   │   │   └── Tower+FileProvider.swift
+│   │   ├── Enumerators
+│   │   │   ├── EnumeratorWithChanges.swift
+│   │   │   ├── EnumeratorWithItemsFromAPI.swift
+│   │   │   ├── EnumeratorWithItemsFromDB.swift
+│   │   │   ├── FolderEnumerator.swift
+│   │   │   ├── NSFileProviderPage+extension.swift
+│   │   │   ├── RootEnumerator.swift
+│   │   │   ├── TrashEnumerator.swift
+│   │   │   └── WorkingSetEnumerator.swift
+│   │   ├── Errors.swift
+│   │   ├── Extensions
+│   │   │   ├── LogObfuscation.swift
+│   │   │   ├── NSFileProvider+Identifiable.swift
+│   │   │   ├── NSFileProviderItem+Extension.swift
+│   │   │   ├── NSFileProviderItemIdentifier+Extension.swift
+│   │   │   ├── NSFileProviderItemIdentifier+iOS.swift
+│   │   │   ├── NSFileProviderSyncAnchor+Extension.swift
+│   │   │   ├── NodeIdentifier+NSFileProviderItemIdentifier.swift
+│   │   │   ├── OptionSet+RemoveElement.swift
+│   │   │   ├── OptionSetContainer.swift
+│   │   │   ├── Progress+OneTimeCancellation.swift
+│   │   │   └── String+Filename.swift
+│   │   ├── FileProviderEventsListener.swift
+│   │   ├── Info.plist
+│   │   ├── ItemProvider
+│   │   │   ├── ItemActionsOutlet+Async.swift
+│   │   │   ├── ItemActionsOutlet+ConflictDetection.swift
+│   │   │   ├── ItemActionsOutlet+ConflictResolution.swift
+│   │   │   ├── ItemActionsOutlet.swift
+│   │   │   └── ItemProvider.swift
+│   │   ├── Items
+│   │   │   ├── ContentVersion.swift
+│   │   │   ├── ItemTemplate.swift
+│   │   │   ├── ItemVersionHasher.swift
+│   │   │   ├── MetadataVersion.swift
+│   │   │   └── NodeItem.swift
+│   │   ├── PDFileProvider.h
+│   │   └── Syncing
+│   │       ├── SyncChangeObserver.swift
+│   │       ├── SyncedTimeUpdater.swift
+│   │       └── UserDefaults+Key.swift
+│   └── Package.swift
+├── PDLoadTesting
+│   ├── Package.swift
+│   └── Sources
+│       └── PDLoadTesting
+│           └── PDLoadTesting.swift
+├── PDLocalization
+│   ├── Package.swift
+│   └── Sources
+│       ├── Localization.swift
+│       └── Resources
+│           └── Localizable.xcstrings
+├── PDLogin-macOS
+│   ├── PDLogin-macOS
+│   │   ├── Errors
+│   │   │   └── LoginValidationError.swift
+│   │   ├── ExternalLinks.swift
+│   │   ├── Helpers
+│   │   │   ├── Container.swift
+│   │   │   ├── LoginError+localizedDescription.swift
+│   │   │   ├── NSWindow+titleBarHeight.swift
+│   │   │   └── PDLoginMacOS.swift
+│   │   ├── LoginCoordinator.swift
+│   │   ├── LoginManager.swift
+│   │   ├── LoginManagerBuilder.swift
+│   │   ├── LoginStep.swift
+│   │   ├── LoginView.swift
+│   │   ├── LoginViewModel.swift
+│   │   ├── MailboxPasswordView.swift
+│   │   ├── MailboxPasswordViewModel.swift
+│   │   ├── PDLogin_macOS.h
+│   │   ├── Resources
+│   │   │   └── Assets.xcassets
+│   │   ├── TwoFactorView.swift
+│   │   ├── TwoFactorViewModel.swift
+│   │   └── UI Components
+│   │       ├── Extensions
+│   │       ├── LinkButton.swift
+│   │       ├── LoginButton.swift
+│   │       └── LoginTextField
+│   └── Package.swift
+├── PDUIComponents
+│   ├── PDUIComponents
+│   │   ├── AccountHeader
+│   │   │   └── AccountHeaderViewModel.swift
+│   │   ├── AccountHeaderView.swift
+│   │   ├── Buttons
+│   │   │   ├── AsyncButton.swift
+│   │   │   ├── BlueRectButton.swift
+│   │   │   ├── CloseBarButton.swift
+│   │   │   ├── CloseButtonView.swift
+│   │   │   ├── Components -> ../../../ProtonDrive-iOS/ProtonDrive/Scenes/ShareLink/Components
+│   │   │   ├── Configuration
+│   │   │   ├── GradientButton.swift
+│   │   │   ├── LightButton.swift
+│   │   │   ├── LinkButton.swift
+│   │   │   ├── MenuButton.swift
+│   │   │   ├── RoundButtonView.swift
+│   │   │   ├── SearchButton.swift
+│   │   │   ├── SimpleCloseButtonView.swift
+│   │   │   ├── TextButton.swift
+│   │   │   └── UIKitExtensions.swift
+│   │   ├── Cells
+│   │   │   ├── CellButtonStyle.swift
+│   │   │   ├── LabelCells
+│   │   │   ├── ListSection
+│   │   │   ├── LongPressCell.swift
+│   │   │   └── LongPressCopyCell.swift
+│   │   ├── ColorsExtension.swift
+│   │   ├── ContextMenu
+│   │   │   ├── ContextMenuItemActionView.swift
+│   │   │   ├── ContextMenuView.swift
+│   │   │   └── ContextualMenu.swift
+│   │   ├── DeeplinkableViews
+│   │   │   ├── DeeplinkableScene.swift
+│   │   │   └── RootDeeplinkableView.swift
+│   │   ├── DialogSheet
+│   │   │   └── DialogSheet.swift
+│   │   ├── Helpers
+│   │   │   ├── AnyViewModifier.swift
+│   │   │   ├── Color+Hex.swift
+│   │   │   ├── ContentHeightPreferenceKey.swift
+│   │   │   ├── DateStamper.swift
+│   │   │   ├── MirrorableEnum.swift
+│   │   │   ├── NavigationControllerAccessor.swift
+│   │   │   ├── Publishers+keyboard.swift
+│   │   │   ├── RoundedCorner.swift
+│   │   │   ├── Shadow.swift
+│   │   │   ├── StorageSizeFormatter.swift
+│   │   │   ├── TableViewAccessor.swift
+│   │   │   ├── UIApplication+Extension.swift
+│   │   │   ├── UIFont+Extension.swift
+│   │   │   ├── UINavigationBarAppearance+drive.swift
+│   │   │   ├── UIView+Extensions.swift
+│   │   │   ├── View+hosting.swift
+│   │   │   ├── View+print.swift
+│   │   │   └── Wrap.swift
+│   │   ├── Info.plist
+│   │   ├── MenuView+EnvironmentValues.swift
+│   │   ├── ModalView
+│   │   │   ├── FadeAnimations.swift
+│   │   │   └── ModalView.swift
+│   │   ├── PDUIComponents.h
+│   │   ├── RootViewContainer
+│   │   │   ├── RootView.swift
+│   │   │   └── RootViewModel.swift
+│   │   ├── Styles
+│   │   │   ├── Button
+│   │   │   └── Label
+│   │   ├── Views
+│   │   │   ├── ActionBar
+│   │   │   ├── AssertionView.swift
+│   │   │   ├── AvatarView.swift
+│   │   │   ├── ErrorToasts
+│   │   │   ├── FlatNavigationBar
+│   │   │   ├── PasswordProgressBar
+│   │   │   ├── ProgressMenuSection
+│   │   │   ├── ProtonDone.swift
+│   │   │   ├── ProtonSpinner.swift
+│   │   │   ├── RoundIconSmall.swift
+│   │   │   ├── SectionHeadersFooters
+│   │   │   ├── SheetHeaderView.swift
+│   │   │   ├── SpinnerTextView.swift
+│   │   │   ├── StorageMenuSection
+│   │   │   ├── TabBar
+│   │   │   ├── TextModifier.swift
+│   │   │   ├── Toast
+│   │   │   ├── UIToolbar+Appearance.swift
+│   │   │   └── WarningBadgeView.swift
+│   │   └── iOS
+│   │       ├── TextField
+│   │       └── ViewHosting.swift
+│   └── Package.swift
+├── PDUploadVerifier
+│   ├── PDCoreResources
+│   │   └── Info.plist
+│   ├── PDUploadVerifier
+│   │   ├── Info.plist
+│   │   ├── PDUploadVerifier.h
+│   │   └── UploadVerifier
+│   │       ├── BlockVerification
+│   │       ├── Common
+│   │       ├── GetVerificationData
+│   │       └── VerificationInfo
+│   ├── PDUploadVerifier.xctestplan
+│   ├── Package.swift
+│   └── README.md
+├── PMEventsManager
+│   ├── PMEventsManager.podspec
+│   ├── Package.swift
+│   └── Sources
+│       └── PMEventsManager
+│           ├── Application
+│           ├── AsynchronousOperation.swift
+│           ├── EventLoopProcessor.swift
+│           ├── EventPeriodicScheduler.swift
+│           ├── EventsLoop.swift
+│           ├── GeneralEventsLoop
+│           ├── Helpers
+│           ├── LoopOperation.swift
+│           ├── LoopOperationScheduler.swift
+│           └── Models
+├── ProtonDrive-macOS
+│   ├── Constants.swift
+│   ├── Packages
+│   │   └── stress-tests
+│   │       ├── DriveStressTestsCLI
+│   │       ├── DriveStressTestsLib
+│   │       └── Package.swift
+│   ├── ProtonDrive-macOS.xcodeproj
+│   │   ├── project.pbxproj
+│   │   ├── project.xcworkspace
+│   │   │   ├── contents.xcworkspacedata
+│   │   │   └── xcshareddata
+│   │   ├── xcshareddata
+│   │   │   ├── xcbaselines
+│   │   │   └── xcschemes
+│   │   └── xcuserdata
+│   │       └── rob.xcuserdatad
+│   ├── ProtonDriveFileProviderMac
+│   │   ├── BuildConfigs
+│   │   │   ├── ProtonDriveFileProvider-Config-Debug.xcconfig
+│   │   │   ├── ProtonDriveFileProvider-Config-LoadTesting-Build.xcconfig
+│   │   │   ├── ProtonDriveFileProvider-Config-LoadTesting-Development.xcconfig
+│   │   │   ├── ProtonDriveFileProvider-Config-Release-External.xcconfig
+│   │   │   ├── ProtonDriveFileProvider-Config-Release-QA.xcconfig
+│   │   │   └── ProtonDriveFileProvider-Config-Release-Store.xcconfig
+│   │   ├── CompletionBlockWrapper.swift
+│   │   ├── FileProviderExtension+SyncReporting.swift
+│   │   ├── FileProviderExtension.swift
+│   │   ├── Info.plist
+│   │   ├── LoadTesting-Info.plist
+│   │   └── ProtonDriveFileProvider.entitlements
+│   ├── ProtonDriveMac
+│   │   ├── ActivityService.swift
+│   │   ├── AppContentDelegate.swift
+│   │   ├── AppCoordinator.swift
+│   │   ├── AppDelegate.swift
+│   │   ├── Assets.xcassets
+│   │   │   ├── AppIcon-Debug.appiconset
+│   │   │   ├── AppIcon-Release-External.appiconset
+│   │   │   ├── AppIcon-Release-QA.appiconset
+│   │   │   ├── Contents.json
+│   │   │   ├── FileSystemCustomTypes
+│   │   │   ├── FileTypes
+│   │   │   ├── MenuItems
+│   │   │   ├── NewTrayAppMenu
+│   │   │   ├── StatusIcons
+│   │   │   ├── logo.imageset
+│   │   │   └── onboarding.imageset
+│   │   ├── Base.lproj
+│   │   │   └── Menu.storyboard
+│   │   ├── BuildConfigs
+│   │   │   ├── ProtonDrive-Config-Debug.xcconfig
+│   │   │   ├── ProtonDrive-Config-LoadTesting-Build.xcconfig
+│   │   │   ├── ProtonDrive-Config-LoadTesting-Development.xcconfig
+│   │   │   ├── ProtonDrive-Config-Release-External.xcconfig
+│   │   │   ├── ProtonDrive-Config-Release-QA.xcconfig
+│   │   │   └── ProtonDrive-Config-Release-Store.xcconfig
+│   │   ├── Builders
+│   │   │   ├── MetadataMonitorBuilder.swift
+│   │   │   └── PostLoginServicesBuilder.swift
+│   │   ├── DomainOperationsService.swift
+│   │   ├── DriveCoreAlertListener.swift
+│   │   ├── Dumper.swift
+│   │   ├── Extensions
+│   │   │   ├── NSImage+Extension.swift
+│   │   │   └── NotificationName+Window.swift
+│   │   ├── GroupContainerMigrator.swift
+│   │   ├── Info.plist
+│   │   ├── LoadTesting-Info.plist
+│   │   ├── MemoryWarningObserver.swift
+│   │   ├── MenuBarCoordinator.swift
+│   │   ├── MetadataMonitor.swift
+│   │   ├── Proton Document
+│   │   │   ├── Application
+│   │   │   └── Platform
+│   │   ├── ProtonDrive-Bridging-Header.h
+│   │   ├── ProtonDrive.entitlements
+│   │   ├── QA Settings
+│   │   │   ├── QASettingsCoordinator.swift
+│   │   │   ├── QASettingsView.swift
+│   │   │   └── QASettingsViewModel.swift
+│   │   ├── RecoveryAttempter.swift
+│   │   ├── RemoteChangeSignaler.swift
+│   │   ├── Scenes
+│   │   │   ├── Initialization
+│   │   │   ├── MessageHandler
+│   │   │   ├── Onboarding
+│   │   │   └── Settings
+│   │   ├── SyncMonitor.swift
+│   │   ├── Syncing
+│   │   │   ├── Errors
+│   │   │   ├── SyncCoordinator.swift
+│   │   │   ├── SyncStateService.swift
+│   │   │   └── TrayApp
+│   │   └── main.m
+│   ├── ProtonDriveMacLauncher
+│   │   ├── ProtonDriveMacLauncher.entitlements
+│   │   └── main.swift
+│   ├── README.md
+│   ├── ReleaseNotes.html
+│   └── SharedBuildConfigs
+│       └── Config-Release-Store.xcconfig
+├── ProtonDrive.xcworkspace
+│   └── contents.xcworkspacedata
+├── README.md
+└── tree.txt
+
+296 directories, 534 files
