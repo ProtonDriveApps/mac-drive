@@ -1,1 +1,45 @@
-bmFtZTogbWFjT1MgQnVpbGQgYW5kIFJlbGVhc2UKCm9uOgogIHB1c2g6CiAgICBicmFuY2hlczogWyBtYWluIF0KICBwdWxsX3JlcXVlc3Q6CiAgICBicmFuY2hlczogWyBtYWluIF0KICB3b3JrZmxvd19kaXNwYXRjaDoKCmpvYnM6CiAgYnVpbGQ6CiAgICBuYW1lOiBCdWlsZCBhbmQgUmVsZWFzZQogICAgcnVucy1vbjogbWFjb3MtMTQKICAgIAogICAgc3RlcHM6CiAgICAtIHVzZXM6IGFjdGlvbnMvY2hlY2tvdXRAdjQKICAgICAgd2l0aDoKICAgICAgICBmZXRjaC1kZXB0aDogMAogICAgICAgIHN1Ym1vZHVsZXM6IHJlY3Vyc2l2ZQogICAgICAgIAogICAgLSBuYW1lOiBTZXQgdXAgWGNvZGUKICAgICAgdXNlczogbWF4aW0tbG9iYW5vdi9zZXR1cC14Y29kZUB2MQogICAgICB3aXRoOgogICAgICAgIHhjb2RlLXZlcnNpb246ICcxNS4xJwoKICAgIC0gbmFtZTogTGlzdCBBdmFpbGFibGUgU2NoZW1lcwogICAgICBydW46IHwKICAgICAgICBlY2hvICJBdmFpbGFibGUgc2NoZW1lczoiCiAgICAgICAgeGNvZGVidWlsZCAtd29ya3NwYWNlIFByb3RvbkRyaXZlLnhjd29ya3NwYWNlIC1saXN0CiAgICAgICAgZWNobyAiV29ya3NwYWNlIHN0cnVjdHVyZToiCiAgICAgICAgbHMgLVIKCiAgICAtIG5hbWU6IEluc3RhbGwgZGVwZW5kZW5jaWVzCiAgICAgIHJ1bjogYnJldyBpbnN0YWxsIGNyZWF0ZS1kbWcKCiAgICAtIG5hbWU6IEJ1aWxkIEFwcAogICAgICBydW46IHwKICAgICAgICB4Y29kZWJ1aWxkIC13b3Jrc3BhY2UgUHJvdG9uRHJpdmUueGN3b3Jrc3BhY2UgXAogICAgICAgICAgICAgICAgICAtc2NoZW1lICJQcm90b25Ecml2ZU1hYy1TcGFya2xlIiBcCiAgICAgICAgICAgICAgICAgIC1jb25maWd1cmF0aW9uIFJlbGVhc2UgXAogICAgICAgICAgICAgICAgICAtYXJjaGl2ZVBhdGggImJ1aWxkL1Byb3RvbkRyaXZlLnhjYXJjaGl2ZSIgXAogICAgICAgICAgICAgICAgICBhcmNoaXZlIENPREVfU0lHTl9JREVOVElUWT0iIiBDT0RFX1NJR05JTkdfUkVRVUlSRUQ9Tk8KICAgICAgICAgICAgICAgICAgCiAgICAtIG5hbWU6IFVwbG9hZCBCdWlsZCBMb2cKICAgICAgaWY6IGZhaWx1cmUoKQogICAgICB1c2VzOiBhY3Rpb25zL3VwbG9hZC1hcnRpZmFjdEB2MwogICAgICB3aXRoOgogICAgICAgIG5hbWU6IGJ1aWxkLWxvZ3MKICAgICAgICBwYXRoOiAvVXNlcnMvcnVubmVyL0xpYnJhcnkvRGV2ZWxvcGVyL1hjb2RlL0Rlcml2ZWREYXRhLyoqL0xvZ3MvQnVpbGQ=
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: macos-14
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: recursive
+        
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.1'
+
+    - name: List Available Schemes
+      run: |
+        echo \"Available schemes:\"
+        xcodebuild -workspace ProtonDrive.xcworkspace -list
+        echo \"Workspace structure:\"
+        ls -R
+
+    - name: Install dependencies
+      run: brew install create-dmg
+
+    - name: Build App
+      run: |
+        xcodebuild -workspace ProtonDrive.xcworkspace \\
+                  -scheme \"ProtonDriveMac-Sparkle\" \\
+                  -configuration Release \\
+                  -archivePath \"build/ProtonDrive.xcarchive\" \\
+                  archive CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO
+                  
+    - name: Upload Build Log
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-logs
+        path: /Users/runner/Library/Developer/Xcode/DerivedData/**/Logs/Build`,
+  `message`: `chore: optimize build workflow with scheme detection`
+}
