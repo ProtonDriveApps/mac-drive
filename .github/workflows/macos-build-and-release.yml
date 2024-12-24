@@ -11,51 +11,50 @@ jobs:
   build:
     name: Build and Release
     runs-on: macos-14
-    
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        submodules: recursive
-        
-    - name: Set up Xcode
-      uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: '15.1'
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
 
-    - name: Debug Info
-      run: |
-        echo "Workspace structure:"
-        ls -R
-        echo "XCode version:"
-        xcodebuild -version
-        echo "Available schemes:"
-        xcodebuild -workspace ProtonDrive.xcworkspace -list
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.1'
 
-    - name: Build App
-      run: |
-        xcodebuild -workspace ProtonDrive.xcworkspace \
-                  -scheme "ProtonDriveMac-Sparkle" \
-                  -configuration Release \
-                  -allowProvisioningUpdates \
-                  DEVELOPMENT_TEAM="" \
-                  CODE_SIGN_IDENTITY="-" \
-                  CODE_SIGN_STYLE="Manual" \
-                  CODE_SIGNING_REQUIRED=NO \
-                  CODE_SIGNING_ALLOWED=NO \
-                  ENABLE_HARDENED_RUNTIME=NO \
-                  build
+      - name: Debug Info
+        run: |
+          echo "Workspace structure:"
+          ls -R
+          echo "XCode version:"
+          xcodebuild -version
+          echo "Available schemes:"
+          xcodebuild -workspace ProtonDrive.xcworkspace -list
 
-    - name: Upload Build
-      if: success()
-      uses: actions/upload-artifact@v3
-      with:
-        name: ProtonDrive-Unsigned
-        path: build/Release/ProtonDrive.app
+      - name: Build App
+        run: |
+          xcodebuild -workspace ProtonDrive.xcworkspace \
+            -scheme "ProtonDriveMac-Sparkle" \
+            -configuration Release \
+            -allowProvisioningUpdates \
+            DEVELOPMENT_TEAM="" \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGN_STYLE="Manual" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            ENABLE_HARDENED_RUNTIME=NO \
+            build
 
-    - name: Upload Build Log
-      if: failure()
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-logs
-        path: /Users/runner/Library/Developer/Xcode/DerivedData/**/Logs/Build
+      - name: Upload Build
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ProtonDrive-Unsigned
+          path: build/Release/ProtonDrive.app
+
+      - name: Upload Build Log
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-logs
+          path: /Users/runner/Library/Developer/Xcode/DerivedData/**/Logs/Build
