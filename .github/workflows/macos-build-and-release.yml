@@ -24,7 +24,11 @@ jobs:
         xcode-version: '15.1'
 
     - name: List Available Schemes
-      run: xcodebuild -workspace ProtonDrive.xcworkspace -list
+      run: |
+        echo "Available schemes:"
+        xcodebuild -workspace ProtonDrive.xcworkspace -list
+        echo "Workspace structure:"
+        ls -R
 
     - name: Install dependencies
       run: brew install create-dmg
@@ -32,7 +36,7 @@ jobs:
     - name: Build App
       run: |
         xcodebuild -workspace ProtonDrive.xcworkspace \
-                  -scheme "ProtonDriveMac" \
+                  -scheme "ProtonDriveMac-Sparkle" \
                   -configuration Release \
                   -archivePath "build/ProtonDrive.xcarchive" \
                   archive CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
