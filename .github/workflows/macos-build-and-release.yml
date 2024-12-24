@@ -23,8 +23,12 @@ jobs:
       with:
         xcode-version: '15.1'
 
-    - name: List Available Schemes
+    - name: Debug Info
       run: |
+        echo "Workspace structure:"
+        ls -R
+        echo "XCode version:"
+        xcodebuild -version
         echo "Available schemes:"
         xcodebuild -workspace ProtonDrive.xcworkspace -list
 
