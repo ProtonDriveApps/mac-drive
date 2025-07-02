@@ -25,7 +25,10 @@ class PublicLinkScanner {
     private let client: Client
     private let storage: StorageManager
 
-    init(client: Client, storage: StorageManager) {
+    init(
+        client: Client,
+        storage: StorageManager
+    ) {
         self.client = client
         self.storage = storage
     }
@@ -58,27 +61,25 @@ class PublicLinkScanner {
         let shareID = contextShare.contextShareID
         let linkGroups = contextShare.linkIDs.splitInGroups(of: 150)
 
-        var allLinks: [Link] = []
-        var allParents: [Link] = []
+        var allSortedLinks: [Link] = []
 
-        try await withThrowingTaskGroup(of: (links: [Link], parents: [Link]).self) { group in
+        try await withThrowingTaskGroup(of: [Link].self) { group in
             for linkGroup in linkGroups {
                 group.addTask { [weak self] in
-                    guard let self = self else { return ([], []) }
+                    guard let self = self else { return [] }
                     let linksResponse = try await self.client.getLinksMetadata(with: .init(shareId: shareID, linkIds: linkGroup))
-                    return (linksResponse.links, linksResponse.parents)
+                    return linksResponse.sortedLinks
                 }
             }
 
             // Collect all results from the task group
             for try await result in group {
-                allLinks.append(contentsOf: result.links)
-                allParents.append(contentsOf: result.parents)
+                allSortedLinks.append(contentsOf: result)
             }
 
             // Perform the save operation at the end, after all tasks have completed
             try context.performAndWait {
-                self.storage.updateLinks(allParents + allLinks, in: context)
+                self.storage.updateLinks(allSortedLinks, in: context)
                 self.storage.updateShareURLs(contextShare.shareURLs, in: context)
                 try context.saveOrRollback()
             }

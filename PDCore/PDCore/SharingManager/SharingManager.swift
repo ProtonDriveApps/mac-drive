@@ -62,12 +62,15 @@ public final class SharingManager: SharedLinkRepository {
         self.shareDeleter = shareDeleter
     }
 
-    public func getPublicLink(for node: NodeIdentifier) async throws -> PublicLinkIdentifier {
-        try await provider.getPublicLink(for: node)
+    public func getPublicLink(
+        for node: NodeIdentifier,
+        permissions: ShareURLMeta.Permissions
+    ) async throws -> PublicLinkIdentifier {
+        try await provider.getPublicLink(for: node, permissions: permissions)
     }
 
-    public func updatePublicLink(_ identifier: PublicLinkIdentifier, node: NodeIdentifier, with details: UpdateShareURLDetails) async throws {
-        try await updater.updatePublicLink(identifier, node: node, with: details)
+    public func updatePublicLink(_ identifier: PublicLinkIdentifier, with details: UpdateShareURLDetails) async throws {
+        try await updater.updatePublicLink(identifier, with: details)
     }
 
     public func deletePublicLink(_ identifier: PublicLinkIdentifier) async throws {

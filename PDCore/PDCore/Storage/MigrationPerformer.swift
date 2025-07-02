@@ -78,9 +78,10 @@ public final class MigrationPerformer {
 extension MigrationPerformer {
     
     private func validateMainKey() throws {
-        if keymaker.mainKey == nil {
+        let mainKey = try? keymaker.mainKeyOrError
+        if mainKey == nil {
             assertionFailure("MainKey should be accessible in order to perform migration")
-            Log.error(MainKeyDecryptionError.decryption(Errors.noMainKeyAvailable), domain: .encryption)
+            Log.error(error: MainKeyDecryptionError.decryption(Errors.noMainKeyAvailable), domain: .encryption)
             throw Errors.noMainKeyAvailable
         }
         Log.info("MainKey is available for MigrationPerformer operations", domain: .encryption)

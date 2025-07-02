@@ -20,8 +20,6 @@ import Foundation
 import UnleashProxyClientSwift
 
 public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
-    public typealias LogErrorHandler = (Error) -> Void
-    public typealias LogMessageHandler = (String) -> Void
 
     private let session: UnleashPollerSession
     private let configurationResolver: ExternalFeatureFlagConfigurationResolver
@@ -29,8 +27,6 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
     private var client: UnleashClient?
     private let updateSubject = PassthroughSubject<Void, Never>()
     private let refreshInterval: Int
-    private let logMessageHandler: LogMessageHandler
-    private let logErrorHandler: LogErrorHandler
     private var cancellables = Set<AnyCancellable>()
 
     public var updatePublisher: AnyPublisher<Void, Never> {
@@ -42,15 +38,11 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
     public init(
         refreshInterval: Int,
         session: UnleashPollerSession,
-        configurationResolver: ExternalFeatureFlagConfigurationResolver,
-        logMessageHandler: @escaping LogMessageHandler,
-        logErrorHandler: @escaping LogErrorHandler
+        configurationResolver: ExternalFeatureFlagConfigurationResolver
     ) {
         self.refreshInterval = refreshInterval
         self.session = session
         self.configurationResolver = configurationResolver
-        self.logMessageHandler = logMessageHandler
-        self.logErrorHandler = logErrorHandler
     }
 
     public func start(completionHandler: @escaping (Error?) -> Void) {
@@ -60,12 +52,12 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
         }
 
         guard let configuration = try? configurationResolver.makeConfiguration(refreshInterval: refreshInterval) else {
-            logErrorHandler(Errors.unableToFetchConfiguration)
+            logError?(Errors.unableToFetchConfiguration.localizedDescription)
             completionHandler(Errors.unableToFetchConfiguration)
             return
         }
 
-        poller = Poller(refreshInterval: configuration.refreshInterval, unleashUrl: configuration.url, apiKey: configuration.apiKey, session: session)
+        poller = Poller(refreshInterval: configuration.refreshInterval, unleashUrl: configuration.url, apiKey: configuration.apiKey, session: session, appName: "Proton Drive", connectionId: UUID())
         client = UnleashClient(unleashUrl: configuration.url.absoluteString, clientKey: configuration.apiKey, refreshInterval: configuration.refreshInterval, disableMetrics: true, environment: configuration.environment, poller: poller)
 
         startClient(completionHandler: completionHandler)
@@ -87,9 +79,9 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
             self?.client?.start { error in
                 completionHandler(error)
                 if let error {
-                    self?.logErrorHandler(error)
+                    logError?(error.localizedDescription)
                 } else {
-                    self?.logMessageHandler("Unleash started")
+                    logInfo?("Unleash started")
                 }
             }
         }
@@ -97,11 +89,11 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
 
     private func subscribeToUpdates() {
         client?.subscribe(name: "update") { [weak self] in
-            self?.logMessageHandler("Unleash feature flags: updated")
+            logInfo?("Unleash feature flags: updated")
             self?.updateSubject.send()
         }
         client?.subscribe(name: "ready") { [weak self] in
-            self?.logMessageHandler("Unleash feature flags: ready")
+            logInfo?("Unleash feature flags: ready")
             self?.updateSubject.send()
         }
     }
@@ -125,6 +117,7 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
         return client?.isEnabled(name: name) ?? false
     }
 
+    // swiftlint:disable:next cyclomatic_complexity
     private func makeName(from flag: ExternalFeatureFlag) -> String {
         switch flag {
         case .photosUploadDisabled:
@@ -145,12 +138,17 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
             return "DriveiOSLogCollectionDisabled"
         case .oneDollarPlanUpsellEnabled:
             return "DriveOneDollarPlanUpsell"
+        case .driveDisablePhotosForB2B:
+            return "DriveDisablePhotosForB2B"
+        case .driveDDKEnabled:
+            return "DriveDDKEnabled"
+        case .driveMacSyncRecoveryDisabled:
+            return "DriveMacSyncRecoveryDisabled"
+        case .driveMacKeepDownloaded:
+            return "DriveMacKeepDownloaded"
+        // Sharing
         case .driveSharingMigration:
             return "DriveSharingMigration"
-        case .driveiOSSharing:
-            return "DriveiOSSharing"
-        case .driveSharingDevelopment:
-            return "DriveSharingDevelopment"
         case .driveSharingInvitations:
             return "DriveSharingInvitations"
         case .driveSharingExternalInvitations:
@@ -161,14 +159,51 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
             return "DriveSharingExternalInvitationsDisabled"
         case .driveSharingEditingDisabled:
             return "DriveSharingEditingDisabled"
-        case .driveDisablePhotosForB2B:
-            return "DriveDisablePhotosForB2B"
-        case .driveDocsWebView:
-            return "DriveDocsWebView"
-        case .parallelEncryptionAndVerification:
-            return "DriveMacParallelEncryptionAndVerification"
+        case .drivePublicShareEditMode:
+            return "DrivePublicShareEditMode"
+        case .drivePublicShareEditModeDisabled:
+            return "DrivePublicShareEditModeDisabled"
+        case .acceptRejectInvitation:
+            return "DriveMobileSharingInvitationsAcceptReject"
+        case .driveDynamicEntitlementConfiguration:
+            return "DriveDynamicEntitlementConfiguration"
+        // ProtonDoc
         case .driveDocsDisabled:
             return "DriveDocsDisabled"
+        // Rating booster
+        // Legacy feature flags we used before migrating to Unleash
+        case .ratingIOSDrive:
+            return "RatingIOSDrive"
+        case .driveRatingBooster:
+            return "DriveRatingBooster"
+        case .driveShareURLBookmarking:
+            return "DriveShareURLBookmarking"
+        case .driveShareURLBookmarksDisabled:
+            return "DriveShareURLBookmarksDisabled"
+        // Refactor
+        case .driveiOSRefreshableBlockDownloadLink:
+            return "DriveiOSRefreshableBlockDownloadLink"
+        case .driveiOSComputers:
+            return "DriveiOSComputers"
+        case .driveiOSComputersDisabled:
+            return "DriveiOSComputersDisabled"
+        // Album
+        case .driveAlbumsDisabled:
+            return "DriveAlbumsDisabled"
+        case .driveCopyDisabled:
+            return "DriveCopyDisabled"
+        case .drivePhotosTagsMigration:
+            return "DrivePhotosTagsMigration"
+        case .drivePhotosTagsMigrationDisabled:
+            return "DrivePhotosTagsMigrationDisabled"
+        case .docsSheetsEnabled:
+            return "DocsSheetsEnabled"
+        case .docsSheetsDisabled:
+            return "DocsSheetsDisabled"
+        case .docsCreateNewSheetOnMobileEnabled:
+            return "DocsCreateNewSheetOnMobileEnabled"
+        case .driveiOSDebugMode:
+            return "DriveiOSDebugMode"
         }
     }
 

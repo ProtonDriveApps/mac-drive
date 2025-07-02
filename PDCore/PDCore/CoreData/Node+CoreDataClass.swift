@@ -19,6 +19,8 @@ import Foundation
 import CoreData
 import PDClient
 
+public typealias CoreDataNode = Node
+
 @objc(Node)
 public class Node: NSManagedObject, VolumeUnique {
     public enum State: Int, Codable {
@@ -31,6 +33,7 @@ public class Node: NSManagedObject, VolumeUnique {
         case paused = 6             // Paused by the user
         case interrupted = 7        // Paused by the system/app
     }
+    var nameDecryptionFailed = false
 
     #if os(iOS)
     var _observation: Any?
@@ -38,7 +41,11 @@ public class Node: NSManagedObject, VolumeUnique {
     @NSManaged private(set) var stateRaw: NSNumber? // used in fetch request predicated inside PDCore, should not be shown outside
     
     @ManagedEnum(raw: #keyPath(stateRaw)) public var state: State?
-    
+
+    public var parentNode: NodeWithNodeHashKey? {
+        parentLink
+    }
+
     // dangerous, see https://developer.apple.com/documentation/coredata/nsmanagedobject
     override public init(entity: NSEntityDescription, insertInto context: NSManagedObjectContext?) {
         super.init(entity: entity, insertInto: context)
@@ -80,6 +87,19 @@ public class Node: NSManagedObject, VolumeUnique {
         #if os(iOS)
         NotificationCenter.default.removeObserver(_observation as Any)
         #endif
+    }
+
+    // MARK: Root node
+
+    final func findRootNode() -> Node {
+        var currentNode: Node = self
+
+        // Traverse up the parent chain until the root node (node with no parent) is found
+        while let parentNode = currentNode.parentNode {
+            currentNode = parentNode
+        }
+
+        return currentNode
     }
 }
 

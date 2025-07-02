@@ -19,7 +19,10 @@ import Foundation
 import PDClient
 
 public protocol PublicLinkProvider {
-    func getPublicLink(for node: NodeIdentifier) async throws -> PublicLinkIdentifier
+    func getPublicLink(
+        for node: NodeIdentifier,
+        permissions: ShareURLMeta.Permissions
+    ) async throws -> PublicLinkIdentifier
 }
 
 public final class RemoteCachingPublicLinkProvider: PublicLinkProvider {
@@ -43,16 +46,19 @@ public final class RemoteCachingPublicLinkProvider: PublicLinkProvider {
     }
 
     /// Retrieve the identifier and create a secure link if one does not already exist.
-    public func getPublicLink(for node: NodeIdentifier) async throws -> PublicLinkIdentifier {
+    public func getPublicLink(
+        for node: NodeIdentifier,
+        permissions: ShareURLMeta.Permissions
+    ) async throws -> PublicLinkIdentifier {
         Log.info("\(type(of: self)) open secure link for \(node)", domain: .sharing)
 
         let state = try await getState(for: node)
 
         switch state {
         case .notShared(let node):
-            return try await createShareAndShareURL(for: node)
+            return try await createShareAndShareURL(for: node, permissions: permissions)
         case .started(let shareID):
-            return try await scanShareAndCreateShareURL(shareID: shareID)
+            return try await scanShareAndCreateShareURL(shareID: shareID, permissions: permissions)
         case .shared(let shareID, let shareURLID):
             return try await scanShareAndShareURL(shareID: shareID, shareURLID: shareURLID)
         }
@@ -60,9 +66,9 @@ public final class RemoteCachingPublicLinkProvider: PublicLinkProvider {
 
     private func scanShareAndShareURL(shareID: String, shareURLID: String) async throws -> PublicLinkIdentifier {
         let shareResponse = try await client.bootstrapShare(id: shareID)
-        let shreURLResponses = try await client.getShareUrl(shareID: shareID)
+        let shareURLResponses = try await client.getShareUrl(shareID: shareID)
 
-        guard let shreURLResponse = shreURLResponses.first else {
+        guard let shareURLResponse = shareURLResponses.first else {
             throw DriveError("There should be one ShareURL per Share")
         }
 
@@ -70,13 +76,16 @@ public final class RemoteCachingPublicLinkProvider: PublicLinkProvider {
 
         return try await context.perform {
             self.storage.updateShare(shareResponse, in: context)
-            let shareURL = self.storage.updateShareURL(shreURLResponse, in: context)
+            let shareURL = self.storage.updateShareURL(shareURLResponse, in: context)
             try context.saveOrRollback()
             return shareURL.identifier
         }
     }
 
-    private func scanShareAndCreateShareURL(shareID: String) async throws -> PublicLinkIdentifier {
+    private func scanShareAndCreateShareURL(
+        shareID: String,
+        permissions: ShareURLMeta.Permissions
+    ) async throws -> PublicLinkIdentifier {
         let context = storage.backgroundContext
 
         let shareResponse = try await client.bootstrapShare(id: shareID)
@@ -85,14 +94,20 @@ public final class RemoteCachingPublicLinkProvider: PublicLinkProvider {
             try context.saveOrRollback()
         }
 
-        return try await publicLinkCreator.createPublicLink(share: ShareIdentifier(id: shareID))
+        return try await publicLinkCreator.createPublicLink(
+            share: ShareIdentifier(id: shareID),
+            permissions: permissions
+        )
     }
 
-    private func createShareAndShareURL(for node: Node) async throws -> PublicLinkIdentifier {
+    private func createShareAndShareURL(
+        for node: Node,
+        permissions: ShareURLMeta.Permissions
+    ) async throws -> PublicLinkIdentifier {
         let context = storage.backgroundContext
         let share = try await shareCreator.createShare(for: node)
         let shareIdentifier = await context.perform { share.in(moc: context).identifier }
-        return try await publicLinkCreator.createPublicLink(share: shareIdentifier)
+        return try await publicLinkCreator.createPublicLink(share: shareIdentifier, permissions: permissions)
     }
 
     private func getState(for node: NodeIdentifier) async throws -> State {

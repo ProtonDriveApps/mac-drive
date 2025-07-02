@@ -38,7 +38,7 @@ public struct LoginButton: View {
                 Text(title)
                     .font(.system(size: 13))
                     .fontWeight(.semibold)
-                    .foregroundColor(ColorProvider.TextInvert)
+                    .foregroundColor(ColorProvider.White)
                     .padding(.horizontal)
                     .frame(maxWidth: 400)
                     .frame(height: 44, alignment: .center)

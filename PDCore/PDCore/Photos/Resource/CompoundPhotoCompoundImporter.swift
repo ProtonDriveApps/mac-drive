@@ -26,8 +26,6 @@ public final class CompoundPhotoCompoundImporter: PhotoCompoundImporter {
     private let rootRepository: PhotosRootFolderRepository
     private let existingPhotoRepository: ExistingPhotoCompoundRepository
 
-    @ThreadSafe private var encryptingFolder: EncryptingFolder?
-
     public init(
         importer: PhotoImporter, notificationCenter: NotificationCenter,
         moc: NSManagedObjectContext,
@@ -61,13 +59,15 @@ public final class CompoundPhotoCompoundImporter: PhotoCompoundImporter {
     }
     
     private func importCompounds(new newCompounds: [PhotoAssetCompound], existing rawExistingCompounds: [RawExistingCompound]) async throws {
-        let folder = try rootRepository.get()
         let encryptingFolder = try getEncryptingFolder()
-        
+        let rootIdentifier = encryptingFolder.identifier
+
         try await moc.perform { [weak self] in
             guard let self else { return }
-            let folder = folder.in(moc: self.moc)
-            
+            guard let folder: Folder = Folder.fetch(identifier: rootIdentifier, in: moc) else {
+                throw Folder.InvalidState(message: "Photos root not found with id: \(rootIdentifier)")
+            }
+
             var importedCompounds: [ImportedPhoto] = []
             for newCompound in newCompounds {
                 let importedCompound = try self.importNewCompound(newCompound, folder: folder, encryptingFolder: encryptingFolder)
@@ -84,7 +84,11 @@ public final class CompoundPhotoCompoundImporter: PhotoCompoundImporter {
         
         try await moc.perform { [weak self] in
             guard let self else { return }
-            
+
+            guard let folder: Folder = Folder.fetch(identifier: rootIdentifier, in: moc) else {
+                throw Folder.InvalidState(message: "Photos root not found with id: \(rootIdentifier)")
+            }
+
             for existingCompound in existingCompounds {
                 try self.importExistingCompound(existingCompound, folder: folder, encryptingFolder: encryptingFolder)
             }
@@ -104,14 +108,18 @@ public final class CompoundPhotoCompoundImporter: PhotoCompoundImporter {
             main.addToChildren(secondary)
         }
 
-        // Uses the new created upload id, or the id from the BE if already commited
+        // Uses the new created upload id, or the id from the BE if already committed
         return ImportedPhoto(main: main.uploadID?.uuidString ?? main.id, secondary: main.children.map { $0.uploadID?.uuidString ?? $0.id })
     }
     
     private func importExistingCompound(_ compound: ExistingCompound, folder: Folder, encryptingFolder: EncryptingFolder) throws {
         let main = compound.mainPhoto.in(moc: moc)
-
+        var childrenNames = main.children.map(\.decryptedName)
         for secondaryAsset in compound.assets {
+            if childrenNames.contains(secondaryAsset.filename) {
+                continue
+            }
+            childrenNames.append(secondaryAsset.filename)
             let secondary = try importer.import(secondaryAsset, folder: folder, encryptingFolder: encryptingFolder)
             secondary.parent = main
             main.addToChildren(secondary)
@@ -119,15 +127,7 @@ public final class CompoundPhotoCompoundImporter: PhotoCompoundImporter {
     }
     
     private func getEncryptingFolder() throws -> EncryptingFolder {
-        if let encryptingFolder {
-            return encryptingFolder
-        }
-        let encryptingFolder = try moc.performAndWait { [weak self] in
-            guard let self else { throw Folder.noMOC() }
-            return try self.rootRepository.get().in(moc: self.moc).encrypting()
-        }
-        self.encryptingFolder = encryptingFolder
-        return encryptingFolder
+        try rootRepository.getEncryptionInfo()
     }
 
     private struct ImportedPhoto: CustomStringConvertible {

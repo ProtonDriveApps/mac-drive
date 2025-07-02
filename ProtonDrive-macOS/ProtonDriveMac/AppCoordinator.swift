@@ -28,89 +28,139 @@ import PDClient
 import PDCore
 import PDLogin_macOS
 import Combine
+import ProtonCoreCryptoPatchedGoImplementation
 
+/// Coordinates all the app's dependencies and responsibilities.
+///
+/// AppCoordinator
+///   ↳ `ApplicationState` - data object containing all data defining the Status Window UI of the app (and none of the logic). Its properties are observed by the views.
+///         This object is shared by `ApplicationEventObserver`, its dependencies, `MenuBarCoordinator`, and all WindowCoordinators. All observers write to it, and all the views observe changes to it.
+///   ↳ `ApplicationEventObserver` - observes all changes relevant to the state of the status window (sync in progress? user logged in?, network reachable?, update available?), and propagates them to the menu bar status item and status window.
+///     ↳ `ApplicationState` - shared with `AppCoordinator`.
+///     ↳ `NetworkStateInteractor` - provides updates on whether the network is reachable.
+///     ↳ `AppUpdateServiceProtocol` - provides updates on whether an app update is available.
+///     ↳ `SessionVault` - provides updates on when a user logs in.
+///     ↳ `LoggedInStateReporter` - provides updates on when a user logs in.
+///     ↳ `GlobalProgressObserver` - provides updates on the state of uploading or downloading operations from the File Provider extension.
+///       ↳ `DomainOperationsService` Events from the FileProvider.
+///     ↳ `SyncDBObserver` - provides updates on files being synced.
+///       ↳ `SyncDBFetchedResultObserver` - observes changes to the SyncItem DB using a `NSFetchedResultsController`.
+///       ↳ `SyncStateDelegate` -  updates the `isPaused` and `isOffline` status of `EventsSystemManager` and `DomainOperationsService`.
+///         ↳ `PDCore.EventsSystemManager` - CoreData (Tower).
+///         ↳ `DomainOperationsService` Events from the FileProvider.
+///   ↳ `MenuBarCoordinator` - logic related to then menu icon and dropdown menu.
 class AppCoordinator: NSObject, ObservableObject {
-    
-    @SettingsStorage(UserDefaults.Key.shouldReenumerateItemsKey.rawValue) var shouldReenumerateItems: Bool?
-    @SettingsStorage(UserDefaults.Key.hasPostMigrationStepRunKey.rawValue) var hasPostMigrationStepRun: Bool?
+
+    @SettingsStorage(UserDefaults.FileProvider.pathsMarkedAsKeepDownloadedKey.rawValue) var pathsMarkedAsKeepDownloaded: String?
+    @SettingsStorage(UserDefaults.FileProvider.pathsMarkedAsOnlineOnlyKey.rawValue) var pathsMarkedAsOnlineOnly: String?
+    @SettingsStorage(UserDefaults.FileProvider.openItemsInBrowserKey.rawValue) var openItemsInBrowser: String?
+    @SettingsStorage(UserDefaults.FileProvider.shouldReenumerateItemsKey.rawValue) var shouldReenumerateItems: Bool?
+    @SettingsStorage(UserDefaults.Migration.hasPostMigrationStepRunKey.rawValue) var hasPostMigrationStepRun: Bool?
+
+#if HAS_QA_FEATURES
+    @SettingsStorage("newTrayAppMenuEnabled") var newTrayAppMenuEnabledInQASettings: Bool?
+#endif
 
     enum SignInStep {
         case login
         case initialization
         case onboarding
     }
-    
+
     private let initialServices: InitialServices
     private let networkStateService: NetworkStateInteractor
     private let driveCoreAlertListener: DriveCoreAlertListener
     private let loginBuilder: LoginManagerBuilder
-    private var login: LoginManager?
-    private var settings: SettingsCoordinator?
-    private var syncErrors: ErrorCoordinator?
-    #if HAS_QA_FEATURES
-    private var qaSettings: QASettingsCoordinator?
-    #endif
+    private var loginManager: LoginManager?
+
+    private var mainWindowCoordinator: MainWindowCoordinator?
+    private var settingsWindowCoordinator: SettingsWindowCoordinator?
+    private var syncErrorWindowCoordinator: SyncErrorWindowCoordinator?
+    private var fullResyncCoordinator: FullResyncCoordinator?
+#if HAS_QA_FEATURES
+    private var qaSettingsWindowCoordinator: QASettingsWindowCoordinator?
+#endif
     private let postLoginServicesBuilder: PostLoginServicesBuilder
     private var postLoginServices: PostLoginServices?
-    private let metadataMonitorBuilder: MetadataMonitorBuilder
+
+    var tower: Tower? { postLoginServices?.tower }
+
     private let logContentLoader: LogContentLoader
     private var metadataMonitor: MetadataMonitor?
     private var activityService: ActivityService?
     private let launchOnBoot: any LaunchOnBootServiceProtocol
     let domainOperationsService: DomainOperationsService
 
-    #if HAS_BUILTIN_UPDATER
-    private let appUpdateService: any AppUpdateServiceProtocol
-    #endif
+    private var testRunner: TestRunner?
 
-    private var communicationService: CoreDataCommunicationService<SyncItem>?
-
-    private var syncStateService: SyncStateService
+    private let appUpdateService: AppUpdateServiceProtocol?
+    private let subscriptionService: SubscriptionService
 
     private(set) var window: NSWindow?
 
-    private var screen: SignInStep?
+    private let appState: ApplicationState
+
+    private var signInStep: SignInStep?
 
     private var menuBarCoordinator: MenuBarCoordinator?
-    private var syncCoordinator: SyncCoordinator?
+    private var applicationEventObserver: ApplicationEventObserver?
+    private var globalProgressObserver: GlobalProgressObserver?
+
     private var initializationCoordinator: InitializationCoordinator?
     private var onboardingCoordinator: OnboardingCoordinator?
+    private let ddkSessionCommunicator: SessionRelatedCommunicatorBetweenMainAppAndExtensions
 
+    private let observationCenter: PDCore.UserDefaultsObservationCenter
+    
     var client: PDClient.Client? {
         postLoginServices?.tower.client
     }
-    
+
     var featureFlags: PDCore.FeatureFlagsRepository? {
         postLoginServices?.tower.featureFlags
     }
-    
+
     private var isLoggingOut: Atomic<Bool> = .init(false)
 
-    private var menuSyncErrorsCount: Int {
-        guard let metadataMonitor, let syncStorage = metadataMonitor.syncStorage else {
-            return 0
-        }
-        return syncStorage.syncErrorsCount(in: syncStorage.mainContext)
+    deinit {
+        Log.trace()
+        observationCenter.removeObserver(self)
     }
 
-    override convenience init() {
+    @MainActor
+    convenience init(_: Void) async {
+        Log.trace()
+
         let keymaker = DriveKeymaker(autolocker: nil, keychain: DriveKeychain.shared,
                                      logging: { Log.info($0, domain: .storage) })
-        let initialServices = InitialServices(userDefault: Constants.appGroup.userDefaults,
-                                              clientConfig: Constants.userApiConfig,
-                                              keymaker: keymaker,
-                                              sessionRelatedCommunicatorFactory: SessionRelatedCommunicatorForMainApp.init)
+        let initialServices = InitialServices(
+            userDefault: Constants.appGroup.userDefaults,
+            clientConfig: Constants.userApiConfig,
+            mainKeyProvider: keymaker,
+            sessionRelatedCommunicatorFactory: { sessionStore, authenticator, _ in
+                SessionRelatedCommunicatorForMainApp(
+                    userDefaultsConfiguration: .forFileProviderExtension(userDefaults: Constants.appGroup.userDefaults),
+                    sessionStorage: sessionStore,
+                    childSessionKind: .fileProviderExtension,
+                    authenticator: authenticator
+                )
+            }
+        )
+        let ddkSessionCommunicator = SessionRelatedCommunicatorForMainApp(
+            userDefaultsConfiguration: .forDDK(userDefaults: Constants.appGroup.userDefaults),
+            sessionStorage: initialServices.sessionVault,
+            childSessionKind: .ddk,
+            authenticator: initialServices.authenticator
+        )
         let networkStateService = ConnectedNetworkStateInteractor(resource: MonitoringNetworkStateResource())
         networkStateService.execute()
-        let syncStateService = SyncStateService()
         let driveCoreAlertListener = DriveCoreAlertListener(client: initialServices.networkClient)
         let loginBuilder = ConcreteLoginManagerBuilder(
             environment: Constants.userApiConfig.environment,
             apiServiceDelegate: initialServices.networkClient,
             forceUpgradeDelegate: initialServices.networkClient)
-        let postLoginServicesBuilder = ConcretePostLoginServicesBuilder(initialServices: initialServices, eventProcessingMode: .pollAndRecord)
-        let observationCenter = PDCore.UserDefaultsObservationCenter(userDefaults: Constants.appGroup.userDefaults)
-        let metadataMonitorBuilder = ConcreteMetadataMonitorBuilder(observationCenter: observationCenter)
+
+        let postLoginServicesBuilder = ConcretePostLoginServicesBuilder(initialServices: initialServices, eventProcessingMode: .pollAndRecord, eventLoopInterval: RuntimeConfiguration.shared.eventLoopInterval)
         let logContentLoader = FileLogContent()
         let launchOnBoot = LaunchOnBootLegacyAPIService()
         var featureFlagsAccessor: () -> PDCore.FeatureFlagsRepository? = { nil }
@@ -118,668 +168,353 @@ class AppCoordinator: NSObject, ObservableObject {
             accountInfoProvider: initialServices.sessionVault,
             featureFlags: { featureFlagsAccessor() },
             fileProviderManagerFactory: SystemFileProviderManagerFactory())
-        #if HAS_BUILTIN_UPDATER
+
+#if HAS_BUILTIN_UPDATER
         let appUpdateService = SparkleAppUpdateService()
+#else
+        let appUpdateService: AppUpdateServiceProtocol? = nil
+#endif
+
         self.init(initialServices: initialServices,
-                  networkStateService: networkStateService, 
-                  syncStateService: syncStateService,
+                  networkStateService: networkStateService,
                   driveCoreAlertListener: driveCoreAlertListener,
                   loginBuilder: loginBuilder,
                   postLoginServicesBuilder: postLoginServicesBuilder,
-                  metadataMonitorBuilder: metadataMonitorBuilder,
                   logContentLoader: logContentLoader,
                   launchOnBoot: launchOnBoot,
                   appUpdateService: appUpdateService,
-                  domainOperationsService: domainOperationsService)
-#else
-        self.init(initialServices: initialServices,
-                  networkStateService: networkStateService,
-                  syncStateService: syncStateService,
-                  driveCoreAlertListener: driveCoreAlertListener,
-                  loginBuilder: loginBuilder,
-                  postLoginServicesBuilder: postLoginServicesBuilder,
-                  metadataMonitorBuilder: metadataMonitorBuilder,
-                  logContentLoader: logContentLoader,
-                  launchOnBoot: launchOnBoot,
-                  domainOperationsService: domainOperationsService)
-#endif
+                  domainOperationsService: domainOperationsService,
+                  ddkSessionCommunicator: ddkSessionCommunicator)
+
         featureFlagsAccessor = { [weak self] in self?.featureFlags }
+        await ddkSessionCommunicator.performInitialSetup()
+        ddkSessionCommunicator.startObservingSessionChanges()
+
+        if RuntimeConfiguration.shared.enableTestAutomation {
+            testRunner = TestRunner(coordinator: self)
+        }
     }
 
-#if HAS_BUILTIN_UPDATER
+#if DEBUG && !canImport(XCTest)
+    static var counter = 0
+#endif
+
     required init(initialServices: InitialServices,
                   networkStateService: NetworkStateInteractor,
-                  syncStateService: SyncStateService,
                   driveCoreAlertListener: DriveCoreAlertListener,
                   loginBuilder: LoginManagerBuilder,
                   postLoginServicesBuilder: PostLoginServicesBuilder,
-                  metadataMonitorBuilder: MetadataMonitorBuilder,
                   logContentLoader: LogContentLoader,
                   launchOnBoot: any LaunchOnBootServiceProtocol,
-                  appUpdateService: any AppUpdateServiceProtocol,
-                  domainOperationsService: DomainOperationsService) {
+                  appUpdateService: AppUpdateServiceProtocol?,
+                  domainOperationsService: DomainOperationsService,
+                  ddkSessionCommunicator: SessionRelatedCommunicatorBetweenMainAppAndExtensions) {
+
+#if DEBUG && !canImport(XCTest)
+        // Make sure this is only instantiated once
+        Self.counter += 1
+        assert(Self.counter == 1)
+#endif
+
         self.initialServices = initialServices
         self.networkStateService = networkStateService
-        self.syncStateService = syncStateService
         self.driveCoreAlertListener = driveCoreAlertListener
         self.loginBuilder = loginBuilder
         self.postLoginServicesBuilder = postLoginServicesBuilder
-        self.metadataMonitorBuilder = metadataMonitorBuilder
         self.logContentLoader = logContentLoader
         self.launchOnBoot = launchOnBoot
         self.appUpdateService = appUpdateService
         self.domainOperationsService = domainOperationsService
+        self.ddkSessionCommunicator = ddkSessionCommunicator
+        self.appState = ApplicationState()
+        self.subscriptionService = SubscriptionService(apiService: initialServices.authenticator.apiService)
+
+        self.observationCenter = UserDefaultsObservationCenter(userDefaults: Constants.appGroup.userDefaults)
+
         super.init()
+
         sharedInitSetup()
     }
-#else
-    required init(initialServices: InitialServices,
-                  networkStateService: NetworkStateInteractor,
-                  syncStateService: SyncStateService,
-                  driveCoreAlertListener: DriveCoreAlertListener,
-                  loginBuilder: LoginManagerBuilder,
-                  postLoginServicesBuilder: PostLoginServicesBuilder,
-                  metadataMonitorBuilder: MetadataMonitorBuilder,
-                  logContentLoader: LogContentLoader,
-                  launchOnBoot: any LaunchOnBootServiceProtocol,
-                  domainOperationsService: DomainOperationsService) {
-        self.initialServices = initialServices
-        self.networkStateService = networkStateService
-        self.syncStateService = syncStateService
-        self.driveCoreAlertListener = driveCoreAlertListener
-        self.loginBuilder = loginBuilder
-        self.postLoginServicesBuilder = postLoginServicesBuilder
-        self.metadataMonitorBuilder = metadataMonitorBuilder
-        self.logContentLoader = logContentLoader
-        self.launchOnBoot = launchOnBoot
-        self.domainOperationsService = domainOperationsService
-        super.init()
-        sharedInitSetup()
-    }
-#endif
-    
+
     private func sharedInitSetup() {
         _shouldReenumerateItems.configure(with: Constants.appGroup)
         _hasPostMigrationStepRun.configure(with: Constants.appGroup)
-        #if HAS_QA_FEATURES
-        NotificationCenter.default.addObserver(forName: .fileProviderDomainStateDidChange, object: nil, queue: nil) { notification in
-            guard let domainDisconnected = notification.userInfo?["domainDisconnected"] as? Bool else { return }
-            Task {
-                try await self.changeCurrentDomainState(domainDisconnected: domainDisconnected)
-            }
-        }
-        #endif
-    }
-    
-    private func fetchFeatureFlags() async {
-        do {
-            try await initialServices.featureFlagsRepository.fetchFlags()
-        } catch {
-            Log.error("Could not retrieve feature flags: \(error)", domain: .featureFlags)
-        }
-    }
-    
-    var globalDownloadProgress: Progress?
-    var globalUploadProgress: Progress?
-    var globalProgressObservers: [NSKeyValueObservation] = []
+        _pathsMarkedAsKeepDownloaded.configure(with: Constants.appGroup)
+        _pathsMarkedAsOnlineOnly.configure(with: Constants.appGroup)
+        _openItemsInBrowser.configure(with: Constants.appGroup)
         
-    @MainActor
-    func updateGlobalSyncStatusUI() {
-        menuBarCoordinator?.globalSyncStatusChanged(downloadProgress: globalDownloadProgress, uploadProgress: globalUploadProgress)
+        setUpObservingOpenInBrowserAction() 
+        
+#if HAS_QA_FEATURES
+        NotificationCenter.default.addObserver(forName: .fileProviderDomainStateDidChange, object: nil, queue: nil) { [weak self] notification in
+            guard let domainDisconnected = notification.userInfo?["domainDisconnected"] as? Bool else { return }
+            Task { [weak self] in
+                try await self?.changeCurrentDomainState(domainDisconnected: domainDisconnected)
+            }
+        }
+#endif
     }
-    
-    @MainActor
-    func start() async throws {
-        #if HAS_BUILTIN_UPDATER
-        self.menuBarCoordinator = MenuBarCoordinator(delegate: self,
-                                                     loggedInStateReporter: self.initialServices,
-                                                     appUpdaterService: self.appUpdateService,
-                                                     networkStateService: self.networkStateService,
-                                                     syncStateService: self.syncStateService,
-                                                     domainOperationsService: self.domainOperationsService)
-        #else
-        self.menuBarCoordinator = MenuBarCoordinator(delegate: self,
-                                                     loggedInStateReporter: self.initialServices,
-                                                     networkStateService: self.networkStateService,
-                                                     syncStateService: self.syncStateService,
-                                                     domainOperationsService: self.domainOperationsService)
-        #endif
-        if self.initialServices.isLoggedIn {
-            Log.info("AppCoordinator start - logged in", domain: .application)
-            
-            try await domainOperationsService.identifyDomain()
-            
-            await fetchFeatureFlags()
-            
-            // must happen after the domain identification and feature flag fetching
-            await GroupContainerMigrator.instance.migrateDatabasesForLoggedInUser(domainOperationsService: domainOperationsService,
-                                                                                  featureFlags: initialServices.featureFlagsRepository,
-                                                                                  logoutClosure: { [unowned self] in self.initialServices.sessionVault.signOut() })
 
-            let postLoginServices = preparePostLoginServices()
-            
-            try await postLoginServices.tower.cleanUpLockedVolumeIfNeeded(using: domainOperationsService)
-
-            // error fetching feature flags should not cause the login process to fail, we will use the default values
-            try? await postLoginServices.tower.featureFlags.startAsync()
-
-            if try await !domainOperationsService.domainExists() {
-                await postLoginServices.tower.cleanUpEventsAndMetadata(cleanupStrategy: .cleanEverything)
-            }
-            try await postLoginServices.tower.bootstrapIfNeeded()
-            var wasRefreshingNodes = false
-            if domainOperationsService.hasDomainReconnectionCapability {
-                // we're after boostrap, so TBH if there's no root, I'd question my sanity (or suspect some other thread deleting it from under me)
-                guard let root = try? postLoginServices.tower.rootFolder() else { throw Errors.rootNotFound }
-                // if there are dirty nodes in DB, it means the previous run hasn't finished successfully
-                let hasDirtyNodes = try await postLoginServices.tower.refresher.hasDirtyNodes(root: root)
-                if hasDirtyNodes {
-                    await postLoginServices.tower.refresher.sendRefreshNotFinishedSentryEvent(root: root)
-                    try await refreshUsingDirtyNodesApproach(tower: postLoginServices.tower, root: root)
-                    wasRefreshingNodes = true
-                }
-            }
-
-            // ignore the error because it's handled withing the method
-            do {
-                try await startPostLoginServices(postLoginServices: postLoginServices)
-            } catch {
-                // we ignore the error because it's handled internally in startPostLoginServices
+    private func setUpObservingOpenInBrowserAction() {
+        self.observationCenter.addObserver(self, of: \.openItemsInBrowser) { [weak self] value in
+            guard value??.isEmpty == false, let folders = value??.components(separatedBy: ",") else {
                 return
             }
-            
-            if GroupContainerMigrator.instance.hasGroupContainerMigrationHappened {
-                await GroupContainerMigrator.instance.presentDatabaseMigrationPopup()
-            }
-            
-            menuBarCoordinator?.featureFlags = self.featureFlags
-            if wasRefreshingNodes {
-                shouldReenumerateItems = true
-                try await domainOperationsService.signalEnumerator()
-            }
-            if Constants.isInUITests {
-                await configureForUITests()
-            }
-        } else {
-            
-            await GroupContainerMigrator.instance.migrateDatabasesBeforeLogin(featureFlags: initialServices.featureFlagsRepository)
-            
-            if GroupContainerMigrator.instance.hasGroupContainerMigrationHappened {
-                await GroupContainerMigrator.instance.presentDatabaseMigrationPopup()
-            }
-            
-            Log.info("AppCoordinator start - not logged in", domain: .application)
-            if Constants.isInUITests {
-                await configureForUITests()
-                await showLogin()
-            } else {
-                await showLogin()
-            }
 
-            configureDocumentController(with: nil)
+            Task {
+                guard let root = try? await self?.postLoginServices?.tower.rootFolder() else { return }
+                
+                // Don't open more than 5 items at a time
+                folders.prefix(5).forEach {
+                    let folder = "\(root.identifier.shareID)/folder/\($0)"
+                    UserActions(delegate: self).links.openOnlineDriveFolder(email: self?.appState.accountInfo?.email, folder: folder)
+                }
+                // Reset after using, so that next time the same folder is selected, it registers as an update.
+                self?.openItemsInBrowser = ""
+            }
         }
     }
-    
-    func signOutAsync() async {
-        await postLoginServices?.signOutAsync(domainOperationsService: domainOperationsService)
-        didLogout()
+
+    // MARK: - Startup
+
+    @MainActor
+    func start() async throws {
+        Log.trace()
+
+        await setUpApplicationEventObserver()
+
+        if self.initialServices.isLoggedIn {
+            try await startLoggedIn()
+        } else {
+            try await startLoggedOut()
+        }
     }
 
-    #if HAS_QA_FEATURES
-    func changeCurrentDomainState(domainDisconnected: Bool) async throws {
-        guard let tower = postLoginServices?.tower else { return }
-        
-        if domainDisconnected {
-            menuBarCoordinator?.cacheRefreshSyncState = .syncing
-            do {
-                try await refreshUsingDirtyNodesApproach(tower: tower)
-            } catch {
-                if case PDFileProvider.Errors.rootNotFound = error {
-                    // if there's no root, we must re-bootstrap
-                    try await tower.bootstrap()
-                    try await refreshUsingDirtyNodesApproach(tower: tower)
-                } else {
-                    menuBarCoordinator?.cacheRefreshSyncState = .synced
-                    throw error
-                }
+    @MainActor
+    func startLoggedIn() async throws {
+        Log.trace()
+
+        menuBarCoordinator?.showActivityIndicator()
+        appState.setLaunchCompletion(5)
+
+        try await domainOperationsService.identifyDomain()
+        appState.setLaunchCompletion(20)
+
+        await fetchFeatureFlags()
+        appState.setLaunchCompletion(30)
+
+        // must happen after the domain identification and feature flag fetching
+        await GroupContainerMigrator.instance.migrateDatabasesForLoggedInUser(domainOperationsService: domainOperationsService,
+                                                                              featureFlags: initialServices.featureFlagsRepository,
+                                                                              logoutClosure: { [unowned self] in self.initialServices.sessionVault.signOut() })
+        appState.setLaunchCompletion(35)
+
+        let postLoginServices = preparePostLoginServices()
+        appState.setLaunchCompletion(40)
+
+        try await postLoginServices.tower.cleanUpLockedVolumeIfNeeded(using: domainOperationsService)
+        appState.setLaunchCompletion(45)
+
+        // error fetching feature flags should not cause the login process to fail, we will use the default values
+        try? await postLoginServices.tower.featureFlags.startAsync()
+
+        if try await !domainOperationsService.domainExists() {
+            await postLoginServices.tower.cleanUpEventsAndMetadata(cleanupStrategy: .cleanEverything)
+        }
+        appState.setLaunchCompletion(50)
+
+        try await postLoginServices.tower.bootstrapIfNeeded()
+        appState.setLaunchCompletion(55)
+
+        var wasRefreshingNodes = false
+        if domainOperationsService.hasDomainReconnectionCapability {
+            // we're after boostrap, so TBH if there's no root, I'd question my sanity (or suspect some other thread deleting it from under me)
+            guard let root = try? await postLoginServices.tower.rootFolder() else { throw Errors.rootNotFound }
+            // if there are dirty nodes in DB, it means the previous run hasn't finished successfully
+            let hasDirtyNodes = try await postLoginServices.tower.refresher.hasDirtyNodes(root: root)
+            if hasDirtyNodes {
+                await postLoginServices.tower.refresher.sendRefreshNotFinishedSentryEvent(root: root)
+                try await refreshUsingDirtyNodesApproach(tower: postLoginServices.tower, root: root)
+                wasRefreshingNodes = true
             }
-            
-            menuBarCoordinator?.cacheRefreshSyncState = .synced
+        }
+        appState.setLaunchCompletion(60)
 
-            try await domainOperationsService.connectDomain()
-            domainOperationsService.cacheReset = false
+        do {
+            try await startPostLoginServices(postLoginServices: postLoginServices)
+        } catch {
+            // we ignore the error because it's handled internally in startPostLoginServices
+            Log.info(error.localizedDescription, domain: .application)
+            return
+        }
+        appState.setLaunchCompletion(70)
 
+        subscriptionService.fetchSubscription(state: appState)
+
+        if GroupContainerMigrator.instance.hasGroupContainerMigrationHappened {
+            await GroupContainerMigrator.instance.presentDatabaseMigrationPopup()
+        }
+        appState.setLaunchCompletion(75)
+
+        menuBarCoordinator?.toggleNewMenu(enabled: shouldShowNewMenu)
+
+        appState.setLaunchCompletion(80)
+
+        if wasRefreshingNodes {
             shouldReenumerateItems = true
             try await domainOperationsService.signalEnumerator()
+        }
+
+        appState.setLaunchCompletion(90)
+
+        if Constants.isInUITests {
+            await configureForUITests()
+        } else if !initialServices.isLoggedIn {
+            await errorHandler(LoginError.initialError(message: DriveCoreAlert.logout.message))
+        }
+
+        appState.setLaunchCompletion(100)
+        menuBarCoordinator?.hideActivityIndicator()
+
+        if postLoginServices.metadataDBWasRecreated {
+            performFullResync()
         } else {
-            let migrationPerformer = MigrationPerformer()
-            try await domainOperationsService.disconnectDomainsForQA(
-                reason: { $0.map { "\($0.displayName) domain disconnected" } ?? "" }
-            )
-            menuBarCoordinator?.cacheRefreshSyncState = .syncing
-            try await migrationPerformer.performCleanup(in: tower)
-            menuBarCoordinator?.cacheRefreshSyncState = .synced
+            performFullResync(onlyIfPreviouslyInterrupted: true)
         }
     }
-    #endif
 
-    private func refreshUsingEagerSyncApproach(tower: Tower) async throws {
-        guard let rootFolder = try? tower.rootFolder() else {
-            throw Errors.rootNotFound
+    func startLoggedOut() async throws {
+        Log.trace()
+
+        await GroupContainerMigrator.instance.migrateDatabasesBeforeLogin(featureFlags: initialServices.featureFlagsRepository)
+
+        if GroupContainerMigrator.instance.hasGroupContainerMigrationHappened {
+            await GroupContainerMigrator.instance.presentDatabaseMigrationPopup()
         }
-        
-        let coordinator = await showInitialization()
-        
+
+        if Constants.isInUITests {
+            await configureForUITests()
+        }
+
+        await showLoginWindow()
+
+        configureDocumentController(with: nil)
+
+        appState.setLaunchCompletion(100)
+    }
+
+    private func fetchFeatureFlags() async {
         do {
-            coordinator.update(progress: .init())
-            
-            try await tower.refresher.refreshUsingEagerSyncApproach(root: rootFolder)
+            Log.trace()
+            try await initialServices.featureFlagsRepository.fetchFlags()
+            Log.trace("Fetched")
         } catch {
-            coordinator.showFailure(error: error) { [weak self] in
-                try await self?.refreshUsingEagerSyncApproach(tower: tower)
-            }
-        }
-    }
-    
-    private func refreshUsingDirtyNodesApproach(tower: Tower, root: Folder? = nil, retrying: Bool = false) async throws {
-        guard let rootFolder = try? root ?? tower.rootFolder() else {
-            throw Errors.rootNotFound
-        }
-        
-        let coordinator = await showInitialization()
-        coordinator.update(progress: .init(totalValue: 1))
-        
-        do {
-            try await tower.refresher.refreshUsingDirtyNodesApproach(root: rootFolder, resumingOnRetry: retrying) { current, total in
-                Task { @MainActor in
-                    let progress = InitializationProgress(currentValue: current, totalValue: total)
-                    self.initializationCoordinator?.update(progress: progress)
-                }
-            }
-        } catch {
-            // this cannot just return, because we will go on to the onboarding
-            try await withCheckedThrowingContinuation { continuation in
-                coordinator.showFailure(error: error) { [weak self] in
-                    try await self?.refreshUsingDirtyNodesApproach(tower: tower, root: rootFolder, retrying: true)
-                    continuation.resume()
-                }
-            }
+            // error fetching feature flags should not cause failure, we will use the default values
+            Log.error("Could not retrieve feature flags", error: error, domain: .featureFlags)
         }
     }
 
-    func showLogin(initialError: LoginError? = nil) async {
-        self.screen = .login
-        await MainActor.run {
-            if let login = self.login {
-                login.presentLoginFlow(
-                    with: initialError ?? self.driveCoreAlertListener.initialLoginError()
-                )
-            } else {
-                let appWindow = createWindow()
-                self.window = appWindow
-
-                let login = self.loginBuilder.build(in: appWindow) { [weak self] result in
-                    guard let self = self else { return }
-
-                    self.processLoginResult(result)
-                }
-
-                self.login = login
-                login.presentLoginFlow(
-                    with: initialError ?? self.driveCoreAlertListener.initialLoginError()
-                )
-            }
-        }
+    private var shouldShowNewMenu: Bool {
+        assert(self.featureFlags != nil)
+        assert(self.featureFlags?.isEnabled(flag: .newTrayAppMenuEnabled) != nil)
+#if HAS_QA_FEATURES
+        _newTrayAppMenuEnabledInQASettings.configure(with: Constants.appGroup)
+        return newTrayAppMenuEnabledInQASettings ?? self.featureFlags?.isEnabled(flag: .newTrayAppMenuEnabled) == true
+#else
+        return self.featureFlags?.isEnabled(flag: .newTrayAppMenuEnabled) == true
+#endif
     }
 
-    func showOnboarding() {
-        initializationCoordinator = nil
-        
-        screen = .onboarding
-        
-        Task { @MainActor in
-            let window = retrieveAlreadyPresentedWindow()
-            onboardingCoordinator = OnboardingCoordinator(window: window)
-            onboardingCoordinator?.start()
-        }
-    }
-    
-    private func retrieveAlreadyPresentedWindow() -> NSWindow {
-        if let window {
-            return window
-        } else {
-            Log.error("Could not retrieve window, creating a new one", domain: .application)
-            let newWindow = createWindow()
-            self.window = newWindow
-            presentWindow()
-            return newWindow
-        }
-    }
-    
-    private func createWindow() -> NSWindow {
-        let appWindow = NSWindow()
-        appWindow.styleMask = [.titled, .closable, .miniaturizable]
-        appWindow.titlebarAppearsTransparent = true
-        appWindow.backgroundColor = ColorProvider.BackgroundNorm
-        appWindow.delegate = self
-        appWindow.isReleasedWhenClosed = false
-        return appWindow
-    }
-    
-    private func presentWindow() {
-        guard let window else { return }
-        let origin: CGPoint = .init(
-            x: NSScreen.main.map { $0.visibleFrame.maxX / 10.0 } ?? 50.0,
-            y: NSScreen.main.map { $0.visibleFrame.maxY / 10.0 } ?? 50.0
-        )
-        window.setFrame(NSRect(origin: origin, size: CGSize(width: 420, height: 480)),
-                        display: true)
-        window.level = .statusBar
-        window.makeKeyAndOrderFront(self)
-        NSRunningApplication.current.activate(options: [.activateIgnoringOtherApps])
-    }
-    
-    func showInitialization() async -> InitializationCoordinator {
-        screen = .initialization
-        
-        return await Task { @MainActor in
-            let coordinator: InitializationCoordinator
-            if let initializationCoordinator {
-                coordinator = initializationCoordinator
-            } else {
-                let window = retrieveAlreadyPresentedWindow()
-                coordinator = InitializationCoordinator(window: window)
-                initializationCoordinator = coordinator
-            }
-            coordinator.start()
-            return coordinator
-        }.value
-    }
+    // MARK: - Authentication
 
-    @objc func showSettings() {
-        Task { @MainActor in
-            if settings == nil {
-                #if HAS_BUILTIN_UPDATER
-                settings = SettingsCoordinator(delegate: self,
-                                                     initialServices: initialServices,
-                                                     launchOnBootService: launchOnBoot,
-                                                     appUpdateService: appUpdateService)
-                #else
-                settings = SettingsCoordinator(delegate: self,
-                                                     initialServices: initialServices,
-                                                     launchOnBootService: launchOnBoot)
-                #endif
-            }
-            settings!.start()
-        }
-    }
-    
-    #if HAS_QA_FEATURES
-    @objc func showQASettings() {
-        Task {
-            if qaSettings == nil {
-                let dumperDependencies: DumperDependencies?
-                if let tower = postLoginServices?.tower {
-                    dumperDependencies = DumperDependencies(tower: tower, 
-                                                            domainOperationsService: domainOperationsService)
-                } else {
-                    dumperDependencies = nil
-                }
-
-                #if HAS_BUILTIN_UPDATER
-                qaSettings = await QASettingsCoordinator(signoutManager: self,
-                                                         sessionStore: self.initialServices.sessionVault,
-                                                         mainKeyProvider: self.initialServices.keymaker,
-                                                         appUpdateService: self.appUpdateService as! SparkleAppUpdateService,
-                                                         eventLoopManager: self.postLoginServices?.tower,
-                                                         featureFlags: self.featureFlags,
-                                                         dumperDependencies: dumperDependencies)
-                #else
-                qaSettings = await QASettingsCoordinator(signoutManager: self,
-                                                         sessionStore: self.initialServices.sessionVault,
-                                                         mainKeyProvider: self.initialServices.keymaker,
-                                                         eventLoopManager: self.postLoginServices?.tower,
-                                                         featureFlags: self.featureFlags,
-                                                         dumperDependencies: dumperDependencies)
-                #endif
-            }
-            await qaSettings!.start()
-        }
-    }
-    #endif
-
-    @objc func quitApp() {
-        NSApp.terminate(self)
-    }
-
-    @objc func showLogsInFinder() async throws {
-        let logsDirectory = try PDFileManager.getLogsDirectory()
-
-        do {
-            #if INCLUDES_DB_IN_BUGREPORT
-            let dbDestination = logsDirectory.appendingPathComponent("DB", isDirectory: true)
-            
-            if !FileManager.default.fileExists(atPath: dbDestination.path) {
-                try FileManager.default.createDirectory(at: dbDestination, withIntermediateDirectories: true, attributes: nil)
-            }
-            
-            let appGroupContainerURL = logsDirectory.deletingLastPathComponent()
-            try PDFileManager.copyDatabases(from: appGroupContainerURL, to: dbDestination)
-            #endif
-            if featureFlags?.isEnabled(flag: .logsCompressionDisabled) == true {
-                let logContents = try await logContentLoader.loadContent()
-                for (index, logContent) in logContents.enumerated() {
-                    try PDFileManager.appendLogs(logContent, toFile: "log-\(index).log", in: logsDirectory)
-                }
-                NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: logsDirectory.path)
-            } else {
-                let archiveFileURL = logsDirectory.appendingPathComponent("LogsForCustomerSupport.aar", conformingTo: .archive)
-                
-                try? PDFileManager.archiveContentsOfDirectory(logsDirectory, into: archiveFileURL)
-                
-                NSWorkspace.shared.activateFileViewerSelecting([archiveFileURL])
-            }
-        } catch {
-            Log.error("Error loading logs: \(error.localizedDescription)", domain: .application)
-        }
-    }
-
-    @objc func showErrorView() {
-        Task {
-            if syncErrors == nil, let baseURL = await rootVisibleUserLocation() {
-                syncErrors = await ErrorCoordinator(
-                    storageManager: metadataMonitor?.syncStorage,
-                    communicationService: self.communicationService,
-                    baseURL: baseURL
-                )
-            }
-            await syncErrors?.start()
-        }
-    }
-
-    @objc func bugReport() {
-        NSWorkspace.shared.open(Constants.reportBugURL)
-    }
-
-    private func rootVisibleUserLocation() async -> URL? {
-        guard let url = try? await domainOperationsService.getUserVisibleURLForRoot() else {
-            return nil
-        }
-        return url
-    }
-
-    @objc func didTapOnMenu(from button: NSButton) {
-        Task {
-            if syncCoordinator == nil {
-                #if HAS_BUILTIN_UPDATER
-                syncCoordinator = await SyncCoordinator(
-                    metadataMonitor: metadataMonitor,
-                    communicationService: self.communicationService,
-                    initialServices: initialServices,
-                    appUpdateService: appUpdateService, 
-                    syncStateService: syncStateService,
-                    delegate: self,
-                    baseURL: await rootVisibleUserLocation()
-                )
-                #else
-                syncCoordinator = await SyncCoordinator(
-                    metadataMonitor: metadataMonitor,
-                    communicationService: self.communicationService,
-                    initialServices: initialServices,
-                    syncStateService: syncStateService,
-                    delegate: self,
-                    baseURL: await rootVisibleUserLocation()
-                )
-                #endif
-            }
-            await syncCoordinator?.toggleMenu(from: button, menuBarState: syncStateService.menuBarState)
-        }
-    }
-
-    @MainActor
-    func pauseSyncing() {
-        menuBarCoordinator?.pauseSyncing()
-    }
-
-    @MainActor
-    func resumeSyncing() {
-        menuBarCoordinator?.resumeSyncing()
-    }
-
-    private func configureForUITests() async {
-        // Reverse the LSUIElement = 1 setting in the info.plist,
-        // allowing the status item to be selected in UITests
-        _ = await MainActor.run { NSApp.setActivationPolicy(.regular) }
-        await signOutAsync()
-        await showLogin()
-    }
-
-    private func dismissAnyOpenWindows() {
-        login = nil
-        screen = nil
-        initializationCoordinator = nil
-        onboardingCoordinator = nil
-
-        DispatchQueue.main.async {
-            self.window?.close()
-            self.window = nil
-        }
-
-        Task {
-            await settings?.stop()
-            settings = nil
-            
-            #if HAS_QA_FEATURES
-            await qaSettings?.stop()
-            qaSettings = nil
-            await syncErrors?.stop()
-            syncErrors = nil
-            #endif
-            await syncCoordinator?.stop()
-            syncCoordinator = nil
-        }
-    }
-
-    private func makeRemoteChangeSignaler() -> RemoteChangeSignaler {
-        RemoteChangeSignaler(domainOperationsService: domainOperationsService)
-    }
-
-    private func processLoginResult(_ result: LoginResult) {
+    private func processLoginResult(_ result: LoginResult) async {
         switch result {
         case .dismissed:
-            self.login = nil
+            self.loginManager = nil
         case .loggedIn(let loginData):
-            processLoginData(loginData)
+            await processLoginData(loginData)
             Log.info("AppCoordinator - loggedIn", domain: .application)
         case .signedUp:
             fatalError("Signup unimplemented")
-        @unknown default:
-            fatalError("Unimplemented")
         }
     }
-    
-    private func processLoginData(_ userData: LoginData) {
+
+    private func processLoginData(_ userData: LoginData) async {
+        await menuBarCoordinator?.showActivityIndicator()
+        
         updatePMAPIServiceSessionUID(sessionUID: userData.credential.sessionID)
-        storeUserData(userData) { [weak self] maybeError in
-            guard let self else { return }
-            Task {
-                if let error = maybeError {
-                    await self.performEmergencyLogout(becauseOf: error)
-                } else {
-                    Log.info("AppCoordinator - storeUserData succeeded", domain: .application)
-                    self.initialServices.featureFlagsRepository.setUserId(userData.user.ID)
-                    do {
-                        await self.fetchFeatureFlags()
-                        try await self.didLogin()
-                    } catch {
-                        await self.performEmergencyLogout(becauseOf: error)
-                    }
-                }
-            }
+        do {
+            try await storeUserData(userData)
+        } catch {
+            await menuBarCoordinator?.hideActivityIndicator()
+            Log.error("AppCoordinator - store userData failed", error: error, domain: .application)
+            await self.performEmergencyLogout(becauseOf: error)
+            return
+        }
+
+        Log.info("AppCoordinator - storeUserData succeeded", domain: .application)
+        self.initialServices.featureFlagsRepository.setUserId(userData.user.ID)
+        await self.fetchFeatureFlags()
+
+        do {
+            try await self.didLogin()
+        } catch {
+            await menuBarCoordinator?.hideActivityIndicator()
+            Log.error("AppCoordinator - didLogin failed", error: error, domain: .application)
         }
     }
 
-    private func storeUserData(_ data: UserData, completion: @escaping (Error?) -> Void) {
-        let store: SessionStore = initialServices.sessionVault
-        let sessionRelatedCommunicator = initialServices.sessionRelatedCommunicator
-        let parentSessionCredentials = data.getCredential
-        sessionRelatedCommunicator.fetchNewChildSession(parentSessionCredential: parentSessionCredentials) { result in
-            switch result {
-            case .success:
-                store.storeCredential(CoreCredential(parentSessionCredentials))
-                store.storeUser(data.user)
-                store.storeAddresses(data.addresses)
-                store.storePassphrases(data.passphrases)
-                sessionRelatedCommunicator.onChildSessionReady()
-                completion(nil)
-            case .failure(let error):
-                completion(error)
-            }
-        }
-    }
-    
-    private func performEmergencyLogout(becauseOf error: any Error) async {
-        Log.error("AppCoordinator - login process did fail with \(error)", domain: .application)
-        // in case of error, the file provider won't work at all
-        // therefore we retry the login
-        await signOutAsync()
-        await showLogin()
-    }
-}
-
-extension AppCoordinator {
     // Required if we ever add multi-session support or switch from PMAPIClient to AuthHelper as our AuthDelegate
     private func updatePMAPIServiceSessionUID(sessionUID: String) {
         initialServices.networkService.setSessionUID(uid: sessionUID)
     }
 
-    private func errorHandler(_ error: any Error) async {
-        await signOutAsync()
-        let loginError = LoginError.generic(message: error.localizedDescription,
-                                            code: error.bestShotAtReasonableErrorCode, 
-                                            originalError: error)
-        await showLogin(initialError: loginError)
+    private func storeUserData(_ data: UserData) async throws {
+        let store: SessionStore = initialServices.sessionVault
+        let sessionRelatedCommunicator = initialServices.sessionRelatedCommunicator
+        let parentSessionCredentials = data.getCredential
+        let ddkSessionCommunicator = ddkSessionCommunicator
+
+        try await sessionRelatedCommunicator.fetchNewChildSession(parentSessionCredential: parentSessionCredentials)
+        try await ddkSessionCommunicator.fetchNewChildSession(parentSessionCredential: parentSessionCredentials)
+        
+        store.storeCredential(CoreCredential(parentSessionCredentials))
+        store.storeUser(data.user)
+        store.storeAddresses(data.addresses)
+        store.storePassphrases(data.passphrases)
+        
+        await sessionRelatedCommunicator.onChildSessionReady()
+        await ddkSessionCommunicator.onChildSessionReady()
     }
-    
+
+    private func performEmergencyLogout(becauseOf error: any Error) async {
+        // in case of error, the file provider won't work at all
+        // therefore we retry the login
+        await signOutAsync()
+        await showLoginWindow()
+    }
+
     func didLogin() async throws {
+        await menuBarCoordinator?.showActivityIndicator()
+
         let postLoginServices: PostLoginServices
         do {
             try await self.domainOperationsService.identifyDomain()
             postLoginServices = preparePostLoginServices()
-            
+
             try await postLoginServices.tower.cleanUpLockedVolumeIfNeeded(using: domainOperationsService)
-            
+
             // error fetching feature flags should not cause the login process to fail, we will use the default values
             try? await FeatureFlagsRepository.shared.fetchFlags()
             try? await postLoginServices.tower.featureFlags.startAsync()
-            
+
             try? await domainOperationsService.tearDownConnectionToAllDomains()
             await postLoginServices.tower.cleanUpEventsAndMetadata(cleanupStrategy: domainOperationsService.cacheCleanupStrategy)
         } catch {
             await errorHandler(error)
             throw error
         }
-        
+
         if domainOperationsService.hasDomainReconnectionCapability {
             do {
                 try await startDomainReconnection(tower: postLoginServices.tower)
@@ -813,166 +548,12 @@ extension AppCoordinator {
                 return
             }
         }
-        
-        menuBarCoordinator?.featureFlags = self.featureFlags
-    }
 
-    private func preparePostLoginServices() -> PostLoginServices {
-        let remoteChangeSignaler = makeRemoteChangeSignaler()
-        let postLoginServices = self.postLoginServicesBuilder.build(with: [remoteChangeSignaler], activityObserver: { [weak self] in self?.currentActivityChanged($0)
-        })
-        self.postLoginServices = postLoginServices
-        configureDocumentController(with: postLoginServices.tower)
-        return postLoginServices
-    }
+        subscriptionService.fetchSubscription(state: appState)
 
-    private func configureDocumentController(with tower: Tower?) {
-        guard let documentController = ProtonDocumentController.shared as? ProtonDocumentController else {
-            assertionFailure("ProtonDocumentController needs to be the registered DocumentController in order to handle Proton documents")
-            Log.error("ProtonDocumentController needs to be the registered DocumentController in order to handle Proton documents", domain: .protonDocs)
-            return
-        }
+        await menuBarCoordinator?.toggleNewMenu(enabled: shouldShowNewMenu)
 
-        documentController.tower = tower
-    }
-
-    private func startPostLoginServices(postLoginServices: PostLoginServices) async throws {
-        self.launchOnBoot.userSignedIn()
-
-        postLoginServices.onLaunchAfterSignIn()
-        do {
-            let migrated: Bool
-
-            do {
-                migrated = try await performPostMigrationStep(postLoginServices)
-            } catch {
-                Log.error("PostMigrationStep failed: \(error.localizedDescription)", domain: .application)
-                throw DomainOperationErrors.postMigrationStepFailed(error)
-            }
-
-            if !migrated {
-                try await domainOperationsService.setUpDomain()
-            }
-
-            login = nil
-            if screen == .login || screen == .initialization {
-                showOnboarding()
-            }
-
-            metadataMonitor = metadataMonitorBuilder.build(with: postLoginServices.tower)
-            if let syncStorage = metadataMonitor?.syncStorage {
-                let suite: SettingsStorageSuite = .group(named: PDCore.Constants.appGroup)
-                let historyObserver = PersistentHistoryObserver(
-                    target: .main, suite: suite, syncStorage: syncStorage
-                )
-                self.communicationService = CoreDataCommunicationService<SyncItem>(
-                    suite: suite,
-                    entityType: SyncItem.self,
-                    historyObserver: historyObserver,
-                    context: syncStorage.mainContext,
-                    includeHistory: true
-                )
-            }
-            activityService = ActivityService(repository: postLoginServices.tower.client, frequency: Constants.activeFrequency)
-            
-            // Configure the global probress observers
-            globalDownloadProgress = domainOperationsService.globalProgress(for: .downloading)
-            globalUploadProgress = domainOperationsService.globalProgress(for: .uploading)
-            for progress in [globalDownloadProgress, globalUploadProgress] {
-                guard let progress else {
-                    continue
-                }
-                var observer = progress.observe(\.description) { progress, change in
-                    self.updateGlobalSyncStatusUI()
-                }
-                globalProgressObservers.append(observer)
-                
-                observer = progress.observe(\.localizedAdditionalDescription) { progress, change in
-                    self.updateGlobalSyncStatusUI()
-                }
-                globalProgressObservers.append(observer)
-                
-                observer = progress.observe(\.fractionCompleted) { progress, change in
-                    self.updateGlobalSyncStatusUI()
-                }
-                globalProgressObservers.append(observer)
-            }
-            
-            menuBarCoordinator?.startSyncMonitoring(eventsProcessor: postLoginServices.tower,
-                                                    syncErrorsSubject: metadataMonitor?.syncErrorDBUpdatePublisher)
-            menuBarCoordinator?.errorsCount = menuSyncErrorsCount
-
-            menuBarCoordinator?.updateMenu()
-        } catch {
-            // if we log the user out, we don't need to care about the status of the post migration step anymore
-            hasPostMigrationStepRun = nil
-            // if the user logs out, we are no longer disconnected
-            domainOperationsService.cacheReset = false
-            // if the user logs out, we no longer need to tell them we're syncing
-            menuBarCoordinator?.cacheRefreshSyncState = .synced
-            let errorMessage: String = error.localizedDescription
-            Log.error("PostLoginServicesErrors: \(errorMessage)", domain: .fileProvider)
-            await signOutAsync()
-            let loginError = error.asLoginError(with: errorMessage)
-            await showLogin(initialError: loginError)
-            throw error
-        }
-    }
-    
-    private func startDomainReconnection(tower: Tower) async throws {
-        menuBarCoordinator?.cacheRefreshSyncState = .syncing
-        if try await domainOperationsService.domainExists() {
-            try await tower.bootstrapIfNeeded()
-            try await refreshUsingDirtyNodesApproach(tower: tower)
-        } else {
-            // we clean up before bootstrap to ensure we don't keep the data from previously logged in user when boostraping a new one
-            await tower.cleanUpEventsAndMetadata(cleanupStrategy: .cleanEverything)
-            try await tower.bootstrapIfNeeded()
-        }
-        menuBarCoordinator?.cacheRefreshSyncState = .synced
-    }
-
-    private func finishDomainReconnection(tower: Tower) async throws {
-        domainOperationsService.cacheReset = false
-        shouldReenumerateItems = true
-        try await domainOperationsService.signalEnumerator()
-        tower.runEventsSystem()
-    }
-
-    private func currentActivityChanged(_ activity: NSUserActivity) {
-        // TODO: migrate to PMAPIClient.failureAlertPublisher()
-        guard let driveAlert = PMAPIClient.mapToFailingAlert(activity) else {
-            return
-        }
-
-        Log.info("AppCoordinator - currentActivityChanged to: \(driveAlert)", domain: .application)
-
-        switch driveAlert {
-        case .logout:
-            // the logout activity can happen multiple times in a row
-            guard isLoggingOut.value == false else { return }
-            isLoggingOut.mutate { $0 = true }
-            Task { [weak self] in
-                guard let self else { return }
-                await self.signOutAsync()
-                await self.showLogin()
-                self.isLoggingOut.mutate { $0 = false }
-            }
-            
-        case .forceUpgrade, .trustKitFailure, .trustKitHardFailure, .humanVerification, .userGoneDelinquent:
-            let alert = NSAlert()
-            alert.messageText = driveAlert.title
-            alert.informativeText = driveAlert.message
-            alert.addButton(withTitle: "Quit application")
-            let action = { [weak self] in self?.quitApp() }
-            
-            if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-                action()
-            }
-
-        default:
-            break
-        }
+        await menuBarCoordinator?.hideActivityIndicator()
     }
 
     private func completeOnboarding() {
@@ -981,37 +562,152 @@ extension AppCoordinator {
         onboardingCoordinator = nil
     }
 
-    private func didLogout() {
-        globalProgressObservers.forEach { $0.invalidate() }
-        globalProgressObservers.removeAll()
-        globalDownloadProgress = nil
-        globalUploadProgress = nil
-        
-        configureDocumentController(with: nil)
-        postLoginServices = nil
-        metadataMonitor = nil
-        activityService = nil
-
-        launchOnBoot.userSignedOut()
-        dismissAnyOpenWindows()
-        menuBarCoordinator?.stopMonitoring()
+    private func errorHandler(_ error: any Error) async {
+        await signOutAsync()
+        var errorToShow = error
+        if let domainError = error as? DomainOperationErrors {
+            errorToShow = domainError.underlyingError
+        }
+        let loginError = LoginError.generic(message: errorToShow.localizedDescription,
+                                            code: errorToShow.bestShotAtReasonableErrorCode,
+                                            originalError: errorToShow)
+        await showLoginWindow(initialError: loginError)
     }
-    
+
+    // MARK: - Post-login
+
+    private func preparePostLoginServices() -> PostLoginServices {
+        Log.trace()
+        let remoteChangeSignaler = makeRemoteChangeSignaler()
+        Log.trace("postLoginServicesBuilder.build")
+        let postLoginServices = self.postLoginServicesBuilder.build(with: [remoteChangeSignaler], activityObserver: { [weak self] in self?.currentActivityChanged($0)
+        })
+        self.postLoginServices = postLoginServices
+        Log.trace("configureDocumentController")
+        configureDocumentController(with: postLoginServices.tower)
+        if let applicationEventObserver {
+            self.fullResyncCoordinator = FullResyncCoordinator(
+                applicationEventObserver: applicationEventObserver,
+                domainOperationsService: domainOperationsService,
+                menuBarCoordinator: menuBarCoordinator,
+                tower: postLoginServices.tower
+            )
+        }
+        return postLoginServices
+    }
+
+    private func configureDocumentController(with tower: Tower?) {
+        guard let documentController = ProtonFileController.shared as? ProtonFileController else {
+            Log.error("ProtonFileController needs to be the registered DocumentController in order to handle Proton documents", domain: .protonDocs)
+            assertionFailure("ProtonFileController needs to be the registered DocumentController in order to handle Proton documents")
+            return
+        }
+
+        documentController.tower = tower
+    }
+
+    private func startPostLoginServices(postLoginServices: PostLoginServices) async throws {
+        Log.trace()
+        self.launchOnBoot.userSignedIn()
+        self.initialServices.localSettings.userId = client?.credentialProvider.clientCredential()?.userID
+
+        postLoginServices.onLaunchAfterSignIn()
+        do {
+            let migrated: Bool
+
+            do {
+                migrated = try await performPostMigrationStep(postLoginServices)
+            } catch {
+                Log.error("PostMigrationStep failed", error: error, domain: .application)
+                throw DomainOperationErrors.postMigrationStepFailed(error)
+            }
+
+            if !migrated {
+                try await domainOperationsService.setUpDomain()
+            }
+
+            loginManager = nil
+            if signInStep == .login || signInStep == .initialization {
+                showOnboardingWindow()
+            }
+
+            let observationCenter = PDCore.UserDefaultsObservationCenter(userDefaults: Constants.appGroup.userDefaults)
+
+            metadataMonitor = MetadataMonitor(
+                eventsProcessor: postLoginServices.tower,
+                storage: postLoginServices.tower.storage,
+                sessionVault: postLoginServices.tower.sessionVault,
+                observationCenter: observationCenter)
+            metadataMonitor?.startObserving()
+
+            let telemetrySettingsRepository = LocalTelemetrySettingRepository(localSettings: self.initialServices.localSettings)
+            activityService = ActivityService(repository: postLoginServices.tower.client, telemetryRepository: telemetrySettingsRepository, frequency: Constants.activeFrequency)
+
+            let syncObserver = await SyncDBObserver(
+                state: appState,
+                syncStorageManager: postLoginServices.tower.syncStorage,
+                eventsProcessor: postLoginServices.tower,
+                domainOperationsService: domainOperationsService,
+                testRunner: testRunner)
+
+            globalProgressObserver = await GlobalProgressObserver(
+                state: appState,
+                domainOperationsService: domainOperationsService
+            )
+            
+            await applicationEventObserver?.startSyncMonitoring(
+                syncObserver: syncObserver,
+                globalProgressObserver: globalProgressObserver,
+                sessionVault: postLoginServices.tower.sessionVault
+            )
+
+            let hasPlan = initialServices.sessionVault.userInfo?.hasAnySubscription
+            DriveIntegrityErrorMonitor.configure(with: Constants.appGroup, forUserWithPlan: hasPlan)
+        } catch {
+            // if we log the user out, we don't need to care about the status of the post migration step anymore
+            hasPostMigrationStepRun = nil
+            // if the user logs out, we are no longer disconnected
+            domainOperationsService.cacheReset = false
+            // if the user logs out, we no longer need to tell them we're syncing
+            await menuBarCoordinator?.hideActivityIndicator()
+            Log.error("PostLoginServicesErrors", error: error, domain: .fileProvider)
+            await signOutAsync()
+            let loginError = error.asLoginError(with: error.localizedDescription)
+            await showLoginWindow(initialError: loginError)
+            throw error
+        }
+    }
+
+    func setUpApplicationEventObserver() async {
+        Log.trace()
+
+        appState.setAccountInfo(self.initialServices.sessionVault.getAccountInfo())
+
+        self.applicationEventObserver = ApplicationEventObserver(state: appState,
+                                                                 logoutStateService: initialServices,
+                                                                 networkStateService: networkStateService,
+                                                                 appUpdateService: appUpdateService)
+
+        self.menuBarCoordinator = await MenuBarCoordinator(
+            state: appState,
+            userActions: UserActions(delegate: self))
+    }
+
     private func performPostMigrationStep(_ postLoginServices: PostLoginServices) async throws -> Bool {
         Log.info("Begin post-migration step", domain: .application)
         let migrationDetector = MigrationDetector()
         let migrationPerformer = MigrationPerformer()
-        
+
         if GroupContainerMigrator.instance.hasGroupContainerMigrationHappened {
             migrationDetector.groupContainerMigrationHappened()
         }
-        
+
         guard migrationDetector.requiresPostMigrationStep else {
             hasPostMigrationStepRun = nil
             Log.info("No post-migration cleanup is required", domain: .application)
             return false
         }
-        
+
         guard postLoginServices.tower.featureFlags.isEnabled(flag: .postMigrationJunkFilesCleanup) else {
             if hasPostMigrationStepRun == false {
                 hasPostMigrationStepRun = nil
@@ -1035,7 +731,7 @@ extension AppCoordinator {
             Log.warning("Machine is offline, skipping post-migration cleanup till next app launch", domain: .application)
             return false
         }
-        
+
         guard try migrationPerformer.hasFaultyNodes(in: postLoginServices.tower.storage.mainContext)
                 // this guards against situation in which we removed the faulty nodes, but we haven't refreshed the DB
                 || hasPostMigrationStepRun == false else {
@@ -1043,111 +739,376 @@ extension AppCoordinator {
             migrationDetector.postMigrationCleanupIsComplete()
             return false
         }
-        
+
         Log.info("Faulty nodes detected, will perfom post-migration cleanup", domain: .application, sendToSentryIfPossible: true)
-        
+
         hasPostMigrationStepRun = false
 
         // Drop system FileProvider cache
         postLoginServices.tower.pauseEventsSystem()
         try await domainOperationsService.disconnectDomainsDuringMainKeyCleanup()
-        
-        menuBarCoordinator?.cacheRefreshSyncState = .syncing
-        
+
+        await menuBarCoordinator?.showActivityIndicator()
+
         try await migrationPerformer.performCleanup(in: postLoginServices.tower)
         try await refreshUsingEagerSyncApproach(tower: postLoginServices.tower)
-        
-        menuBarCoordinator?.cacheRefreshSyncState = .synced
+
+        await menuBarCoordinator?.hideActivityIndicator()
 
         try await domainOperationsService.connectDomain()
         domainOperationsService.cacheReset = false
-        
+
         // this causes the file provider to enumerate items
         shouldReenumerateItems = true
         try await domainOperationsService.signalEnumerator()
-        
+
         hasPostMigrationStepRun = true
-        
+
         postLoginServices.tower.runEventsSystem()
 
         // Mark that post-login is complete
         migrationDetector.postMigrationCleanupIsComplete()
-        
+
         Log.info("Finished post-migration cleanup successfully", domain: .application, sendToSentryIfPossible: true)
         return true
     }
-}
 
-extension AppCoordinator: MenuBarDelegate, AppContentDelegate, SettingsCoordinatorDelegate {
-    
-    func showLogin() {
+    func showOnboardingWindow() {
+        initializationCoordinator = nil
+
+        signInStep = .onboarding
+
         Task { @MainActor in
-            await showLogin()
+            let window = retrieveAlreadyPresentedWindow()
+            onboardingCoordinator = OnboardingCoordinator(window: window)
+            onboardingCoordinator?.start()
         }
     }
-    
-    func refreshUserInfo() async throws {
-        try await postLoginServices?.tower.refreshUserInfoAndAddresses()
-    }
- 
-    func userRequestedSignOut() async {
-        await signOutAsync()
-        await showLogin()
-    }
+    func showInitializationWindow() async -> InitializationCoordinator {
+        signInStep = .initialization
 
-    func reportIssue() {
-        bugReport()
+        return await Task { @MainActor in
+            let coordinator: InitializationCoordinator
+            if let initializationCoordinator {
+                coordinator = initializationCoordinator
+            } else {
+                let window = retrieveAlreadyPresentedWindow()
+                coordinator = InitializationCoordinator(window: window)
+                initializationCoordinator = coordinator
+            }
+            coordinator.start()
+            return coordinator
+        }.value
     }
-
-    @objc func openDriveFolder() {
-        Task {
-            await openDriveFolder()
-        }
-    }
-    
-    func openDriveFolder() async {
-        let url: URL
-        do {
-            url = try await domainOperationsService.getUserVisibleURLForRoot()
-        } catch {
-            Log.error("Open Drive folder: Could not get user visible URL for domain: (\(error.localizedDescription))", domain: .fileManager)
-            return
-        }
-
-        guard url.startAccessingSecurityScopedResource() else {
-            let message = "Open Drive folder: Could not open domain (failed to access URL resource)"
-            assertionFailure(message)
-            Log.error(message, domain: .fileManager)
-            return
-        }
-        defer {
-            url.stopAccessingSecurityScopedResource()
-        }
-
-        guard NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path) else {
-            let message = "Open Drive folder: Could not open domain (failed to open domain in Finder)"
-            assertionFailure(message)
-            Log.error(message, domain: .fileManager)
-            return
-        }
-    }
-
-    func menuWillOpen(_ menu: NSMenu) {
-        menuBarCoordinator?.menuWillOpen(withErrors: menuSyncErrorsCount)
-    }
-
-    func menuDidClose(_ menu: NSMenu) {
-        menuBarCoordinator?.menuDidClose()
-    }
-
 }
+
+// MARK: - Sign out
+
+#if HAS_QA_FEATURES
+extension AppCoordinator: SignoutManager {}
+#endif
+
+extension AppCoordinator {
+
+    func signOutAsync() async {
+        await signOutAsync(domainOperationsService: domainOperationsService)
+        ddkSessionCommunicator.clearStateOnSignOut()
+        didLogout()
+    }
+
+    func signOutAsync(domainOperationsService: DomainOperationsServiceProtocol) async {
+        if let tower = postLoginServices?.tower {
+            // disconnect FileProvider extensions
+            try? await domainOperationsService.tearDownConnectionToAllDomains()
+            await tower.destroyCache(strategy: domainOperationsService.cacheCleanupStrategy)
+            tower.featureFlags.stop()
+        }
+        if let userId = initialServices.sessionVault.userInfo?.ID {
+            initialServices.featureFlagsRepository.resetFlags(for: userId)
+            initialServices.featureFlagsRepository.clearUserId()
+        }
+        await Tower.removeSessionInBE(
+            sessionVault: initialServices.sessionVault,
+            authenticator: initialServices.authenticator
+        ) // Before sessionVault clean to have the credential
+        initialServices.sessionVault.signOut()
+        initialServices.sessionRelatedCommunicator.clearStateOnSignOut()
+
+        // remove session from networking object when signing out
+        initialServices.networkService.sessionUID = ""
+    }
+
+    private func didLogout() {
+        configureDocumentController(with: nil)
+        postLoginServices = nil
+        activityService = nil
+
+        launchOnBoot.userSignedOut()
+        dismissAnyOpenWindows()
+        applicationEventObserver?.stopMonitoring(dueToSignOut: true)
+    }
+}
+
+// MARK: - Window handling
+
+extension AppCoordinator {
+
+    /// Create and return new window.
+    private func createWindow() -> NSWindow {
+        let appWindow = NSWindow()
+        appWindow.styleMask = [.titled, .closable, .miniaturizable]
+        appWindow.titlebarAppearsTransparent = true
+        appWindow.backgroundColor = ColorProvider.BackgroundNorm
+        appWindow.delegate = self
+        appWindow.isReleasedWhenClosed = false
+        return appWindow
+    }
+
+    /// Show current `window`.
+    private func presentWindow() {
+        guard let window else { return }
+        window.setFrame(CGRect(x: 0, y: 0, width: 420, height: 480), display: true)
+        window.level = .statusBar
+        window.center()
+        window.makeKeyAndOrderFront(self)
+
+        NSRunningApplication.current.activate(options: [.activateIgnoringOtherApps])
+    }
+
+    private func retrieveAlreadyPresentedWindow() -> NSWindow {
+        if let window {
+            return window
+        } else {
+            Log.error("Could not retrieve window, creating a new one", domain: .application)
+            let newWindow = createWindow()
+            self.window = newWindow
+            presentWindow()
+            return newWindow
+        }
+    }
+
+    private func dismissAnyOpenWindows() {
+        loginManager = nil
+        signInStep = nil
+        initializationCoordinator = nil
+        onboardingCoordinator = nil
+
+        DispatchQueue.main.async {
+            self.window?.close()
+            self.window = nil
+        }
+
+        Task {
+            await settingsWindowCoordinator?.stop()
+            settingsWindowCoordinator = nil
+
+#if HAS_QA_FEATURES
+            await qaSettingsWindowCoordinator?.stop()
+            qaSettingsWindowCoordinator = nil
+#endif
+
+            await syncErrorWindowCoordinator?.stop()
+            syncErrorWindowCoordinator = nil
+
+            await mainWindowCoordinator?.stop()
+            mainWindowCoordinator = nil
+        }
+    }
+
+    // MARK: - Domains
+
+#if HAS_QA_FEATURES
+    func changeCurrentDomainState(domainDisconnected: Bool) async throws {
+        guard let tower = postLoginServices?.tower else { return }
+
+        if domainDisconnected {
+            await menuBarCoordinator?.showActivityIndicator() // TODO: When does this get hidden?
+            do {
+                try await refreshUsingDirtyNodesApproach(tower: tower)
+            } catch {
+                if case PDFileProvider.Errors.rootNotFound = error {
+                    // if there's no root, we must re-bootstrap
+                    try await tower.bootstrap()
+                    try await refreshUsingDirtyNodesApproach(tower: tower)
+                } else {
+                    await menuBarCoordinator?.hideActivityIndicator() // TODO: When else does this get hidden?
+                    throw error
+                }
+            }
+
+            await menuBarCoordinator?.showActivityIndicator() // TODO: When does this get hidden?
+
+            try await domainOperationsService.connectDomain()
+            domainOperationsService.cacheReset = false
+
+            shouldReenumerateItems = true
+            try await domainOperationsService.signalEnumerator()
+        } else {
+            let migrationPerformer = MigrationPerformer()
+            try await domainOperationsService.disconnectDomainsForQA(
+                reason: { $0.map { "\($0.displayName) domain disconnected" } ?? "" }
+            )
+            await menuBarCoordinator?.showActivityIndicator()
+            try await migrationPerformer.performCleanup(in: tower)
+            await menuBarCoordinator?.hideActivityIndicator()
+        }
+    }
+#endif
+
+    private func startDomainReconnection(tower: Tower) async throws {
+        await menuBarCoordinator?.showActivityIndicator()
+        if try await domainOperationsService.domainExists() {
+            try await tower.bootstrapIfNeeded()
+            try await refreshUsingDirtyNodesApproach(tower: tower)
+        } else {
+            // we clean up before bootstrap to ensure we don't keep the data from previously logged in user when boostraping a new one
+            await tower.cleanUpEventsAndMetadata(cleanupStrategy: .cleanEverything)
+            try await tower.bootstrapIfNeeded()
+        }
+        await menuBarCoordinator?.hideActivityIndicator()
+    }
+
+    private func finishDomainReconnection(tower: Tower) async throws {
+        domainOperationsService.cacheReset = false
+        shouldReenumerateItems = true
+        try await domainOperationsService.signalEnumerator()
+        tower.runEventsSystem()
+    }
+
+    private func refreshUsingEagerSyncApproach(tower: Tower) async throws {
+        guard let rootFolder = try? await tower.rootFolder() else {
+            throw Errors.rootNotFound
+        }
+
+        let coordinator = await showInitializationWindow()
+
+        do {
+            coordinator.update(progress: .init())
+
+            try await tower.refresher.refreshUsingEagerSyncApproach(root: rootFolder, shouldIncludeDeletedItems: true)
+        } catch {
+            coordinator.showFailure(error: error) { [weak self] in
+                try await self?.refreshUsingEagerSyncApproach(tower: tower)
+            }
+        }
+    }
+
+    private func refreshUsingDirtyNodesApproach(tower: Tower, root: Folder? = nil, retrying: Bool = false) async throws {
+        var rootFolder: Folder? = root
+        if rootFolder == nil {
+            rootFolder = try await tower.rootFolder()
+        }
+        guard let rootFolder else {
+            throw Errors.rootNotFound
+        }
+
+        let coordinator = await showInitializationWindow()
+        coordinator.update(progress: .init(totalValue: 1))
+
+        do {
+            try await tower.refresher.refreshUsingDirtyNodesApproach(root: rootFolder, resumingOnRetry: retrying) { current, total in
+                Task { @MainActor in
+                    let progress = InitializationProgress(currentValue: current, totalValue: total)
+                    self.initializationCoordinator?.update(progress: progress)
+                }
+            }
+        } catch {
+            // this cannot just return, because we will go on to the onboarding
+            try await withCheckedThrowingContinuation { continuation in
+                coordinator.showFailure(error: error) { [weak self] in
+                    try await self?.refreshUsingDirtyNodesApproach(tower: tower, root: rootFolder, retrying: true)
+                    continuation.resume()
+                }
+            }
+        }
+    }
+
+    // MARK: - Misc
+
+    private func currentActivityChanged(_ activity: NSUserActivity) {
+        // TODO: migrate to PMAPIClient.failureAlertPublisher()
+        guard let driveAlert = PMAPIClient.mapToFailingAlert(activity) else {
+            return
+        }
+
+        Log.info("AppCoordinator - currentActivityChanged to: \(driveAlert)", domain: .application)
+
+        switch driveAlert {
+        case .logout:
+            // the logout activity can happen multiple times in a row
+            guard isLoggingOut.value == false else { return }
+            isLoggingOut.mutate { $0 = true }
+            Task { [weak self] in
+                guard let self else { return }
+                await self.signOutAsync()
+                await self.showLoginWindow()
+                self.isLoggingOut.mutate { $0 = false }
+            }
+
+        case .forceUpgrade, .trustKitFailure, .trustKitHardFailure, .humanVerification, .userGoneDelinquent:
+            let alert = NSAlert()
+            alert.messageText = driveAlert.title
+            alert.informativeText = driveAlert.message
+            alert.addButton(withTitle: "Quit application")
+            let action = { [weak self] in UserActions(delegate: self).app.quitApp() }
+
+            if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
+                action()
+            }
+        }
+    }
+
+    private func rootVisibleUserLocation() async -> URL? {
+        guard let url = try? await domainOperationsService.getUserVisibleURLForRoot() else {
+            return nil
+        }
+        return url
+    }
+
+    private func makeRemoteChangeSignaler() -> RemoteChangeSignaler {
+        RemoteChangeSignaler(domainOperationsService: domainOperationsService)
+    }
+
+    private func presentConfirmationDialog(
+        messageText: String,
+        informativeText: String = "",
+        actionButtonText: String = "OK", action: () -> Void
+    ) {
+        let alert = NSAlert()
+        alert.messageText = messageText
+        alert.informativeText = informativeText
+
+        alert.addButton(withTitle: actionButtonText)
+        alert.addButton(withTitle: "Cancel")
+
+        let response = alert.runModal()
+        switch response {
+        case .alertFirstButtonReturn:
+            action()
+        default:
+            break
+        }
+    }
+
+    // MARK: - Tests
+
+    private func configureForUITests() async {
+        // Reverse the LSUIElement = 1 setting in the info.plist,
+        // allowing the status item to be selected in UITests
+        _ = await MainActor.run { NSApp.setActivationPolicy(.regular) }
+        await signOutAsync()
+        await showLoginWindow()
+    }
+}
+
+// MARK: - NSWindowDelegate
 
 extension AppCoordinator: NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
-        switch screen {
+        switch signInStep {
         case .login:
-            login = nil
+            loginManager = nil
         case .initialization:
             initializationCoordinator = nil
         case .onboarding:
@@ -1155,10 +1116,355 @@ extension AppCoordinator: NSWindowDelegate {
         case nil:
             break
         }
-        screen = nil
+        signInStep = nil
         window = nil
     }
 }
+
+// MARK: - UserActionsDelegate
+
+extension AppCoordinator: UserActionsDelegate {
+    func toggleStatusWindow(from backup_button: NSButton? = nil, onlyOpen: Bool) {
+        Task { @MainActor in
+            if mainWindowCoordinator?.isOpen == true && onlyOpen {
+                Log.trace("Not continuing because already open")
+                return
+            }
+            
+            prepareMainWindowCoordinator()
+
+            let button = menuBarCoordinator?.button ?? backup_button ?? NSButton()
+
+            let didOpenWindow = mainWindowCoordinator?.toggleMenu(from: button)
+            if didOpenWindow == true {
+                try await applicationEventObserver?.refreshItems()
+            }
+        }
+    }
+
+    func showStatusWindow(from backup_button: NSButton?) {
+        toggleStatusWindow(from: backup_button, onlyOpen: true)
+    }
+
+    @MainActor
+    private func prepareMainWindowCoordinator() {
+        if mainWindowCoordinator == nil {
+#if HAS_QA_FEATURES
+            let userActions = UserActions(delegate: self, observer: applicationEventObserver)
+#else
+            let userActions = UserActions(delegate: self)
+#endif
+            mainWindowCoordinator = MainWindowCoordinator(
+                appState,
+                userActions: userActions
+            )
+        }
+    }
+
+#if HAS_BUILTIN_UPDATER
+    func installUpdate() {
+        appUpdateService?.installUpdateIfAvailable()
+    }
+
+    func checkForUpdates() {
+        appUpdateService?.checkForUpdates()
+    }
+#endif
+
+    func userRequestedSignOut() async {
+        await signOutAsync()
+        await showLoginWindow()
+    }
+
+    func refreshUserInfo() {
+        Task {
+            do {
+                try await postLoginServices?.tower.refreshUserInfoAndAddresses()
+            } catch {
+                Log.error("refreshUserInfoAndAddresses failed", error: error, domain: .application)
+            }
+        }
+    }
+
+    func pauseSyncing() {
+        performWithLogging { [weak self] in
+            try await self?.applicationEventObserver?.pauseSyncing()
+        }
+    }
+
+    func resumeSyncing() {
+        performWithLogging { [weak self] in
+            try await self?.applicationEventObserver?.resumeSyncing()
+        }
+    }
+
+    func togglePausedStatus() {
+        performWithLogging { [weak self] in
+            try await self?.applicationEventObserver?.togglePausedStatus()
+        }
+    }
+
+    func cleanUpErrors() {
+        applicationEventObserver?.cleanUpErrors()
+        domainOperationsService.cleanUpErrors()
+    }
+
+    func signInUsingTestCredentials(email: String, password: String) {
+        Task { @MainActor in
+            await userRequestedSignOut()
+            loginManager?.logIn(as: email, password: password)
+        }
+    }
+
+    func performFullResync(onlyIfPreviouslyInterrupted: Bool = false) {
+        fullResyncCoordinator?.performFullResync(onlyIfPreviouslyInterrupted: onlyIfPreviouslyInterrupted)
+    }
+
+    func finishFullResync() {
+        fullResyncCoordinator?.finishFullResync()
+    }
+
+    func retryFullResync() {
+        fullResyncCoordinator?.retryFullResync()
+    }
+    
+    func cancelFullResync() {
+        fullResyncCoordinator?.cancelFullResync()
+    }
+    
+    func abortFullResync() {
+        fullResyncCoordinator?.abortFullResync()
+    }
+
+    func showLogin() {
+        Task { @MainActor in
+            await showLoginWindow()
+        }
+    }
+
+    func toggleDetailedLogging() {
+        let actionVerb = RuntimeConfiguration.shared.includeTracesInLogs ? "disable" : "enable"
+        self.presentConfirmationDialog(
+            messageText: "Application restart required",
+            informativeText: "To \(actionVerb) detailed logging, we need to restart the application.\nPending and in-progress uploads will resume automatically.",
+            actionButtonText: "Restart"
+        ) {
+            try? RuntimeConfiguration.shared.toggleDetailedLogging()
+        }
+    }
+
+    @MainActor
+    private func showLoginWindow(initialError: LoginError? = nil) async {
+        self.signInStep = .login
+        if let loginManager = self.loginManager {
+            loginManager.presentLoginFlow(
+                with: initialError ?? self.driveCoreAlertListener.initialLoginError()
+            )
+        } else {
+            let appWindow = createWindow()
+            self.window = appWindow
+
+            let loginManager = self.loginBuilder.build(in: appWindow) { [weak self] result in
+                guard let self = self else { return }
+                await self.processLoginResult(result)
+            }
+
+            self.loginManager = loginManager
+            loginManager.presentLoginFlow(
+                with: initialError ?? self.driveCoreAlertListener.initialLoginError()
+            )
+        }
+    }
+
+    func showErrorWindow() {
+        Task {
+            syncErrorWindowCoordinator = await SyncErrorWindowCoordinator(state: appState, actions: UserActions(delegate: self))
+            await syncErrorWindowCoordinator?.start()
+        }
+    }
+
+    func showLogsInFinder() async throws {
+        let logsDirectory = PDFileManager.logsDirectory
+
+        do {
+#if INCLUDES_DB_IN_BUGREPORT
+            let dbDestination = logsDirectory.appendingPathComponent("DB", isDirectory: true)
+
+            if !FileManager.default.fileExists(atPath: dbDestination.path) {
+                try FileManager.default.createDirectory(at: dbDestination, withIntermediateDirectories: true, attributes: nil)
+            }
+
+            let appGroupContainerURL = logsDirectory.deletingLastPathComponent()
+            try PDFileManager.copyDatabases(from: appGroupContainerURL, to: dbDestination)
+#endif
+            if featureFlags?.isEnabled(flag: .logsCompressionDisabled) == true {
+                let logContents = try await logContentLoader.loadContent()
+                for (index, logContent) in logContents.enumerated() {
+                    try PDFileManager.appendLogs(logContent, toFile: "log-\(index).log", in: logsDirectory)
+                }
+                NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: logsDirectory.path)
+            } else {
+                let archiveFileURL = logsDirectory.appendingPathComponent("LogsForCustomerSupport.aar", conformingTo: .archive)
+
+                try? PDFileManager.archiveContentsOfDirectory(logsDirectory, into: archiveFileURL)
+
+                NSWorkspace.shared.activateFileViewerSelecting([archiveFileURL])
+            }
+        } catch {
+            Log.error("Error loading logs", error: error, domain: .application)
+        }
+    }
+
+    func showLogsWhenNotConnected() {
+        // Just opening
+        guard let logsDirectory = try? PDFileManager.getLogsDirectory() else {
+            Log.info("No Logs directory created yet", domain: .application)
+            return
+        }
+        let dbDestination = logsDirectory.appendingPathComponent("DB", isDirectory: true)
+        let appGroupContainerURL = logsDirectory.deletingLastPathComponent()
+        try? PDFileManager.copyDatabases(from: appGroupContainerURL, to: dbDestination)
+
+        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: logsDirectory.path)
+    }
+
+    func showSettings() {
+        Task { @MainActor in
+            if settingsWindowCoordinator == nil {
+                settingsWindowCoordinator = SettingsWindowCoordinator(
+                    sessionVault: initialServices.sessionVault,
+                    launchOnBootService: launchOnBoot,
+                    userActions: UserActions(delegate: self),
+                    appUpdateService: appUpdateService,
+                    isFullResyncEnabled: { [weak self] in
+                        self?.postLoginServices?.tower.featureFlags.isEnabled(flag: .driveMacSyncRecoveryDisabled) != true && self?.postLoginServices?.tower.featureFlags.isEnabled(flag: .newTrayAppMenuEnabled) == true
+                    }
+                )
+            }
+            settingsWindowCoordinator!.start()
+        }
+    }
+    
+    func closeSettingsAndShowMainWindow() {
+        Task { @MainActor in
+            settingsWindowCoordinator?.stop()
+            menuBarCoordinator?.showMenuProgramatically()
+        }
+    }
+
+#if HAS_QA_FEATURES
+    func showQASettings() {
+        Task {
+            if qaSettingsWindowCoordinator == nil {
+                let dumperDependencies: DumperDependencies?
+                if let tower = postLoginServices?.tower {
+                    dumperDependencies = DumperDependencies(tower: tower,
+                                                            domainOperationsService: domainOperationsService)
+                } else {
+                    dumperDependencies = nil
+                }
+
+                qaSettingsWindowCoordinator = await QASettingsWindowCoordinator(
+                    signoutManager: self,
+                    sessionStore: self.initialServices.sessionVault,
+                    mainKeyProvider: self.initialServices.mainKeyProvider,
+                    appUpdateService: self.appUpdateService,
+                    eventLoopManager: self.postLoginServices?.tower,
+                    featureFlags: self.featureFlags,
+                    dumperDependencies: dumperDependencies,
+                    userActions: UserActions(delegate: self),
+                    applicationEventObserver: applicationEventObserver!,
+                    metadataStorage: self.tower?.storage,
+                    eventsStorage: self.tower?.eventStorageManager
+                )
+            }
+            await qaSettingsWindowCoordinator!.start()
+        }
+    }
+
+    func toggleGlobalProgressStatusItem() async {
+        await globalProgressObserver?.toggleGlobalProgressStatusItem()
+    }
+#endif
+
+    func openDriveFolder(fileLocation: String? = nil) {
+        Task { @MainActor in
+
+            let driveFolderURL: URL
+            do {
+                driveFolderURL = try await domainOperationsService.getUserVisibleURLForRoot()
+            } catch {
+                Log.error("Open Drive folder: Could not get user visible URL for domain", error: error, domain: .fileManager)
+                return
+            }
+
+            guard driveFolderURL.startAccessingSecurityScopedResource() else {
+                let message = "Open Drive folder: Could not open domain (failed to access URL resource)"
+                assertionFailure(message)
+                Log.error(message, domain: .fileManager)
+                return
+            }
+            defer {
+                driveFolderURL.stopAccessingSecurityScopedResource()
+            }
+
+            var absoluteFilePath: String?
+            if let fileLocation {
+                absoluteFilePath = driveFolderURL.path + fileLocation
+            }
+
+            // Even though the first parameter of `selectFile` can be empty,
+            // if it is and `inFileViewerRootedAtPath` is set to `driveFolderURL.path`,
+            // sometimes the folder won't load properly following sign-in.
+            guard NSWorkspace.shared.selectFile(absoluteFilePath ?? driveFolderURL.path, inFileViewerRootedAtPath: "") else {
+                // File not found (may have been deleted) - opening Drive folder instead.
+                NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: driveFolderURL.path)
+                let message = "Open Drive folder: Could not open requested file (\(absoluteFilePath ?? "n/a"))"
+                Log.info(message, domain: .fileManager)
+                return
+            }
+        }
+    }
+    
+    func keepDownloaded(paths: [String]) {
+        Task {
+            do {
+                pathsMarkedAsKeepDownloaded = try await itemIdentifierStrings(for: paths).joined(separator: ":")
+                try await domainOperationsService.signalEnumerator()
+            } catch {
+                Log.error("Error calling keepDownloaded from TestRunner", error: error, domain: .testRunner)
+            }
+        }
+    }
+    
+    func keepOnlineOnly(paths: [String]) {
+        Task {
+            do {
+                pathsMarkedAsOnlineOnly = try await itemIdentifierStrings(for: paths).joined(separator: ":")
+                try await domainOperationsService.signalEnumerator()
+            } catch {
+                Log.error("Error calling keepOnlineOnly from TestRunner", error: error, domain: .testRunner)
+            }
+        }
+    }
+    
+    private func itemIdentifierStrings(for paths: [String]) async throws -> [String] {
+        var itemIdentifiers: [String] = []
+        
+        let rootURL = try await domainOperationsService.getUserVisibleURLForRoot()
+        let absolutePaths = paths.map { rootURL.appendingPathComponent($0).absoluteString }
+
+        for path in absolutePaths {
+            let url = URL(string: path)!
+            
+            let (itemIdentifier, _) = try await NSFileProviderManager.identifierForUserVisibleFile(at: url)
+            itemIdentifiers.append(itemIdentifier.id)
+        }
+        return itemIdentifiers
+    }
+}
+
+// MARK: -
 
 extension Error {
     func asLoginError(with message: String) -> LoginError {
@@ -1167,6 +1473,30 @@ extension Error {
     }
 }
 
-#if HAS_QA_FEATURES
-extension AppCoordinator: SignoutManager {}
-#endif
+private extension UserDefaults {
+    enum Migration: String {
+        case hasPostMigrationStepRunKey = "hasPostMigrationStepRun"
+    }
+}
+
+func performWithLogging(domain: LogDomain = .application,
+                        sendToSentryIfPossible: Bool = true,
+                        file: String = #file,
+                        function: String = #function,
+                        line: Int = #line,
+                        _ block: @escaping () async throws -> Void) {
+    Task {
+        do {
+            try await block()
+        } catch {
+            Log.error("performWithLogging error",
+                      error: error,
+                      domain: domain,
+                      sendToSentryIfPossible: sendToSentryIfPossible,
+                      file: file,
+                      function: function,
+                      line: line
+            )
+        }
+    }
+}

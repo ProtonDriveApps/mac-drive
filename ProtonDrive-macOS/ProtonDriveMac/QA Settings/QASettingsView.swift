@@ -23,6 +23,24 @@ struct QASettingsView: View {
     @ObservedObject var vm: QASettingsViewModel
 
     var body: some View {
+        TabView {
+            qaSettings
+                .tabItem {
+                    Label("Settings", systemImage: "gear")
+                }
+
+            QAStateDebuggingView(
+                observer: vm.applicationEventObserver,
+                state: vm.applicationEventObserver.state,
+                actions: vm.userActions
+            )
+                .tabItem {
+                    Label("State", systemImage: "timelapse")
+                }
+        }.padding(12)
+    }
+
+    var qaSettings: some View {
         ScrollView {
             VStack {
                 GroupBox {
@@ -123,31 +141,48 @@ struct QASettingsView: View {
                 GroupBox {
                     VStack(alignment: .leading, spacing: 16) {
                         
-                        
                         VStack(alignment: .leading, spacing: 2) {
-                            Picker(selection: $vm.disconnectDomainOnSignOut) {
+                            Text("DDK:")
+                                .fontWeight(.bold)
+                            Picker("", selection: $vm.driveDDKEnabled) {
                                 ForEach(QASettingsViewModel.FeatureFlagOptions.allCases.map(\.rawValue), id: \.self) {
                                     Text($0)
                                 }
-                            } label: {
-                                Text("Disconnect domain")
                             }
                             .pickerStyle(SegmentedPickerStyle())
-                            
-                            Text("Backend feature flag value: \(vm.parallelEncryptionAndVerificationFeatureFlagValue ? "true" : "false")")
+                            .onChange(of: vm.driveDDKEnabled) { _ in
+                                exit(0)
+                            }
+
+                            Text("Backend feature flag value: \(vm.driveDDKEnabledFeatureFlagValue ? "true" : "false")")
                         }
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Picker(selection: $vm.parallelEncryptionAndVerification) {
+                            Text("Disconnect domain:")
+                                .fontWeight(.bold)
+                            Picker("", selection: $vm.disconnectDomainOnSignOut) {
+                                ForEach(QASettingsViewModel.FeatureFlagOptions.allCases.map(\.rawValue), id: \.self) {
+                                    Text($0)
+                                }
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                            
+                            Text("Backend feature flag value: \(vm.domainReconnectionFeatureFlagValue ? "true" : "false")")
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Picker(selection: $vm.newTrayAppMenuEnabled) {
                                 ForEach(QASettingsViewModel.FeatureFlagOptions.allCases.map(\.rawValue), id: \.self) {
                                     Text($0)
                                 }
                             } label: {
-                                Text("Parallel encryption and verification")
+                                Text("New tray app")
                             }
                             .pickerStyle(SegmentedPickerStyle())
-                            
-                            Text("Backend feature flag value: \(vm.parallelEncryptionAndVerificationFeatureFlagValue ? "true" : "false")")
+
+                            Text(
+                                "Backend feature flag value: \(vm.newTrayAppMenuEnabledFeatureFlagValue ? "true" : "false")"
+                            )
                         }
                     }
                 } label: {
@@ -220,12 +255,12 @@ struct QASettingsView: View {
                 GroupBox {
                     VStack(alignment: .leading, spacing: 16) {
                         Button("Send test error event to Sentry from macOS app") {
-                            vm.sentTestEventToSentry(level: .error)
+                            vm.sendTestEventToSentry(level: .error)
                         }
                         .buttonStyle(.bordered)
                         
                         Button("Send test info event to Sentry from macOS app") {
-                            vm.sentTestEventToSentry(level: .info)
+                            vm.sendTestEventToSentry(level: .info)
                         }
                         .buttonStyle(.bordered)
                         
@@ -255,16 +290,24 @@ struct QASettingsView: View {
                 }
                 
                 GroupBox {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Button("Corrupt metadata and event DBs") {
+                            vm.corruptMetadataAndEventDBs()
+                        }
+                        .buttonStyle(.bordered)
+                        
                         Button("Wipe main key and kill app") {
                             vm.wipeMainKey()
                         }
                         .buttonStyle(.bordered)
+
+                        Toggle("Enable post-migration cleanup", isOn: $vm.enablePostMigrationCleanup)
+                            .toggleStyle(SwitchToggleStyle())
                     }
                     .frame(maxWidth: .infinity)
                     .padding(16)
                 } label: {
-                    Text("MainKey error testing")
+                    Text("DB testing")
                         .font(.headline)
                         .padding(.bottom, 10)
                         .padding(.top, 20)
@@ -320,5 +363,4 @@ struct QASettingsView: View {
         .frame(minHeight: 600)
     }
 }
-
 #endif

@@ -47,6 +47,7 @@ struct EventsFactory {
     #endif
 
     func makeEventsLoop(tower: Tower, conveyor: EventsConveyor, volumeId: String) -> DriveEventsLoop {
+        Log.trace()
         let processor = DriveEventsLoopProcessor(
             cloudSlot: tower.cloudSlot,
             conveyor: conveyor,
@@ -58,17 +59,14 @@ struct EventsFactory {
             processor: processor,
             conveyor: conveyor,
             observers: tower.eventObservers,
-            mode: tower.eventProcessingMode
+            mode: tower.eventProcessingMode,
+            eventsSystemManager: tower
         )
     }
 
-    func makeVolumeIdsController() -> VolumeIdsControllerProtocol {
-        VolumeIdsController()
-    }
-
-    func makeSingleVolumeTimingController() -> EventLoopsTimingController {
-        // Legacy events system 
-        SingleVolumeEventLoopsTimingController()
+    func makeSingleVolumeTimingController(interval: Double) -> EventLoopsTimingController {
+        // Legacy events system
+        SingleVolumeEventLoopsTimingController(interval: interval)
     }
 
     #if os(iOS)
@@ -89,19 +87,23 @@ struct EventsFactory {
         generalSettings: GeneralSettings,
         paymentsSecureStorage: PaymentsSecureStorage,
         network: APIService,
-        timingController: EventLoopsTimingController
+        timingController: EventLoopsTimingController,
+        contactAdapter: ContactStorage,
+        entitlementsManager: EntitlementsManagerProtocol
     ) -> EventPeriodicScheduler<GeneralEventsLoopWithProcessor, DriveEventsLoop> {
         let processor = GeneralEventsLoopProcessor(
             sessionVault: sessionVault,
             generalSettings: generalSettings,
-            paymentsVault: paymentsSecureStorage
+            paymentsVault: paymentsSecureStorage,
+            contactVault: contactAdapter,
+            entitlementsManager: entitlementsManager
         )
         let generalEventsLoop = GeneralEventsLoop(
             apiService: network,
             processor: processor,
             userDefaults: appGroup.userDefaults,
             logError: {
-                Log.error($0, domain: .events)
+                Log.error(error: $0, domain: .events)
             }
         )
         return EventPeriodicScheduler<GeneralEventsLoopWithProcessor, DriveEventsLoop>(

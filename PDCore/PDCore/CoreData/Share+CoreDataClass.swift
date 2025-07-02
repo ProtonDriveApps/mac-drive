@@ -19,6 +19,8 @@ import Foundation
 import CoreData
 import PDClient
 
+public typealias CoreDataShare = Share
+
 @objc(Share)
 public class Share: NSManagedObject, GloballyUnique {
 
@@ -66,6 +68,11 @@ public class Share: NSManagedObject, GloballyUnique {
             }
             return addressID
         }
+    }
+
+    public func isSignatureVerifiable() -> Bool {
+        // Only main volume shares should be verifiable
+        volume?.shares.contains(where: { $0.isMain }) ?? false
     }
 
     @objc public enum ShareType: Int16 {
@@ -229,13 +236,14 @@ extension StorageManager {
     public func updateLinks(_ links: [PDClient.Link], in moc: NSManagedObjectContext) -> [Node] {
         var nodes: [Node] = []
         for link in links {
-            nodes.append(updateLink(link, in: moc))
+            nodes.append(updateLink(link, using: moc))
+
         }
         return nodes
     }
 
     @discardableResult
-    public func updateLink(_ link: PDClient.Link, in moc: NSManagedObjectContext) -> Node {
+    public func updateLink(_ link: PDClient.Link, fetchingSharedWithMeRoot: Bool = false, using moc: NSManagedObjectContext) -> Node {
         let node: Node
         switch link.type {
         case .file:
@@ -247,7 +255,7 @@ extension StorageManager {
                     photo.addToRevisions(revision)
                     photo.activeRevision = revision
                     photo.photoRevision = revision
-                    revision.fulfill(link: link, revision: activeRevision)
+                    revision.fulfillRevision(link: link, revision: activeRevision)
                     revision.photo = photo
 
                     if activeRevision.hasThumbnail, let thumbnails = activeRevision.thumbnails {
@@ -258,8 +266,20 @@ extension StorageManager {
                        let mainPhoto = Photo.fetch(id: mainPhotoID, volumeID: link.volumeID, in: moc) {
                            photo.parent = mainPhoto
                     }
+                    if let relatedPhotosLinkIDs = link.fileProperties?.activeRevision?.photo?.relatedPhotosLinkIDs {
+                        // Not needed unless primary & secondary are fetched in different batch. Added this to avoid such issues.
+                        relatedPhotosLinkIDs.forEach { secondaryId in
+                            if let secondaryPhoto = Photo.fetch(id: secondaryId, volumeID: link.volumeID, in: moc) {
+                                photo.addToChildren(secondaryPhoto)
+                            }
+                        }
+                    }
                 }
-                photo.fulfillPhoto(from: link)
+                photo.fulfillPhoto(with: link)
+
+                let factory = CoreDataPhotoFactory(managedObjectContext: moc, storageManager: self)
+                factory.updatePhoto(photo: photo, link: link)
+
                 node = photo
             } else {
 
@@ -268,21 +288,26 @@ extension StorageManager {
                     let revision = Revision.fetchOrCreate(id: activeRevision.ID, volumeID: link.volumeID, in: moc)
                     file.addToRevisions(revision)
                     file.activeRevision = revision
-                    revision.fulfill(from: activeRevision)
+                    revision.fulfillRevision(with: activeRevision)
 
                     if activeRevision.hasThumbnail, let thumbnails = activeRevision.thumbnails {
                         addThumbnails(thumbnails, revision: revision, in: moc)
                     }
                 }
 
-                file.fulfill(from: link)
+                file.fulfillFile(with: link)
                 node = file
             }
 
         case .folder:
             let folder = Folder.fetchOrCreate(id: link.linkID, volumeID: link.volumeID, in: moc) as Folder
-            folder.fulfill(from: link)
+            folder.fulfillFolder(with: link)
             node = folder
+
+        case .album:
+            let resource = CoreDataAlbumFactory(managedObjectContext: moc)
+            let album = resource.updateOrCreateAlbum(link: link)
+            node = album
         }
 
         if let sharingDetails = link.sharingDetails {
@@ -291,7 +316,8 @@ extension StorageManager {
             share.type = getShareType(share)
             node.addToDirectShares(share)
 
-            if share.type == .main || share.type == .photos {
+            let types: [Share.ShareType] = [.main, .photos, .device]
+            if types.contains(share.type) {
                 node.setShareID(share.id)
             }
 
@@ -308,15 +334,57 @@ extension StorageManager {
         }
 
         if let parentLinkID = link.parentLinkID {
-            let parent = Folder.fetchOrCreate(id: parentLinkID, volumeID: link.volumeID, in: moc)
-            parent.addToChildren(node)
-
-            node.setShareID(parent.shareId)
+            if let photo = node as? Photo {
+                updatePhotoParent(link: link, photo: photo, parentLinkID: parentLinkID, isRootNodeOptional: fetchingSharedWithMeRoot, moc: moc)
+            } else {
+                updateParent(link: link, node: node, parentLinkID: parentLinkID, isRootNodeOptional: fetchingSharedWithMeRoot, moc: moc)
+            }
         } else {
             node.setShareID(node.directShares.first?.id ?? "")
         }
 
         return node
+    }
+
+    private func updateParent(link: Link, node: Node, parentLinkID: String, isRootNodeOptional: Bool, moc: NSManagedObjectContext) {
+        if isRootNodeOptional {
+            let parent = Folder.fetch(id: parentLinkID, volumeID: link.volumeID, in: moc)
+            parent?.addToChildren(node)
+            node.setShareID("")
+        } else {
+            let parent = Folder.fetchOrCreate(id: parentLinkID, volumeID: link.volumeID, in: moc)
+            // or an album needs to be created
+            parent.addToChildren(node)
+            node.setShareID(parent.shareId)
+        }
+    }
+
+    private func updatePhotoParent(link: Link, photo: Photo, parentLinkID: String, isRootNodeOptional: Bool, moc: NSManagedObjectContext) {
+        if isRootNodeOptional {
+            // For root photos we may not have any parent - it's allowed state.
+            // They can have a shared parent though, in such case we try to find it to complete the nodes graph
+            if let parentFolder = Folder.fetch(id: parentLinkID, volumeID: link.volumeID, in: moc) {
+                photo.parentFolder = parentFolder
+            } else if let album = CoreDataAlbum.fetch(id: parentLinkID, volumeID: link.volumeID, in: moc) {
+                photo.addToAlbums(album)
+            }
+            photo.setShareID("")
+        } else {
+            // For non-root photos we need to have a parent in DB prior to storing it.
+            if let parentFolder = Folder.fetch(id: parentLinkID, volumeID: link.volumeID, in: moc) {
+                photo.parentFolder = parentFolder
+                photo.setShareID(parentFolder.shareId)
+            } else if let album = CoreDataAlbum.fetch(id: parentLinkID, volumeID: link.volumeID, in: moc) {
+                photo.addToAlbums(album)
+                photo.setShareID(album.shareId)
+            } else {
+                Log.error(
+                    "Storing metadata for a photo that requires a parentLink, but it's not in the DB",
+                    error: nil,
+                    domain: .storage
+                )
+            }
+        }
     }
 
     private func addThumbnails(_ thumbnails: [PDClient.Thumbnail], revision: Revision, in moc: NSManagedObjectContext) {

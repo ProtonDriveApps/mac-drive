@@ -18,6 +18,7 @@
 import Foundation
 import CoreData
 import PDClient
+import FileProvider
 
 protocol DriveEventsLoopProcessorType {
     func process() throws -> [NodeIdentifier]
@@ -39,8 +40,8 @@ final class DriveEventsLoopProcessor: DriveEventsLoopProcessorType {
     // Each processor owns a separate context. The assumption is that all the metadata DB Nodes are separate between
     // the volumes. There is no CoreData relationship between any node in one volume and a node in another volume,
     // so there's no need to use a single context for multiple loops / processors.
-    private lazy var moc: NSManagedObjectContext = storage.newBackgroundContext()
-    
+    private lazy var moc: NSManagedObjectContext = storage.eventsBackgroundContext
+
     func process() throws -> [NodeIdentifier] {
         var affectedNodes: [NodeIdentifier] = []
         
@@ -57,6 +58,11 @@ final class DriveEventsLoopProcessor: DriveEventsLoopProcessorType {
     }
     
     private func applyEventsToStorage(_ affectedNodes: inout [NodeIdentifier]) throws {
+        
+        func updateMetadata(_ shareID: String, _ event: Event) {
+            let updated = self.update(shareId: shareID, from: event)
+            affectedNodes.append(contentsOf: updated)
+        }
 
         while let (event, shareID, objectID) = conveyor.next() {
             guard let event = event as? Event else {
@@ -68,35 +74,46 @@ final class DriveEventsLoopProcessor: DriveEventsLoopProcessorType {
             }
 
             let nodeID = event.inLaneNodeId
-            let parentID = event.inLaneParentId
             let volumeID = event.link.volumeID
             let nodeIdentifier = NodeIdentifier(nodeID, shareID, volumeID)
             let parentIdentifier = makeNodeIdentifier(volumeID: volumeID, shareID: shareID, nodeID: event.inLaneParentId)
 
-            Log.info("Process event `\(event.genericType)`. Node: \(nodeIdentifier), Parent: \(String(describing: parentIdentifier))", domain: .events)
-
             switch event.genericType {
-            case .create where !nodeExists(id: nodeIdentifier) && nodeExists(id: parentIdentifier): // need to know parent
-                let updated = update(shareId: shareID, from: event)
-                affectedNodes.append(contentsOf: updated)
+            case .create:
+                // case 1. — node already exists in the DB
+                if let node = findNode(id: nodeIdentifier) {
+                    let state = moc.performAndWait { node.state }
+                    if event.link.state.rawValue == state?.rawValue {
+                        Log.info("Process .create event. Disregard due to node: \(nodeIdentifier) with the same state already in the metadataDB", domain: .events)
+                        conveyor.disregard(objectID)
+                    } else {
+                        Log.info("Process .create event. Node: \(nodeIdentifier) already exists but state is different update metadata", domain: .events)
+                        updateMetadata(shareID, event)
+                    }
+                    
+                // case 2. — node doesn't yet exists in the DB, but its parent exists, so we can create the node
+                } else if nodeExists(id: parentIdentifier) {
+                    Log.info("Process .create event. Node: \(nodeIdentifier) doesn't exist but parent exists, create it", domain: .events)
+                    updateMetadata(shareID, event)
                 
-            case .create where nodeExists(id: nodeIdentifier):
-                conveyor.disregard(objectID)
+                // case 3. — neither node nor parent exists, let's ignore
+                } else {
+                    Log.info("Process .create event. Ignore node: \(nodeIdentifier) because neither parent nor node exists", domain: .events)
+                    ignored(event: event, storage: storage)
+                }
 
-            case .updateMetadata where nodeExists(id: parentIdentifier) || nodeExists(id: nodeIdentifier): // need to know node (move from) or the new parent (move to)
-                let updated = update(shareId: shareID, from: event)
-                affectedNodes.append(contentsOf: updated)
-
-            case [.delete, .updateContent] where nodeExists(id: nodeIdentifier):  // need to know node
-                let updated = update(shareId: shareID, from: event)
-                affectedNodes.append(contentsOf: updated)
+            case .updateMetadata where nodeExists(id: parentIdentifier) || nodeExists(id: nodeIdentifier), // need to know node (move from) or the new parent (move to)
+                 .delete,
+                 .updateContent where nodeExists(id: nodeIdentifier): // need to know node
+                Log.info("Process \(event.genericType). Update metadata for node: \(nodeIdentifier)", domain: .events)
+                updateMetadata(shareID, event)
 
             default: // ignore event
-                Log.info("Ignore event because it is not relevant for current metadata", domain: .events)
+                Log.info("Ignore \(event.genericType) event for node: \(nodeIdentifier), parent \(parentIdentifier) because it is not relevant for current metadata", domain: .events)
                 ignored(event: event, storage: storage)
             }
 
-            Log.info("Done processing event, now removing it", domain: .events)
+            Log.info("Done processing event for node: \(nodeIdentifier), now removing it", domain: .events)
             conveyor.completeProcessing(of: objectID)
         }
     }
@@ -114,22 +131,30 @@ extension DriveEventsLoopProcessor {
             assert(false, "Wrong event type sent to \(#file)")
             return []
         }
-        
+        let identifier = NodeIdentifier(event.link.linkID, shareId, event.link.volumeID)
+
         switch event.eventType {
         case .delete:
-            let identifier = NodeIdentifier(event.link.linkID, shareId, event.link.volumeID)
             guard let node = findNode(id: identifier) else {
+                Log.info("Processing delete event. Node: \(identifier) not found", domain: .events)
                 return []
             }
             moc.delete(node)
-            return [node.identifier, node.parentLink?.identifier].compactMap { $0 }
+            return [node.identifier, node.parentNode?.identifier].compactMap { $0 }
             
         case .create, .updateMetadata:
             let nodes = cloudSlot.update([event.link], of: shareId, in: moc)
+
+            #if os(iOS)
             nodes.forEach { node in
-                guard let parent = node.parentLink else { return }
+                guard let parent = node.parentNode else {
+                    Log.info("Processing \(event.eventType) event. Parent node not found for \(identifier)", domain: .events)
+                    return
+                }
                 node.setIsInheritingOfflineAvailable(parent.isInheritingOfflineAvailable || parent.isMarkedOfflineAvailable)
             }
+            #endif
+
             var affectedNodes = nodes.compactMap(\.parentLink).map(\.identifier)
             affectedNodes.append(contentsOf: nodes.map(\.identifier))
             return affectedNodes
@@ -137,11 +162,15 @@ extension DriveEventsLoopProcessor {
         case .updateContent:
             let identifier = NodeIdentifier(event.link.linkID, shareId, event.link.volumeID)
             guard let file = findFile(identifier: identifier) else {
+                Log.info("Processing .updateContent event. File: \(identifier) not found", domain: .events)
                 return []
             }
             if let revision = file.activeRevision, revision.id != event.link.fileProperties?.activeRevision?.ID {
+                revision.removeOldThumbnails(in: moc)
                 storage.removeOldBlocks(of: revision)
                 file.activeRevision = nil
+                _ = cloudSlot.update([event.link], of: shareId, in: moc)
+                removeCachedFileForFileProvider(file: file)
             }
             return [file.identifier]
         }
@@ -154,6 +183,19 @@ extension DriveEventsLoopProcessor {
         // link may be trashed or untrashed - need to re-fetch Trash
         storage.finishedFetchingTrash = false
     }
+
+    private func update(album: CoreDataAlbum, link: Link) {
+        guard let albumProperties = link.albumProperties else { return }
+
+        album.lastActivityTime = Date(timeIntervalSince1970: albumProperties.lastActivityTime)
+        album.photoCount = Int16(albumProperties.photoCount)
+        album.coverLinkID = albumProperties.coverLinkID
+
+        let listing = album.albumListing
+        listing?.lastActivityTime = Date(timeIntervalSince1970: albumProperties.lastActivityTime)
+        listing?.photoCount = Int16(albumProperties.photoCount)
+        listing?.coverLinkID = albumProperties.coverLinkID
+    }
 }
 
 extension DriveEventsLoopProcessor {
@@ -161,11 +203,13 @@ extension DriveEventsLoopProcessor {
         if identifier.volumeID.isEmpty {
             let asFile: File? = storage.existing(with: [identifier.nodeID], by: attribute, allowSubclasses: true, in: moc).first
             let asFolder: Folder? = storage.existing(with: [identifier.nodeID], by: attribute, in: moc).first
-            return asFolder ?? asFile
+            let asAlbum: CoreDataAlbum? = storage.existing(with: [identifier.nodeID], by: attribute, in: moc).first
+            return asFolder ?? asFile ?? asAlbum
         } else {
             let asFile = File.fetch(identifier: identifier, allowSubclasses: true, in: moc)
             let asFolder = Folder.fetch(identifier: identifier, in: moc)
-            return asFolder ?? asFile
+            let asAlbum = CoreDataAlbum.fetch(identifier: identifier, in: moc)
+            return asFolder ?? asFile ?? asAlbum
         }
     }
     
@@ -186,5 +230,36 @@ extension DriveEventsLoopProcessor {
             let file = File.fetch(identifier: identifier, allowSubclasses: true, in: moc)
             return file
         }
+    }
+
+    private func findAlbum(identifier: NodeIdentifier) -> CoreDataAlbum? {
+        CoreDataAlbum.fetch(identifier: identifier, in: moc)
+    }
+
+    /// When accessing a file through a file provider, it serves the cached version instead of downloading the latest data.
+    /// Remove cached file to make sure user can see correct data
+    private func removeCachedFileForFileProvider(file: File) {
+        #if os(iOS)
+        let nodeIdentifier = file.identifier
+
+        guard let filename = try? file.decryptName() else {
+            Log.debug("Skip removing cached file for FileProvider because decryptName failed", domain: .events)
+            return
+        }
+
+        var url = NSFileProviderManager.default.documentStorageURL
+        url.appendPathComponent(nodeIdentifier.shareID, isDirectory: true)
+        url.appendPathComponent(nodeIdentifier.nodeID, isDirectory: true)
+        url.appendPathComponent(filename, isDirectory: false)
+        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        do {
+            try FileManager.default.removeItem(at: url)
+        } catch {
+            Log.debug(
+                "Failed to delete cache file for ***.\(url.pathExtension), error: \(error.localizedDescription)",
+                domain: .events
+            )
+        }
+        #endif
     }
 }

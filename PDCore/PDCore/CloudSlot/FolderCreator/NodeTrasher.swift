@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
+import Foundation
 import PDClient
 
 final class NodeTrasher {
@@ -37,7 +38,12 @@ final class NodeTrasher {
             for group in nodes.splitIntoChunks() {
                 let groupResult = try await trash(volumeID: group.volume, shareID: group.share, parentID: group.parent, linkIDs: group.links)
                 try await trashLocally(groupResult.restored)
-                failed.append(contentsOf: groupResult.failed)
+                let errors = try await removeDeletedError(
+                    from: groupResult.failed,
+                    volumeID: group.volume,
+                    shareID: group.share
+                )
+                failed.append(contentsOf: errors)
             }
         } catch {
             requestError = error
@@ -66,4 +72,28 @@ final class NodeTrasher {
         }
     }
 
+    private func removeDeletedError(
+        from failed: [PartialFailure],
+        volumeID: String,
+        shareID: String
+    ) async throws -> [PartialFailure] {
+        var deletedIdentifiers: [NodeIdentifier] = []
+        var errors: [PartialFailure] = []
+        for failure in failed {
+            let error = failure.error as NSError
+            guard error.code == APIErrorCodes.itemOrItsParentDeletedErrorCode.rawValue else {
+                errors.append(failure)
+                continue
+            }
+            deletedIdentifiers.append(.init(failure.id, shareID, volumeID))
+        }
+        if deletedIdentifiers.isEmpty { return errors }
+        let context = storage.backgroundContext
+        try await context.perform {
+            let nodes = Node.fetch(identifiers: Set(deletedIdentifiers), allowSubclasses: true, in: context)
+            nodes.forEach { context.delete($0) }
+            try context.saveOrRollback()
+        }
+        return errors
+    }
 }

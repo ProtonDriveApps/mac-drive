@@ -41,7 +41,7 @@ struct LoginView: View {
                 .padding(.top, 24)
 
             VStack(spacing: 0) {
-                LoginTextField(title: "Email or username", text: $vm.username, errorString: $vm.usernameValidationFailureMessage, textContentType: .username, unfocus: vm.isLoading, window: window)
+                LoginTextField(title: vm.usernameFieldLabel, text: $vm.username, errorString: $vm.usernameValidationFailureMessage, textContentType: .username, unfocus: vm.isLoading, window: window)
                     .accessibility(identifier: "LoginView.TextField.username")
 
                 SecureLoginTextField(title: "Password", text: $vm.password, errorString: $vm.passwordValidationFailureMessage, unfocus: vm.isLoading, window: window, action: vm.logIn)

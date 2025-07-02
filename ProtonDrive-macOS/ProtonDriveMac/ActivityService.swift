@@ -21,21 +21,24 @@ import PDCore
 
 class ActivityService {
     private let frequency: TimeInterval
-    private let tolerenceFactor = 0.2
+    private let toleranceFactor = 0.2
     private let repository: ActivityRepository
+    private let telemetryRepository: TelemetrySettingRepository
     private var timer: Timer?
 
-    init(repository: ActivityRepository, frequency: TimeInterval) {
+    init(repository: ActivityRepository, telemetryRepository: TelemetrySettingRepository, frequency: TimeInterval) {
         self.repository = repository
+        self.telemetryRepository = telemetryRepository
         self.frequency = frequency
 
         pingActive()
 
         let timer = Timer(timeInterval: frequency, repeats: true) { [weak self] _ in
             self?.pingActive()
+            Log.trace("tick")
         }
         self.timer = timer
-        timer.tolerance = frequency * tolerenceFactor
+        timer.tolerance = frequency * toleranceFactor
         RunLoop.main.add(timer, forMode: .common)
     }
 
@@ -44,6 +47,9 @@ class ActivityService {
     }
 
     private func pingActive() {
+        guard telemetryRepository.isTelemetryEnabled() else { return }
+
+        Log.trace()
         Task {
             do {
                 try await repository.pingActive()

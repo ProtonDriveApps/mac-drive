@@ -188,7 +188,7 @@ class ThumbnailRevisionEncryptor: RevisionEncryptor {
     }
 }
 
-enum ThumbnailGenerationError: String, LocalizedError {
+public enum ThumbnailGenerationError: String, LocalizedError {
     case noFileKeyPacket
     case generation
     case compression

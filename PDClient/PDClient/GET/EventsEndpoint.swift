@@ -42,6 +42,20 @@ public struct Event: Encodable {
     private struct MinimalLink: Codable {
         public var linkID: String
     }
+    
+    public init(
+        contextShareID: Share.ShareID,
+        eventID: EventID,
+        eventType: EventType,
+        createTime: TimeInterval,
+        link: Link
+    ) {
+        self.contextShareID = contextShareID
+        self.eventID = eventID
+        self.eventType = eventType
+        self.createTime = createTime
+        self.link = link
+    }
 }
 
 extension Event: Decodable {

@@ -17,28 +17,26 @@
 
 import Cocoa
 import FileProvider
-import GoLibs
 import PDCore
 import PDClient
-import PDLoadTesting
 import UserNotifications
 import ProtonCoreFeatureFlags
 import ProtonCoreServices
+import ProtonCoreCryptoGoInterface
 import ProtonCoreCryptoPatchedGoImplementation
 import ProtonCoreLog
-
-#if LOAD_TESTING && SSL_PINNING
-#error("Load testing requires turning off SSL pinning, so it cannot be set for SSL-pinning targets")
-#endif
+import PMEventsManager
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     @SettingsStorage("firstLaunchHappened") private var firstLaunchHappened: Bool?
-    private lazy var coordinator = AppCoordinator()
+    private var coordinator: AppCoordinator?
     private var isTerminatingDueToAppCoordinatorError = false
     private let memoryWarningObserver: MemoryWarningObserver
 
     override init() {
-        injectDefaultCryptoImplementation()
+        Log.trace()
+
+        inject(cryptoImplementation: ProtonCoreCryptoPatchedGoImplementation.CryptoGoMethodsImplementation.instance)
         
         // this must be done before the first access to the user defaults
         GroupContainerMigrator.instance.checkIfMigrationIsNessesary()
@@ -49,6 +47,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self.memoryWarningObserver = MemoryWarningObserver(memoryDiagnosticResource: DeviceMemoryDiagnosticsResource())
 
         super.init()
+
+#if !HAS_QA_FEATURES
+        let executablePath = Bundle.main.executablePath ?? ""
+        if executablePath.hasPrefix("/Applications/") == false {
+            Task {
+                await handleError(NSError(domain: "", code: -1, responseDictionary: nil, localizedDescription: "This application must be run from the /Applications folder. \n  Please move it there and run it again."))
+            }
+        }
+#endif
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
@@ -58,17 +65,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // before the system initializes its parent (sometime between
         // AppDelegate's `applicationWillFinishLaunching` and
         // `applicationDidFinishLaunching`).
-        _ = ProtonDocumentController.shared
+        _ = ProtonFileController.shared
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        Log.trace()
+
         UNUserNotificationCenter.current().delegate = self
         
         // Inject build type to enable build differentiation. (Build macros don't work in SPM)
         PDCore.Constants.buildType = Constants.buildType
-        #if LOAD_TESTING && !SSL_PINNING
-        LoadTesting.enableLoadTesting()
-        #endif
         
         var keychainCleared = false
         if self.firstLaunchHappened != true {
@@ -80,18 +86,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         Constants.loadConfiguration()
         configureCoreLogger()
-        setUpLogger { [weak self] in self?.coordinator.client }
-        if keychainCleared {
-            Log.info("Keychain was cleared due to firstLaunchHappened != true", domain: .application)
-        }
-
-        Log.info("AppDelegate did launch", domain: .application)
         
         Task {
             do {
-                try await coordinator.start()
+                coordinator = await AppCoordinator(())
+
+                setUpLogger()
+
+                if keychainCleared {
+                    Log.info("Keychain was cleared due to firstLaunchHappened != true", domain: .application)
+                }
+
+                try await coordinator?.start()
+
+                Log.trace("finished launching")
             } catch {
-                    Log.error("\(error.localizedDescription)", domain: .application)
+                Log.error("Starting AppCoordinator failed", error: error, domain: .application)
                 await MainActor.run {
                     handleError(error)
                 }
@@ -100,68 +110,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func configureCoreLogger() {
-        let environment: String
-        switch Constants.userApiConfig.environment {
-        case .black, .blackPayment: environment = "black"
-        case .custom(let custom): environment = custom
-        default: environment = "production"
-        }
-        PMLog.setEnvironment(environment: environment)
+        PMLog.setExternalLoggerHost(Constants.userApiConfig.environment.doh.defaultHost)
     }
 
-    private func setUpLogger(clientGetter: @escaping () -> PDClient.Client?) {
-        let localSettings = LocalSettings(suite: Constants.appGroup)
-        SentryClient.shared.start(localSettings: localSettings, clientGetter: clientGetter)
-        Log.configuration = LogConfiguration(system: .macOSApp)
+    private func setUpLogger() {
+        let localSettings = LocalSettings.shared
+        SentryClient.shared.start(localSettings: localSettings)
+
+        let shouldCompressLogs = self.coordinator?.featureFlags?.isEnabled(flag: .logsCompressionDisabled) ?? false
+        Log.configure(system: .macOSApp, compressLogs: shouldCompressLogs)
         
-        #if LOAD_TESTING
-        Log.logger = CompoundLogger(loggers: [
-            OrFilteredLogger(logger: DebugLogger(),
-                             domains: [.loadTesting],
-                             levels: [.info, .error, .warning]),
-            FileLogger(process: .macOSApp) { [weak self] in
-                self?.coordinator.featureFlags?.isEnabled(flag: .logsCompressionDisabled) ?? false
-            }
-        ])
-        #elseif PRODUCTION_LEVEL_LOGS
-        Log.logger = CompoundLogger(loggers: [
-            ProductionLogger(),
-            OrFilteredLogger(logger: FileLogger(process: .macOSApp) { [weak self] in
-                self?.coordinator.featureFlags?.isEnabled(flag: .logsCompressionDisabled) ?? false
-            }, levels: [.info, .error, .warning])
-        ])
-        #else
-        Log.logger = CompoundLogger(loggers: [
-            OrFilteredLogger(logger: DebugLogger(),
-                             domains: [.application,
-                                       .encryption,
-                                       .events,
-                                       .networking,
-                                       .uploader,
-                                       .downloader,
-                                       .storage,
-                                       .clientNetworking,
-                                       .featureFlags,
-                                       .forceRefresh,
-                                       .syncing,
-                                       .sessionManagement,
-                                       .diagnostics,
-                                       .fileProvider,
-                                       .fileManager,
-                                       .protonDocs],
-                             levels: [.info, .error, .warning]),
-            FileLogger(process: .macOSApp) { [weak self] in
-                self?.coordinator.featureFlags?.isEnabled(flag: .logsCompressionDisabled) ?? false
-            }
-        ])
-        #endif
-        
-        PDClient.log = { Log.info($0, domain: .clientNetworking) }
-        
-        NotificationCenter.default.addObserver(forName: .NSApplicationProtectedDataDidBecomeAvailable, object: nil, queue: nil) { notificaiton in
+        PDClient.logInfo = { Log.info($0, domain: .application) }
+        PDClient.logError = { Log.error($0, domain: .application) }
+        PMEventsManager.log = { Log.trace($0, file: $1, function: $2, line: $3) }
+
+        NotificationCenter.default.addObserver(forName: .NSApplicationProtectedDataDidBecomeAvailable, object: nil, queue: nil) { _ in
             Log.info("Notification.Name.NSApplicationProtectedDataDidBecomeAvailable", domain: .application)
         }
-        NotificationCenter.default.addObserver(forName: .NSApplicationProtectedDataWillBecomeUnavailable, object: nil, queue: nil) { notificaiton in
+        NotificationCenter.default.addObserver(forName: .NSApplicationProtectedDataWillBecomeUnavailable, object: nil, queue: nil) { _ in
             Log.info("Notification.Name.NSApplicationProtectedDataWillBecomeUnavailable", domain: .application)
         }
     }
@@ -194,7 +160,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func disconnectDomainsBeforeClosing(_ sender: NSApplication) {
         Task {
-            try? await coordinator.domainOperationsService.disconnectDomainBeforeAppClosing()
+            try? await coordinator?.domainOperationsService.disconnectDomainBeforeAppClosing()
             if isTerminatingDueToAppCoordinatorError {
                 // crashing with fatalError because calling the reply(toApplicationShouldTerminate:) was somehow hanging the app (blocking the main thread)
                 // regardless of making sure it's been called only from the main thread (using DispatchQueue.main or MainActor.run)
@@ -225,14 +191,14 @@ extension AppDelegate {
     // there's a class of errors that are user-actionable, so we want to expose them — if for nothing else, just to have more meaningful CS reports
     @MainActor
     func handleError(_ error: Error) {
-        
-        let window = coordinator.window ?? {
+
+        let window = coordinator?.window ?? {
             let window = NSWindow()
             window.makeKeyAndOrderFront(nil)
             window.close()
             return window
         }()
-        
+
         guard let domainOperationError = error as? DomainOperationErrors
         else {
             window.presentError(error)
@@ -241,16 +207,17 @@ extension AppDelegate {
         
         let underlyingError = domainOperationError.underlyingError as NSError
         
+        var showCustomerSupportButton = false
         let recoveryAttempter: RecoveryAttempter?
         let localizedDescription: String
-        let recoverySugestion: String
-        
+        let recoverySuggestion: String
+
         switch underlyingError {
         case NSFileProviderError.providerTranslocated:
             recoveryAttempter = nil
             localizedDescription = "The application cannot be used from this location."
-            recoverySugestion = "Move the application to a different location to use it."
-            
+            recoverySuggestion = "Move the application to a different location to use it."
+
         case NSFileProviderError.olderExtensionVersionRunning:
             recoveryAttempter = RecoveryAttempter()
             recoveryAttempter?.option(with: "Show older version") { [weak self] error in
@@ -263,8 +230,8 @@ extension AppDelegate {
                 return true
             }
             localizedDescription = "An older version of the application is currently in use."
-            recoverySugestion = "Please move the older version to the trash before continuing."
-            
+            recoverySuggestion = "Please move the older version to the trash before continuing."
+
         case NSFileProviderError.newerExtensionVersionFound:
             recoveryAttempter = RecoveryAttempter()
             recoveryAttempter?.option(with: "Show newer version") { [weak self] error in
@@ -277,22 +244,26 @@ extension AppDelegate {
                 return true
             }
             localizedDescription = "A newer version of the application is already installed."
-            recoverySugestion = "Please use the newer version instead."
-            
+            recoverySuggestion = "Please use the newer version instead."
+
         case NSFileProviderError.providerNotFound:
             recoveryAttempter = nil
             localizedDescription = "Unable to start file provider extension"
-            recoverySugestion = "Please ensure you do not have two Proton Drive apps installed at the same time. If this it the case, remove the one outside /Applications folder."
-            
+            recoverySuggestion = "Please ensure you do not have two Proton Drive apps installed. \n" +
+                "If this is the case, remove the one outside the /Applications folder. \n\n" +
+                "If the issue persists, please contact Customer Support. "
+
+            showCustomerSupportButton = true
+
         default:
             recoveryAttempter = nil
             localizedDescription = underlyingError.localizedDescription
-            recoverySugestion = underlyingError.localizedRecoverySuggestion ?? ""
+            recoverySuggestion = underlyingError.localizedRecoverySuggestion ?? ""
         }
         
         var errorToPresent = NSError(underlyingError, adding: [
             NSLocalizedDescriptionKey: localizedDescription,
-            NSLocalizedRecoverySuggestionErrorKey: recoverySugestion
+            NSLocalizedRecoverySuggestionErrorKey: recoverySuggestion
         ])
         
         if let recoveryAttempter {
@@ -301,11 +272,33 @@ extension AppDelegate {
                 NSRecoveryAttempterErrorKey: recoveryAttempter
             ])
         }
-        
-        window.presentError(errorToPresent)
+
+        if showCustomerSupportButton {
+            presentErrorWithCustomerSupportButton(error: errorToPresent)
+        } else {
+            window.presentError(errorToPresent)
+        }
+
         guard recoveryAttempter == nil else { return }
         isTerminatingDueToAppCoordinatorError = true
         NSApp.terminate(nil)
+    }
+
+    private func presentErrorWithCustomerSupportButton(error: Error) {
+        let alert = NSAlert(error: error)
+        alert.messageText = error.localizedDescription
+        alert.informativeText = error.asAFError?.recoverySuggestion ?? ""
+
+        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: "Contact Support")
+
+        let response = alert.runModal()
+        switch response {
+        case .alertSecondButtonReturn:
+            UserActions(delegate: nil).links.showSupportWebsite()
+        default:
+            break
+        }
     }
 }
 

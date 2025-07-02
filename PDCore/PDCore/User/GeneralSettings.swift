@@ -39,7 +39,7 @@ public final class GeneralSettings {
 
     public func fetchUserSettings() {
         let route = UserSettingsAPIRoutes.Router.getGeneralSettings
-        network.exec(route: route) { (task: URLSessionDataTask?, result: Result<GetGeneralSettingsResponse, ResponseError>) in
+        network.perform(request: route) { (_, result: Result<GetGeneralSettingsResponse, ResponseError>) in
             switch result {
             case let .success(response):
                 self.storeUserSettings(response.userSettings)

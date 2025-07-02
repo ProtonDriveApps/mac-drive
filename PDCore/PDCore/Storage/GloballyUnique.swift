@@ -49,7 +49,7 @@ extension GloballyUnique {
         if allowSubclasses {
             fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
         } else {
-            fetchRequest.predicate = NSPredicate(format: "self.entity == %@ AND id IN %@", entity(), ids)
+            fetchRequest.predicate = NSPredicate(format: "id IN %@ AND self.entity == %@", ids, entity())
         }
 
         return (try? context.fetch(fetchRequest)) ?? []
@@ -69,7 +69,7 @@ extension GloballyUnique {
         if allowSubclasses {
             fetchRequest.predicate = NSPredicate(format: "id == %@", id)
         } else {
-            fetchRequest.predicate = NSPredicate(format: "self.entity == %@ AND id == %@", entity(), id)
+            fetchRequest.predicate = NSPredicate(format: "id == %@ AND self.entity == %@", id, entity())
         }
         return try? context.fetch(fetchRequest).first
     }
@@ -80,4 +80,11 @@ extension GloballyUnique {
         return newEntity
     }
 
+    // Method to fetch an entity based on VolumeIdentifier, throwing an error if not found
+    public static func fetchOrThrow(id: String, allowSubclasses: Bool = false, in context: NSManagedObjectContext) throws -> Self {
+        guard let entity = fetch(id: id, allowSubclasses: allowSubclasses, in: context) else {
+            throw DriveError("\(Self.self) with id \(id) should have been saved, but was not found in store.")
+        }
+        return entity
+    }
 }

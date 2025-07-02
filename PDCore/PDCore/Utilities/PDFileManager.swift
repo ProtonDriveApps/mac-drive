@@ -16,6 +16,7 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import Foundation
+import FileProvider
 
 /// Provides access to commonly used directories
 /// Stateful, needs to be configured with App Group directory before usage by calling ``PDFileManager/configure(with:)``  with a correct settings suite.
@@ -45,13 +46,25 @@ public final class PDFileManager {
         try? FileManager.default.removeItem(at: appGroupTemporaryDirectory)
     }
 
-    /// Removes data explicitly marked as important for local access - Offilne Available, etc
+    /// Removes file provider caches
+    public static func destroyFPCaches() {
+        #if os(iOS)
+        let url = NSFileProviderManager.default.documentStorageURL
+        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        try? FileManager.default.removeItem(at: url)
+        #endif
+    }
+
+    /// Removes data explicitly marked as important for local access - Offline Available, etc
     public static func destroyPermanents() {
         try? FileManager.default.removeItem(at: cypherBlocksPermanentDirectory)
     }
 
     /// Creates a random subfolder under cleartext cache directory, returns new URL with requested last component
     public static func prepareUrlForFile(named filename: String) -> URL {
+        #if os(macOS)
+        let filename = filename.filenameSanitizedForFilesystem()
+        #endif
         var url = self.cleartextCacheDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         self.createIfNeeded(&url)
         return url.appendingPathComponent(filename)
@@ -60,6 +73,13 @@ public final class PDFileManager {
     /// Directory for caching cleartext. Placed in temporary directory of current process in order to benefit from OS-driven periodic cleanups to protect "forgotten" cleartext files
     public static var cleartextCacheDirectory: URL {
         var temp = FileManager.default.temporaryDirectory.appendingPathComponent("Clear")
+        self.createIfNeeded(&temp)
+        return temp
+    }
+
+    /// Directory for caching cleartext bug report attachments. Placed in temporary directory of current process in order to benefit from OS-driven periodic cleanups to protect "forgotten" cleartext files
+    public static var bugReportAttachmentsDirectory: URL {
+        var temp = cleartextCacheDirectory.appendingPathComponent("BugReportAttachments")
         self.createIfNeeded(&temp)
         return temp
     }
@@ -133,8 +153,10 @@ public final class PDFileManager {
         try? FileManager.default.copyItem(at: sqlite_shm, to: sqlite_shm_copy)
         try? FileManager.default.copyItem(at: sqlite_wal, to: sqlite_wal_copy)
 
-        dump("Recorder 🔴: key 🔑 - \(Data(SessionVault.current.mainKeyProvider.mainKey!).base64EncodedString()) ")
+        let mainKey = try? SessionVault.current.mainKeyProvider.mainKeyOrError
+        dump("Recorder 🔴: key 🔑 - \(Data(mainKey!).base64EncodedString()) ")
         dump("Recorder 🔴: stage 📁 - \(destination.absoluteURL)")
+        
     }
 
     // MARK: Logs

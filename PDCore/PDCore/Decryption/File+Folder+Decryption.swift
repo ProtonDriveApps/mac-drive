@@ -16,6 +16,12 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import Foundation
+import ProtonCoreObservability
+
+#if os(macOS)
+public var PDCoreDecryptName: (Node) throws -> String = { try $0.decryptNameWithCryptoGo() }
+public var PDCoreDecryptExtendedAttributes: (Revision) throws -> ExtendedAttributes = { try $0.decryptedExtendedAttributesWithCryptoGo() }
+#endif
 
 public extension Node {
     enum Errors: Error {
@@ -25,7 +31,7 @@ public extension Node {
         case noSignatureAddress
     }
 
-    private static let unknownNamePlaceholder = String.randomPlaceholder
+    static let unknownNamePlaceholder = String.randomPlaceholder
     
     var decryptedName: String {
         guard let moc = self.moc else {
@@ -36,6 +42,7 @@ public extension Node {
             do {
                 return try decryptName()
             } catch {
+                nameDecryptionFailed = true
                 if !self.isFault {
                     self.clearName = Self.unknownNamePlaceholder
                 }
@@ -43,8 +50,16 @@ public extension Node {
             }
         }
     }
+    
+    @objc func decryptName() throws -> String {
+        #if os(macOS)
+        try PDCoreDecryptName(self)
+        #else
+        try decryptNameWithCryptoGo()
+        #endif
+    }
 
-    func decryptName() throws -> String {
+    func decryptNameWithCryptoGo() throws -> String {
         do {
             if !Constants.runningInExtension {
                 // Looks like file providers do no exchange updates across contexts properly
@@ -62,16 +77,26 @@ public extension Node {
             guard let signatureEmail = nameSignatureEmail ?? signatureEmail else {
                 throw Errors.noSignatureAddress
             }
+
             let addressID = try getContextShareAddressID()
+
             let (parentPassphrase, parentKey) = try self.getDirectParentPack()
             let parentNodeKey = DecryptionKey(privateKey: parentKey, passphrase: parentPassphrase)
             let addressKeys = try getAddressPublicKeys(email: signatureEmail, addressID: addressID)
-            let decrypted = try Decryptor.decryptAndVerifyNodeName(
-                name,
-                decryptionKeys: parentNodeKey,
-                verificationKeys: addressKeys
-            )
+            let verificationKeys = signatureEmail.isEmpty ? [parentKey] : addressKeys
+            let decrypted: VerifiedText
+            do {
+                decrypted = try Decryptor.decryptAndVerifyNodeName(
+                    name,
+                    decryptionKeys: parentNodeKey,
+                    verificationKeys: verificationKeys
+                )
+            } catch let error where !(error is Decryptor.Errors) {
+                DriveIntegrityErrorMonitor.reportMetadataError(for: self)
+                throw error
+            }
 
+            nameDecryptionFailed = false
             switch decrypted {
             case .verified(let filename):
                 self.clearName = filename
@@ -79,13 +104,12 @@ public extension Node {
 
                 // Signature remark: The Name signature is missing before December 2020. Handle appropriately when we display errors.
             case .unverified(let filename, let error):
-                Log.error(SignatureError(error, "Node Name", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
+                Log.error(error: SignatureError(error, "Node Name", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption, sendToSentryIfPossible: isSignatureVerifiable())
                 self.clearName = filename
                 return filename
             }
-
         } catch {
-            Log.error(DecryptionError(error, "Node Name", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
+            Log.error(error: DecryptionError(error, "Node Name", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
             throw error
         }
     }
@@ -98,7 +122,7 @@ public extension Node {
         return nodeCredentials
     }
     
-    internal func updateNodeKeys(_ nodePassphrase: String, signersKit: SignersKit) throws -> Encryptor.NodeUpdatedCredentials {
+    internal func updateNodeKeys(_ nodePassphrase: String, signersKit: SignersKit) throws -> NodeUpdatedCredentials {
         let (_, parentKey) = try self.getDirectParentPack()
         let credentials = try Encryptor.updateNodeKeys(passphraseString: nodePassphrase,
                                                        addressPassphrase: signersKit.addressPassphrase,
@@ -114,9 +138,18 @@ public extension Node {
         }
         return encryptedName
     }
+    
+    func encryptName(cleartext name: String, parentKey: String, signersKit: SignersKit) throws -> String {
+        return try Encryptor.encryptAndSign(
+            name,
+            key: parentKey,
+            addressPassphrase: signersKit.addressPassphrase,
+            addressPrivateKey: signersKit.addressKey.privateKey
+        )
+    }
 
     // swiftlint:disable:next function_parameter_count
-    internal func renameNode(
+    func renameNode(
         oldEncryptedName: String,
         oldParentKey: String,
         oldParentPassphrase: String,
@@ -151,13 +184,13 @@ public extension Node {
                 newParentKey: newParentKey
             )
         } catch {
-            Log.error(DecryptionError(error, "Node", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
+            Log.error(error: DecryptionError(error, "Node", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
             throw error
         }
     }
 
     /// BE only needs the new NodePassphrase KeyPacket, the DataPacket and the Signature should not change
-    internal func reencryptNodePassphrase(
+    func reencryptNodePassphrase(
         oldNodePassphrase: String,
         oldParentKey: String,
         oldParentPassphrase: String,
@@ -171,13 +204,13 @@ public extension Node {
                 newParentKey: newParentKey
             )
         } catch {
-            Log.error(DecryptionError(error, "Node", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
+            Log.error(error: DecryptionError(error, "Node", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
             throw error
         }
     }
     
     internal func hashFilename(cleartext name: String) throws -> String {
-        guard let parent = self.parentLink else {
+        guard let parent = self.parentNode else {
             throw Errors.invalidFileMetadata
         }
         let parentNodeHashKey = try parent.decryptNodeHashKey()
@@ -188,7 +221,7 @@ public extension Node {
 
 public extension File {
     
-    internal func decryptContentKeyPacket() throws -> Data {
+    func decryptContentKeyPacket() throws -> Data {
         do {
             guard let base64EncodedContentKeyPacket = contentKeyPacket,
                   let contentKeyPacket = Data(base64Encoded: base64EncodedContentKeyPacket) else {
@@ -202,12 +235,18 @@ public extension File {
             let nodeDecryptionKey = DecryptionKey(privateKey: nodeKey, passphrase: nodePassphrase)
             let verificationKeys = [nodeKey] + creatorAddresKeys
 
-            let decrypted = try Decryptor.decryptAndVerifyContentKeyPacket(
-                contentKeyPacket,
-                decryptionKey: nodeDecryptionKey,
-                signature: contentKeyPacketSignature,
-                verificationKeys: verificationKeys
-            )
+            let decrypted: VerifiedBinary
+            do {
+                decrypted = try Decryptor.decryptAndVerifyContentKeyPacket(
+                    contentKeyPacket,
+                    decryptionKey: nodeDecryptionKey,
+                    signature: contentKeyPacketSignature,
+                    verificationKeys: verificationKeys
+                )
+            } catch let error where !(error is Decryptor.Errors) {
+                DriveIntegrityErrorMonitor.reportMetadataError(for: self)
+                throw error
+            }
 
             switch decrypted {
             case .verified(let sessionKey):
@@ -219,11 +258,11 @@ public extension File {
                  2) Previosly the signature was made with the AddressKey but now it's done with the NodeKey
                  */
             case .unverified(let sessionKey, let error):
-                Log.error(SignatureError(error, "File ContentKeyPacket", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
+                Log.error(error: SignatureError(error, "File ContentKeyPacket", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption, sendToSentryIfPossible: isSignatureVerifiable())
                 return sessionKey
             }
         } catch {
-            Log.error(DecryptionError(error, "File ContentKeyPacket", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
+            Log.error(error: DecryptionError(error, "File ContentKeyPacket", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
             throw error
         }
     }
@@ -234,7 +273,7 @@ public extension File {
 
     func reencryptFileName(with newName: String, signersKit: SignersKit) throws  {
         let (_, parentKey) = try getDirectParentPack()
-        guard let hashKey = try? parentLink?.decryptNodeHashKey() else {
+        guard let hashKey = try? parentNode?.decryptNodeHashKey() else {
             throw NSError(domain: "Encryption", code: 1)
         }
         let newHash = try Encryptor.hmac(filename: newName, parentHashKey: hashKey)
@@ -249,53 +288,6 @@ public extension File {
         }
     }
 
-}
-
-public extension Folder {
-    
-    internal func decryptNodeHashKey() throws -> String  {
-        do {
-            let nodePassphrase = try self.decryptPassphrase()
-            let decryptionKey = DecryptionKey(privateKey: nodeKey, passphrase: nodePassphrase)
-
-            guard let nodeHashKey = nodeHashKey else {
-                throw Errors.invalidFileMetadata
-            }
-            guard let signatureEmail = signatureEmail else {
-                throw Errors.noSignatureAddress
-            }
-            
-            let addressVerificationKeys = try getAddressPublicKeys(email: signatureEmail)
-            let verificationKeys = [nodeKey] + addressVerificationKeys
-
-            let decrypted = try Decryptor.decryptAndVerifyNodeHashKey(
-                nodeHashKey,
-                decryptionKeys: [decryptionKey],
-                verificationKeys: verificationKeys
-            )
-
-            switch decrypted {
-            case .verified(let nodeHashKey):
-                return nodeHashKey
-
-            case .unverified(let nodeHashKey, let error):
-                Log.error(SignatureError(error, "Folder NodeHashKey", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
-                return nodeHashKey
-            }
-
-        } catch {
-            Log.error(DecryptionError(error, "Folder NodeHashKey", description: "LinkID: \(id) \nVolumeID: \(volumeID)"), domain: .encryption)
-            throw error
-        }
-    }
-
-    internal func generateHashKey(nodeKey: KeyCredentials) throws -> String {
-        let hashKey = try Encryptor.generateNodeHashKey(
-            nodeKey: nodeKey.key,
-            passphrase: nodeKey.passphraseRaw
-        )
-        return hashKey
-    }
 }
 
 extension SignersKit {

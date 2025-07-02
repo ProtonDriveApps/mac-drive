@@ -66,9 +66,8 @@ final class GroupContainerMigrator: GroupContainerMigratorProtocol {
     }
  
     func migrateUserDefaults() {
-        // there is no kill switch here, because the feture flags are stored in the user defaults,
+        // there is no kill switch here, because the feature flags are stored in the user defaults,
         // so we must migrate their storage before we can check them.
-        // also, the loggers are not available at this point, so we just log to console
         
         guard userDefaultsMigrationHappened != true else {
             appendToDelayedEvents(.info, "GroupContainerMigration: user defaults migration already happened or never needed", false)
@@ -88,10 +87,7 @@ final class GroupContainerMigrator: GroupContainerMigratorProtocol {
     private func appIsRunForTheFirstTimeEver() -> Bool {
         // this relies on these folders being created at the previous app start
         let cleartextCacheDirectoryPath = FileManager.default.temporaryDirectory.appendingPathComponent("Clear").path(percentEncoded: false)
-        let cypherBlocksPermanentDirectoryPath = Constants.appGroup.directoryUrl.appendingPathComponent("Downloads").path(percentEncoded: false)
-        
         let appWasAlreadyRun = FileManager.default.fileExists(atPath: cleartextCacheDirectoryPath)
-        || FileManager.default.fileExists(atPath: cypherBlocksPermanentDirectoryPath)
         return !appWasAlreadyRun
     }
     
@@ -102,9 +98,39 @@ final class GroupContainerMigrator: GroupContainerMigratorProtocol {
             assertionFailure("The user defaults should always be available")
             throw GroupContainerMigratorError.userDefaultsUnavailable
         }
-        
         guard let fromDictionary = fromUserDefaults.persistentDomain(forName: Constants.legacyOldNoLongerUsedAppContainerGroup) else {
-            appendToDelayedEvents(.error, "GroupContainerMigration: old user defaults are empty", true)
+            /*
+             There are no user defaults in the old container. There could be two resons for it:
+               * either the user has not given the access to the old container,
+               * or the old container is already empty, for example because it was already migrated, 
+                 in which case the user has never been shown the popup asking for granting the access.
+
+             To distinguish between the two, we try listing the contents of
+             `~/Library/Group\ Containers/group.ch.protonmail.protondrive/Library/Preferences`
+             which is the path to the location of the shared user defaults in the old container.
+             This will always trigger the permission popup:
+               * if the user will not give the access, the call to fetch the contents will fail with the error, throwing.
+               * if the user gave us the access, we can check if the path is empty:
+                 - if the path is empty, it means there are no user defaults to be moved,
+                   so we can safely set the userDefaultsMigrationHappened to true.
+                 - if the path is not empty, it means there is an actual error scenario, so we throw the
+                   GroupContainerMigratorError.userDefaultsUnavailable error.
+             */
+            let preferencesURL = fileManager
+                .containerURL(forSecurityApplicationGroupIdentifier: Constants.legacyOldNoLongerUsedAppContainerGroup)?
+                .appending(path: "Library", directoryHint: .isDirectory)
+                .appending(path: "Preferences", directoryHint: .isDirectory) // this is the path to the folder with user defaults plist
+            
+            if let preferencesURL {
+                let contents = try fileManager.contentsOfDirectory(at: preferencesURL)
+                if contents.isEmpty {
+                    userDefaultsMigrationHappened = true
+                    appendToDelayedEvents(.info, "GroupContainerMigration: no old user defaults file, nothing to migrate", true)
+                    return
+                }
+            }
+            
+            appendToDelayedEvents(.error, "GroupContainerMigration: old user defaults are empty even though the file exists", true)
             throw GroupContainerMigratorError.userDefaultsUnavailable
         }
         
@@ -123,9 +149,7 @@ final class GroupContainerMigrator: GroupContainerMigratorProtocol {
             hasGroupContainerMigrationHappened = try await migrateDatabases(domainOperationsService, featureFlags)
         } catch {
             hasGroupContainerMigrationHappened = false
-            let nsError = error as NSError
-            Log.error("GroupContainerMigration: migration failed due to \(nsError.localizedDescription), \(nsError.code), \(nsError.userInfo)",
-                      domain: .application)
+            Log.error("GroupContainerMigration: migration failed", error: error, domain: .application)
             presentPopupInformingAboutDomainRemovalForLoggedInUser()
             do {
                 try await handleContainerMigrationError(error, domainOperationsService, logoutClosure)
@@ -142,9 +166,7 @@ final class GroupContainerMigrator: GroupContainerMigratorProtocol {
             hasGroupContainerMigrationHappened = try await migrateDatabases(nil, featureFlags)
         } catch {
             hasGroupContainerMigrationHappened = false
-            let nsError = error as NSError
-            Log.error("GroupContainerMigration: migration failed due to \(nsError.localizedDescription), \(nsError.code), \(nsError.userInfo)",
-                      domain: .application)
+            Log.error("GroupContainerMigration: migration failed", error: error, domain: .application)
             presentPopupInformingAboutDomainRemovalBeforeLogin()
         }
     }
@@ -239,7 +261,7 @@ final class GroupContainerMigrator: GroupContainerMigratorProtocol {
                 .filter { $0.lastPathComponent != "Library" }
                 .filter { $0.lastPathComponent != ".com.apple.containermanagerd.metadata.plist" }
             if !uncopiedItems.isEmpty {
-                Log.error("GroupContainerMigration: some items left at the old container: \(uncopiedItems)", domain: .application)
+                Log.error("GroupContainerMigration: some items left at the old container", domain: .application, context: LogContext("UncopiedItems: \(uncopiedItems)"))
                 assertionFailure("GroupContainerMigration: some items left at the old container")
             }
         } catch {}
@@ -248,7 +270,7 @@ final class GroupContainerMigrator: GroupContainerMigratorProtocol {
     }
     
     private func appendToDelayedEvents(_ level: OSLogType, _ message: String, _ sendToSentry: Bool) {
-        logger.log(level: level, "\(message). Date: (\(Date())")
+        logger.log(level: level, "\(message). Date: (\(Date()))")
         let logLevel: LogLevel
         switch level {
         case .debug: logLevel = .debug
@@ -268,6 +290,7 @@ final class GroupContainerMigrator: GroupContainerMigratorProtocol {
             case .warning: Log.warning(message, domain: domain, sendToSentryIfPossible: sendToSentry)
             case .debug: Log.debug(message, domain: domain, sendToSentryIfPossible: sendToSentry)
             case .error: Log.info(message, domain: domain, sendToSentryIfPossible: sendToSentry)
+            case .trace: break // Traces are never sent to Sentry
             }
         }
         delayedEvents.removeAll()

@@ -36,37 +36,65 @@ extension Block {
                 // empty file does not require decryption
                 return Data()
             }
-
-            guard let encryptedBlockSignature = encSignature else {
-                throw Errors.noEncryptedSignatureOrEmail
-            }
-
             let locallyCalculatedHash = Decryptor.hashSha256(blockDataPacket)
             guard locallyCalculatedHash == sha256 else { throw Errors.tamperedBlock }
 
-            let nodeKey = revision.file.nodeKey
-            let nodePassphrase = try revision.file.decryptPassphrase()
-            let nodeDecryptionKey = DecryptionKey(privateKey: nodeKey, passphrase: nodePassphrase)
+            // If a block lacks a signatureEmail
+            // It means the upload is anonymous and should not include a signature.
+            let isAnonymous = (signatureEmail?.isEmpty ?? true)
+            if isAnonymous {
+                do {
+                    return try Decryptor.decryptBlock(blockDataPacket, sessionKey: contentSessionKey)
+                } catch let error where !(error is Decryptor.Errors) {
+                    DriveIntegrityErrorMonitor.reportContentError(for: revision.file)
+                    throw error
+                }
+            } else {
+                return try decryptAndVerifyBlock(blockDataPacket: blockDataPacket, contentSessionKey: contentSessionKey)
+            }
+        } catch {
+            Log.error(error: DecryptionError(error, "Block", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nVolumeID: \(revision.file.volumeID)"), domain: .encryption)
+            throw error
+        }
+    }
 
-            let decryptedBlockSignature = try Decryptor.decryptBlockSignature(encryptedBlockSignature, nodeDecryptionKey)
-            let addressKeys = try getAddressPublicKeysOfBlockCreator()
-            let decrypted = try Decryptor.decryptAndVerifyBlock(
+    private func decryptAndVerifyBlock(blockDataPacket: Data, contentSessionKey: SessionKey) throws -> Data {
+        guard let encryptedBlockSignature = encSignature else {
+            throw Errors.noEncryptedSignatureOrEmail
+        }
+
+        let nodeKey = revision.file.nodeKey
+        let nodePassphrase = try revision.file.decryptPassphrase()
+        let nodeDecryptionKey = DecryptionKey(privateKey: nodeKey, passphrase: nodePassphrase)
+
+        let decryptedBlockSignature: ArmoredSignature
+        do {
+            decryptedBlockSignature = try Decryptor.decryptBlockSignature(encryptedBlockSignature, nodeDecryptionKey)
+        } catch let error where !(error is Decryptor.Errors) {
+            DriveIntegrityErrorMonitor.reportMetadataError(for: revision.file)
+            throw error
+        }
+
+        let addressKeys = try getAddressPublicKeysOfBlockCreator()
+        let decrypted: VerifiedBinary
+        do {
+            decrypted = try Decryptor.decryptAndVerifyBlock(
                 blockDataPacket,
                 sessionKey: contentSessionKey,
                 signature: decryptedBlockSignature,
                 verificationKeys: addressKeys
             )
-
-            switch decrypted {
-            case .verified(let cleardata):
-                return cleardata
-            case .unverified(let cleardata, let error):
-                Log.error(SignatureError(error, "Block", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nVolumeID: \(revision.file.volumeID)"), domain: .encryption)
-                return cleardata
-            }
-        } catch {
-            Log.error(DecryptionError(error, "Block", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nVolumeID: \(revision.file.volumeID)"), domain: .encryption)
+        } catch let error where !(error is Decryptor.Errors) {
+            DriveIntegrityErrorMonitor.reportContentError(for: revision.file)
             throw error
+        }
+
+        switch decrypted {
+        case .verified(let clearData):
+            return clearData
+        case .unverified(let clearData, let error):
+            Log.error(error: SignatureError(error, "Block", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nVolumeID: \(revision.file.volumeID)"), domain: .encryption, sendToSentryIfPossible: revision.file.isSignatureVerifiable())
+            return clearData
         }
     }
 
@@ -91,10 +119,10 @@ extension Block {
             let blockDecryptionKey = DecryptionKey(privateKey: file.nodeKey, passphrase: passphrase)
             let verificationKeys = try getAddressPublicKeysOfBlockCreator()
 
-            try Decryptor.decryptStream(localUrl, clearUrl, [blockDecryptionKey], keyPacket, verificationKeys, signature)
+            try Decryptor.decryptStream(localUrl, clearUrl, [blockDecryptionKey], keyPacket, verificationKeys, signature, isSignatureVerifiable: file.isSignatureVerifiable)
 
         } catch {
-            Log.error(DecryptionError(error, "Block - stream", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nVolumeID: \(revision.file.volumeID)"), domain: .encryption)
+            Log.error(error: DecryptionError(error, "Block - stream", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nVolumeID: \(revision.file.volumeID)"), domain: .encryption)
             throw error
         }
     }

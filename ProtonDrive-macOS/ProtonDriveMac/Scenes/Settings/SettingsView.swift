@@ -18,12 +18,14 @@
 import SwiftUI
 import PDUIComponents
 import ProtonCoreUIFoundations
+import PDLocalization
+import PDCore
 
 struct SettingsView<ViewModel: SettingsViewModelProtocol>: View {
 
     let minimalSize = CGSize(width: 500.0, height: 500)
-    let idealSize = CGSize(width: 600.0, height: 720)
-    let maxSize = CGSize(width: 800, height: 800)
+    let idealSize = CGSize(width: 680.0, height: 860)
+    let maxSize = CGSize(width: 800, height: 900)
 
     private var viewModel: ViewModel
 
@@ -34,19 +36,29 @@ struct SettingsView<ViewModel: SettingsViewModelProtocol>: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                SettingsSectionView(headline: "Account") {
+                SettingsSectionView(headline: Localization.setting_account) {
                     SettingsAccountSection(viewModel: viewModel)
                 }
 
-                SettingsSectionView(headline: "Storage") {
+                SettingsSectionView(headline: Localization.setting_storage) {
                     SettingsStorageSection(viewModel: viewModel)
                 }
                 
-                SettingsSectionView(headline: "System") {
+                SettingsSectionView(headline: Localization.setting_system) {
                     SettingsSystemSection(viewModel: viewModel)
                 }
+                
+                if viewModel.isFullResyncEnabled {
+                    HideableView(modifier: .option, defaultView: {
+                        EmptyView()
+                    }, pressedView: {
+                        SettingsSectionView(headline: Localization.setting_fix_syncing_issues) {
+                            SettingsFullResyncSection(viewModel: viewModel)
+                        }
+                    })
+                }
 
-                SettingsSectionView(headline: "Get help") {
+                SettingsSectionView(headline: Localization.setting_get_help) {
                     SettingsGetHelpSection(viewModel: viewModel)
                 }
 
@@ -112,8 +124,8 @@ private struct SettingsAccountSection: View {
 
             Spacer()
 
-            Button("Manage account") {
-                viewModel.manageAccount()
+            Button(Localization.setting_account_manage_account) {
+                viewModel.actions.links.manageAccount()
             }
 
         }
@@ -131,43 +143,37 @@ private struct SettingsStorageSection<ViewModel: SettingsViewModelProtocol>: Vie
         self.viewModel = viewModel
     }
 
-    private var storageText: String {
-        let currentStorage = ByteCountFormatter.storageSizeString(forByteCount: viewModel.currentStorageInBytes)
-        let maxStorage = ByteCountFormatter.storageSizeString(forByteCount: viewModel.maxStorageInBytes)
-        return "\(currentStorage) of \(maxStorage) used"
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
 
-            if viewModel.isStorageFull {
+            if viewModel.userInfo.isFull {
                 VStack(alignment: .leading, spacing: 4) {
                     Label {
-                        Text("Out of storage")
+                        Text(Localization.setting_storage_out_of_storage)
                     } icon: {
                         IconProvider.exclamationCircle
                             .resizable()
                             .frame(width: 16, height: 16)
                     }
 
-                    Text("Syncing has been paused. Please upgrade or free up space to resume syncing.")
+                    Text(Localization.setting_storage_out_of_storage_warning)
                 }
                 .foregroundColor(ColorProvider.SignalDanger)
             }
 
             HStack {
                 ProgressView(
-                    value: Double(viewModel.currentStorageInBytes),
-                    total: Double(viewModel.maxStorageInBytes)
+                    value: Double(viewModel.userInfo.usedSpace),
+                    total: Double(viewModel.userInfo.maxSpace)
                 ) {
-                    Text(storageText)
+                    Text(viewModel.userInfo.storageDescription)
                 }
-                .tint(viewModel.isStorageWarning ? ColorProvider.SignalDanger : ColorProvider.InteractionNorm)
+                .tint(viewModel.userInfo.isWarning ? ColorProvider.SignalDanger : ColorProvider.InteractionNorm)
 
                 Spacer(minLength: 55)
 
-                Button("Get more storage") {
-                    viewModel.getMoreStorage()
+                Button(Localization.general_get_more_storage) {
+                    viewModel.actions.links.getMoreStorage()
                 }
                 .buttonStyle(.bordered)
             }
@@ -188,7 +194,7 @@ private struct SettingsSystemSection<ViewModel: SettingsViewModelProtocol>: View
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Toggle(isOn: $viewModel.isLaunchOnBootEnabled) {
-                Text("Launch on startup")
+                Text(Localization.setting_system_launch_on_startup)
                 Spacer()
                     .frame(minWidth: 4, maxWidth: .infinity)
             }
@@ -212,20 +218,20 @@ private struct SettingsSystemSection<ViewModel: SettingsViewModelProtocol>: View
             HStack(alignment: .center) {
                 switch viewModel.updateAvailability {
                 case .readyToInstall:
-                    Text("New version available")
+                    Text(Localization.setting_system_new_version_available)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     Spacer(minLength: 16)
                     
-                    Button("Update now") {
-                        viewModel.installUpdate()
+                    Button(Localization.setting_system_update_button) {
+                        viewModel.actions.app.installUpdate()
                     }
                 case .checking:
-                    Text("Checking for update ...")
+                    Text(Localization.setting_system_checking_update)
                 case .downloading, .extracting:
-                    Text("Downloading new version ...")
+                    Text(Localization.setting_system_downloading)
                 case .upToDate(let version):
-                    Text("Proton Drive is up to date: v\(version)")
+                    Text(Localization.setting_system_up_to_date(version: version))
                 case .errored(let userFacingMessage):
                     Text(userFacingMessage)
                         .fixedSize(horizontal: false, vertical: true)
@@ -233,8 +239,8 @@ private struct SettingsSystemSection<ViewModel: SettingsViewModelProtocol>: View
                     
                     Spacer(minLength: 16)
                     
-                    Button("Retry") {
-                        viewModel.checkForUpdates()
+                    Button(Localization.general_retry) {
+                        viewModel.actions.app.checkForUpdates()
                     }
                 }
             }
@@ -242,10 +248,35 @@ private struct SettingsSystemSection<ViewModel: SettingsViewModelProtocol>: View
         }
         .onAppear {
             #if HAS_BUILTIN_UPDATER
-            viewModel.checkForUpdates()
+            viewModel.actions.app.checkForUpdates()
             #endif
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .padding([.top, .bottom], 12)
+        .padding([.leading, .trailing], 8)
+    }
+}
+
+private struct SettingsFullResyncSection: View {
+    
+    private let viewModel: any SettingsViewModelProtocol
+
+    init(viewModel: any SettingsViewModelProtocol) {
+        self.viewModel = viewModel
+    }
+    
+    var body: some View {
+        HStack(alignment: .center, spacing: 16) {
+            Text("If your app is not syncing correctly, click to automatically refresh your data. It may take a few minutes depending on how many files you have.")
+                
+            Spacer(minLength: 4)
+            
+            Button("Refresh") {
+                viewModel.actions.sync.performFullResync()
+                viewModel.actions.windows.closeSettingsAndShowMainWindow()
+            }
+            .buttonStyle(.bordered)
+        }
         .padding([.top, .bottom], 12)
         .padding([.leading, .trailing], 8)
     }
@@ -259,37 +290,50 @@ private struct SettingsGetHelpSection: View {
         self.viewModel = viewModel
     }
 
-    var string: AttributedString {
-        do {
-            return try AttributedString(markdown: "[support website](\(viewModel.supportWebsiteURL.absoluteString)).")
-        } catch {
-            return AttributedString()
-        }
+    var additionHelp: AttributedString? {
+        let link = SettingsViewModel.supportWebsiteURL.absoluteString
+        return try? AttributedString(markdown: Localization.setting_help_additional_help(link: link))
     }
 
     var body: some View {
         HStack(alignment: .top) {
 
             VStack(alignment: .leading, spacing: 12) {
-                Text("If you are facing any problems, please report the issue.")
+                Text(Localization.setting_help_report_encourage_text)
 
-                Text("You will find additional help on our ") + Text(string)
+                if let additionHelp {
+                    Text(additionHelp)
+                }
             }
 
             Spacer(minLength: 16)
 
             VStack(alignment: .trailing, spacing: 16) {
-                Button("Report an issue") {
-                    viewModel.reportIssue()
+                Button(Localization.setting_help_report_issue) {
+                    viewModel.actions.links.reportBug()
                 }
                 .buttonStyle(.bordered)
 
-                AsyncButton(progressViewSize: CGSize(width: 16, height: 16)) {
-                    try? await viewModel.showLogsInFinder()
-                } label: {
-                    Text("Show logs")
-                }
-                .buttonStyle(.bordered)
+                HideableView(modifier: .option, defaultView: {
+                    AsyncButton(progressViewSize: CGSize(width: 16, height: 16)) {
+                        viewModel.actions.windows.showLogsInFinder()
+                    } label: {
+                        Text(Localization.setting_help_show_logs)
+                    }
+                    .buttonStyle(.bordered)
+                }, pressedView: {
+                    if RuntimeConfiguration.shared.includeTracesInLogs {
+                        Button("Disable detailed logging") {
+                            viewModel.actions.app.toggleDetailedLogging()
+                        }
+                        .buttonStyle(.bordered)
+                    } else {
+                        Button("Detailed logging") {
+                            viewModel.actions.app.toggleDetailedLogging()
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                })
             }
         }
         .padding([.top, .bottom], 12)
@@ -308,10 +352,10 @@ private struct SettingsFooterView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Button {
-                viewModel.signOut()
+                viewModel.actions.account.userRequestedSignOut()
             } label: {
                 Label {
-                    Text("Sign out")
+                    Text(Localization.menu_text_logout)
                 } icon: {
                     IconProvider.arrowOutFromRectangle
                         .resizable()
@@ -323,15 +367,15 @@ private struct SettingsFooterView: View {
             .buttonStyle(.link)
             .accessibilityIdentifier("SettingsView.Button.signOut")
 
-            Button("Terms and Conditions") {
-                viewModel.showTermsAndConditions()
+            Button(Localization.setting_terms_and_condition) {
+                viewModel.actions.links.showTermsAndConditions()
             }
             .foregroundColor(ColorProvider.LinkNorm)
             .buttonStyle(.link)
             .accessibilityIdentifier("SettingsView.Button.termsAndConditions")
 
-            Button("Version \(viewModel.version)") {
-                viewModel.showReleaseNotes()
+            Button(Localization.setting_mac_version(version: viewModel.version)) {
+                viewModel.actions.links.showReleaseNotes()
             }
             .foregroundColor(ColorProvider.LinkNorm)
             .buttonStyle(.link)
@@ -347,31 +391,27 @@ private struct SettingsFooterView: View {
 struct SettingsViewPreview: PreviewProvider {
 
     private final class SettingsViewModelForPreview: SettingsViewModelProtocol {
-        var currentStorageInBytes: Int64 = 10_000_000_000
-        var maxStorageInBytes: Int64 = 20_000_000_000
+        
+        var userInfo = UserInfo(
+            usedSpace: 10_000_000_000,
+            maxSpace: 20_000_000_000,
+            invoiceState: InvoiceUserState.delinquentMedium,
+            isPaid: true)
         var initials: String = "TU"
         var displayName: String = "Test User"
         var emailAddress: String = "testuser@proton.me"
-        var supportWebsiteURL: URL = URL(string: "https://proton.me")!
+        static var supportWebsiteURL: URL = URL(string: "https://proton.me")!
         var version: String = Constants.versionDigits
         var isStorageWarning: Bool = false
         var isStorageFull: Bool = false
         var isLaunchOnBootEnabled: Bool = true
-        var isLoadingLogs: Bool = false
+        var isFullResyncEnabled: Bool = true
         var isSignoutInProgress: Bool = false
         var launchOnBootUserFacingMessage: String?
+        var actions = UserActions(delegate: nil)
+#if HAS_BUILTIN_UPDATER
         var updateAvailability: UpdateAvailabilityStatus = .checking
-
-        func manageAccount() {}
-        func getMoreStorage() {}
-        func reportIssue() {}
-        func showLogsInFinder() async {}
-        func showSupportWebsite() {}
-        func signOut() {}
-        func showTermsAndConditions() {}
-        func installUpdate() {}
-        func checkForUpdates() {}
-        func showReleaseNotes() {}
+#endif
     }
 
     static var previews: some View {

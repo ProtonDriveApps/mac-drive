@@ -71,7 +71,16 @@ public class FolderCreator {
         let nodeKeyPack = try Encryptor.generateNodeKeys(addressPassphrase: signersKit.addressPassphrase, addressPrivateKey: signersKit.addressKey.privateKey, parentKey: parentFolder.nodeKey)
         let hashKey = try Encryptor.generateNodeHashKey(nodeKey: nodeKeyPack.key, passphrase: nodeKeyPack.passphraseRaw)
 
-        let createdFolder = CreatedFolder(volumeID: parentFolder.volumeID, shareID: parentFolder.shareID, name: encryptedName, nameSignatureEmail: signersKit.address.email, nameHash: nameHash, nodeKey: nodeKeyPack.key, nodePassphrase: nodeKeyPack.passphrase, nodePassphraseSignature: nodeKeyPack.signature, nodeHashKey: hashKey)
+        let createdFolder = CreatedFolder(volumeID: parentFolder.volumeID,
+                                          shareID: parentFolder.shareID,
+                                          name: encryptedName,
+                                          nameSignatureEmail: signersKit.address.email,
+                                          nameHash: nameHash,
+                                          nodeKey: nodeKeyPack.key,
+                                          nodePassphrase: nodeKeyPack.passphrase,
+                                          nodePassphraseSignature: nodeKeyPack.signature,
+                                          nodeHashKey: hashKey,
+                                          isInheritingOfflineAvailable: parentFolder.availableOffline)
 
         let parameters = NewFolderParameters(
             name: createdFolder.name,
@@ -88,7 +97,7 @@ public class FolderCreator {
 
         return try await moc.perform {
             let newFolder = Folder.make(from: createdFolder, id: newFolderID, moc: self.moc)
-            newFolder.parentLink = parent.in(moc: self.moc)
+            newFolder.parentFolder = parent.in(moc: self.moc)
 
             try self.moc.saveOrRollback()
 
@@ -109,6 +118,8 @@ private struct CreatedFolder {
     let nodePassphrase: String
     let nodePassphraseSignature: String
     let nodeHashKey: String
+
+    let isInheritingOfflineAvailable: Bool
 }
 
 private extension Folder {
@@ -127,6 +138,10 @@ private extension Folder {
         coreDataFolder.nodePassphraseSignature = createdFolder.nodePassphraseSignature
         coreDataFolder.signatureEmail = createdFolder.nameSignatureEmail // Created at the same time as the nameSignatureEmail, no distinction between them
         coreDataFolder.nodeHashKey = createdFolder.nodeHashKey
+
+        #if os(macOS)
+        coreDataFolder.isInheritingOfflineAvailable = createdFolder.isInheritingOfflineAvailable
+        #endif
 
         coreDataFolder.state = .active
         coreDataFolder.mimeType = Folder.mimeType

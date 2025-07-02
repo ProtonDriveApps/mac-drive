@@ -22,12 +22,14 @@ import ProtonCoreUIFoundations
 public struct TextModifier: ViewModifier {
     let alignment: Alignment
     let fontSize: CGFloat
+    let fontWeight: Font.Weight
     let textColor: Color
     let maxWidth: CGFloat?
     
     public init(
         alignment: Alignment = .leading,
         fontSize: CGFloat = 15,
+        fontWeight: Font.Weight = .regular,
         textColor: Color = ColorProvider.TextWeak,
         maxWidth: CGFloat? = .infinity
     ) {
@@ -35,12 +37,52 @@ public struct TextModifier: ViewModifier {
         self.fontSize = fontSize
         self.textColor = textColor
         self.maxWidth = maxWidth
+        self.fontWeight = fontWeight
     }
     
     public func body(content: Content) -> some View {
         content
             .frame(maxWidth: maxWidth, alignment: alignment)
-            .font(.system(size: fontSize))
+            .font(.system(size: fontSize, weight: fontWeight))
             .foregroundStyle(textColor)
+    }
+}
+
+public struct ResizableTextModifier: ViewModifier {
+    let alignment: Alignment
+    let font: Font
+    let fontWeight: Font.Weight
+    let textColor: Color
+    let maxWidth: CGFloat?
+    
+    public init(
+        alignment: Alignment = .leading,
+        font: Font,
+        fontWeight: Font.Weight = .regular,
+        textColor: Color = ColorProvider.TextWeak,
+        maxWidth: CGFloat? = .infinity
+    ) {
+        self.alignment = alignment
+        self.font = font
+        self.textColor = textColor
+        self.maxWidth = maxWidth
+        self.fontWeight = fontWeight
+    }
+    
+    public func body(content: Content) -> some View {
+        content
+            .frame(maxWidth: maxWidth, alignment: alignment)
+            .font(font.weight(fontWeight))
+            .foregroundStyle(textColor)
+            .multilineTextAlignment(textAlignment)
+    }
+
+    private var textAlignment: TextAlignment {
+        switch alignment {
+        case .center:
+            return .center
+        default:
+            return .leading
+        }
     }
 }

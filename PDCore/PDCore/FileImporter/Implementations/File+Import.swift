@@ -40,6 +40,10 @@ extension File {
         coreDataFile.nameSignatureEmail = file.signatureAddress
         coreDataFile.state = .interrupted
 
+        #if os(macOS)
+        coreDataFile.isInheritingOfflineAvailable = file.isInheritingOfflineAvailable
+        #endif
+
         coreDataFile.uploadID = file.uploadID
         coreDataFile.createdDate = Date()
         coreDataFile.modifiedDate = Date()
@@ -62,6 +66,7 @@ extension File {
     }
 }
 
+// swiftlint:disable function_parameter_count
 extension Revision {
     /// Create a new Revision with the provided id
     static func `import`(id: String, volumeID: String, url: URL, size: Int, creatorEmail: String, moc: NSManagedObjectContext) -> Revision {
@@ -75,3 +80,4 @@ extension Revision {
         return coreDataRevision
     }
 }
+// swiftlint:enable function_parameter_count

@@ -33,6 +33,10 @@ final class UserMessageHandler: UserMessageHandlerProtocol {
         }
     }
 
+    func handleWarning(_ message: String) {
+        
+    }
+
     func handleSuccess(_ message: String) {
         Task { @MainActor in
             let alert = NSAlert()

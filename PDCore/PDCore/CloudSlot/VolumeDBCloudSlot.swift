@@ -20,10 +20,13 @@ import PDClient
 import CoreData
 
 class VolumeDBCloudSlot: CloudSlotProtocol {
+    
     private let storage: StorageManager
     private let apiService: APIService
     private let client: PDClient.Client
     private let cloudSlot: CloudSlotProtocol
+    
+    var moc: NSManagedObjectContext { storage.backgroundContext }
 
     init(
         storage: StorageManager,
@@ -59,7 +62,7 @@ class VolumeDBCloudSlot: CloudSlotProtocol {
     }
 
     func scanChildren(of parentID: NodeIdentifier, parameters: [PDClient.FolderChildrenEndpointParameters]?, handler: @escaping (Result<[Node], any Error>) -> Void) {
-        let context = storage.backgroundContext
+        let context = moc
         let mode: CloudSlot.UpdateMode = (parameters?.containsPagination() ?? false) ? .append : .replace
 
         self.client.getFolderChildren(parentID.shareID, folderID: parentID.nodeID, parameters: parameters) { result in
@@ -90,23 +93,71 @@ class VolumeDBCloudSlot: CloudSlotProtocol {
             }
         }
     }
+    
+    func scanChildren(
+        of parentID: NodeIdentifier,
+        parameters: [PDClient.FolderChildrenEndpointParameters]?
+    ) async throws -> [Node] {
+        let context = moc
+        let mode: CloudSlot.UpdateMode = (parameters?.containsPagination() ?? false) ? .append : .replace
+        
+        let childrenLinksMeta = try await client.getFolderChildren(
+            parentID.shareID,
+            folderID: parentID.nodeID,
+            parameters: parameters
+        )
+        let childrenLinksMetaWithoutDrafts = childrenLinksMeta.filter { $0.state != .draft }
+        return try await context.perform { [weak self] in
+            guard let self else { return [] }
+            let children = self.storage.updateLinks(childrenLinksMetaWithoutDrafts, in: context)
+            let parent = Folder.fetchOrCreate(
+                identifier: AnyVolumeIdentifier(id: parentID.nodeID, volumeID: parentID.volumeID),
+                in: context
+            )
+
+            switch mode {
+            case .replace:
+                parent.children = Set(children)
+            case .append:
+                parent.children.formUnion(Set(children))
+            }
+            try context.saveOrRollback()
+            return children
+        }
+    }
 
     func scanNode(_ nodeID: NodeIdentifier, linkProcessingErrorTransformer: @escaping (PDClient.Link, any Error) -> any Error, handler: @escaping (Result<Node, any Error>) -> Void) {
         // Check in depth
-        let identifier = nodeID
         Task {
             do {
-                let scanner = NodeScanner(client: client, storage: storage)
-                try await scanner.scanNode(identifier)
-                let context = self.storage.backgroundContext
-                // There are a lot of crashes in the Downloader if not done like this
-                let node: Node = try await context.perform { try Node.fetchOrThrow(identifier: identifier, allowSubclasses: true, in: context) }
-                context.performAndWait {
+                let node = try await scanNode(nodeID, linkProcessingErrorTransformer: linkProcessingErrorTransformer)
+                self.moc.performAndWait {
                     handler(.success(node))
                 }
             } catch {
                 handler(.failure(error))
             }
+        }
+    }
+
+    func scanNode(_ nodeID: NodeIdentifier, linkProcessingErrorTransformer: @escaping (Link, Error) -> Error) async throws -> Node {
+        let scanner = NodeScanner(client: client, storage: storage)
+        try await scanner.scanNode(nodeID)
+        let context = self.moc
+        // There are a lot of crashes in the Downloader if not done like this
+        return try await context.perform {
+            try Node.fetchOrThrow(identifier: nodeID, allowSubclasses: true, in: context)
+        }
+    }
+    
+    func scanRevision(_ revisionID: RevisionIdentifier) async throws -> Revision {
+        let identifier = revisionID
+        let scanner = RevisionScanner(client: client, storage: storage)
+        try await scanner.scanRevision(identifier)
+        let context = self.moc
+        // There are a lot of crashes in the Downloader if not done like this
+        return try await context.perform {
+            try Revision.fetchOrThrow(identifier: identifier, allowSubclasses: true, in: context)
         }
     }
 
@@ -116,7 +167,7 @@ class VolumeDBCloudSlot: CloudSlotProtocol {
             do {
                 let scanner = RevisionScanner(client: client, storage: storage)
                 try await scanner.scanRevision(identifier)
-                let context = self.storage.backgroundContext
+                let context = self.moc
                 // There are a lot of crashes in the Downloader if not done like this
                 let revision: Revision = try await context.perform { try Revision.fetchOrThrow(identifier: identifier, allowSubclasses: true, in: context) }
                 context.performAndWait {
@@ -193,7 +244,7 @@ class VolumeDBCloudSlot: CloudSlotProtocol {
     func update(_ links: [LinkMeta], of shareID: ShareMeta.ShareID, in moc: NSManagedObjectContext) -> [NodeObj] {
         var nodes: [Node] = []
         for link in links {
-            let node = storage.updateLink(link, in: moc)
+            let node = storage.updateLink(link, using: moc)
             nodes.append(node)
         }
         return nodes
@@ -202,7 +253,7 @@ class VolumeDBCloudSlot: CloudSlotProtocol {
     func update(links: [PDClient.Link], shareId: String, managedObjectContext: NSManagedObjectContext) throws {
         try managedObjectContext.performAndWait {
             for link in links {
-                storage.updateLink(link, in: managedObjectContext)
+                storage.updateLink(link, using: managedObjectContext)
             }
             try managedObjectContext.saveOrRollback()
         }
@@ -211,6 +262,12 @@ class VolumeDBCloudSlot: CloudSlotProtocol {
     func trash(_ nodes: [TrashingNodeIdentifier]) async throws {
         let trasher = NodeTrasher(client: client, storage: storage)
         try await trasher.trash(nodes)
+    }
+
+    func trashVolume(nodeIDs: [AnyVolumeIdentifier]) async throws {
+        let localTrasher = LocalNodeTrasher(context: storage.backgroundContext)
+        let trasher = VolumeNodeTrasher(client: client, localTrasher: localTrasher)
+        try await trasher.trash(ids: nodeIDs)
     }
 
     func trash(shareID: Client.ShareID, parentID: Client.LinkID, linkIDs: [Client.LinkID]) async throws {
@@ -234,7 +291,7 @@ class VolumeDBCloudSlot: CloudSlotProtocol {
     }
 
     func update(thumbnails: [ThumbnailURL]) throws {
-        let context = storage.backgroundContext
+        let context = moc
         let thumbnailsDictionary = Dictionary(uniqueKeysWithValues: thumbnails.map { (AnyVolumeIdentifier(id: $0.id, volumeID: $0.volumeID), $0.url.absoluteString) })
         let identifiers = Set(thumbnailsDictionary.keys)
 

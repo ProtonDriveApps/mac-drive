@@ -62,7 +62,7 @@ public class MyFilesFileUploader: FileUploader {
                 guard let self = self, !self.didSignOut else { return }
 
                 switch result {
-                case .success(let file):
+                case .success:
                     Log.info("2️⃣ file upload success, retry: \(retryCount), UUID: \(uploadID)", domain: .uploader)
                     self.handleGlobalSuccess(
                         fileDraft: draft,
@@ -71,7 +71,13 @@ public class MyFilesFileUploader: FileUploader {
                     )
 
                 case .failure(let error):
-                    Log.error("2️⃣❌ file upload failure. Error: \(error.localizedDescription), retry: \(retryCount), UUID: \(uploadID)", domain: .uploader)
+                    Log
+                        .error(
+                            "2️⃣❌ file upload failure",
+                            error: error,
+                            domain: .uploader,
+                            context: LogContext("UUID: \(uploadID), retry: \(retryCount)")
+                        )
                     self.handleGlobalError(error, fileDraft: draft, retryCount: retryCount, completion: completion)
                 }
             }
@@ -101,12 +107,10 @@ public class MyFilesFileUploader: FileUploader {
         
         guard !didSignOut else { return }
         completion(.success(fileDraft.file))
-        ObservabilityEnv.report(
-            .uploadSuccessRateEvent(
-                status: .success,
-                retryCount: retryCount,
-                fileDraft: fileDraft
-            )
+        uploadSuccessRateMonitor.incrementSuccess(
+            identifier: fileDraft.file.identifier,
+            shareType: .from(fileDraft: fileDraft),
+            initiator: .from(fileDraft: fileDraft)
         )
     }
 
@@ -151,13 +155,10 @@ public class MyFilesFileUploader: FileUploader {
             file.makeUploadableAgain()
             handleDefaultError(error, completion: completion)
         }
-        
-        ObservabilityEnv.report(
-            .uploadSuccessRateEvent(
-                status: .failure,
-                retryCount: retryCount,
-                fileDraft: fileDraft
-            )
+        uploadSuccessRateMonitor.incrementFailure(
+            identifier: fileDraft.file.identifier,
+            shareType: .from(fileDraft: fileDraft),
+            initiator: .from(fileDraft: fileDraft)
         )
     }
 

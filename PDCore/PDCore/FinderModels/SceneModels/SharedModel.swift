@@ -19,10 +19,6 @@ import Foundation
 import Combine
 import CoreData
 
-public protocol HasSharingControllerProtocol {
-    var hasSharing: Bool { get }
-}
-
 public final class SharedModel: FinderModel, FinderErrorModel, NodesListing, DownloadsListing, NodesSorting {
     // MARK: FinderModel
     public var folder: Folder?
@@ -35,9 +31,8 @@ public final class SharedModel: FinderModel, FinderErrorModel, NodesListing, Dow
     public private(set) var childrenObserver: FetchedObjectsObserver<Node>
     @Published public private(set) var sorting: SortPreference
 
-    private let volumeID: String
+    private let volumeIds: [String]
     private let scanner: PublicLinkScanner
-    private let controller: HasSharingControllerProtocol
 
     // MARK: FinderErrorModel
     public var errorSubject = PassthroughSubject<Error, Never>()
@@ -49,39 +44,28 @@ public final class SharedModel: FinderModel, FinderErrorModel, NodesListing, Dow
     }
 
     // MARK: others
-    public init(tower: Tower, volumeID: String, controller: HasSharingControllerProtocol) {
+    public init(tower: Tower, volumeIds: [String]) {
         self.tower = tower
-        self.volumeID = volumeID
+        self.volumeIds = volumeIds
         self.scanner = PublicLinkScanner(client: tower.client, storage: tower.storage)
-        self.controller = controller
-
-        let children: NSFetchedResultsController<Node>
-        if controller.hasSharing {
-            children = tower.uiSlot!.subscribeToShared(volumeID: volumeID, sorting: tower.localSettings.nodesSortPreference)
-        } else {
-            children = tower.uiSlot!.subscribeToPublicLinkShared(sorting: tower.localSettings.nodesSortPreference)
-        }
-
+        let children = tower.uiSlot!.subscribeToPublicLinkShared(sorting: tower.localSettings.nodesSortPreference)
         self.childrenObserver = FetchedObjectsObserver(children)
-
         self.sorting = self.tower.localSettings.nodesSortPreference
 
         self.sortingObserver = self.tower.localSettings.publisher(for: \.nodesSortPreference)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] sort in
                 guard let self = self else { return }
-                let children: NSFetchedResultsController<Node>
-                if self.controller.hasSharing {
-                    children = tower.uiSlot!.subscribeToShared(volumeID: volumeID, sorting: tower.localSettings.nodesSortPreference)
-                } else {
-                    children = tower.uiSlot!.subscribeToPublicLinkShared(sorting: tower.localSettings.nodesSortPreference)
-                }
+                self.sorting = sort
+                let children = tower.uiSlot!.subscribeToPublicLinkShared(sorting: tower.localSettings.nodesSortPreference)
                 self.childrenObserver.inject(fetchedResultsController: children)
             }
     }
 
     public func fetchSharedByUrl() async throws {
-        try await scanner.scanAllShareURL(volumeID: volumeID)
+        try await volumeIds.forEach { volumeId in
+            try await scanner.scanAllShareURL(volumeID: volumeId)
+        }
     }
 }
 

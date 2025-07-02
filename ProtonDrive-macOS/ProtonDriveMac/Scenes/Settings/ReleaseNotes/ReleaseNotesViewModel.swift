@@ -63,7 +63,7 @@ final class ReleaseNotesViewModel: ReleaseNotesViewModelProtocol {
         do {
             return try String(contentsOfFile: releaseNotesFilePath)
         } catch {
-            Log.error("ReleaseNotes.html file reading failed with error \(error.localizedDescription)", domain: .application)
+            Log.error("ReleaseNotes.html file reading failed", error: error, domain: .application)
             assertionFailure("ReleaseNotes.html file reading failed with error \(error)")
             return ""
         }

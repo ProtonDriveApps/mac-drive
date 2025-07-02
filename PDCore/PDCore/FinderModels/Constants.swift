@@ -22,7 +22,7 @@ public enum RefreshMode {  // request all pages with children when opening the F
 }
 
 public enum Constants {
-    public static let runningInExtension = Bundle.main.bundlePath.hasSuffix(".appex")
+    public static var runningInExtension = Bundle.main.bundlePath.hasSuffix(".appex")
     /// Are we running in an environment where we need to be very cautious about our RAM usage.
     public static let runningInRAMContrainedProcess = {
         #if os(macOS)
@@ -103,4 +103,9 @@ public enum Constants {
     // MARK: - Build type
     @available(*, deprecated, message: "Avoid using. Use injection to differentiate implementation in the top level target instead.")
     public static var buildType = BuildType.prod
+
+    // MARK: - Custom metadata model (overrides current version)
+    public static var metadataModelUnderDevelopment: String? {
+        return nil
+    }
 }

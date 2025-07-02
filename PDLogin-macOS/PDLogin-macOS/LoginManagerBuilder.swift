@@ -24,7 +24,7 @@ import ProtonCoreEnvironment
 
 public protocol LoginManagerBuilder {
     @MainActor
-    func build(in window: NSWindow, completion: @escaping (LoginResult) -> Void) -> LoginManager
+    func build(in window: NSWindow, completion: @escaping (LoginResult) async -> Void) -> LoginManager
 }
 
 public class ConcreteLoginManagerBuilder: LoginManagerBuilder {
@@ -39,7 +39,7 @@ public class ConcreteLoginManagerBuilder: LoginManagerBuilder {
     }
 
     @MainActor
-    public func build(in window: NSWindow, completion: @escaping (LoginResult) -> Void) -> LoginManager {
+    public func build(in window: NSWindow, completion: @escaping (LoginResult) async -> Void) -> LoginManager {
         ConcreteLoginManager(
             window: window,
             clientApp: .drive,

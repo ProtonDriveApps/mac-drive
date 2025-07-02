@@ -17,7 +17,13 @@
       location = "group:PDClient">
    </FileRef>
    <FileRef
-      location = "group:PDLoadTesting">
+      location = "group:PDContacts">
+   </FileRef>
+   <FileRef
+      location = "group:PDDesktopDevKit">
+   </FileRef>
+   <FileRef
+      location = "group:PDFileProviderOperations">
    </FileRef>
    <FileRef
       location = "group:PDUploadVerifier">
@@ -39,5 +45,8 @@
    </FileRef>
    <FileRef
       location = "group:ProtonDrive-macOS/README.md">
+   </FileRef>
+   <FileRef
+      location = "group:.gitignore">
    </FileRef>
 </Workspace>

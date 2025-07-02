@@ -17,20 +17,20 @@
 
 import Foundation
 
-struct DecryptionError: LocalizedError {
+public struct DecryptionError: LocalizedError {
     let error: Error
     let description: String
     let context: String
     let method: StaticString
 
-    init(_ error: Error, _ context: String, description: String? = nil, method: StaticString = #function)  {
+    public init(_ error: Error, _ context: String, description: String? = nil, method: StaticString = #function)  {
         self.error = error
         self.context = context
         self.method = method
         self.description = (description == nil) ? "" : "\n\(description!)"
     }
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         "\(context) - \(method) - Decryption Error ❌" + "\n\(error.localizedDescription)" + description
     }
 }

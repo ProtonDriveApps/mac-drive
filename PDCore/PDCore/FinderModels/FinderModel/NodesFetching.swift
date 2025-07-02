@@ -17,9 +17,11 @@
 
 import Combine
 import PDClient
+import Foundation
 
 public enum NodesFetchingErrors: Error {
     case noCloudInjected
+    case objectIsReleased
 }
 
 public protocol NodesFetching: AnyObject {
@@ -64,10 +66,20 @@ extension NodesFetching where Self: NodesSorting {
                 params.append(.sortBy(sort))
                 params.append(.order(self.sorting.apiOrder))
             }
-            
-            cloud.scanChildren(of: self.currentNodeID, parameters: params) { promise($0) }
+            let parameters = params
+            Task {
+                do {
+                    let children = try await cloud.scanChildren(of: self.currentNodeID, parameters: parameters)
+                    promise(.success(children))
+                } catch {
+                    promise(.failure(error))
+                }
+            }
         }
-        .flatMap { [unowned self] nodes -> AnyPublisher<(nodes: [Node], isLastPage: Bool), Error> in
+        .flatMap { [weak self] nodes -> AnyPublisher<(nodes: [Node], isLastPage: Bool), Error> in
+            guard let self else {
+                return Fail(error: NodesFetchingErrors.objectIsReleased).eraseToAnyPublisher()
+            }
             Log.info("Fetched page: \(self.lastFetchedPage)", domain: .networking)
             let isLastPage = nodes.count < self.pageSize
             if isLastPage {

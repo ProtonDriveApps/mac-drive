@@ -15,11 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
-import GoLibs
+import Foundation
+import ProtonCoreCryptoGoInterface
 
 public enum DriveCrypto {
     public static func keyPacketsCount(in armoredMessage: ArmoredMessage) throws -> Int {
-        let splitMessage = try unwrap { CryptoPGPSplitMessage(fromArmored: armoredMessage) }
+        let splitMessage = try unwrap { CryptoGo.CryptoPGPSplitMessage(fromArmored: armoredMessage) }
         var keyPacketsCount: Int = 0
         try execute {
             try splitMessage.getNumberOfKeyPackets(&keyPacketsCount)
@@ -34,8 +35,8 @@ public enum DriveCrypto {
         privateKey: ArmoredKey,
         passphrase: Passphrase
     ) throws -> Data {
-        let message = try unwrap { CryptoNewPlainMessageFromString(input.trimTrailingSpaces()) }
-        let context = CryptoSigningContext(context.value, isCritical: context.isCritical)
+        let message = try unwrap { CryptoGo.CryptoNewPlainMessageFromString(input.trimTrailingSpaces()) }
+        let context = CryptoGo.CryptoSigningContext(context.value, isCritical: context.isCritical)
         return try signInternal(
             plainMessage: message,
             context: context,
@@ -51,8 +52,8 @@ public enum DriveCrypto {
         privateKey: ArmoredKey,
         passphrase: Passphrase
     ) throws -> Data {
-        let message = try unwrap { CryptoNewPlainMessage(input) }
-        let context = CryptoSigningContext(context, isCritical: true)
+        let message = try unwrap { CryptoGo.CryptoNewPlainMessage(input) }
+        let context = CryptoGo.CryptoSigningContext(context, isCritical: true)
         return try signInternal(
             plainMessage: message,
             context: context,
@@ -68,9 +69,9 @@ public enum DriveCrypto {
         privateKey: String,
         passphrase: String
     ) throws -> Data {
-        let privateKey = try executeAndUnwrap { CryptoNewKeyFromArmored(privateKey, &$0) }
+        let privateKey = try executeAndUnwrap { CryptoGo.CryptoNewKeyFromArmored(privateKey, &$0) }
         let unlockedKey = try privateKey.unlock(passphrase.data(using: .utf8))
-        let keyRing = try executeAndUnwrap { CryptoNewKeyRing(unlockedKey, &$0) }
+        let keyRing = try executeAndUnwrap { CryptoGo.CryptoNewKeyRing(unlockedKey, &$0) }
         defer { keyRing.clearPrivateParams() }
         let pgpSignature = try keyRing.signDetached(withContext: plainMessage, context: context)
         let signature = try executeAndUnwrap { _ in pgpSignature.getBinary() }
@@ -85,10 +86,10 @@ public enum DriveCrypto {
         context: VerificationContext,
         verifyTime: Int64? = nil
     ) throws {
-        let key = try executeAndUnwrap { CryptoNewKeyFromArmored(key, &$0) }
-        let signature = CryptoPGPSignature(signature)
-        let message = CryptoNewPlainMessageFromString(clearText.trimTrailingSpaces())
-        let keyRing = try executeAndUnwrap { CryptoNewKeyRing(key, &$0) }
+        let key = try executeAndUnwrap { CryptoGo.CryptoNewKeyFromArmored(key, &$0) }
+        let signature = CryptoGo.CryptoPGPSignature(signature)
+        let message = CryptoGo.CryptoNewPlainMessageFromString(clearText.trimTrailingSpaces())
+        let keyRing = try executeAndUnwrap { CryptoGo.CryptoNewKeyRing(key, &$0) }
         let context = context.toCryptoVerificationContext()
         try keyRing.verifyDetached(
             withContext: message,
@@ -132,7 +133,7 @@ public enum DriveCrypto {
         
         func toCryptoVerificationContext() -> CryptoVerificationContext? {
             let detail = required.requirementDetails
-            return CryptoVerificationContext(
+            return CryptoGo.CryptoVerificationContext(
                 value,
                 isRequired: detail.isRequired,
                 requiredAfter: Int64(detail.since.timeIntervalSince1970)

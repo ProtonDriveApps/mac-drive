@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "PMEventsManager",
     platforms: [
-        .iOS(.v15),
+        .iOS(.v16),
         .macOS(.v13)]
     ,
     products: [
@@ -15,7 +15,7 @@ let package = Package(
     dependencies: [
 
         // exact version is defined by PDClient
-        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", .suitable),
+        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "32.7.1"),
     ],
     targets: [
         .target(

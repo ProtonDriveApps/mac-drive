@@ -36,7 +36,12 @@ public final class OfflineSaver: NSObject {
     private var cancelables: Set<AnyCancellable> = []
     private var isCleaningUp = false
 
-    init(clientConfig: APIService.Configuration, storage: StorageManager, downloader: Downloader) {
+    init(
+        clientConfig: APIService.Configuration,
+        storage: StorageManager,
+        downloader: Downloader,
+        populatedStateController: PopulatedStateControllerProtocol
+    ) {
         self.storage = storage
         self.downloader = downloader
         self.reachability = nil
@@ -48,14 +53,16 @@ public final class OfflineSaver: NSObject {
         // Progress rebuilding is dangerous task because of KVO and subscriptions involved.
         // We want to make is as seldom as possible, so we wait a couple of seconds after last request
         rebuildProgressSubject
+            .combineLatest(populatedStateController.state)
+            .filter { _, state in state == .populated }
             .throttle(for: .seconds(2), scheduler: DispatchQueue.main, latest: true)
-            .handleEvents(receiveOutput: { [weak self] in
+            .handleEvents(receiveOutput: { [weak self] _ in
                 // Clear the old process with references to the children progresses as soon as possible
                 self?.progress = Progress()
                 Log.info("Did clear old Progress tracking", domain: .downloader)
             })
             .delay(for: .seconds(1), scheduler: DispatchQueue.main)
-            .sink { [weak self] in
+            .sink { [weak self] _ in
                 guard let self, !self.isCleaningUp else { return }
                 self.rebuildProgress()
             }
@@ -72,7 +79,7 @@ public final class OfflineSaver: NSObject {
             try reachability?.startNotifier()
         } catch let error {
             assert(false, error.localizedDescription)
-            Log.error(error, domain: .networking)
+            Log.error(error: error, domain: .networking)
         }
     }
     
@@ -137,7 +144,7 @@ public final class OfflineSaver: NSObject {
                     self.move(file: file, to: .offlineAvailable)
                     Log.info("Offline available 1 file", domain: .downloader)
                 case .failure:
-                    Log.error("Failed to make offline available 1 file", domain: .downloader)
+                    Log.error("Failed to make offline available 1 file", error: nil, domain: .downloader)
                 }
             }
         }.forEach { operation in
@@ -168,7 +175,7 @@ public final class OfflineSaver: NSObject {
                 case .success:
                     Log.info("Scanned 1 folder", domain: .downloader)
                 case .failure:
-                    Log.error("Failed to complete scan of 1 folder", domain: .downloader)
+                    Log.error("Failed to complete scan of 1 folder", error: nil, domain: .downloader)
                 }
             })
         }.forEach { operation in
@@ -184,8 +191,11 @@ public final class OfflineSaver: NSObject {
             $0.setIsInheritingOfflineAvailable(false)
             self.move(file: $0, to: .temporary)
         }
-        
-        self.downloader?.cancel(operationsOf: files.map(\.identifier))
+
+        let identifiers = files
+            .filter { !$0.shareID.isEmpty || !$0.directShares.isEmpty }
+            .map(\.identifier)
+        self.downloader?.cancel(operationsOf: identifiers)
     }
     
     private func uncheckMarked(folders: [Folder]) {
@@ -224,7 +234,7 @@ extension OfflineSaver: NSFetchedResultsControllerDelegate {
             try frc.performFetch()
         } catch let error {
             assertionFailure(error.localizedDescription)
-            Log.error("Failed to fetch nodes marked for Offline Available", domain: .storage)
+            Log.error("Failed to fetch nodes marked for Offline Available", error: nil, domain: .storage)
         }
     }
     
@@ -272,7 +282,7 @@ extension OfflineSaver: NSFetchedResultsControllerDelegate {
         
         self.progress = Progress()
         self.downloader?.queue.operations
-            .filter { !$0.isCancelled && $0 is DownloadFileOperation }
+            .filter { !$0.isCancelled && $0 is LegacyDownloadFileOperation }
             .compactMap { $0 as? OperationWithProgress }
             .forEach {
                 self.progress.totalUnitCount += 1

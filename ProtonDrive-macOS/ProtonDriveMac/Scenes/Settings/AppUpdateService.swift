@@ -15,12 +15,26 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
-#if HAS_BUILTIN_UPDATER
+#if !HAS_BUILTIN_UPDATER
+
+/// When not using Sparkle we exclude all updater-related code during compilation,
+/// but we still need a protocol for use in method signatures, where we would have passed in an updater if we had one.
+protocol AppUpdateServiceProtocol: AnyObject {}
+
+#else
 
 import AppKit
 import Combine
 import PDCore
 import Sparkle
+
+protocol AppUpdateServiceProtocol: AnyObject {
+    var updater: SPUUpdater { get }
+    var updateAvailability: UpdateAvailabilityStatus { get }
+    var updateAvailabilityPublisher: AnyPublisher<UpdateAvailabilityStatus, Never> { get }
+    func installUpdateIfAvailable()
+    func checkForUpdates()
+}
 
 enum UpdateAvailabilityStatus: Equatable {
     case upToDate(version: String)
@@ -29,13 +43,6 @@ enum UpdateAvailabilityStatus: Equatable {
     case extracting(version: String)
     case readyToInstall(version: String)
     case errored(userFacingMessage: String)
-}
-
-protocol AppUpdateServiceProtocol: AnyObject {
-    var updateAvailability: UpdateAvailabilityStatus { get }
-    var updateAvailabilityPublisher: AnyPublisher<UpdateAvailabilityStatus, Never> { get }
-    func installUpdateIfAvailable()
-    func checkForUpdates()
 }
 
 enum AppUpdateChannel: String, CaseIterable {
@@ -102,7 +109,7 @@ final class SparkleAppUpdateService: NSObject, AppUpdateServiceProtocol, SPUUpda
     var updater: SPUUpdater { updaterController.updater }
     var updaterController: SPUStandardUpdaterController!
     #else
-    private var updater: SPUUpdater { updaterController.updater }
+    var updater: SPUUpdater { updaterController.updater }
     private var updaterController: SPUStandardUpdaterController!
     #endif
     
@@ -159,9 +166,7 @@ extension SparkleAppUpdateService {
     }
     
     func allowedChannels(for updater: SPUUpdater) -> Set<String> {
-        #if LOAD_TESTING
-        return []
-        #elseif HAS_QA_FEATURES
+        #if HAS_QA_FEATURES
         updateChannel.map { [$0] } ?? []
         #else
         // we only allow the stable channel in non-QA builds
@@ -408,5 +413,4 @@ extension SparkleAppUpdateService {
         Log.error(errorMessage(error), domain: .updater)
     }
 }
-
 #endif

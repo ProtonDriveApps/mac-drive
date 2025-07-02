@@ -19,13 +19,13 @@ import Combine
 import Foundation
 import PDCore
 
-/// Monitors any changes to the metadata DB and updates the app's behavior accordingly
+/// Monitors changes to UserDefaults which indicate that the metadata DB has been updated, and propagates them to `EventsSystemManager`.
+/// The changes are saved to UserDefaults by the File Provider, and observed by `SyncObserver`.
+/// The observed property is called `metadataDBUpdate` and contains the timestamp of the latest update.
+/// There are also a `syncErrorDBUpdate` and `syncing` properties, but those are observed by `SyncObserver` directly.
 class MetadataMonitor {
 
-    let syncErrorDBUpdatePublisher = PassthroughSubject<Int, Never>()
-
     let storage: StorageManager
-    let syncStorage: SyncStorageManager?
     let sessionVault: SessionVault
 
     private let eventsProcessor: EventsSystemManager
@@ -35,52 +35,45 @@ class MetadataMonitor {
 
     init(eventsProcessor: EventsSystemManager,
          storage: StorageManager,
-         syncStorage: SyncStorageManager?,
          sessionVault: SessionVault,
          observationCenter: UserDefaultsObservationCenter) {
         self.eventsProcessor = eventsProcessor
         self.storage = storage
-        self.syncStorage = syncStorage
         self.sessionVault = sessionVault
         self.observationCenter = observationCenter
 
-        self.cleanSyncStorage()
-        self.manageEventSystem()
+        Log.trace()
+    }
+
+    func startObserving() {
+        self.toggleEventSystem()
 
         observationCenter.addObserver(self, of: \.metadataDBUpdate) { [unowned self] _ in
-            self.metadataDBUpdated()
-        }
-
-        observationCenter.addObserver(self, of: \.syncErrorDBUpdate) { [unowned self] _ in
-            guard let storage = self.syncStorage else {
-                Log.error("Storage for Syncing not found", domain: .storage)
-                return
-            }
-            let errorsCount = storage.syncErrorsCount(in: storage.mainContext)
-            self.syncErrorDBUpdatePublisher.send(errorsCount)
+            Log.trace("metadataDBUpdate updated")
+            self.toggleEventSystem()
         }
     }
 
-    deinit {
+    private func stopObserving() {
         observationCenter.removeObserver(self)
         eventsProcessor.pauseEventsSystem()
     }
 
-    private func metadataDBUpdated() {
-        manageEventSystem()
-    }
-
     /// Starts or stops the event system depending on the state of the metadata DB
-    private func manageEventSystem() {
+    private func toggleEventSystem() {
+        Log.trace()
+
         let moc = self.storage.backgroundContext
         moc.performAndWait {
             let addressIDs = self.sessionVault.addressIDs
-            if let mainShare = storage.mainShareOfVolume(by: addressIDs, moc: moc) {
+            if storage.mainShareOfVolume(by: addressIDs, moc: moc) != nil {
+                Log.trace("Has mainShareOfVolume")
                 guard !askedToStartEventsProcessor && !eventsProcessor.eventProcessorIsRunning else { return } // already started
 
                 self.askedToStartEventsProcessor = true
                 self.eventsProcessor.runEventsSystem()
             } else {
+                Log.trace("No mainShareOfVolume")
                 guard eventsProcessor.eventProcessorIsRunning else { return } // already stopped
 
                 self.eventsProcessor.pauseEventsSystem()
@@ -89,14 +82,8 @@ class MetadataMonitor {
         }
     }
 
-    private func cleanSyncStorage() {
-        if let syncStorage {
-            let moc = syncStorage.mainContext
-            do {
-                try syncStorage.deleteSyncItems(olderThan: syncStorage.oldItemsRelativeDate, in: moc)
-            } catch {
-                Log.error("Failed to delete sync items: \(error.localizedDescription)", domain: .storage)
-            }
-        }
+    deinit {
+        Log.trace()
+        stopObserving()
     }
 }

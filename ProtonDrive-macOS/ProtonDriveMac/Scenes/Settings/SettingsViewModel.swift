@@ -19,43 +19,30 @@ import AppKit
 import Combine
 import PDCore
 import SwiftUI
+import PDLocalization
 
-protocol SettingsViewModelDelegate: AnyObject {
-    func reportIssue()
-    func showLogsInFinder() async throws
-    func showReleaseNotes()
-    func userRequestedSignOut() async
+extension UserInfo {
+    var storageDescription: String {
+        let currentStorage = ByteCountFormatter.storageSizeString(forByteCount: usedSpace)
+        let maxStorage = ByteCountFormatter.storageSizeString(forByteCount: maxSpace)
+        return Localization.setting_storage_usage_info(currentStorage: currentStorage, maxStorage: maxStorage)
+    }
 }
 
 protocol SettingsViewModelProtocol: ObservableObject {
-    var currentStorageInBytes: Int64 { get }
-    var maxStorageInBytes: Int64 { get }
     var initials: String { get }
     var displayName: String { get }
     var emailAddress: String { get }
-    var supportWebsiteURL: URL { get }
+    var userInfo: UserInfo { get }
+    static var supportWebsiteURL: URL { get }
     var version: String { get }
-    var isStorageWarning: Bool { get }
-    var isStorageFull: Bool { get }
-    var isLoadingLogs: Bool { get }
     var isSignoutInProgress: Bool { get }
     var isLaunchOnBootEnabled: Bool { get set }
+    var isFullResyncEnabled: Bool { get }
     var launchOnBootUserFacingMessage: String? { get }
+    var actions: UserActions { get }
     #if HAS_BUILTIN_UPDATER
     var updateAvailability: UpdateAvailabilityStatus { get }
-    #endif
-
-    func getMoreStorage()
-    func manageAccount()
-    func reportIssue()
-    func showLogsInFinder() async throws
-    func showSupportWebsite()
-    func showTermsAndConditions()
-    func showReleaseNotes()
-    func signOut()
-    #if HAS_BUILTIN_UPDATER
-    func installUpdate()
-    func checkForUpdates()
     #endif
 }
 
@@ -67,101 +54,62 @@ final class SettingsViewModel: SettingsViewModelProtocol {
 
     let version: String = Constants.versionDigits
 
-    @Published var currentStorageInBytes: Int64
-    @Published var maxStorageInBytes: Int64
-    @Published var isStorageWarning: Bool
-    @Published var isStorageFull: Bool
-    @Published var isLoadingLogs: Bool = false
+    @Published var userInfo: UserInfo
     @Published var isSignoutInProgress: Bool = false
     #if HAS_BUILTIN_UPDATER
     @Published var updateAvailability: UpdateAvailabilityStatus
     #endif
 
-    let supportWebsiteURL: URL = URL(string: "https://proton.me/support/drive")!
-    private let manageAccountURL: URL = URL(string: "https://account.proton.me/drive/account-password")!
-    private let getMoreStorageURL: URL = URL(string: "https://account.proton.me/drive/dashboard")!
-    private let termsAndConditionsURL: URL = URL(string: "https://proton.me/legal/terms-ios")!
+    static let supportWebsiteURL: URL = URL(string: "https://proton.me/support/drive")!
 
     private let sessionVault: SessionVault
     private let launchOnBootService: LaunchOnBootServiceProtocol
-    #if HAS_BUILTIN_UPDATER
-    private var appUpdateService: any AppUpdateServiceProtocol
-    #endif
+    private var appUpdateService: AppUpdateServiceProtocol?
     private let accountInfo: AccountInfo
 
     @Published var isLaunchOnBootEnabled: Bool
     @Published var launchOnBootUserFacingMessage: String?
+    @Published var isFullResyncEnabled: Bool
     private var cancellables: Set<AnyCancellable> = []
-    
-    private weak var delegate: SettingsViewModelDelegate?
-    #if HAS_BUILTIN_UPDATER
-    init(delegate: SettingsViewModelDelegate?,
-         sessionVault: SessionVault,
-         launchOnBootService: LaunchOnBootServiceProtocol,
-         appUpdateService: AppUpdateServiceProtocol) {
 
-        self.delegate = delegate
+    let actions: UserActions
+
+    init(sessionVault: SessionVault,
+         launchOnBootService: LaunchOnBootServiceProtocol,
+         appUpdateService: AppUpdateServiceProtocol?,
+         userActions: UserActions,
+         isFullResyncEnabled: Bool) {
         self.launchOnBootService = launchOnBootService
         self.appUpdateService = appUpdateService
+        self.actions = userActions
 
         guard let accountInfo = sessionVault.getAccountInfo(),
               let userInfo = sessionVault.getUserInfo()
         else {
             fatalError("Can't show account settings because account or user info missing")
         }
-        
-        self.currentStorageInBytes = Int64(userInfo.usedSpace)
-        self.maxStorageInBytes = Int64(userInfo.maxSpace)
-        self.isStorageWarning = SettingsViewModel.calculateStorageWarning(userInfo)
-        self.isStorageFull = SettingsViewModel.calculateStorageFull(userInfo)
 
-        self.accountInfo = accountInfo
-        self.sessionVault = sessionVault
-
-        self.isLaunchOnBootEnabled = launchOnBootService.isLaunchOnBootEnabled
-        self.launchOnBootUserFacingMessage = launchOnBootService.launchOnBootUserFacingMessage
-
-        self.updateAvailability = appUpdateService.updateAvailability
-
-        subscribeToNotifications()
-    }
-    #else
-    init(delegate: SettingsViewModelDelegate?,
-         sessionVault: SessionVault,
-         launchOnBootService: LaunchOnBootServiceProtocol) {
-
-        self.delegate = delegate
-        self.launchOnBootService = launchOnBootService
-
-        guard let accountInfo = sessionVault.getAccountInfo(),
-              let userInfo = sessionVault.getUserInfo()
-        else {
-            fatalError("Can't show account settings because account or user info missing")
-        }
-        
-        self.currentStorageInBytes = Int64(userInfo.usedSpace)
-        self.maxStorageInBytes = Int64(userInfo.maxSpace)
-        self.isStorageWarning = SettingsViewModel.calculateStorageWarning(userInfo)
-        self.isStorageFull = SettingsViewModel.calculateStorageFull(userInfo)
-
+        self.userInfo = userInfo
         self.accountInfo = accountInfo
         self.sessionVault = sessionVault
 
         self.isLaunchOnBootEnabled = launchOnBootService.isLaunchOnBootEnabled
         self.launchOnBootUserFacingMessage = launchOnBootService.launchOnBootUserFacingMessage
         
+        self.isFullResyncEnabled = isFullResyncEnabled
+
+#if HAS_BUILTIN_UPDATER
+        self.updateAvailability = appUpdateService?.updateAvailability ?? .upToDate(version: "")
+#endif
+
         subscribeToNotifications()
     }
-    #endif
     
     private func subscribeToNotifications() {
         sessionVault.userInfoPublisher
             .receive(on: DispatchQueue.main)
             .sink { [unowned self] userInfo in
-                self.currentStorageInBytes = Int64(userInfo.usedSpace)
-                self.maxStorageInBytes = Int64(userInfo.maxSpace)
-                self.isStorageWarning = SettingsViewModel.calculateStorageWarning(userInfo)
-                self.isStorageFull = SettingsViewModel.calculateStorageFull(userInfo)
+                self.userInfo = userInfo
             }
             .store(in: &cancellables)
         
@@ -181,7 +129,7 @@ final class SettingsViewModel: SettingsViewModelProtocol {
             .store(in: &cancellables)
 
         #if HAS_BUILTIN_UPDATER
-        appUpdateService.updateAvailabilityPublisher
+        appUpdateService?.updateAvailabilityPublisher
             .receive(on: DispatchQueue.main)
             .sink { [unowned self] in
                 self.updateAvailability = $0
@@ -189,73 +137,14 @@ final class SettingsViewModel: SettingsViewModelProtocol {
             .store(in: &cancellables)
         #endif
     }
-    
-    private static func calculateStorageWarning(_ userInfo: UserInfo) -> Bool {
-        userInfo.usedSpace / userInfo.maxSpace > 0.8
-    }
-    
-    private static func calculateStorageFull(_ userInfo: UserInfo) -> Bool {
-        userInfo.availableStorage == 0
-    }
-
-    func manageAccount() {
-        open(url: manageAccountURL)
-    }
-
-    func getMoreStorage() {
-        open(url: getMoreStorageURL)
-    }
-
-    func reportIssue() {
-        delegate?.reportIssue()
-    }
-
-    @MainActor
-    func showLogsInFinder() async throws {
-        isLoadingLogs = true
-        do {
-            try await delegate?.showLogsInFinder()
-            Log.info("Showing Logs in Finder succeeded", domain: .fileManager)
-            isLoadingLogs = false
-        } catch {
-            Log.error("Failed to show Logs in Finder: \(error.localizedDescription)", domain: .fileManager)
-            isLoadingLogs = false
-        }
-    }
-
-    func showSupportWebsite() {
-        open(url: supportWebsiteURL)
-    }
 
     func signOut() {
         isSignoutInProgress = true
         Task { [weak self] in
-            await self?.delegate?.userRequestedSignOut()
+            self?.actions.account.userRequestedSignOut()
             await MainActor.run { [weak self] in
                 self?.isSignoutInProgress = false
             }
         }
-    }
-
-    func showTermsAndConditions() {
-        open(url: termsAndConditionsURL)
-    }
-    
-    func showReleaseNotes() {
-        delegate?.showReleaseNotes()
-    }
-    
-    #if HAS_BUILTIN_UPDATER
-    func installUpdate() {
-        appUpdateService.installUpdateIfAvailable()
-    }
-    
-    func checkForUpdates() {
-        appUpdateService.checkForUpdates()
-    }
-    #endif
-
-    private func open(url: URL) {
-        _ = NSWorkspace.shared.open(url)
     }
 }

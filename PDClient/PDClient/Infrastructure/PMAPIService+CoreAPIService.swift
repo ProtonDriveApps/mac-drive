@@ -18,11 +18,20 @@
 import Foundation
 import ProtonCoreServices
 import ProtonCoreNetworking
+import ProtonCoreUtilities
 
 extension PMAPIService: CoreAPIService {
     
     public func perform(request route: Request, completion: @escaping (URLSessionDataTask?, Result<JSONDictionary, ResponseError>) -> Void) {
         self.perform(request: route, jsonDictionaryCompletion: completion)
+    }
+    
+    public func perform(
+        request route: Request,
+        callCompletionBlockUsing executor: CompletionBlockExecutor,
+        completion: @escaping (URLSessionDataTask?, Result<JSONDictionary, ResponseError>) -> Void
+    ) {
+        self.perform(request: route, callCompletionBlockUsing: executor, jsonDictionaryCompletion: completion)
     }
 
     public func perform(request route: Request, dataTaskBlock: @escaping (URLSessionDataTask) -> Void, completion: @escaping (_ task: URLSessionDataTask?, _ result: Result<JSONDictionary, ResponseError>) -> Void) {

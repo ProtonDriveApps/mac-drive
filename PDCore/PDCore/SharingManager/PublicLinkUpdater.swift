@@ -19,7 +19,7 @@ import Foundation
 import PDClient
 
 public protocol PublicLinkUpdater {
-    func updatePublicLink(_ identifier: PublicLinkIdentifier, node: NodeIdentifier, with details: UpdateShareURLDetails) async throws
+    func updatePublicLink(_ identifier: PublicLinkIdentifier, with details: UpdateShareURLDetails) async throws
 }
 
 public final class RemoteCachingPublicLinkUpdater: PublicLinkUpdater {
@@ -34,8 +34,8 @@ public final class RemoteCachingPublicLinkUpdater: PublicLinkUpdater {
         self.signersKitFactory = signersKitFactory
     }
 
-    public func updatePublicLink(_ identifier: PublicLinkIdentifier, node: NodeIdentifier, with details: UpdateShareURLDetails) async throws {
-        Log.info("SharingManager.updateSecureLink, will update a secure link details \(node)", domain: .sharing)
+    public func updatePublicLink(_ identifier: PublicLinkIdentifier, with details: UpdateShareURLDetails) async throws {
+        Log.info("SharingManager.updateSecureLink, will update a secure link details \(identifier)", domain: .sharing)
         let context = storage.backgroundContext
 
         let shareURL = try await context.perform {
@@ -45,7 +45,7 @@ public final class RemoteCachingPublicLinkUpdater: PublicLinkUpdater {
             return shareURL
         }
 
-        let shareUrlMeta = try await updateShareURL(shareURL: shareURL, node: node, details: details)
+        let shareUrlMeta = try await updateShareURL(shareURL: shareURL, details: details)
 
         return try await context.perform {
             self.storage.updateShareURL(shareUrlMeta, in: context)
@@ -54,90 +54,61 @@ public final class RemoteCachingPublicLinkUpdater: PublicLinkUpdater {
     }
 
     /// Internal for unit tests only, returns metadata
-    func updateShareURL(shareURL: ShareURL, node: NodeIdentifier, details: UpdateShareURLDetails) async throws -> ShareUrlMeta {
-        switch (details.password, details.duration) {
-            // Call pure update expiration with value
-        case (.unchanged, .expiring(let duration)):
-            try await updatePureDateExpiration(shareURL: shareURL, expirationDuration: Int(duration))
-
-            // Call pure update expiration with nil
-        case (.unchanged, .nonExpiring):
-            try await updatePureDateExpiration(shareURL: shareURL, expirationDuration: nil)
-
-            // Call pure update password
-        case (.updated(let password), .unchanged):
-            try await updatePurePassword(shareURL: shareURL, newPassword: password)
-
-        case (.updated(let password), .expiring(let duration)):
-            // Call mixed update password and expiration
-            try await updateMixedPasswordExpiration(shareURL: shareURL, newPassword: password, expirationDuration: Int(duration))
-
-            // Call mixed update password and expiration
-        case (.updated(let password), .nonExpiring):
-            try await updateMixedPasswordExpiration(shareURL: shareURL, newPassword: password, expirationDuration: nil)
-
-            // (.unchanged, .unchanged)
-        default:
-            fatalError("Should not happen, (.unchanged, .unchanged)")
+    private func updateShareURL(
+        shareURL: ShareURL,
+        details: UpdateShareURLDetails
+    ) async throws -> ShareUrlMeta {
+        let expirationParameter = makeExpirationParameter(duration: details.duration)
+        let passwordParameter = try await makePasswordParameter(shareURL: shareURL, password: details.password)
+        let permissionParameter = makePermissionParameter(permissions: details.permission)
+        let parameters = EditShareURLUpdateParameters(
+            expirationParameters: expirationParameter,
+            passwordParameters: passwordParameter,
+            permissionParameters: permissionParameter
+        )
+        
+        let (shareID, shareURLID) = await storage.backgroundContext.perform {
+            return (shareURL.share.id, shareURL.id)
         }
-    }
-
-    private func updatePureDateExpiration(shareURL: ShareURL, expirationDuration: Int?) async throws -> ShareUrlMeta {
-        let context = storage.backgroundContext
-
-        let (parameters, shareID, shareURLID) = await context.perform {
-            return (
-                EditShareURLExpiration(expirationDuration: expirationDuration),
-                shareURL.share.id,
-                shareURL.id
-            )
-        }
-
         return try await client.updateShareURL(shareURLID: shareURLID, shareID: shareID, parameters: parameters)
     }
-
-    private func updatePurePassword(shareURL: ShareURL, newPassword: String) async throws -> ShareUrlMeta {
-        guard newPassword.count >= Constants.minSharedLinkRandomPasswordSize,
-              newPassword.count <= Constants.maxSharedLinkPasswordLength else {
-            throw DriveError("The new Public Link password does not fit Public Link password requirements.")
+    
+    private func makeExpirationParameter(duration: UpdateShareURLDetails.Duration) -> EditShareURLExpiration? {
+        switch duration {
+        case .unchanged:
+            return nil
+        case .nonExpiring:
+            return .init(expirationDuration: nil)
+        case .expiring(let timeInterval):
+            return .init(expirationDuration: Int(timeInterval))
         }
-        let context = storage.backgroundContext
-
-        let modulusResponse = try await client.getModulusSRP()
-
-        let (parameters, shareID, shareURLID) = try await context.perform {
-            return (
-                try self.makeUpdatedPassword(share: shareURL.share, urlPassword: newPassword, modulus: modulusResponse.modulus, modulusID: modulusResponse.modulusID),
-                shareURL.share.id,
-                shareURL.id
-            )
-        }
-
-        return try await client.updateShareURL(shareURLID: shareURLID, shareID: shareID, parameters: parameters)
     }
-
-    private func updateMixedPasswordExpiration(shareURL: ShareURL, newPassword: String, expirationDuration: Int?) async throws -> ShareUrlMeta {
-        guard newPassword.count >= Constants.minSharedLinkRandomPasswordSize,
-              newPassword.count <= Constants.maxSharedLinkPasswordLength else {
-            throw DriveError("The new Public Link password does not fit Public Link password requirements.")
+    
+    private func makePasswordParameter(
+        shareURL: ShareURL,
+        password: UpdateShareURLDetails.Password
+    ) async throws -> EditShareURLPassword? {
+        switch password {
+        case .unchanged:
+            return nil
+        case .updated(let newPassword):
+            guard newPassword.count >= Constants.minSharedLinkRandomPasswordSize,
+                  newPassword.count <= Constants.maxSharedLinkPasswordLength else {
+                throw DriveError("The new Public Link password does not fit Public Link password requirements.")
+            }
+            let modulusResponse = try await client.getModulusSRP()
+            let context = storage.backgroundContext
+            return try await context.perform {
+                try self.makeUpdatedPassword(
+                    share: shareURL.share,
+                    urlPassword: newPassword,
+                    modulus: modulusResponse.modulus,
+                    modulusID: modulusResponse.modulusID
+                )
+            }
         }
-        let context = storage.backgroundContext
-
-        let modulusResponse = try await client.getModulusSRP()
-
-        let (expirationParameters, passwordParameters, shareID, shareURLID) = try await context.perform {
-            return (
-                EditShareURLExpiration(expirationDuration: expirationDuration),
-                try self.makeUpdatedPassword(share: shareURL.share, urlPassword: newPassword, modulus: modulusResponse.modulus, modulusID: modulusResponse.modulusID),
-                shareURL.share.id,
-                shareURL.id
-            )
-        }
-
-        let parameters = EditShareURLPasswordAndDuration(expirationParameters, passwordParameters)
-        return try await client.updateShareURL(shareURLID: shareURLID, shareID: shareID, parameters: parameters)
     }
-
+    
     private func makeUpdatedPassword(share: Share, urlPassword: String, modulus: String, modulusID: String) throws -> EditShareURLPassword {
         let addressID = try share.getAddressID()
         let currentAddressKey = try signersKitFactory.make(forAddressID: addressID).addressKey.publicKey
@@ -164,5 +135,16 @@ public final class RemoteCachingPublicLinkUpdater: PublicLinkUpdater {
             sharePassphraseKeyPacket: shareKeyPacket,
             encryptedUrlPassword: encryptedPassword
         )
+    }
+    
+    private func makePermissionParameter(permissions: UpdateShareURLDetails.Permissions) -> EditShareURLPermissions? {
+        switch permissions {
+        case .unchanged:
+            return nil
+        case .read:
+            return .init(permissions: .read)
+        case .readAndWrite:
+            return .init(permissions: [.read, .write])
+        }
     }
 }

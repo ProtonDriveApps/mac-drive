@@ -26,13 +26,21 @@ protocol PostLoginServicesBuilder {
 class ConcretePostLoginServicesBuilder: PostLoginServicesBuilder {
     private let initialServices: InitialServices
     private let eventProcessingMode: DriveEventsLoopMode
+    private let eventLoopInterval: Double
 
-    init(initialServices: InitialServices, eventProcessingMode: DriveEventsLoopMode) {
+    init(initialServices: InitialServices, eventProcessingMode: DriveEventsLoopMode, eventLoopInterval: Double) {
         self.initialServices = initialServices
         self.eventProcessingMode = eventProcessingMode
+        self.eventLoopInterval = eventLoopInterval
     }
 
     func build(with observers: [EventsListener], activityObserver: @escaping ((NSUserActivity) -> Void)) -> PostLoginServices {
-        PostLoginServices(initialServices: initialServices, appGroup: Constants.appGroup, eventObservers: observers, eventProcessingMode: eventProcessingMode, uploadVerifierFactory: ConcreteUploadVerifierFactory(), activityObserver: activityObserver)
+        PostLoginServices(initialServices: initialServices,
+                          appGroup: Constants.appGroup,
+                          eventObservers: observers,
+                          eventProcessingMode: eventProcessingMode,
+                          eventLoopInterval: eventLoopInterval,
+                          uploadVerifierFactory: ConcreteUploadVerifierFactory(),
+                          activityObserver: activityObserver)
     }
 }

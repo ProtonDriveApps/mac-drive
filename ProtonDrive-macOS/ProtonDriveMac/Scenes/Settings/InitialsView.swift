@@ -33,7 +33,7 @@ struct InitialsView: View {
 
             Text(initials)
                 .font(.system(size: 12))
-                .foregroundColor(ColorProvider.TextInvert)
+                .foregroundColor(ColorProvider.White)
         }
     }
 }

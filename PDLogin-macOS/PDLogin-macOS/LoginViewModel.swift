@@ -18,6 +18,7 @@
 import AppKit
 import Foundation
 import ProtonCoreLogin
+import ProtonCoreEnvironment
 import PDUIComponents
 
 final class LoginViewModel: ObservableObject {
@@ -31,11 +32,21 @@ final class LoginViewModel: ObservableObject {
     @Published var usernameValidationFailureMessage: String?
     @Published var passwordValidationFailureMessage: String?
     @Published var loginButtonTitle: String = "Sign in"
+    var usernameFieldLabel: String {
+        if self.domain.hasSuffix(Environment.driveProd.doh.signupDomain) {
+            "Email or username"
+        } else {
+            "Email or username (\(self.domain))"
+        }
+    }
 
     private let login: Login
-
-    init(login: Login) {
+    private let domain: String
+    
+    init(login: Login, domain: String) {
         self.login = login
+        self.domain = domain
+
         subscribeToLoadingStatus()
     }
 
@@ -49,11 +60,13 @@ final class LoginViewModel: ObservableObject {
             DispatchQueue.main.async {
                 self.isLoading = false
             }
-            return
+            return	
         }
-
+        
+        let username = username
+        let password = password
         login.login(username: username, password: password, intent: nil, challenge: nil) { [weak self] result in
-            DispatchQueue.main.async { [weak self] in
+            Task { @MainActor [weak self] in
                 switch result {
                 case let .failure(error):
                     self?.errors.send(error)
@@ -74,9 +87,6 @@ final class LoginViewModel: ObservableObject {
                         fatalError("receiving an SSO Challenge here is an invalid state")
                     case .askFIDO2:
                         assertionFailure("FIDO2 not implemented")
-                        self?.errors.send(LoginError.invalidState)
-                        self?.isLoading = false
-                    @unknown default:
                         self?.errors.send(LoginError.invalidState)
                         self?.isLoading = false
                     }

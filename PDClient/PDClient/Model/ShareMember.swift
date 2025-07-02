@@ -30,6 +30,10 @@ public struct AccessPermission: OptionSet, Codable {
     public var isEditor: Bool {
         self.contains([.read, .write])
     }
+    
+    public func toRequestPermission() -> ShareURLMeta.Permissions {
+        isEditor ? [.read, .write] : [.read]
+    }
 }
 
 public enum ExternalInviteState: Int, Codable {

@@ -17,9 +17,10 @@
 
 import AppKit
 import Combine
+import PDCore
+import PDLocalization
 import PDLogin_macOS
 import ProtonCoreUIFoundations
-import PDCore
 import SwiftUI
 
 final class OnboardingController: ObservableObject {
@@ -56,13 +57,13 @@ struct OnboardingView: View {
 
             VStack(spacing: 0) {
 
-                Text("You’re nearly there!")
+                Text(Localization.onboarding_title)
                     .foregroundColor(ColorProvider.TextNorm)
                     .font(.system(size: 17))
                     .fontWeight(.semibold)
                     .padding(.bottom, 8)
 
-                Text("Open your folder and click Enable to finish setting up Proton Drive on your Mac.")
+                Text(Localization.onboarding_desc)
                     .foregroundColor(ColorProvider.TextNorm)
                     .font(.system(size: 13))
                     .fontWeight(.light)
@@ -76,7 +77,7 @@ struct OnboardingView: View {
                     .frame(width: 300, height: 160)
                     .padding(.vertical, 24)
 
-                LoginButton(title: "Open your Proton Drive folder", isLoading: $controller.isLoading, action: controller.endAction)
+                LoginButton(title: Localization.onboarding_start_button, isLoading: $controller.isLoading, action: controller.endAction)
                     .accessibilityIdentifier("OnboardingView.Button.openDriveFolder")
             }
             .frame(width: 300)

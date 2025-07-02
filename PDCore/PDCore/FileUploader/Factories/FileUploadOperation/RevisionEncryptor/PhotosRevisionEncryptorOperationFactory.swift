@@ -25,10 +25,10 @@ class PhotosRevisionEncryptorOperationFactory: DiscreteRevisionEncryptorOperatio
         signersKitFactory: SignersKitFactoryProtocol,
         moc: NSManagedObjectContext,
         globalQueue: OperationQueue,
-        configuration: FileUploadConfiguration
+        parallelEncryption: Bool
     ) {
         self.globalQueue = globalQueue
-        super.init(signersKitFactory: signersKitFactory, moc: moc, configuration: configuration)
+        super.init(signersKitFactory: signersKitFactory, moc: moc, parallelEncryption: parallelEncryption)
     }
 
     override func makeRevisionEncryptor(_ progress: Progress, blocks: Int) -> RevisionEncryptor {

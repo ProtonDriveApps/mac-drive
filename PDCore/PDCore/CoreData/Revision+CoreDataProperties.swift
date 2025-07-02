@@ -148,5 +148,5 @@ public extension Revision {
 
 // MARK: Transient properties
 public extension Revision {
-    @NSManaged internal var clearXAttributes: ExtendedAttributes?
+    @NSManaged var clearXAttributes: ExtendedAttributes?
 }

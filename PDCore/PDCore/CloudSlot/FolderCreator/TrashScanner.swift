@@ -42,10 +42,9 @@ public final class TrashScanner {
     private func fetchTrashMyVolume(_ volumeID: String, atPage page: Int, validator: SupportedSharesValidator) async throws {
         let pageSize = Constants.pageSizeForChildrenFetchAndEnumeration
         let response = try await client.listVolumeTrash(volumeID: volumeID, page: page, pageSize: pageSize)
-        let supportedSharesValidator = makeSupportedSharesValidator()
 
         for batch in response.trash {
-            guard supportedSharesValidator.isValid(batch.shareID),
+            guard validator.isValid(batch.shareID),
                   !batch.linkIDs.isEmpty else {
                 continue
             }
@@ -56,13 +55,18 @@ public final class TrashScanner {
 
             try await context.perform { [weak self] in
                 guard let self else { return }
-                self.storage.updateLinks(linksResponse.parents + linksResponse.links, in: context)
+                self.storage.updateLinks(linksResponse.sortedLinks, in: context)
                 try context.saveOrRollback()
             }
         }
 
-        guard !response.trash.isEmpty else { return }
+        guard !isLastPage(response) else { return }
         try await fetchTrashMyVolume(volumeID, atPage: page + 1, validator: validator)
+    }
+
+    private func isLastPage(_ response: ListVolumeTrashEndpoint.Response) -> Bool {
+        // BE sends either empty array, or entries with empty linkIDs
+        return response.trash.isEmpty || response.trash.flatMap(\.linkIDs).isEmpty
     }
 
     private func makeSupportedSharesValidator() -> SupportedSharesValidator {

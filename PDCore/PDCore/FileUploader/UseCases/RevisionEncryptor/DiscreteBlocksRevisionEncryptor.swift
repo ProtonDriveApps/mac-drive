@@ -25,7 +25,7 @@ final class DiscreteBlocksRevisionEncryptor: RevisionEncryptor {
     private let progress: Progress
     private let moc: NSManagedObjectContext
     private let digestBuilder: DigestBuilder
-    private let configuration: FileUploadConfiguration
+    private let parallelEncryption: Bool
 
     private var isCancelled = false
     private var isExecuting = false
@@ -38,14 +38,14 @@ final class DiscreteBlocksRevisionEncryptor: RevisionEncryptor {
         progress: Progress,
         moc: NSManagedObjectContext,
         digestBuilder: DigestBuilder,
-        configuration: FileUploadConfiguration
+        parallelEncryption: Bool
     ) {
         self.signersKitFactory = signersKitFactory
         self.maxBlockSize = maxBlockSize
         self.progress = progress
         self.moc = moc
         self.digestBuilder = digestBuilder
-        self.configuration = configuration
+        self.parallelEncryption = parallelEncryption
     }
 
     func encrypt(_ draft: CreatedRevisionDraft, completion: @escaping Completion) {
@@ -81,7 +81,7 @@ final class DiscreteBlocksRevisionEncryptor: RevisionEncryptor {
             return encryptionMetadata
         }
         let blocksMetadata: [UploadBlockMetadata]
-        if configuration.isEncryptionParallel() {
+        if parallelEncryption {
             blocksMetadata = try await encryptBlocksInParallel(draft, encryptionMetadata: encryptionMetadata, signersKit: encryptionMetadata.signersKit)
         } else {
             blocksMetadata = try await encryptBlocks(draft, encryptionMetadata: encryptionMetadata, signersKit: encryptionMetadata.signersKit)
@@ -182,7 +182,7 @@ extension DiscreteBlocksRevisionEncryptor {
                 digestBuilder.add(data)
                 let encryptedBlock = try Self.encryptBlock(pack, encryptionMetadata: encryptionMetadata)
                 let encSignature = try Self.encryptSignature(data, encryptionMetadata: encryptionMetadata, signersKit: signersKit)
-                let block = try Self.createBlockMetadata(draft.volumeID, encSignature, signersKit.address.email, encryptedBlock, pack)
+                let block = Self.createBlockMetadata(draft.volumeID, encSignature, signersKit.address.email, encryptedBlock, pack)
                 try Self.writeEncryptedData(encryptedBlock.cypherdata, for: block, localURLs: self.localURLs)
 
                 // A safeguard to ensure the expected number of blocks read
@@ -244,7 +244,7 @@ extension DiscreteBlocksRevisionEncryptor {
                             let pack = NewBlockDataCleartext(index: index, cleardata: data)
                             let encryptedBlock = try Self.encryptBlock(pack, encryptionMetadata: encryptionMetadata)
                             let encSignature = try Self.encryptSignature(data, encryptionMetadata: encryptionMetadata, signersKit: signersKit)
-                            let block = try Self.createBlockMetadata(draft.volumeID, encSignature, signersKit.address.email, encryptedBlock, pack)
+                            let block = Self.createBlockMetadata(draft.volumeID, encSignature, signersKit.address.email, encryptedBlock, pack)
                             try Self.writeEncryptedData(encryptedBlock.cypherdata, for: block, localURLs: self.localURLs)
                             
                             // A safeguard to ensure the expected number of blocks read
@@ -284,7 +284,7 @@ extension DiscreteBlocksRevisionEncryptor {
         return blocks
     }
 
-    private static func createBlockMetadata(_ volumeID: String, _ signature: String, _ signatureEmail: String, _ encrypted: NewBlockDataCyphertext, _ cleartext: NewBlockDataCleartext) throws -> UploadBlockMetadata {
+    private static func createBlockMetadata(_ volumeID: String, _ signature: String, _ signatureEmail: String, _ encrypted: NewBlockDataCyphertext, _ cleartext: NewBlockDataCleartext) -> UploadBlockMetadata {
         // we'll use these blocks later when we'll need to restore Operations
         return UploadBlockMetadata(
             volumeID: volumeID,

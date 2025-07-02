@@ -37,7 +37,7 @@ public final class RemoteCachingPublicLinkDeleter: PublicLinkDeleter {
     public func deletePublicLink(_ identifier: PublicLinkIdentifier) async throws {
         try await deleteShareURL(identifier.id, identifier.shareID)
         // If the share still has member, invitation...etc, soft deletion will fail
-        try? await shareDeleter.deleteShare(identifier.id, force: false)
+        try? await shareDeleter.deleteShare(identifier.shareID, force: false)
     }
 
     private func deleteShareURL(_ id: String, _ shareID: String) async throws {

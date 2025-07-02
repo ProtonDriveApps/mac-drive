@@ -27,20 +27,21 @@ import ProtonCoreEnvironment
 @MainActor
 public protocol LoginManager {
     func presentLoginFlow(with initialError: LoginError?)
+    func logIn(as email: String, password: String)
 }
 
 @MainActor
 public final class ConcreteLoginManager: LoginManager {
     private let loginCoordinatorDelegate: LoginCoordinatorDelegate
     private var loginCoordinator: LoginCoordinator
-    
+
     public init(window: NSWindow,
                 clientApp: ClientApp,
                 environment: Environment,
                 apiServiceDelegate: APIServiceDelegate,
                 forceUpgradeDelegate: ForceUpgradeDelegate,
                 minimumAccountType: AccountType,
-                loginCompletion: @escaping (LoginResult) -> Void) {
+                loginCompletion: @escaping (LoginResult) async -> Void) {
         self.loginCoordinatorDelegate = LoginManagerCoordinatorDelegate(loginCompletion)
         let container = Container(clientApp: clientApp,
                                   environment: environment,
@@ -56,20 +57,24 @@ public final class ConcreteLoginManager: LoginManager {
     public func presentLoginFlow(with initialError: LoginError? = nil) {
         loginCoordinator.start(with: initialError)
     }
+
+    public func logIn(as email: String, password: String) {
+        loginCoordinator.logIn(as: email, password: password)
+    }
 }
 
 private final class LoginManagerCoordinatorDelegate: LoginCoordinatorDelegate {
-    private let loginCompletion: (LoginResult) -> Void
+    private let loginCompletion: (LoginResult) async -> Void
 
-    init(_ loginCompletion: @escaping (LoginResult) -> Void) {
+    init(_ loginCompletion: @escaping (LoginResult) async -> Void) {
         self.loginCompletion = loginCompletion
     }
 
-    func userDidDismissLoginCoordinator(loginCoordinator: LoginCoordinator) {
-        loginCompletion(.dismissed)
+    func userDidDismissLoginCoordinator(loginCoordinator: LoginCoordinator) async {
+        await loginCompletion(.dismissed)
     }
     
-    func loginCoordinatorDidFinish(loginCoordinator: LoginCoordinator, data: LoginData) {
-        loginCompletion(.loggedIn(data))
+    func loginCoordinatorDidFinish(loginCoordinator: LoginCoordinator, data: LoginData) async {
+        await loginCompletion(.loggedIn(data))
     }
 }

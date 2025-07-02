@@ -184,11 +184,11 @@ extension FileDraft {
                 throw file.invalidState("The file is not in the correct state")
             }
 
-            guard let parentLink = file.parentLink else {
+            guard let parentNode = file.parentNode else {
                 throw file.invalidState("Uploadable file draft must have a parent link.")
             }
 
-            let clearParentNodeHashKey = try parentLink.decryptNodeHashKey()
+            let clearParentNodeHashKey = try parentNode.decryptNodeHashKey()
 
             guard let uploadID = file.uploadID else {
                 throw file.invalidState("Uploadable file must have an uploadID.")
@@ -222,7 +222,7 @@ extension FileDraft {
                 nodePassphraseSignature: file.nodePassphraseSignature,
                 contentKeyPacket: contentKeyPacket,
                 contentKeyPacketSignature: contentKeyPacketSignature,
-                parent: parentLink.identifier,
+                parent: parentNode.identifier,
                 parentNodeHashKey: clearParentNodeHashKey,
                 mimeType: file.mimeType,
                 clientUID: file.clientUID ?? "",

@@ -21,7 +21,6 @@ import ProtonCoreAuthentication
 import ProtonCoreDataModel
 import ProtonCoreEnvironment
 import ProtonCoreFeatureFlags
-import ProtonCoreHumanVerification
 import ProtonCoreServices
 import ProtonCoreNetworking
 import ProtonCoreCryptoGoInterface
@@ -92,7 +91,7 @@ public class PMAPIClient: NSObject, APIServiceDelegate {
         #if os(iOS)
         return "ProtonDrive/\(Bundle.main.majorVersion) (\(UIDevice.current.systemName) \(UIDevice.current.systemVersion); \(self.deviceName()))"
         #elseif os(macOS)
-        return "ProtonDrive/\(Bundle.main.majorVersion) (macOS \(ProcessInfo.processInfo.operatingSystemVersionString); \(DarwinVersion()))"
+        return "ProtonDrive/\(Bundle.main.majorVersion) (\(ProcessInfo.processInfo.operatingSystemVersion.description); \(DarwinVersion()))"
         #endif
     }
 
@@ -149,7 +148,9 @@ extension PMAPIClient: AuthDelegate {
     public func onAuthenticatedSessionInvalidated(sessionUID: String) {
         sessionStore.removeAuthenticatedCredential()
         apiService.setSessionUID(uid: "")
-        sessionRelatedCommunicator.askMainAppToProvideNewChildSession()
+        Task {
+            await sessionRelatedCommunicator.askMainAppToProvideNewChildSession()
+        }
         if Constants.runningInExtension {
             Log.info("""
                      Authenticated session invalidated in the extension.
@@ -282,5 +283,11 @@ extension PMAPIClient {
         Task {
             try? await ProtonCoreFeatureFlags.FeatureFlagsRepository.shared.fetchFlags()
         }
+    }
+}
+
+private extension OperatingSystemVersion {
+    var description: String {
+        "macOS \(majorVersion).\(minorVersion).\(patchVersion)"
     }
 }

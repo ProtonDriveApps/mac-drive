@@ -154,6 +154,13 @@ extension Decryptor {
     ) throws -> VerifiedBinary {
         try decryptAndVerifyDetachedBinaryMessage(blockDataPacket, sessionKey, signature, verificationKeys)
     }
+    
+    static func decryptBlock(
+        _ blockDataPacket: DataPacket,
+        sessionKey: SessionKey
+    ) throws -> Data {
+        try decryptWithoutVerifyingDetachedBinaryMessage(blockDataPacket, sessionKey)
+    }
 
     static func verifyManifestSignature(
         _ manifestSignature: Data,
@@ -208,6 +215,26 @@ extension Decryptor {
     }
 
     // MARK: - General Purpose Swift functions
+    public static func decryptAttachedTextMessage(
+        _ message: ArmoredMessage,
+        decryptionKeys: [DecryptionKey]
+    ) throws -> PlainText {
+        let decryptionKeyRing = try buildPrivateKeyRing(decryptionKeys: decryptionKeys)
+        defer { decryptionKeyRing.clearPrivateParams() }
+
+        let pgpMessage = CryptoGo.CryptoPGPMessage(fromArmored: message)
+
+        let explicitMessage = try executeAndUnwrap {
+            CryptoGo.HelperDecryptExplicitVerify(pgpMessage, decryptionKeyRing, nil, CryptoGo.CryptoGetUnixTime(), &$0)
+        }
+
+        guard let message = explicitMessage.messageGoCrypto?.getString() else {
+            throw Errors.emptyResult
+        }
+
+        return message
+    }
+
     static func decryptAndVerifyAttachedTextMessage(
         _ message: ArmoredMessage,
         decryptionKeys: [DecryptionKey],
@@ -345,6 +372,16 @@ extension Decryptor {
             return .unverified(binary, error)
         }
     }
+    
+    private static func decryptWithoutVerifyingDetachedBinaryMessage(
+        _ dataPacket: DataPacket,
+        _ sessionKey: SessionKey
+    ) throws -> Data {
+        let cryptoSessionKey = try makeCryptoSessionKey(sessionKey)
+        let plainMessage = try cryptoSessionKey.decrypt(dataPacket)
+        guard let binary = plainMessage.getBinary() else { throw Errors.emptyResult }
+        return binary
+    }
 
     private static func decryptMessage(
         _ armoredMessage: ArmoredMessage,
@@ -450,6 +487,17 @@ extension Decryptor {
         hash.removeFirst(29)
 
         return HashedPassword(hash: hash, salt: salt)
+    }
+
+    static func computeKeyPassword(password: String, salt: String) throws -> String {
+        guard let saltData = Data(base64Encoded: salt) else {
+            throw DriveError("Invalid salt: Must be a Base64-encoded string.")
+        }
+        let bcryptedPassword = try executeAndUnwrap { CryptoGo.SrpMailboxPassword(password.data(using: .utf8), saltData, &$0) }
+        var hash = try unwrap { String(data: bcryptedPassword, encoding: .utf8) }
+        // Remove bcrypt prefix and salt (first 29 characters)
+        hash.removeFirst(29)
+        return hash
     }
 
     static func encryptSessionKey(_ sessionKey: Data, with password: String) throws -> KeyPacket {

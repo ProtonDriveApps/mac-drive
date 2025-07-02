@@ -17,7 +17,6 @@
 
 import Foundation
 import TrustKit
-import PDLoadTesting
 import ProtonCoreAPIClient
 import ProtonCoreAuthentication
 import ProtonCoreDataModel
@@ -45,9 +44,6 @@ final class Container {
         }
         api = PMAPIService.createAPIServiceWithoutSession(environment: environment,
                                                           challengeParametersProvider: .empty)
-        if LoadTesting.isEnabled {
-            api.getSession()?.setChallenge(noTrustKit: true, trustKit: nil)
-        }
         api.forceUpgradeDelegate = forceUpgradeDelegate
         api.serviceDelegate = apiServiceDelegate
         // this is just an in-memory cache. It doesn't store the credentials to keychain
@@ -62,7 +58,7 @@ final class Container {
     // MARK: Login view models
 
     func makeLoginViewModel() -> LoginViewModel {
-        return LoginViewModel(login: login)
+        return LoginViewModel(login: login, domain: self.api.signUpDomain)
     }
 
     func makeMailboxPasswordViewModel() -> MailboxPasswordViewModel {

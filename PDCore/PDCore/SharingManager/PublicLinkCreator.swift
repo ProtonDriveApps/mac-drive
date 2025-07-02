@@ -20,7 +20,10 @@ import PDClient
 import CoreData
 
 public protocol PublicLinkCreator {
-    func createPublicLink(share: ShareIdentifier) async throws -> PublicLinkIdentifier
+    func createPublicLink(
+        share: ShareIdentifier,
+        permissions: ShareURLMeta.Permissions
+    ) async throws -> PublicLinkIdentifier
 }
 
 public final class RemoteCachingPublicLinkCreator: PublicLinkCreator {
@@ -34,7 +37,10 @@ public final class RemoteCachingPublicLinkCreator: PublicLinkCreator {
         self.signersKitFactory = signersKitFactory
     }
 
-    public func createPublicLink(share identifier: ShareIdentifier) async throws -> PublicLinkIdentifier {
+    public func createPublicLink(
+        share identifier: ShareIdentifier,
+        permissions: ShareURLMeta.Permissions
+    ) async throws -> PublicLinkIdentifier {
         let context = storage.backgroundContext
         let modulusSRP = try await client.getModulusSRP()
 
@@ -42,7 +48,12 @@ public final class RemoteCachingPublicLinkCreator: PublicLinkCreator {
             guard let share = Share.fetch(id: identifier.id, in: context) else {
                 throw Share.InvalidState(message: "Missing required Share.")
             }
-            return try self.getNewShareURLParameters(share: share, modulus: modulusSRP.modulus, modulusID: modulusSRP.modulusID)
+            return try self.getNewShareURLParameters(
+                share: share,
+                modulus: modulusSRP.modulus,
+                modulusID: modulusSRP.modulusID,
+                permissions: permissions
+            )
         }
 
         let shareURLMeta = try await client.createShareURL(shareID: identifier.id, parameters: parameters)
@@ -55,7 +66,12 @@ public final class RemoteCachingPublicLinkCreator: PublicLinkCreator {
         }
     }
 
-    private func getNewShareURLParameters(share: Share, modulus: String, modulusID: String) throws -> NewShareURLParameters {
+    private func getNewShareURLParameters(
+        share: Share,
+        modulus: String,
+        modulusID: String,
+        permissions: ShareURLMeta.Permissions
+    ) throws -> NewShareURLParameters {
         let addressID = try share.getAddressID()
         let randomPassword = Decryptor.randomPassword(ofSize: Constants.minSharedLinkRandomPasswordSize)
         let currentAddressKey = try signersKitFactory.make(forAddressID: addressID).addressKey.publicKey
@@ -76,7 +92,7 @@ public final class RemoteCachingPublicLinkCreator: PublicLinkCreator {
             expirationDuration: nil,
             maxAccesses: Constants.maxAccesses,
             creatorEmail: share.creator.forceUnwrap(),
-            permissions: .read,
+            permissions: permissions,
             URLPasswordSalt: srpPasswordSalt,
             sharePasswordSalt: sharePasswordSalt,
             SRPVerifier: srpPasswordVerifier,
@@ -91,7 +107,7 @@ public final class RemoteCachingPublicLinkCreator: PublicLinkCreator {
 
     func update(_ shareURLMeta: ShareURLMeta, in moc: NSManagedObjectContext) -> ShareURL {
         let shareUrl: ShareURL = self.storage.unique(with: Set([shareURLMeta.shareURLID]), uniqueBy: "id", in: moc).first!
-        shareUrl.fulfill(from: shareURLMeta)
+        shareUrl.fulfillShareURL(with: shareURLMeta)
 
         let shares: [ShareObj] = self.storage.unique(with: Set([shareURLMeta.shareID]), in: moc)
         let share = shares.first!

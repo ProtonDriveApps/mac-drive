@@ -30,16 +30,40 @@ final class GeneralEventsLoopProcessor: EventLoopProcessor {
     private let userSettingsVault: UserSettingsStorage
     private let addressVault: AddressStorage
     private let paymentsVault: PaymentsStorage
+    private let contactVault: ContactStorage
+    private let entitlementsManager: EntitlementsManagerProtocol
     
-    convenience init(sessionVault: SessionVault, generalSettings: GeneralSettings, paymentsVault: PaymentsSecureStorage) {
-        self.init(userVault: sessionVault, userSettingsVault: generalSettings, addressVault: sessionVault, paymentsVault: paymentsVault)
+    convenience init(
+        sessionVault: SessionVault,
+        generalSettings: GeneralSettings,
+        paymentsVault: PaymentsSecureStorage,
+        contactVault: ContactStorage,
+        entitlementsManager: EntitlementsManagerProtocol
+    ) {
+        self.init(
+            userVault: sessionVault,
+            userSettingsVault: generalSettings,
+            addressVault: sessionVault,
+            paymentsVault: paymentsVault,
+            contactVault: contactVault,
+            entitlementsManager: entitlementsManager
+        )
     }
     
-    init(userVault: UserStorage, userSettingsVault: UserSettingsStorage, addressVault: AddressStorage, paymentsVault: PaymentsStorage) {
+    init(
+        userVault: UserStorage,
+        userSettingsVault: UserSettingsStorage,
+        addressVault: AddressStorage,
+        paymentsVault: PaymentsStorage,
+        contactVault: ContactStorage,
+        entitlementsManager: EntitlementsManagerProtocol
+    ) {
         self.userVault = userVault
         self.userSettingsVault = userSettingsVault
         self.addressVault = addressVault
         self.paymentsVault = paymentsVault
+        self.contactVault = contactVault
+        self.entitlementsManager = entitlementsManager
     }
     
     func process(response: Response, loopID: String) {
@@ -61,6 +85,16 @@ final class GeneralEventsLoopProcessor: EventLoopProcessor {
         if let userSettings = response.userSettings {
             process(userSettings)
         }
+        if let labels = response.labels {
+            // Label must be processed before contacts to update necessary contact groups information
+            process(labels)
+        }
+        if let contacts = response.contacts {
+            process(contacts)
+        }
+        if let driveShareRefresh = response.driveShareRefresh {
+            process(driveShareRefresh)
+        }
 
         if isIntegrityCheckNeeded && !isAddressMissingBeforeUpdate && isAddressMissingInVault() {
             logMissingIntegrity(response: response)
@@ -76,6 +110,9 @@ final class GeneralEventsLoopProcessor: EventLoopProcessor {
     
     func process(_ meta: SubscriptionMeta) {
         paymentsVault.currentSubscription = Subscription(meta)
+        Task {
+            try await entitlementsManager.updateEntitlements()
+        }
     }
     
     func process(_ user: User) {
@@ -116,8 +153,50 @@ final class GeneralEventsLoopProcessor: EventLoopProcessor {
         addressVault.storeAddresses(addresses)
     }
     
+    func process(_ labelEvent: [LabelEvent]) {
+        for event in labelEvent {
+            switch event.action {
+            case .delete:
+                contactVault.delete(groupID: event.id)
+            case .create:
+                // Drive only care contact label for now
+                guard let data = event.label, data.type == .contact else { return }
+                contactVault.create(contactGroup: data)
+            case .update:
+                // Drive only care contact label for now
+                guard let data = event.label, data.type == .contact else { return }
+                contactVault.update(contactGroup: data)
+            }
+        }
+    }
+    
+    func process(_ contactEvent: [ContactEvent]) {
+        for event in contactEvent {
+            switch event.action {
+            case .create:
+                guard let data = event.contact else { return }
+                contactVault.create(contact: data)
+            case .delete:
+                contactVault.delete(contactID: event.contactID)
+            case .update:
+                guard let data = event.contact else { return }
+                contactVault.update(contact: data)
+            }
+        }
+    }
+
+    func process(_ driveShareRefresh: DriveShareRefresh) {
+        switch driveShareRefresh.action {
+        case .update:
+            // When there is new invitation, accept invitation, removed from a shared
+            break
+        default:
+            assert(false, "Unexpected actions")
+        }
+    }
+
     func nukeCache() async {
-        NotificationCenter.default.post(name: .nukeCache, object: nil)
+        NotificationCenter.default.nukeCache(reason: "Receive cache is outdated event")
     }
 
     private func isAddressMissingInVault() -> Bool {
@@ -131,7 +210,7 @@ final class GeneralEventsLoopProcessor: EventLoopProcessor {
     private func logMissingIntegrity(response: Response) {
         // Verify that user update has email filled in
         if let user = response.user, user.email == nil {
-            Log.error("Received a user update with nil email", domain: .events)
+            Log.error("Received a user update with nil email", error: nil, domain: .events)
             return
         }
 
@@ -142,7 +221,7 @@ final class GeneralEventsLoopProcessor: EventLoopProcessor {
 
         let addresses = updates.compactMap(\.address)
         if !isContainingAddress(email: email, addresses: addresses) {
-            Log.error("Received a user update with non matching addresses. Updates count: \(updates.count), addresses count: \(addresses.count)", domain: .events)
+            Log.error("Received a user update with non-matching addresses", domain: .events, context: LogContext("Updates count: \(updates.count), addresses count: \(addresses.count)"))
         }
     }
 

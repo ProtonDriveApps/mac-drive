@@ -18,7 +18,6 @@
 import Foundation
 import PDClient
 import ProtonCoreKeymaker
-import ProtonCoreLogin
 import ProtonCoreNetworking
 import Combine
 
@@ -33,6 +32,8 @@ public class PostLoginServices {
     private var syncStorage: SyncStorageManager? { tower.syncStorage }
     private let activityObserver: ((NSUserActivity) -> Void)
 
+    public let metadataDBWasRecreated: Bool
+
     var observations: Set<AnyCancellable> = []
     
     public init(initialServices: InitialServices,
@@ -41,6 +42,7 @@ public class PostLoginServices {
                 syncStorage: SyncStorageManager? = nil,
                 eventObservers: [EventsListener] = [],
                 eventProcessingMode: DriveEventsLoopMode,
+                eventLoopInterval: Double,
                 uploadVerifierFactory: UploadVerifierFactory,
                 activityObserver: @escaping ((NSUserActivity) -> Void))
     {
@@ -48,17 +50,21 @@ public class PostLoginServices {
         self.activityObserver = activityObserver
         
         let towerStorage = storage ?? StorageManager(suite: appGroup, sessionVault: initialServices.sessionVault)
+        self.metadataDBWasRecreated = StorageManager.metadataDBWasRecreated
+
         #if os(macOS)
         let towerSyncStorage: SyncStorageManager = syncStorage ?? SyncStorageManager(suite: appGroup)
+        let populatedStateController: PopulatedStateControllerProtocol = PopulatedStateControllerStub()
         #else
         let towerSyncStorage: SyncStorageManager? = nil
+        let populatedStateController: PopulatedStateControllerProtocol = PopulatedStateController()
         #endif
 
         self.tower = Tower(storage: towerStorage,
                            syncStorage: towerSyncStorage,
                            eventStorage: EventStorageManager(suiteUrl: appGroup.directoryUrl),
                            appGroup: appGroup,
-                           mainKeyProvider: initialServices.keymaker,
+                           mainKeyProvider: initialServices.sessionVault.mainKeyProvider,
                            sessionVault: initialServices.sessionVault,
                            sessionCommunicator: initialServices.sessionRelatedCommunicator,
                            authenticator: initialServices.authenticator,
@@ -66,8 +72,10 @@ public class PostLoginServices {
                            network: initialServices.networkService,
                            eventObservers: eventObservers,
                            eventProcessingMode: eventProcessingMode,
+                           eventLoopInterval: eventLoopInterval,
                            uploadVerifierFactory: uploadVerifierFactory,
-                           localSettings: initialServices.localSettings)
+                           localSettings: initialServices.localSettings,
+                           populatedStateController: populatedStateController)
 
         self.initialServices.networkClient.publisher(for: \.currentActivity)
             .dropFirst() // ignore the current value
@@ -85,19 +93,7 @@ public class PostLoginServices {
         }
     }
     
-    #if os(macOS)
-    public func signOutAsync(domainOperationsService: DomainOperationsServiceProtocol) async {
-        // disconnect FileProvider extensions
-        try? await domainOperationsService.tearDownConnectionToAllDomains()
-        // close Tower properly, close session on BE and remove credentials from session vault
-        await tower.signOut(cacheCleanupStrategy: domainOperationsService.cacheCleanupStrategy)
-        // intentionally, we don't clear the main key
-        
-        // remove session from networking object when signing out
-        initialServices.networkService.sessionUID = ""
-    }
-    
-    #elseif os(iOS)
+    #if os(iOS)
     public func signOut() {
         Task {
             await signOutAsync(notify: true)
@@ -111,8 +107,8 @@ public class PostLoginServices {
         // disconnect FileProvider extensions
         try? await signOutFileProvider()
         // destroy mainKey in Keychain
-        initialServices.keymaker.wipeMainKey()
-        
+        initialServices.mainKeyProvider.wipeMainKey()
+
         cleanAPIServiceSessionAndNotifyIfNeeded(notify)
     }
     
@@ -132,6 +128,7 @@ public class PostLoginServices {
     #endif
     
     public func onLaunchAfterSignIn() {
+        Log.trace()
         tower.start(options: [])
     }
 

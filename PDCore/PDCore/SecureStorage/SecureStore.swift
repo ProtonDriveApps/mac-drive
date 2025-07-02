@@ -29,7 +29,8 @@ class SecureStore<T: Codable> {
     }
     
     internal func hasCyphertext() -> Bool {
-        keychain.data(forKey: label, attributes: nil) != nil
+        let data = try? keychain.dataOrError(forKey: label, attributes: nil)
+        return data != nil
     }
     
     internal func update(_ newValue: T) throws {
@@ -64,7 +65,8 @@ class SecureStore<T: Codable> {
     
     internal func duplicate(to newLabel: String) throws {
         guard let cypherdata = try keychain.dataOrError(forKey: label, attributes: nil) else {
-            return keychain.remove(forKey: newLabel)
+            try keychain.removeOrError(forKey: newLabel)
+            return
         }
         try keychain.setOrError(cypherdata, forKey: newLabel, attributes: nil)
     }

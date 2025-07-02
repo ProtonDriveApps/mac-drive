@@ -25,7 +25,7 @@ struct RemoveShareMemberEndpoint: Endpoint {
     var request: URLRequest
 
     init(shareID: String, memberID: String, service: APIService, credential: ClientCredential) {
-        var url = service.url(of: "/v2/shares/\(shareID)/members/\(memberID)")
+        let url = service.url(of: "/v2/shares/\(shareID)/members/\(memberID)")
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
 

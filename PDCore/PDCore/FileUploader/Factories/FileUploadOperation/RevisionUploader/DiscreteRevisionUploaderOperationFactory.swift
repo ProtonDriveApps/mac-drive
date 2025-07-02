@@ -29,7 +29,7 @@ class DiscreteRevisionUploaderOperationFactory: FileUploadOperationFactory {
     let signersKitFactory: SignersKitFactoryProtocol
     let verifierFactory: UploadVerifierFactory
     let moc: NSManagedObjectContext
-    let configuration: FileUploadConfiguration
+    let parallelEncryption: Bool
     let pagesQueue: OperationQueue
     let uploadQueue: OperationQueue
     private let blocksMeasurementRepository: FileUploadBlocksMeasurementRepositoryProtocol?
@@ -44,7 +44,7 @@ class DiscreteRevisionUploaderOperationFactory: FileUploadOperationFactory {
         signersKitFactory: SignersKitFactoryProtocol,
         verifierFactory: UploadVerifierFactory,
         moc: NSManagedObjectContext,
-        configuration: FileUploadConfiguration,
+        parallelEncryption: Bool,
         globalPagesQueue: OperationQueue? = nil,
         globalUploadQueue: OperationQueue? = nil,
         blocksMeasurementRepository: FileUploadBlocksMeasurementRepositoryProtocol? = nil
@@ -57,7 +57,7 @@ class DiscreteRevisionUploaderOperationFactory: FileUploadOperationFactory {
         self.signersKitFactory = signersKitFactory
         self.verifierFactory = verifierFactory
         self.moc = moc
-        self.configuration = configuration
+        self.parallelEncryption = parallelEncryption
         pagesQueue = globalPagesQueue ?? OperationQueue(maxConcurrentOperation: Constants.discreteMaxConcurrentContentUploadOperations)
         pagesQueue.qualityOfService = .userInitiated
         uploadQueue = globalUploadQueue ?? OperationQueue(maxConcurrentOperation: Constants.maxConcurrentPageOperations)
@@ -93,7 +93,7 @@ class DiscreteRevisionUploaderOperationFactory: FileUploadOperationFactory {
             signersKitFactory: signersKitFactory,
             queue: uploadQueue,
             moc: moc,
-            configuration: configuration
+            parallelEncryption: parallelEncryption
         )
 
         return PaginatedRevisionUploaderOperation(

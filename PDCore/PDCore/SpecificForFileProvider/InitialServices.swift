@@ -19,7 +19,6 @@ import Combine
 import Foundation
 import OSLog
 import PDClient
-import PDLoadTesting
 #if os(iOS)
 import ProtonCoreChallenge
 #endif
@@ -35,7 +34,7 @@ import Reachability
 
 public class InitialServices {
     public let userDefault: UserDefaults
-    public let keymaker: Keymaker
+    public let mainKeyProvider: MainKeyProvider
     public let clientConfig: Configuration
     public let localSettings: LocalSettings
 
@@ -59,16 +58,16 @@ public class InitialServices {
     
     public init(userDefault: UserDefaults,
                 clientConfig: Configuration,
-                keymaker: Keymaker,
+                mainKeyProvider: MainKeyProvider,
                 sessionRelatedCommunicatorFactory: @escaping SessionRelatedCommunicatorFactory) {
         self.userDefault = userDefault
-        self.keymaker = keymaker
+        self.mainKeyProvider = mainKeyProvider
         self.clientConfig = clientConfig
         self.sessionRelatedCommunicatorFactory = sessionRelatedCommunicatorFactory
         self.localSettings = LocalSettings.shared
 
         let (sessionVault, networking, serviceDelegate, authenticator, communicator, featureFlagsRepository, pushNotificationService) =
-            Self.makeServices(userDefault: userDefault, clientConfig: clientConfig, and: keymaker, using: sessionRelatedCommunicatorFactory, localSettings: localSettings)
+            Self.makeServices(userDefault: userDefault, clientConfig: clientConfig, and: mainKeyProvider, using: sessionRelatedCommunicatorFactory, localSettings: localSettings)
 
         self.sessionVault = sessionVault
         self.networkService = networking
@@ -89,7 +88,7 @@ public class InitialServices {
                 break
             case .failure(let error):
                 // servers not reachable, need to display banner
-                Log.error(error, domain: .networking)
+                Log.error(error: error, domain: .networking)
             }
         }
     }
@@ -98,11 +97,11 @@ public class InitialServices {
     private static func makeServices(
         userDefault: UserDefaults,
         clientConfig: Configuration,
-        and keymaker: Keymaker,
+        and mainKeyProvider: MainKeyProvider,
         using sessionRelatedCommunicatorFactory: SessionRelatedCommunicatorFactory,
         localSettings: LocalSettings
     ) -> (SessionVault, PMAPIService, PMAPIClient, Authenticator, SessionRelatedCommunicatorBetweenMainAppAndExtensions, FeatureFlagsRepositoryProtocol, PushNotificationServiceProtocol?) {
-        let sessionVault = SessionVault(mainKeyProvider: keymaker)
+        let sessionVault = SessionVault(mainKeyProvider: mainKeyProvider)
 #if os(iOS)
         let networking = PMAPIService.createAPIServiceWithoutSession(environment: clientConfig.environment,
                                                                      challengeParametersProvider: .forAPIService(clientApp: .drive,
@@ -113,9 +112,10 @@ public class InitialServices {
 #endif
         let authenticator = Authenticator(api: networking)
 
-        let sessionRelatedCommunicator = sessionRelatedCommunicatorFactory(
-            userDefault, sessionVault, authenticator, networking
-        )
+        let sessionRelatedCommunicator = sessionRelatedCommunicatorFactory(sessionVault, authenticator) { [weak networking] credential, kind in
+            guard kind == .fileProviderExtension else { return }
+            networking?.setSessionUID(uid: credential.UID)
+        }
 
         let serviceDelegate = PMAPIClient(
             version: clientConfig.clientVersion,
@@ -128,11 +128,7 @@ public class InitialServices {
 
         TrustKitFactory.make(isHardfail: true, delegate: serviceDelegate)
 
-        if LoadTesting.isEnabled {
-            networking.getSession()?.setChallenge(noTrustKit: true, trustKit: nil)
-        } else {
-            networking.getSession()?.setChallenge(noTrustKit: PMAPIService.noTrustKit, trustKit: PMAPIService.trustKit)
-        }
+        networking.getSession()?.setChallenge(noTrustKit: PMAPIService.noTrustKit, trustKit: PMAPIService.trustKit)
 
         networking.serviceDelegate = serviceDelegate
         networking.authDelegate = serviceDelegate
@@ -141,8 +137,11 @@ public class InitialServices {
         networking.humanDelegate = serviceDelegate
         networking.forceUpgradeDelegate = serviceDelegate
 
+        // Override FF values for dynamic plans and easy device migration, after launch during services creation. Original override.
         let featureFlagsRepository = ProtonCoreFeatureFlags.FeatureFlagsRepository.shared
         featureFlagsRepository.setApiService(networking)
+        featureFlagsRepository.setFlagOverride(CoreFeatureFlagType.dynamicPlan, true)
+        featureFlagsRepository.resetFlagOverride(CoreFeatureFlagType.easyDeviceMigrationDisabled)
         Task {
             try? await featureFlagsRepository.fetchFlags()
         }
@@ -168,11 +167,13 @@ public class InitialServices {
             TelemetryService.shared.setTelemetryEnabled(!(localSettings.optOutFromTelemetry ?? false))
         }
 #endif
-
-        sessionRelatedCommunicator.performInitialSetup()
+        Task {
+            await sessionRelatedCommunicator.performInitialSetup()
+        }
 
         return (sessionVault, networking, serviceDelegate, authenticator, sessionRelatedCommunicator, featureFlagsRepository, pushNotificationService)
     }
+    // swiftlint:enable large_tuple
 }
 
 public protocol hasPushNotificationService {

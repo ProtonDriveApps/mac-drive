@@ -43,30 +43,38 @@ public final class PaymentsSecureStorage: Keychain {
 }
 
 extension PaymentsSecureStorage: ServicePlanDataStorage {
+    public var iapSupportStatus: ProtonCorePayments.IAPSupportStatus {
+        get {
+            .disabled(localizedReason: nil)
+        }
+        set(newValue) {
+            
+        }
+    }
     
     public var servicePlansDetails: [Plan]? {
         get {
-            guard let data = data(forKey: Key.servicePlans) else {
+            guard let data = try? dataOrError(forKey: Key.servicePlans) else {
                 return nil
             }
             return try? JSONDecoder().decode([Plan].self, from: data)
         }
         set(newValue) {
             guard let data = try? JSONEncoder().encode(newValue) else { return }
-            set(data, forKey: Key.servicePlans)
+            try? setOrError(data, forKey: Key.servicePlans)
         }
     }
     
     public var defaultPlanDetails: Plan? {
         get {
-            guard let data = data(forKey: Key.defaultPlanDetails) else {
+            guard let data = try? dataOrError(forKey: Key.defaultPlanDetails) else {
                 return nil
             }
             return try? JSONDecoder().decode(Plan.self, from: data)
         }
         set(newValue) {
             guard let data = try? JSONEncoder().encode(newValue) else { return }
-            set(data, forKey: Key.defaultPlanDetails)
+            try? setOrError(data, forKey: Key.defaultPlanDetails)
         }
     }
     
@@ -79,7 +87,7 @@ extension PaymentsSecureStorage: ServicePlanDataStorage {
     
     public var paymentsBackendStatusAcceptsIAP: Bool {
         get {
-            guard let data = data(forKey: Key.paymentsBackendStatusAcceptsIAP) else {
+            guard let data = try? dataOrError(forKey: Key.paymentsBackendStatusAcceptsIAP) else {
                 return false
             }
             let value = (try? JSONDecoder().decode(Bool.self, from: data)) ?? false
@@ -87,39 +95,39 @@ extension PaymentsSecureStorage: ServicePlanDataStorage {
         }
         set(newValue) {
             guard let data = try? JSONEncoder().encode(newValue) else { return }
-            set(data, forKey: Key.paymentsBackendStatusAcceptsIAP)
+            try? setOrError(data, forKey: Key.paymentsBackendStatusAcceptsIAP)
         }
     }
     
     public var paymentMethods: [PaymentMethod]? {
         get {
-            guard let data = data(forKey: Key.paymentMethods) else {
+            guard let data = try? dataOrError(forKey: Key.paymentMethods) else {
                 return nil
             }
             return try? JSONDecoder().decode([PaymentMethod].self, from: data)
         }
         set(newValue) {
             guard let data = try? JSONEncoder().encode(newValue) else { return }
-            set(data, forKey: Key.paymentMethods)
+            try? setOrError(data, forKey: Key.paymentMethods)
         }
     }
     
     public var credits: Credits? {
         get {
-            guard let data = data(forKey: Key.credits) else {
+            guard let data = try? dataOrError(forKey: Key.credits) else {
                 return nil
             }
             return try? JSONDecoder().decode(Credits.self, from: data)
         }
         set(newValue) {
             guard let data = try? JSONEncoder().encode(newValue) else { return }
-            set(data, forKey: Key.credits)
+            try? setOrError(data, forKey: Key.credits)
         }
     }
     
 }
 
-extension Credits: Codable {
+extension Credits {
 
     enum CodingKeys: CodingKey {
       case credit, currency

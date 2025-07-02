@@ -23,7 +23,7 @@ public protocol VolumeUnique: NSManagedObject {
     var volumeID: String { get set }
 }
 
-public struct AnyVolumeIdentifier: VolumeIdentifiable, Equatable {
+public struct AnyVolumeIdentifier: VolumeIdentifiable {
 
     public let id: String
     public let volumeID: String
@@ -35,9 +35,15 @@ public struct AnyVolumeIdentifier: VolumeIdentifiable, Equatable {
 
 }
 
-public protocol VolumeIdentifiable: Hashable {
+public protocol VolumeIdentifiable: Hashable, Equatable {
     var id: String { get }
     var volumeID: String { get }
+}
+
+public extension VolumeIdentifiable {
+    func any() -> AnyVolumeIdentifier {
+        AnyVolumeIdentifier(id: id, volumeID: volumeID)
+    }
 }
 
 extension VolumeUnique {
@@ -82,6 +88,16 @@ extension VolumeUnique {
         return resultEntities
     }
 
+    // Method to fetch multiple entities based on a set of VolumeIdentifier
+    public static func fetchOrThrow<T: VolumeIdentifiable & Hashable>(identifiers: Set<T>, allowSubclasses: Bool = false, in context: NSManagedObjectContext) throws -> [Self] {
+        var resultEntities: [Self] = []
+        for identifier in identifiers {
+            let entity: Self = try fetchOrThrow(identifier: identifier, allowSubclasses: allowSubclasses, in: context)
+            resultEntities.append(entity)
+        }
+        return resultEntities
+    }
+
     // Method to create a new entity
     static func new(id: String, volumeID: String, in context: NSManagedObjectContext) -> Self {
         let newEntity = NSEntityDescription.insertNewObject(forEntityName: entity().name!, into: context) as! Self
@@ -116,15 +132,7 @@ extension VolumeUnique {
 
     // Method to fetch an entity
     public static func fetch(id: String, volumeID: String, allowSubclasses: Bool = false, in context: NSManagedObjectContext) -> Self? {
-        let fetchRequest = NSFetchRequest<Self>(entityName: entity().name!)
-        fetchRequest.fetchLimit = 1
-
-        if allowSubclasses {
-            fetchRequest.predicate = NSPredicate(format: "id == %@ AND volumeID == %@", id, volumeID)
-        } else {
-            fetchRequest.predicate = NSPredicate(format: "self.entity == %@ AND id == %@ AND volumeID == %@", entity(), id, volumeID)
-        }
-
+        let fetchRequest = Self.fetchRequest(id: id, volumeID: volumeID, allowSubclasses: allowSubclasses)
         return try? context.fetch(fetchRequest).first
     }
 
@@ -135,9 +143,21 @@ extension VolumeUnique {
         if allowSubclasses {
             fetchRequest.predicate = NSPredicate(format: "id IN %@ AND volumeID == %@", ids, volumeID)
         } else {
-            fetchRequest.predicate = NSPredicate(format: "self.entity == %@ AND id IN %@ AND volumeID == %@", entity(), ids, volumeID)
+            fetchRequest.predicate = NSPredicate(format: "id IN %@ AND volumeID == %@ AND self.entity == %@", ids, volumeID, entity())
         }
 
         return (try? context.fetch(fetchRequest)) ?? []
+    }
+
+    public static func fetchRequest(id: String, volumeID: String, allowSubclasses: Bool = false) -> NSFetchRequest<Self> {
+        let fetchRequest = NSFetchRequest<Self>(entityName: entity().name!)
+        fetchRequest.fetchLimit = 1
+
+        if allowSubclasses {
+            fetchRequest.predicate = NSPredicate(format: "id == %@ AND volumeID == %@", id, volumeID)
+        } else {
+            fetchRequest.predicate = NSPredicate(format: "id == %@ AND volumeID == %@ AND self.entity == %@", id, volumeID, entity())
+        }
+        return fetchRequest
     }
 }

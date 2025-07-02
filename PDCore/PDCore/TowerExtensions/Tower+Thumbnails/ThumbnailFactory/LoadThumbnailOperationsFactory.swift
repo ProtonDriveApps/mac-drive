@@ -107,8 +107,8 @@ final class LoadThumbnailOperationsFactory: ThumbnailOperationsFactory {
     }
 
     private func makeThumbnailIdentififer(from thumbnail: Thumbnail) -> ThumbnailIdentifier? {
-        if let volumeId = thumbnail.revision.file.parentsChain().last?.primaryDirectShare?.volume?.id {
-            return ThumbnailIdentifier(thumbnailId: thumbnail.id, volumeId: volumeId, nodeIdentifier: thumbnail.revision.identifier.nodeIdentifier)
+        if !thumbnail.volumeID.isEmpty {
+            return ThumbnailIdentifier(thumbnailId: thumbnail.id, volumeId: thumbnail.volumeID, nodeIdentifier: thumbnail.revision.identifier.nodeIdentifier)
         } else {
             return nil
         }

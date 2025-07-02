@@ -28,7 +28,9 @@ struct QASettingsConstants {
     static let updateChannel = "updateChannel"
     static let shouldObfuscateDumpsStorage = "shouldObfuscateDumpsStorage"
     static let disconnectDomainOnSignOut = "disconnectDomainOnSignOut"
-    static let parallelEncryptionAndVerification = "parallelEncryptionAndVerificationQA"
+    static let driveDDKEnabled = "driveDDKEnabled"
+    static let newTrayAppMenuEnabled = "newTrayAppMenuEnabled"
+    static let globalProgressStatusMenuEnabled = "globalProgressStatusMenuEnabled"
 }
 
 protocol EventLoopManager: AnyObject {
@@ -76,6 +78,10 @@ class QASettingsViewModel: ObservableObject {
     @Published var shouldObfuscateDumps: Bool = false {
         didSet { shouldObfuscateDumpsStorage = shouldObfuscateDumps }
     }
+    
+    @Published var enablePostMigrationCleanup: Bool = false {
+        didSet { requiresPostMigrationCleanup = enablePostMigrationCleanup }
+    }
     @SettingsStorage(QASettingsConstants.shouldObfuscateDumpsStorage) var shouldObfuscateDumpsStorage: Bool?
     @SettingsStorage("requiresPostMigrationStep") private var requiresPostMigrationCleanup: Bool?
     
@@ -108,14 +114,22 @@ class QASettingsViewModel: ObservableObject {
         didSet { disconnectDomainOnSignOutStorage = FeatureFlagOptions(rawValue: disconnectDomainOnSignOut)?.toBool }
     }
     @SettingsStorage(QASettingsConstants.disconnectDomainOnSignOut) var disconnectDomainOnSignOutStorage: Bool?
+
+    var driveDDKEnabledFeatureFlagValue: Bool {
+        featureFlags?.isEnabled(flag: .driveDDKEnabled) ?? false
+    }
+    @Published var driveDDKEnabled: String = FeatureFlagOptions.useFF.rawValue {
+        didSet { driveDDKEnabledStorage = FeatureFlagOptions(rawValue: driveDDKEnabled)?.toBool }
+    }
+    @SettingsStorage(QASettingsConstants.driveDDKEnabled) var driveDDKEnabledStorage: Bool?
     
-    var parallelEncryptionAndVerificationFeatureFlagValue: Bool {
-        featureFlags?.isEnabled(flag: .parallelEncryptionAndVerification) ?? false
+    var newTrayAppMenuEnabledFeatureFlagValue: Bool {
+        featureFlags?.isEnabled(flag: .newTrayAppMenuEnabled) ?? false
     }
-    @Published var parallelEncryptionAndVerification: String = FeatureFlagOptions.useFF.rawValue {
-        didSet { parallelEncryptionAndVerificationStorage = FeatureFlagOptions(rawValue: parallelEncryptionAndVerification)?.toBool }
+    @Published var newTrayAppMenuEnabled: String = FeatureFlagOptions.useFF.rawValue {
+        didSet { newTrayAppMenuEnabledStorage = FeatureFlagOptions(rawValue: newTrayAppMenuEnabled)?.toBool }
     }
-    @SettingsStorage(QASettingsConstants.parallelEncryptionAndVerification) var parallelEncryptionAndVerificationStorage: Bool?
+    @SettingsStorage(QASettingsConstants.newTrayAppMenuEnabled) var newTrayAppMenuEnabledStorage: Bool?
 
     let parentSessionUID: String
     let childSessionUID: String
@@ -127,21 +141,30 @@ class QASettingsViewModel: ObservableObject {
     private let featureFlags: PDCore.FeatureFlagsRepository?
     private let signoutManager: SignoutManager?
     private let mainKeyProvider: MainKeyProvider
-    private var cancellables: Set<AnyCancellable> = []
+    private let metadataStorage: StorageManager?
+    private let eventsStorage: EventStorageManager?
+
+    let applicationEventObserver: ApplicationEventObserver
+    let userActions: UserActions
     
-#if HAS_BUILTIN_UPDATER
     init(signoutManager: SignoutManager?,
          sessionStore: SessionVault,
          mainKeyProvider: MainKeyProvider,
-         appUpdateService: SparkleAppUpdateService,
+         appUpdateService: AppUpdateServiceProtocol?,
          eventLoopManager: EventLoopManager?,
          featureFlags: PDCore.FeatureFlagsRepository?,
-         dumperDependencies: DumperDependencies?
+         dumperDependencies: DumperDependencies?,
+         applicationEventObserver: ApplicationEventObserver,
+         userActions: UserActions,
+         metadataStorage: StorageManager?,
+         eventsStorage: EventStorageManager?
     ) {
         let suite = Constants.appGroup
         self._requiresPostMigrationCleanup.configure(with: suite)
         self._disconnectDomainOnSignOutStorage.configure(with: suite)
-        self._parallelEncryptionAndVerificationStorage.configure(with: suite)
+        self._driveDDKEnabledStorage.configure(with: suite)
+        self._newTrayAppMenuEnabledStorage.configure(with: suite)
+
         self.dumper = dumperDependencies.map(Dumper.init)
         self.environment = Constants.appGroup.userDefaults.string(forKey: Constants.SettingsBundleKeys.host.rawValue) ?? ""
         self.signoutManager = signoutManager
@@ -156,49 +179,39 @@ class QASettingsViewModel: ObservableObject {
         self.eventLoopManager = eventLoopManager
         self.featureFlags = featureFlags
         self.shouldFetchEvents = eventLoopManager?.shouldFetchEvents ?? true
+
+        self.applicationEventObserver = applicationEventObserver
+        self.userActions = userActions
+        
+        self.metadataStorage = metadataStorage
+        self.eventsStorage = eventsStorage
+
         self.shouldObfuscateDumps = shouldObfuscateDumpsStorage ?? false
+        self.enablePostMigrationCleanup = requiresPostMigrationCleanup ?? false
+        self.disconnectDomainOnSignOut = FeatureFlagOptions(bool: disconnectDomainOnSignOutStorage).rawValue
+        self.driveDDKEnabled = FeatureFlagOptions(bool: driveDDKEnabledStorage).rawValue
+        self.newTrayAppMenuEnabled = FeatureFlagOptions(bool: newTrayAppMenuEnabledStorage).rawValue
+
+#if HAS_BUILTIN_UPDATER
         self.shouldUpdateEvenOnDebugBuild = shouldUpdateEvenOnDebugBuildStorage ?? false
         self.shouldUpdateEvenOnTestFlight = shouldUpdateEvenOnTestFlightStorage ?? false
         self.updateChannel = updateChannelStorage ?? AppUpdateChannel.stable.rawValue
-        self.disconnectDomainOnSignOut = FeatureFlagOptions(bool: disconnectDomainOnSignOutStorage).rawValue
-        self.parallelEncryptionAndVerification = FeatureFlagOptions(bool: parallelEncryptionAndVerificationStorage).rawValue
-        self.updateMessage = """
+        if let appUpdateService {
+            self.updateMessage = """
                              Last update check: \(appUpdateService.updater.lastUpdateCheckDate.map(String.init) ?? "never")
                              Update check interval: \(appUpdateService.updater.updateCheckInterval)
                              """
-    }
-#else
-    init(signoutManager: SignoutManager?, 
-         sessionStore: SessionVault,
-         mainKeyProvider: MainKeyProvider,
-         eventLoopManager: EventLoopManager?,
-         featureFlags: PDCore.FeatureFlagsRepository?,
-         dumperDependencies: DumperDependencies?
-    ) {
-        self.dumper = dumperDependencies.map(Dumper.init)
-        self.environment = Constants.appGroup.userDefaults.string(forKey: Constants.SettingsBundleKeys.host.rawValue) ?? ""
-        self.signoutManager = signoutManager
-        self.clearCredentials = {
-            sessionStore.signOut()
-            NSRunningApplication.current.terminate()
         }
-        self.mainKeyProvider = mainKeyProvider
-        self.parentSessionUID = sessionStore.parentSessionUID ?? "(no parent session available)"
-        self.childSessionUID = sessionStore.childSessionUID ?? "(no child session available)"
-        self.eventLoopManager = eventLoopManager
-        self.featureFlags = featureFlags
-        self._requiresPostMigrationCleanup.configure(with: Constants.appGroup)
-        self._disconnectDomainOnSignOutStorage.configure(with: Constants.appGroup)
-    }
 #endif
-    
+    }
+
     func confirmEnvironmentChange() {
         Task { [weak self] in
             guard let self else { return }
             Constants.appGroup.userDefaults.set(self.environment, forKey: Constants.SettingsBundleKeys.host.rawValue)
             await self.signoutManager?.signOutAsync()
             _ = await MainActor.run {
-                NSRunningApplication.current.terminate()
+                exit(0)
             }
         }
     }
@@ -233,17 +246,19 @@ class QASettingsViewModel: ObservableObject {
         }
     }
 
-    func sentTestEventToSentry(level: LogLevel) {
+    func sendTestEventToSentry(level: LogLevel) {
         let originalLogger = Log.logger
         // Temporarily replace logger to test Sentry events sending
         Log.logger = ProductionLogger()
         let error = NSError(domain: "MACOS APP SENTRY TESTING", code: 0, localizedDescription: "Test from macOS app")
+        Log.error("issue title from app", error: error, domain: .logs, context: LogContext("context string"))
+
         switch level {
-        case .error: Log.error(error.localizedDescription, domain: .application, sendToSentryIfPossible: true)
+        case .error: Log.error("Test from macOS app", error: error, domain: .application, sendToSentryIfPossible: true)
         case .warning: Log.warning(error.localizedDescription, domain: .application, sendToSentryIfPossible: true)
         case .info: Log.info(error.localizedDescription, domain: .application, sendToSentryIfPossible: true)
         case .debug: Log.debug(error.localizedDescription, domain: .application, sendToSentryIfPossible: true)
-        @unknown default: fatalError()
+        case .trace: Log.trace(error.localizedDescription)
         }
         // Restore original logger after the test
         Log.logger = originalLogger
@@ -271,6 +286,29 @@ class QASettingsViewModel: ObservableObject {
 
     func tellFileProviderToTestSendingCrashToSentry() {
         DarwinNotificationCenter.shared.postNotification(.DoCrashToTestSentry)
+    }
+    
+    func corruptMetadataAndEventDBs() {
+        guard let mmoc = metadataStorage?.newBackgroundContext(), let emoc = eventsStorage?.makeNewBackgroundContext() else { return }
+        do {
+            try mmoc.performAndWait {
+                let allNodes = try mmoc.fetch(Node.fetchRequest())
+                allNodes.forEach {
+                    $0.name = "💣"
+                    $0.nodeKey = "💣"
+                }
+                try mmoc.save()
+            }
+            try emoc.performAndWait {
+                let allEvents = try emoc.fetch(PersistedEvent.fetchRequest())
+                allEvents.forEach {
+                    $0.contents = "💣".data(using: .utf8)
+                }
+                try emoc.save()
+            }
+        } catch {
+            Log.debug("\(#function) failed: \(error.localizedDescription)", domain: .application)
+        }
     }
     
     func wipeMainKey() {

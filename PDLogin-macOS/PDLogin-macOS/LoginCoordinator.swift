@@ -24,7 +24,7 @@ import ProtonCoreNetworking
 import ProtonCoreUIFoundations
 
 protocol LoginCoordinatorDelegate: AnyObject {
-    func loginCoordinatorDidFinish(loginCoordinator: LoginCoordinator, data: LoginData)
+    func loginCoordinatorDidFinish(loginCoordinator: LoginCoordinator, data: LoginData) async
 }
 
 @MainActor
@@ -34,6 +34,8 @@ final class LoginCoordinator: NSObject {
     private let windowController: NSWindowController
     private let window: NSWindow
     private let container: Container
+
+    private var vm: LoginViewModel?
 
     private var finishedSubscription: AnyCancellable?
     private var cancellables = Set<AnyCancellable>()
@@ -75,14 +77,14 @@ final class LoginCoordinator: NSObject {
         NSRunningApplication.current.activate(options: [.activateIgnoringOtherApps])
     }
 
-    private func loginComplete(_ data: LoginData) {
-        self.delegate?.loginCoordinatorDidFinish(loginCoordinator: self, data: data)
+    private func loginComplete(_ data: LoginData) async {
+        await self.delegate?.loginCoordinatorDidFinish(loginCoordinator: self, data: data)
     }
 
-    private func loginStepResultReceived(_ result: LoginStep) {
+    private func loginStepResultReceived(_ result: LoginStep) async {
         switch result {
         case let .done(data):
-            self.loginComplete(data)
+            await self.loginComplete(data)
         case .backToStart:
             presentAtPreviousScreensOriginAndSize(view: loginView())
         case .twoFactorCodeNeeded:
@@ -92,13 +94,22 @@ final class LoginCoordinator: NSObject {
         }
     }
 
+    public func logIn(as username: String, password: String) {
+        vm?.username = username
+        vm?.password = password
+        vm?.logIn()
+    }
+
     private func loginView(with initialError: LoginError? = nil) -> some View {
         let vm = container.makeLoginViewModel()
+        self.vm = vm
+
         finishedSubscription = vm.$finished
             .sink { [unowned self] result in
                 guard let result = result else { return }
-
-                self.loginStepResultReceived(result)
+                Task {
+                    await self.loginStepResultReceived(result)
+                }
             }
 
         vm.$isLoading
@@ -115,8 +126,9 @@ final class LoginCoordinator: NSObject {
         finishedSubscription = vm.$finished
             .sink { [unowned self] result in
                 guard let result = result else { return }
-
-                self.loginStepResultReceived(result)
+                Task {
+                    await self.loginStepResultReceived(result)
+                }
             }
 
         vm.$isLoading
@@ -133,8 +145,9 @@ final class LoginCoordinator: NSObject {
         finishedSubscription = vm.$finished
             .sink { [unowned self] result in
                 guard let result = result else { return }
-
-                self.loginStepResultReceived(result)
+                Task {
+                    await self.loginStepResultReceived(result)
+                }
             }
 
         vm.$isLoading

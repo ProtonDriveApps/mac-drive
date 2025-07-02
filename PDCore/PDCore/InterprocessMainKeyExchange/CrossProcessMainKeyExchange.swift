@@ -36,7 +36,7 @@ extension CrossProcessMainKeyExchange {
         let keychain = KeychainProvider.shared.keychain
         let secureEnclave = SecureEnclaveHelper(publicLabel: self.publicLabel, privateLabel: self.privateLabel)
         
-        guard let pinData = keychain.data(forKey: self.keychainLabel, attributes: nil),
+        guard let pinData = try? keychain.dataOrError(forKey: self.keychainLabel, attributes: nil),
             let privateKey = self.privateEphemeralKey,
             let pinDataDecrypted = try? secureEnclave.decrypt(pinData, privateKey: privateKey) else
         {
@@ -78,7 +78,7 @@ extension CrossProcessMainKeyExchange {
         let encryptedPin = try! secureEnclave.encrypt(Data(mainKey), publicKey: publicKey)
         // swiftlint:enable force_try
         
-        keychain.set(encryptedPin, forKey: keychainLabel, attributes: nil)
+        try? keychain.setOrError(encryptedPin, forKey: keychainLabel, attributes: nil)
     }
 }
 #endif

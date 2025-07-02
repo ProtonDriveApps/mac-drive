@@ -30,10 +30,36 @@
 	<true/>
 	<key>NSExtension</key>
 	<dict>
+		<key>NSExtensionFileProviderDocumentGroup</key>
+		<string>$(TeamIdentifierPrefix)ch.protonmail.protondrive</string>
 		<key>NSExtensionAttributes</key>
 		<dict/>
 		<key>NSExtensionFileProviderActions</key>
 		<array>
+			<dict>
+				<key>NSExtensionFileProviderActionActivationRule</key>
+				<string>domainUserInfo.keepDownloadedEnabled == 1 &amp;&amp; SUBQUERY ( fileproviderItems, $item, $item.itemIdentifier != &quot;NSFileProviderRootContainerItemIdentifier&quot; &amp;&amp; $item.userInfo.keep_downloaded != YES &amp;&amp; $item.userInfo.inherit_keep_downloaded != YES ).@count &gt; 0</string>
+				<key>NSExtensionFileProviderActionIdentifier</key>
+				<string>ch.protonmail.drive.fileprovider.action.keep_downloaded</string>
+				<key>NSExtensionFileProviderActionName</key>
+				<string>Make Available Offline</string>
+			</dict>
+			<dict>
+				<key>NSExtensionFileProviderActionActivationRule</key>
+				<string>SUBQUERY ( fileproviderItems, $item, ($item.itemIdentifier != &quot;NSFileProviderRootContainerItemIdentifier&quot; &amp;&amp; $item.isUploaded == YES &amp;&amp; ($item.isDownloaded == YES || $item.isDownloading == YES) ) ).@count &gt; 0</string>
+				<key>NSExtensionFileProviderActionIdentifier</key>
+				<string>ch.protonmail.drive.fileprovider.action.remove_download</string>
+				<key>NSExtensionFileProviderActionName</key>
+				<string>Online Only (Free Up Space)</string>
+			</dict>
+			<dict>
+				<key>NSExtensionFileProviderActionActivationRule</key>
+				<string>SUBQUERY ( fileproviderItems, $item, ($item.itemIdentifier != &quot;NSFileProviderRootContainerItemIdentifier&quot; ) ).@count &gt; 0</string>
+				<key>NSExtensionFileProviderActionIdentifier</key>
+				<string>ch.protonmail.drive.fileprovider.action.open_in_browser</string>
+				<key>NSExtensionFileProviderActionName</key>
+				<string>View Online</string>
+			</dict>
 			<dict>
 				<key>NSExtensionFileProviderActionActivationRule</key>
 				<string>TRUEPREDICATE</string>
@@ -43,22 +69,18 @@
 				<string>Refresh</string>
 			</dict>
 		</array>
-		<key>NSExtensionFileProviderDocumentGroup</key>
-		<string>$(TeamIdentifierPrefix)ch.protonmail.protondrive</string>
-		<key>NSExtensionFileProviderDownloadPipelineDepth</key>
-		<integer>6</integer>
-		<key>NSExtensionFileProviderSupportsEnumeration</key>
-		<true/>
-		<key>NSExtensionFileProviderUploadPipelineDepth</key>
-		<integer>4</integer>
-		<key>NSExtensionFileProviderWantsFlattenedPackages</key>
-		<true/>
-		<key>NSExtensionPointIdentifier</key>
-		<string>com.apple.fileprovider-nonui</string>
-		<key>NSExtensionPrincipalClass</key>
-		<string>$(PRODUCT_MODULE_NAME).FileProviderExtension</string>
 		<key>NSFileProviderDecorations</key>
 		<array>
+			<dict>
+				<key>BadgeImageType</key>
+				<string>me.proton.drive.badge.checkmark</string>
+				<key>Category</key>
+				<string>Badge</string>
+				<key>Identifier</key>
+				<string>me.proton.drive.fileproviderdecorations.badge.checkmark</string>
+				<key>Label</key>
+				<string>Available offline</string>
+			</dict>
 			<dict>
 				<key>BadgeImageType</key>
 				<string>me.proton.drive.fileBadge.shared</string>
@@ -90,6 +112,22 @@
 				<string></string>
 			</dict>
 		</array>
+		<key>NSExtensionFileProviderAllowsContextualMenuDownloadEntry</key>
+		<false/>
+		<key>NSExtensionFileProviderAllowsUserControlledEviction</key>
+		<false/>
+		<key>NSExtensionFileProviderSupportsEnumeration</key>
+		<true/>
+		<key>NSExtensionFileProviderWantsFlattenedPackages</key>
+		<true/>
+		<key>NSExtensionFileProviderDownloadPipelineDepth</key>
+		<integer>8</integer>
+		<key>NSExtensionFileProviderUploadPipelineDepth</key>
+		<integer>8</integer>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.fileprovider-nonui</string>
+		<key>NSExtensionPrincipalClass</key>
+		<string>$(PRODUCT_MODULE_NAME).FileProviderExtension</string>
 	</dict>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>

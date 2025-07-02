@@ -25,7 +25,7 @@ final class PaginatedRevisionUploader: RevisionUploader {
     private let signersKitFactory: SignersKitFactoryProtocol
     private let queue: OperationQueue
     private let moc: NSManagedObjectContext
-    private let configuration: FileUploadConfiguration
+    private let parallelEncryption: Bool
 
     private var operationsContainer = OperationsContainer()
     private var isCancelled = false
@@ -38,7 +38,7 @@ final class PaginatedRevisionUploader: RevisionUploader {
         signersKitFactory: SignersKitFactoryProtocol,
         queue: OperationQueue,
         moc: NSManagedObjectContext,
-        configuration: FileUploadConfiguration
+        parallelEncryption: Bool
     ) {
         self.pageSize = pageSize
         self.parentProgress = parentProgress
@@ -47,7 +47,7 @@ final class PaginatedRevisionUploader: RevisionUploader {
         self.signersKitFactory = signersKitFactory
         self.queue = queue
         self.moc = moc
-        self.configuration = configuration
+        self.parallelEncryption = parallelEncryption
     }
 
     func upload(_ draft: FileDraft, verification: BlockVerification, completion: @escaping Completion) {
@@ -132,7 +132,7 @@ final class PaginatedRevisionUploader: RevisionUploader {
         
         let verification: BlockVerification
 
-        if configuration.isEncryptionParallel() {
+        if parallelEncryption {
             verification = try await Self.getVerificationCodesInParallel(verifier: verifier, verifiableBlocks: verifiableBlocks)
         } else {
             verification = try await Self.getVerificationCodes(verifier: verifier, verifiableBlocks: verifiableBlocks)

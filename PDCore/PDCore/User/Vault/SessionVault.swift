@@ -38,29 +38,34 @@ public class SessionVault: CredentialProvider, ObservableObject {
 
     static var current: SessionVault! // 🧨
     internal var mainKeyProvider: MainKeyProvider!
-
-    // this must be only ever written to and read from the extension
-    @SecureStorage(label: "fileProviderChildSessionCredential") private var fileProviderChildSessionCredential: CoreCredential?
     
-    // this must be only ever written to and read from the main app
-    @SecureStorage(label: "parentSessionCredential") private var parentSessionCredential: CoreCredential?
+    // secure properties below must be only ever written to and read from the main app
+    // the label differs from the property name to keep backwards compatibility with the older clients after property was renamed
+    @SecureStorage(label: "parentSessionCredential") private var applicationParentSessionCredential: CoreCredential?
     
-    // this must be only ever written to from the main app and read from the extension (exception: migration path)
-    @SecureStorage(label: "temporaryLockerStorageForChildSessionCredentials") private var temporaryLockerStorageForChildSessionCredentials: CoreCredential?
+    // secure properties below must be only ever written to and read from the extension
+    // the label differs from the property name to keep backwards compatibility with the older clients after property was renamed
+    @SecureStorage(label: "fileProviderChildSessionCredential") private var fileProviderExtensionChildSessionCredential: CoreCredential?
+    @SecureStorage(label: "fileProviderExtensionDDKChildSessionCredential") private var fileProviderExtensionDDKChildSessionCredential: CoreCredential?
+    
+    // secure properties below must be only ever written to from the main app and read from the extension (exception: migration path)
+    // the label differs from the property name to keep backwards compatibility with the older clients after property was renamed
+    @SecureStorage(label: "temporaryLockerStorageForChildSessionCredential") private var temporaryLockerStorageForFileProviderExtensionChildSessionCredential: CoreCredential?
+    @SecureStorage(label: "temporaryLockerStorageForFileProviderExtensionDDKChildSessionCredential") private var temporaryLockerStorageForFileProviderExtensionDDKChildSessionCredential: CoreCredential?
     
     // a proxy property, passes info to the proper storage ones
     private var credential: CoreCredential? {
         get {
             if Constants.runningInExtension {
-                return fileProviderChildSessionCredential
+                return fileProviderExtensionChildSessionCredential
             } else {
-                return parentSessionCredential
+                return applicationParentSessionCredential
             }
         }
         
         set {
             if Constants.runningInExtension {
-                fileProviderChildSessionCredential = newValue
+                fileProviderExtensionChildSessionCredential = newValue
                 if let newValue {
                     if Constants.buildType.isQaOrBelow {
                         Log.info("New child session credentials \(newValue.UID) stored in the extension",
@@ -74,7 +79,7 @@ public class SessionVault: CredentialProvider, ObservableObject {
                              domain: .sessionManagement)
                 }
             } else {
-                parentSessionCredential = newValue
+                applicationParentSessionCredential = newValue
                 if let newValue {
                     if Constants.buildType.isQaOrBelow {
                         Log.info("New parent session credentials \(newValue.UID) stored in the main app",
@@ -119,25 +124,28 @@ public class SessionVault: CredentialProvider, ObservableObject {
 
     // QA only
     public var parentSessionUID: String? {
-        parentSessionCredential?.UID
+        applicationParentSessionCredential?.UID
     }
     // QA only
     public var childSessionUID: String? {
-        (fileProviderChildSessionCredential ?? temporaryLockerStorageForChildSessionCredentials)?.UID
+        (fileProviderExtensionChildSessionCredential ?? temporaryLockerStorageForFileProviderExtensionChildSessionCredential)?.UID
     }
 
     public init(mainKeyProvider: MainKeyProvider) {
         self.mainKeyProvider = mainKeyProvider
         
         if Constants.runningInExtension {
-            self._fileProviderChildSessionCredential.configure(with: mainKeyProvider)
-            self._temporaryLockerStorageForChildSessionCredentials.configure(with: mainKeyProvider)
+            self._fileProviderExtensionChildSessionCredential.configure(with: mainKeyProvider)
+            self._fileProviderExtensionDDKChildSessionCredential.configure(with: mainKeyProvider)
+            self._temporaryLockerStorageForFileProviderExtensionChildSessionCredential.configure(with: mainKeyProvider)
+            self._temporaryLockerStorageForFileProviderExtensionDDKChildSessionCredential.configure(with: mainKeyProvider)
         } else {
-            self._parentSessionCredential.configure(with: mainKeyProvider)
-            self._temporaryLockerStorageForChildSessionCredentials.configure(with: mainKeyProvider)
+            self._applicationParentSessionCredential.configure(with: mainKeyProvider)
+            self._temporaryLockerStorageForFileProviderExtensionChildSessionCredential.configure(with: mainKeyProvider)
+            self._temporaryLockerStorageForFileProviderExtensionDDKChildSessionCredential.configure(with: mainKeyProvider)
             if Constants.buildType.isQaOrBelow {
                 // in QA builds, we do read the child session to expose its UID. It doesn't happen in the release builds
-                self._fileProviderChildSessionCredential.configure(with: mainKeyProvider)
+                self._fileProviderExtensionChildSessionCredential.configure(with: mainKeyProvider)
             }
         }
         self._unauthorizedCredential.configure(with: mainKeyProvider)
@@ -160,15 +168,15 @@ public class SessionVault: CredentialProvider, ObservableObject {
         @SecureStorage(label: "credential") var oldCredentialsStorage: CoreCredential?
         _oldCredentialsStorage.configure(with: mainKeyProvider)
         
-        guard !_parentSessionCredential.hasCyphertext() else {
+        guard !_applicationParentSessionCredential.hasCyphertext() else {
             Log.debug("User has credentials in parentSessionCredential, skipping migration", domain: .encryption)
             return
         }
-        guard !_fileProviderChildSessionCredential.hasCyphertext() else {
+        guard !_fileProviderExtensionChildSessionCredential.hasCyphertext() else {
             Log.debug("User has credentials in fileProviderChildSessionCredential, skipping migration", domain: .encryption)
             return
         }
-        guard !_temporaryLockerStorageForChildSessionCredentials.hasCyphertext() else {
+        guard !_temporaryLockerStorageForFileProviderExtensionChildSessionCredential.hasCyphertext() else {
             Log.debug("User has credentials in temporaryLockerStorageForChildSessionCredentials, skipping migration", domain: .encryption)
             return
         }
@@ -179,14 +187,19 @@ public class SessionVault: CredentialProvider, ObservableObject {
         
         do {
             Log.info("User has credentials in oldCredentialsStorage, attempting migration", domain: .encryption)
-            try _oldCredentialsStorage.duplicate(to: _parentSessionCredential.label)
-            try _oldCredentialsStorage.duplicate(to: _fileProviderChildSessionCredential.label)
-            try _oldCredentialsStorage.duplicate(to: _temporaryLockerStorageForChildSessionCredentials.label)
+            try _oldCredentialsStorage.duplicate(to: _applicationParentSessionCredential.label)
+            try _oldCredentialsStorage.duplicate(to: _fileProviderExtensionChildSessionCredential.label)
+            try _oldCredentialsStorage.duplicate(to: _temporaryLockerStorageForFileProviderExtensionChildSessionCredential.label)
             try _oldCredentialsStorage.wipeValue()
             try _unauthorizedCredential.wipeValue()
             Log.info("Successfully complete migration of oldCredentialsStorage", domain: .encryption)
         } catch {
-            Log.error("Migration from single session to parent+child session failed, will cause force logout: " + error.localizedDescription, domain: .encryption)
+            Log
+                .error(
+                    "Migration from single session to parent+child session failed, will cause force logout",
+                    error: error,
+                    domain: .encryption
+                )
         }
     }
     
@@ -206,18 +219,18 @@ public class SessionVault: CredentialProvider, ObservableObject {
             try _salts.wipeValue()
             Log.info("Successfully wiped Salts", domain: .encryption)
         } catch {
-            Log.error("Wiping of salts failed, may cause leftovers in local storage: " + error.localizedDescription, domain: .encryption)
+            Log.error("Wiping of salts failed, may cause leftovers in local storage", error: error, domain: .encryption)
         }
     }
     
-    func set(passphrases: [AddressID: String]) {
+    public func set(passphrases: [AddressID: String]) {
         storePassphrases(passphrases)
     }
 
     public func isSignedIn() -> Bool {
         /// `_parentSessionCredential` gets filled before we actually obtain userInfo
         /// `userInfo` is needed though for fetching addresses
-        self._parentSessionCredential.hasCyphertext() && _userInfo.hasCyphertext()
+        self._applicationParentSessionCredential.hasCyphertext() && _userInfo.hasCyphertext()
     }
     
     public var isSignedInPublisher: AnyPublisher<Bool, Never> {
@@ -230,7 +243,7 @@ public class SessionVault: CredentialProvider, ObservableObject {
             .eraseToAnyPublisher()
     }
     
-    public func clientCredential() -> PDClient.ClientCredential? {
+    public func clientCredential() -> ClientCredential? {
         guard let credential = sessionCredential else { return nil }
         return .init(credential)
     }
@@ -260,7 +273,17 @@ extension SessionVault: SessionStore {
         if let unauthorizedCredential {
             return unauthorizedCredential
         }
+        Log.debug("Query session credential: no available credential", domain: .application)
         return nil
+    }
+    
+    public var ddkCredential: CoreCredential? {
+        fileProviderExtensionDDKChildSessionCredential
+    }
+    
+    public var isDDKSessionAvailable: Bool {
+        guard Constants.runningInExtension else { return false }
+        return _fileProviderExtensionDDKChildSessionCredential.hasCyphertext()
     }
 
     public func storeCredential(_ credentialToStore: CoreCredential) {
@@ -273,7 +296,7 @@ extension SessionVault: SessionStore {
         }
     }
     
-    public func storeNewChildSessionCredential(_ credentialToStore: CoreCredential) {
+    public func storeNewChildSessionCredential(_ credentialToStore: CoreCredential, kind: ChildSessionCredentialKind) {
         guard !Constants.runningInExtension else {
             assertionFailure("""
                              This method must only ever be called from the main app.
@@ -288,10 +311,16 @@ extension SessionVault: SessionStore {
             Log.info("New child session credentials stored to the locker in the main app",
                      domain: .sessionManagement)
         }
-        temporaryLockerStorageForChildSessionCredentials = credentialToStore
+        switch kind {
+        case .fileProviderExtension:
+            temporaryLockerStorageForFileProviderExtensionChildSessionCredential = credentialToStore
+        case .ddk:
+            temporaryLockerStorageForFileProviderExtensionDDKChildSessionCredential = credentialToStore
+        }
+        
     }
     
-    public func consumeChildSessionCredentials() {
+    public func consumeChildSessionCredentials(kind: ChildSessionCredentialKind) {
         guard Constants.runningInExtension else {
             assertionFailure("""
                              This method must only ever be called from the extension.
@@ -299,9 +328,14 @@ extension SessionVault: SessionStore {
                              """)
             return
         }
-        guard let newChildSessionCredentials = temporaryLockerStorageForChildSessionCredentials else {
-            return
+        let newChildSessionCredentials: CoreCredential?
+        switch kind {
+        case .fileProviderExtension:
+            newChildSessionCredentials = temporaryLockerStorageForFileProviderExtensionChildSessionCredential
+        case .ddk:
+            newChildSessionCredentials = temporaryLockerStorageForFileProviderExtensionDDKChildSessionCredential
         }
+        guard let newChildSessionCredentials else { return }
         if Constants.buildType.isQaOrBelow {
             Log.info("New child session credentials \(newChildSessionCredentials.UID) consumed in the extension",
                      domain: .sessionManagement)
@@ -309,8 +343,36 @@ extension SessionVault: SessionStore {
             Log.info("New child session credentials consumed in the extension",
                      domain: .sessionManagement)
         }
-        fileProviderChildSessionCredential = newChildSessionCredentials
-        temporaryLockerStorageForChildSessionCredentials = nil
+        switch kind {
+        case .fileProviderExtension:
+            fileProviderExtensionChildSessionCredential = newChildSessionCredentials
+            temporaryLockerStorageForFileProviderExtensionChildSessionCredential = nil
+        case .ddk:
+            fileProviderExtensionDDKChildSessionCredential = newChildSessionCredentials
+            temporaryLockerStorageForFileProviderExtensionDDKChildSessionCredential = nil
+        }
+    }
+    
+    public func updateDDKSessionTokens(accessToken: String, refreshToken: String) {
+        guard Constants.runningInExtension else {
+            assertionFailure("""
+                             This method must only ever be called from the extension.
+                             It's the only place that has access to the DDK session storage.
+                             """)
+            return
+        }
+        guard var ddkCredentials = fileProviderExtensionDDKChildSessionCredential else {
+            Log.error(
+                "Trying to update DDK session tokens when there's no DDK session stored in the session vault",
+                error: nil,
+                domain: .sessionManagement
+            )
+            return
+        }
+        ddkCredentials.accessToken = accessToken
+        ddkCredentials.refreshToken = refreshToken
+        fileProviderExtensionDDKChildSessionCredential = ddkCredentials
+        Log.info("Updated DDK session tokens", domain: .sessionManagement)
     }
 
     public func storeUser(_ user: User) {
@@ -331,9 +393,11 @@ extension SessionVault: SessionStore {
     }
 
     public func signOut() {
-        try? _parentSessionCredential.wipeValue()
-        try? _fileProviderChildSessionCredential.wipeValue()
-        try? _temporaryLockerStorageForChildSessionCredentials.wipeValue()
+        try? _applicationParentSessionCredential.wipeValue()
+        try? _fileProviderExtensionChildSessionCredential.wipeValue()
+        try? _fileProviderExtensionDDKChildSessionCredential.wipeValue()
+        try? _temporaryLockerStorageForFileProviderExtensionChildSessionCredential.wipeValue()
+        try? _temporaryLockerStorageForFileProviderExtensionDDKChildSessionCredential.wipeValue()
         try? _unauthorizedCredential.wipeValue()
         try? _userInfo.wipeValue()
         try? _passphrases.wipeValue()
@@ -342,6 +406,10 @@ extension SessionVault: SessionStore {
         try? _publicKeys.wipeValue()
         try? _addressIDPublicKeys.wipeValue()
         #if os(iOS)
+        try? mainKeyProvider.wipeMainKeyOrError()
+        // Bug in ProtonCore, `wipeMainKeyOrError` doesn't clean up BioProtection encryption keys, while
+        // `wipeMainKey` does. Wiping it fixes issue with invalid keys being used.
+        // Can be removed once ProtonCore is adjusted.
         mainKeyProvider.wipeMainKey()
         #endif
         
@@ -350,17 +418,23 @@ extension SessionVault: SessionStore {
     }
 }
 
+public enum ChildSessionCredentialKind {
+    case fileProviderExtension
+    case ddk
+}
+
 public protocol SessionStore {
     typealias AddressID = String
 
     var sessionCredential: CoreCredential? { get }
+    var ddkCredential: CoreCredential? { get }
 
     func removeAuthenticatedCredential()
     func removeUnauthenticatedCredential()
 
     func storeCredential(_ credential: CoreCredential)
-    func storeNewChildSessionCredential(_ childSessionCredential: CoreCredential)
-    func consumeChildSessionCredentials()
+    func storeNewChildSessionCredential(_ childSessionCredential: CoreCredential, kind: ChildSessionCredentialKind)
+    func consumeChildSessionCredentials(kind: ChildSessionCredentialKind)
     
     func storeUser(_ user: User)
     func storeAddresses(_ addresses: [Address])
@@ -429,7 +503,7 @@ extension SessionVault {
         throw Errors.noRequiredPassphrase
     }
     
-    func addressPassphrase(for addressKey: Key) throws -> String {
+    public func addressPassphrase(for addressKey: Key) throws -> String {
         guard let userInfo = self.userInfo else {
             throw Errors.passphrasesVaultEmpty
         }
@@ -473,12 +547,12 @@ extension SessionVault {
     public func currentAddress() -> Address? {
         guard let userInfo else {
             assert(false, "Drive can not work with accounts without emails - they are needed for cryptography")
-            Log.error("User info is nil", domain: .sessionManagement)
+            Log.error("User info is nil", error: nil, domain: .sessionManagement)
             return nil
         }
         guard let email = userInfo.email else {
             assert(false, "Drive can not work with accounts without emails - they are needed for cryptography")
-            Log.error("User info doesn't have an email", domain: .sessionManagement)
+            Log.error("User info doesn't have an email", error: nil, domain: .sessionManagement)
             return nil
         }
         if email.isEmpty {
@@ -488,7 +562,7 @@ extension SessionVault {
 
         let address = getAddress(for: email)
         if address == nil {
-            Log.error("Address not found based on user's email. Number of addresses: \(String(describing: addresses?.count))", domain: .sessionManagement)
+            Log.error("Address not found based on user's email", domain: .sessionManagement, context: LogContext("Number of addresses: \(String(describing: addresses?.count))"))
         }
         return address
     }
@@ -542,10 +616,13 @@ extension SessionVault {
     }
 
     public var allAddresses: [String] {
-        guard let addresses else { return [] }
-        return addresses.map(\.email)
+        allAddressesFullInfo.map(\.email)
     }
-    
+
+    public var allAddressesFullInfo: [Address] {
+        addresses ?? []
+    }
+
     public func getAccountInfo() -> AccountInfo? {
         guard let info = self.userInfo else {
             return nil
@@ -578,7 +655,7 @@ extension SessionVault {
         guard let user = self.userInfo, let addresses = self.addresses else {
             return nil
         }
-        return .init(displayName: user.displayName, hideEmbeddedImages: nil, hideRemoteImages: nil, imageProxy: nil, maxSpace: user.maxSpace, maxBaseSpace: user.maxBaseSpace, maxDriveSpace: user.maxDriveSpace, notificationEmail: nil, signature: nil, usedSpace: user.usedSpace, usedBaseSpace: user.usedBaseSpace, usedDriveSpace: user.usedDriveSpace, userAddresses: addresses, autoSC: nil, language: nil, maxUpload: user.maxUpload, notify: nil, swipeLeft: nil, swipeRight: nil, role: user.role, delinquent: user.delinquent, keys: user.keys, userId: user.ID, sign: nil, attachPublicKey: nil, linkConfirmation: nil, credit: user.credit, currency: user.currency, createTime: user.createTime.map(Int64.init), pwdMode: nil, twoFA: nil, enableFolderColor: nil, inheritParentFolderColor: nil, subscribed: user.subscribed, groupingMode: nil, weekStart: nil, delaySendSeconds: nil, telemetry: nil, crashReports: nil, conversationToolbarActions: nil, messageToolbarActions: nil, listToolbarActions: nil, referralProgram: nil)
+        return .init(displayName: user.displayName, hideEmbeddedImages: nil, hideRemoteImages: nil, imageProxy: nil, maxSpace: user.maxSpace, maxBaseSpace: user.maxBaseSpace, maxDriveSpace: user.maxDriveSpace, notificationEmail: nil, signature: nil, usedSpace: user.usedSpace, usedBaseSpace: user.usedBaseSpace, usedDriveSpace: user.usedDriveSpace, userAddresses: addresses, autoSC: nil, language: nil, maxUpload: user.maxUpload, notify: nil, swipeLeft: nil, swipeRight: nil, role: user.role, delinquent: user.delinquent, keys: user.keys, userId: user.ID, sign: nil, attachPublicKey: nil, linkConfirmation: nil, credit: user.credit, currency: user.currency, createTime: user.createTime.map(Int64.init), pwdMode: nil, twoFA: nil, enableFolderColor: nil, inheritParentFolderColor: nil, subscribed: user.subscribed, groupingMode: nil, weekStart: nil, delaySendSeconds: nil, telemetry: nil, crashReports: nil, conversationToolbarActions: nil, messageToolbarActions: nil, listToolbarActions: nil, referralProgram: nil, edmOptOut: nil)
     }
 }
 
@@ -594,13 +671,13 @@ extension SessionVault: UploadClientUIDProvider {
     
     public func getUploadClientUID() -> String {
         guard let uploadClientUID else {
-            guard let sessionCredential, !sessionCredential.isForUnauthenticatedSession else {
-                let message = "Upload client UID requested when no auth credentials available"
+            guard let user = userInfo else {
+                let message = "Upload client UID requested when no userInfo available"
                 assertionFailure(message)
-                Log.error(message, domain: .storage)
+                Log.error(message, error: nil, domain: .storage)
                 return ""
             }
-            let rawUID = sessionCredential.userID + getDeviceUUID()
+            let rawUID = user.ID + getDeviceUUID()
             let hashedUID = clientPrefix() + rawUID.sha256
             self.uploadClientUID = hashedUID
             return hashedUID
@@ -673,7 +750,9 @@ public struct AccountInfo: Equatable {
     }
 }
 
-public struct UserInfo: Equatable {
+extension InvoiceUserState: Encodable {}
+
+public struct UserInfo: Equatable, Encodable {
     public let usedSpace: Double
     public let maxSpace: Double
     public let invoiceState: InvoiceUserState
@@ -699,6 +778,14 @@ public struct UserInfo: Equatable {
         case .delinquentMedium, .delinquentSevere:
             return true   
         }
+    }
+
+    public var isWarning: Bool {
+        usedSpace / maxSpace > 0.8
+    }
+
+    public var isFull: Bool {
+        availableStorage == 0
     }
 }
 

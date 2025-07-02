@@ -17,6 +17,7 @@
 
 import UserNotifications
 import Combine
+import CoreData
 
 #if canImport(UIKit)
 import UIKit
@@ -84,7 +85,10 @@ extension UploadsListing {
             throw URLConsistencyError.urlSizeMismatch
         }
 
-        tower.fileUploader.upload(newFile, completion: { _ in })
+        let volumeID = folder.identifier.volumeID
+        tower.fileUploader.upload(newFile, completion: { [weak self] _ in
+            self?.tower.forcePolling(volumeIDs: [volumeID])
+        })
     }
 
     public func restartUpload(node: File) {

@@ -93,6 +93,7 @@ public final class CharacterLimitTextFieldCoordinator: NSObject, PMTextFieldDele
         if isOverCharLimit {
             textField.errorMessage = "\(value.count)/\(maximumChars)"
         } else {
+            textField.errorMessage = ""
             textField.assistiveText = "\(value.count)/\(maximumChars)"
         }
         textBinding.wrappedValue = value

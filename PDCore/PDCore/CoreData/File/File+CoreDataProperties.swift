@@ -76,7 +76,25 @@ extension File {
 }
 
 public extension File {
-    var isProtonDocument: Bool {
-        return MimeType(value: mimeType) == .protonDocument
+    var isProtonFile: Bool {
+        return MimeType(value: mimeType).isProtonFile
+    }
+
+    var isProtonDoc: Bool {
+        return MimeType(value: mimeType).isProtonDoc
+    }
+
+    var isProtonSheet: Bool {
+        return MimeType(value: mimeType).isProtonSheet
+    }
+
+    var protonFileType: ProtonFileType? {
+        if isProtonDoc {
+            return .doc
+        } else if isProtonSheet {
+            return .sheet
+        } else {
+            return nil
+        }
     }
 }

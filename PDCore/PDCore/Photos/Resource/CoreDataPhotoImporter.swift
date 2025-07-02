@@ -64,6 +64,7 @@ public class CoreDataPhotoImporter: PhotoImporter {
         coreDataPhoto.createdDate = Date()
         coreDataPhoto.modifiedDate = Date()
         coreDataPhoto.captureTime = asset.metadata.camera.captureTime ?? Date()
+        coreDataPhoto.tags = asset.tags
 
         // Temporary values
         let metadata = makeTemporalMetadata(from: asset.metadata).base64Encoded()
@@ -95,7 +96,7 @@ public class CoreDataPhotoImporter: PhotoImporter {
         coreDataPhotoRevision.file = coreDataPhoto // This adds the current coreDataRevision to File's revisions
         coreDataPhotoRevision.photo = coreDataPhoto
         coreDataPhoto.activeRevisionDraft = coreDataPhotoRevision
-        coreDataPhoto.parentLink = root
+        coreDataPhoto.parentFolder = root
 
         Log.info("\(type(of: self)) will create Photo with uploadID: \(uuid).", domain: .photosProcessing)
 

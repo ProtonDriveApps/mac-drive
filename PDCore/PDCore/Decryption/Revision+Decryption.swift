@@ -19,7 +19,7 @@ import Foundation
 import ProtonCoreCrypto
 
 extension Revision {
-    enum Errors: Error {
+    public enum Errors: Error {
         case noBlocks
         case noFileMeta
         case cancelled
@@ -35,10 +35,8 @@ extension Revision {
             guard !self.blocks.isEmpty else {
                 return false
             }
-            for block in self.blocks {
-                guard let localUrl = block.localUrl else {
-                    return false
-                }
+            for block in self.blocks where block.localUrl == nil {
+                return false
             }
             
             return true
@@ -57,14 +55,14 @@ extension Revision {
         do {
             try checkManifestSignatureForDownloadedRevisions()
         } catch {
-            Log.error(SignatureError(error, "Revision", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
+            Log.error(error: SignatureError(error, "Revision", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption, sendToSentryIfPossible: file.isSignatureVerifiable())
         }
 
         if Constants.runningInRAMContrainedProcess {
             do {
                 return try decryptFileInStream(isCancelled: &isCancelled)
             } catch {
-                Log.error(DecryptionError(error, "Revision - stream", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
+                Log.error(error: DecryptionError(error, "Revision - stream", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
                 throw error
             }
         } else {
@@ -72,7 +70,7 @@ extension Revision {
                 let clearUrl = try clearURL()
                 return try decryptFileInMemory(toURL: clearUrl, isCancelled: &isCancelled)
             } catch {
-                Log.error(DecryptionError(error, "Revision", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
+                Log.error(error: DecryptionError(error, "Revision", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
                 throw error
             }
         }
@@ -82,12 +80,20 @@ extension Revision {
         do {
             return try decryptFileInMemory(toURL: url, isCancelled: &isCancelled)
         } catch {
-            Log.error(DecryptionError(error, "Revision", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
+            Log.error(error: DecryptionError(error, "Revision", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
             throw error
         }
     }
-
+    
     public func decryptedExtendedAttributes() throws -> ExtendedAttributes {
+        #if os(macOS)
+        try PDCoreDecryptExtendedAttributes(self)
+        #else
+        try decryptedExtendedAttributesWithCryptoGo()
+        #endif
+    }
+
+    public func decryptedExtendedAttributesWithCryptoGo() throws -> ExtendedAttributes {
         guard let moc = self.moc else {
             throw Revision.noMOC()
         }
@@ -111,12 +117,20 @@ extension Revision {
             let fileKey = file.nodeKey
             let nodeDecryptionKey = DecryptionKey(privateKey: fileKey, passphrase: filePassphrase)
             let addressKeys = try getAddressPublicKeysOfRevision()
+            let signatureAddressIsEmpty = signatureAddress?.isEmpty ?? true
+            let verificationKeys = signatureAddressIsEmpty ? [file.nodeKey] : addressKeys
 
-            let decrypted = try Decryptor.decryptAndVerifyXAttributes(
-                xAttributes,
-                decryptionKey: nodeDecryptionKey,
-                verificationKeys: addressKeys
-            )
+            let decrypted: VerifiedBinary
+            do {
+                decrypted = try Decryptor.decryptAndVerifyXAttributes(
+                    xAttributes,
+                    decryptionKey: nodeDecryptionKey,
+                    verificationKeys: verificationKeys
+                )
+            } catch let error where !(error is Decryptor.Errors) {
+                DriveIntegrityErrorMonitor.reportMetadataError(for: file)
+                throw error
+            }
 
             switch decrypted {
             case .verified(let attributes):
@@ -125,20 +139,27 @@ extension Revision {
                 return xAttr
 
             case .unverified(let attributes, let error):
-                Log.error(SignatureError(error, "ExtendedAttributes", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
+                Log.error(error: SignatureError(error, "ExtendedAttributes", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption, sendToSentryIfPossible: file.isSignatureVerifiable())
                 let xAttr = try JSONDecoder().decode(ExtendedAttributes.self, from: attributes)
                 clearXAttributes = xAttr
                 return xAttr
             }
 
+        } catch Errors.noFileMeta {
+            throw Errors.noFileMeta
         } catch {
-            Log.error(DecryptionError(error, "ExtendedAttributes", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
+            Log.error(error: DecryptionError(error, "ExtendedAttributes", description: "RevisionID: \(id) \nLinkID: \(file.id) \nVolumeID: \(file.volumeID)"), domain: .encryption)
             throw error
         }
     }
 
     internal func decryptContentSessionKey() throws -> Data {
-        try file.decryptContentKeyPacket()
+        do {
+            return try file.decryptContentKeyPacket()
+        } catch let error where !(error is Decryptor.Errors) {
+            DriveIntegrityErrorMonitor.reportMetadataError(for: file)
+            throw error
+        }
     }
     
     func decryptFileInMemory(toURL clearUrl: URL, isCancelled: inout Bool) throws -> URL {
@@ -214,7 +235,7 @@ extension Revision {
         }
         
         guard let moc = self.managedObjectContext else {
-            assert(false, "Block has no moc")
+            assert(false, "Revision has no moc")
             return
         }
         
@@ -251,11 +272,13 @@ extension Revision {
         guard let armoredManifestSignature = manifestSignature else { throw Errors.noManifestSignature }
 
         let revisionCreatorAddressKeys = try getAddressPublicKeysOfRevision()
+        let signatureAddressIsEmpty = signatureAddress?.isEmpty ?? true
+        let verificationKeys = signatureAddressIsEmpty ? [file.nodeKey] : revisionCreatorAddressKeys
 
         let contentHashes: [Data] = getThumbnailHashes() + sortedBlocks().compactMap { $0.sha256 }
         let localManifest = Data(contentHashes.joined())
 
-        try Decryptor.verifyManifestSignature(localManifest, armoredManifestSignature, verificationKeys: revisionCreatorAddressKeys)
+        try Decryptor.verifyManifestSignature(localManifest, armoredManifestSignature, verificationKeys: verificationKeys)
     }
 
     private func getThumbnailHashes() -> [Data] {

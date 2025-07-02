@@ -30,7 +30,7 @@ extension OfflineSaver {
             self.reachability = reachability
         } catch let error {
             assert(false, error.localizedDescription)
-            Log.error(error, domain: .networking)
+            Log.error(error: error, domain: .networking)
         }
     }
     
@@ -50,7 +50,7 @@ extension OfflineSaver {
     
     func onUnreachable(_ reachability: Reachability) {
         switch reachability.connection {
-        case .unavailable, .none:
+        case .unavailable:
             Log.info("Lost reachability", domain: .networking)
             
             // check if something is not downloaded properly - and artificially add tiny fraction so progress will be claimed started

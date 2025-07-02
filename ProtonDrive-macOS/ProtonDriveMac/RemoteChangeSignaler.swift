@@ -32,8 +32,8 @@ class RemoteChangeSignaler: EventsListener {
                 Log.info("🚦 Signaling FileProvider", domain: .application)
                 try await domainOperationsService.signalEnumerator()
             } catch {
-                let message = "Signaling should never fail, error: \(error)"
-                Log.error(message, domain: .events)
+                let message = "Signaling should never fail"
+                Log.error(message, error: error, domain: .events)
                 if !Constants.isInIntegrationTests {
                     assertionFailure(message)
                 }

@@ -20,7 +20,21 @@
 				<string>me.proton.drive.doc</string>
 			</array>
 			<key>NSDocumentClass</key>
-			<string>$(PRODUCT_MODULE_NAME).ProtonDocument</string>
+			<string>$(PRODUCT_MODULE_NAME).ProtonFile</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Proton Sheet</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>me.proton.drive.sheet</string>
+			</array>
+			<key>NSDocumentClass</key>
+			<string>$(PRODUCT_MODULE_NAME).ProtonFile</string>
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
@@ -85,6 +99,21 @@
 		<dict>
 			<key>UTTypeConformsTo</key>
 			<array>
+				<string>com.apple.icon-decoration.badge</string>
+			</array>
+			<key>UTTypeIdentifier</key>
+			<string>me.proton.drive.badge.checkmark</string>
+			<key>UTTypeDescription</key>
+			<string>Keep Downloaded</string>
+			<key>UTTypeIcons</key>
+			<dict>
+				<key>UTTypeIconName</key>
+				<string>badge-checkmark</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
 				<string>com.apple.icon-decoration.emboss</string>
 			</array>
 			<key>UTTypeDescription</key>
@@ -139,6 +168,36 @@
 				<key>public.mime-type</key>
 				<array>
 					<string>application/vnd.proton.doc</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Proton Sheet</string>
+			<key>UTTypeIcons</key>
+			<dict>
+				<key>UTTypeIconBackgroundName</key>
+				<string></string>
+				<key>UTTypeIconBadgeName</key>
+				<string>protonsheet</string>
+				<key>UTTypeIconText</key>
+				<string>Proton Sheet</string>
+			</dict>
+			<key>UTTypeIdentifier</key>
+			<string>me.proton.drive.sheet</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>protonsheet</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/vnd.proton.sheet</string>
 				</array>
 			</dict>
 		</dict>
