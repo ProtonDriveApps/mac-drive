@@ -248,16 +248,18 @@ extension Revision {
     }
 
     internal func getAddressPublicKeysOfRevision() throws -> [PublicKey] {
+        guard let signatureAddress = signatureAddress else {
+            throw Errors.noSignatureAddress
+        }
 #if os(macOS)
-        guard let signatureAddress = signatureAddress else {
-            throw Errors.noSignatureAddress
+        do {
+            let addressID = try file.getContextShareAddressID()
+            return SessionVault.current.getPublicKeys(email: signatureAddress, addressID: addressID)
+        } catch {
+            return SessionVault.current.getPublicKeys(for: signatureAddress)
         }
-        return SessionVault.current.getPublicKeys(for: signatureAddress)
-
 #else
-        guard let signatureAddress = signatureAddress else {
-            throw Errors.noSignatureAddress
-        }
+        
         let addressID = try file.getContextShareAddressID()
         let creatorKeys = SessionVault.current.getPublicKeys(email: signatureAddress, addressID: addressID)
         return creatorKeys

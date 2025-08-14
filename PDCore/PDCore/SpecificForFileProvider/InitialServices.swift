@@ -45,6 +45,7 @@ public class InitialServices {
     public private(set) var featureFlagsRepository: FeatureFlagsRepositoryProtocol
     public private(set) var sessionRelatedCommunicator: SessionRelatedCommunicatorBetweenMainAppAndExtensions
     public private(set) var pushNotificationService: PushNotificationServiceProtocol?
+    public private(set) var connectionStateResource: ConnectionStateResource
 
     private let sessionRelatedCommunicatorFactory: SessionRelatedCommunicatorFactory
 
@@ -66,7 +67,7 @@ public class InitialServices {
         self.sessionRelatedCommunicatorFactory = sessionRelatedCommunicatorFactory
         self.localSettings = LocalSettings.shared
 
-        let (sessionVault, networking, serviceDelegate, authenticator, communicator, featureFlagsRepository, pushNotificationService) =
+        let (sessionVault, networking, serviceDelegate, authenticator, communicator, featureFlagsRepository, pushNotificationService, connectionStateResource) =
             Self.makeServices(userDefault: userDefault, clientConfig: clientConfig, and: mainKeyProvider, using: sessionRelatedCommunicatorFactory, localSettings: localSettings)
 
         self.sessionVault = sessionVault
@@ -75,6 +76,7 @@ public class InitialServices {
         self.authenticator = authenticator
         self.featureFlagsRepository = featureFlagsRepository
         self.sessionRelatedCommunicator = communicator
+        self.connectionStateResource = connectionStateResource
 #if os(iOS)
         self.pushNotificationService = pushNotificationService
 #endif
@@ -100,7 +102,7 @@ public class InitialServices {
         and mainKeyProvider: MainKeyProvider,
         using sessionRelatedCommunicatorFactory: SessionRelatedCommunicatorFactory,
         localSettings: LocalSettings
-    ) -> (SessionVault, PMAPIService, PMAPIClient, Authenticator, SessionRelatedCommunicatorBetweenMainAppAndExtensions, FeatureFlagsRepositoryProtocol, PushNotificationServiceProtocol?) {
+    ) -> (SessionVault, PMAPIService, PMAPIClient, Authenticator, SessionRelatedCommunicatorBetweenMainAppAndExtensions, FeatureFlagsRepositoryProtocol, PushNotificationServiceProtocol?, ConnectionStateResource) {
         let sessionVault = SessionVault(mainKeyProvider: mainKeyProvider)
 #if os(iOS)
         let networking = PMAPIService.createAPIServiceWithoutSession(environment: clientConfig.environment,
@@ -110,6 +112,10 @@ public class InitialServices {
         let networking = PMAPIService.createAPIServiceWithoutSession(environment: clientConfig.environment,
                                                                      challengeParametersProvider: .empty)
 #endif
+        let connectionStateResource = MonitorConnectionStateResource(doh: networking.dohInterface)
+        #if os(iOS)
+        connectionStateResource.startMonitor()
+        #endif
         let authenticator = Authenticator(api: networking)
 
         let sessionRelatedCommunicator = sessionRelatedCommunicatorFactory(sessionVault, authenticator) { [weak networking] credential, kind in
@@ -171,7 +177,7 @@ public class InitialServices {
             await sessionRelatedCommunicator.performInitialSetup()
         }
 
-        return (sessionVault, networking, serviceDelegate, authenticator, sessionRelatedCommunicator, featureFlagsRepository, pushNotificationService)
+        return (sessionVault, networking, serviceDelegate, authenticator, sessionRelatedCommunicator, featureFlagsRepository, pushNotificationService, connectionStateResource)
     }
     // swiftlint:enable large_tuple
 }

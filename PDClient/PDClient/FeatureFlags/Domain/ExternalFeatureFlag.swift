@@ -20,7 +20,6 @@ public enum ExternalFeatureFlag: CaseIterable {
     case logsCompressionDisabled
     case domainReconnectionEnabled
     case postMigrationJunkFilesCleanup
-    case newTrayAppMenuEnabled
     case pushNotificationIsEnabled
     case logCollectionEnabled
     case logCollectionDisabled
@@ -29,7 +28,7 @@ public enum ExternalFeatureFlag: CaseIterable {
     case driveDisablePhotosForB2B
     case driveDDKEnabled
     case driveMacSyncRecoveryDisabled
-    case driveMacKeepDownloaded
+    case driveMacKeepDownloadedDisabled
 
     // Sharing 
     case driveSharingMigration

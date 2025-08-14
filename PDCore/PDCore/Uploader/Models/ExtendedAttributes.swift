@@ -70,6 +70,17 @@ public class ExtendedAttributes: NSObject, Codable {
             case latitude = "Latitude"
             case longitude = "Longitude"
         }
+
+        public init(latitude: Double, longitude: Double) {
+            self.latitude = latitude
+            self.longitude = longitude
+        }
+
+        public init?(location: PhotoAssetMetadata.Location?) {
+            guard let location else { return nil }
+            self.latitude = location.latitude
+            self.longitude = location.longitude
+        }
     }
     
     public struct Camera: Codable {
@@ -84,6 +95,13 @@ public class ExtendedAttributes: NSObject, Codable {
             case orientation = "Orientation"
             case subjectCoordinates = "SubjectCoordinates"
         }
+
+        public init(captureTime: String?, device: String?, orientation: Int?, subjectCoordinates: SubjectCoordinates?) {
+            self.captureTime = captureTime
+            self.device = device
+            self.orientation = orientation
+            self.subjectCoordinates = subjectCoordinates
+        }
     }
 
     public struct SubjectCoordinates: Codable {
@@ -97,6 +115,14 @@ public class ExtendedAttributes: NSObject, Codable {
             case left = "Left"
             case bottom = "Bottom"
             case right = "Right"
+        }
+
+        public init?(subjectCoordinates: PhotoAssetMetadata.SubjectCoordinates?) {
+            guard let subjectCoordinates else { return nil }
+            self.top = subjectCoordinates.top
+            self.left = subjectCoordinates.left
+            self.bottom = subjectCoordinates.bottom
+            self.right = subjectCoordinates.right
         }
     }
     
@@ -122,7 +148,7 @@ public class ExtendedAttributes: NSObject, Codable {
         }
     }
 
-    func encoded() throws -> Data {
+    public func encoded() throws -> Data {
         let encoder = JSONEncoder()
         return try encoder.encode(self)
     }

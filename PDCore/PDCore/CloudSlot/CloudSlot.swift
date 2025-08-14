@@ -1044,31 +1044,6 @@ extension CloudSlot {
     }
 
     @discardableResult
-    public func update(_ folder: LinkMeta, of shareID: ShareMeta.ShareID, in moc: NSManagedObjectContext) -> FolderObj {
-        var result: Folder!
-
-        // switch to MOC's thread
-        moc.performAndWait {
-            // set up share and relationships
-            let folderObj: FolderObj = self.storage.unique(with: Set([folder.linkID]), in: moc).first!
-
-            var parentLinkObj: FolderObj?
-            if let parentLinkID = folder.parentLinkID {
-                parentLinkObj = self.storage.unique(with: Set([parentLinkID]), in: moc).first!
-                parentLinkObj?.setValue(shareID, forKey: #keyPath(NodeObj.shareID))
-            }
-
-            folderObj.setValue(parentLinkObj, forKey: #keyPath(NodeObj.parentLink))
-            folderObj.setValue(shareID, forKey: #keyPath(NodeObj.shareID))
-            folderObj.fulfillFolder(with: folder)
-
-            result = folderObj
-        }
-
-        return result
-    }
-
-    @discardableResult
     private func update(_ children: [LinkMeta],
                         under folderID: LinkMeta.LinkID,
                         of shareID: ShareMeta.ShareID,
@@ -1164,15 +1139,6 @@ extension CloudSlot {
             file.addToRevisions(revision)
         }
         return file
-    }
-
-    @discardableResult
-    private func update(_ newFolderDetails: NewFolder, folder: FolderObj) -> FolderObj {
-        let moc = folder.managedObjectContext!
-        moc.performAndWait {
-            folder.fulfillFolder(with: newFolderDetails)
-        }
-        return folder
     }
 
     public func update(links: [PDClient.Link], shareId: String, managedObjectContext: NSManagedObjectContext) throws {

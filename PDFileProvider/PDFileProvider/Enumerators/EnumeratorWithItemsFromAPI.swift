@@ -47,7 +47,6 @@ extension EnumeratorWithItemsFromAPI {
         var receivedTheLastPage = false
         
         self.fetchFromAPICancellable = self.model.fetchChildrenFromAPI(proceedTillLastPage: false)
-        .receive(on: DispatchQueue.main)
         .sink { completion in
             if case let .failure(error) = completion {
                 Log.error("Error fetching page", error: error, domain: .enumerating)

@@ -22,10 +22,13 @@ final class NodeTrasher {
 
     private let client: Client
     private let storage: StorageManager
+    private let downloader: DownloaderProtocol?
 
-    public init(client: Client, storage: StorageManager) {
+    public init(client: Client, storage: StorageManager, downloader: DownloaderProtocol?) {
         self.client = client
         self.storage = storage
+        self.downloader = downloader
+        assert(downloader != nil, "Downloader must not be nil")
     }
 
     func trash(_ nodes: [TrashingNodeIdentifier]) async throws {
@@ -65,11 +68,16 @@ final class NodeTrasher {
     private func trashLocally(_ nodes: [TrashingNodeIdentifier]) async throws {
         let context = storage.backgroundContext
 
-        try await context.perform {
+        let ids = try await context.perform {
             let nodes = Node.fetch(identifiers: Set(nodes), allowSubclasses: true, in: context)
-            nodes.forEach { $0.state = .deleted }
+            nodes.forEach { node in
+                node.state = .deleted
+                node.isMarkedOfflineAvailable = false
+            }
             try context.saveOrRollback()
+            return nodes.map(\.identifierWithinManagedObjectContext)
         }
+        downloader?.cancel(operationsOf: ids)
     }
 
     private func removeDeletedError(

@@ -352,7 +352,15 @@ extension StorageManager {
             parent?.addToChildren(node)
             node.setShareID("")
         } else {
-            let parent = Folder.fetchOrCreate(id: parentLinkID, volumeID: link.volumeID, in: moc)
+            let parent: Folder
+            switch Folder.fetchOrCreateIndicatingResult(id: parentLinkID, volumeID: link.volumeID, in: moc) {
+            case .fetched(let folder):
+                parent = folder
+            case .created(let folder):
+                assertionFailure("Parent should already exist but was not found in the database")
+                Log.warning("Parent was created when updating the child node but should already exist", domain: .metadata, sendToSentryIfPossible: true)
+                parent = folder
+            }
             // or an album needs to be created
             parent.addToChildren(node)
             node.setShareID(parent.shareId)

@@ -25,13 +25,19 @@ class NodeDetailsViewModel: ObservableObject {
         let id: String
         let value: String
     }
-    
+
+    struct QADetails {
+        let extendedAttributes: String
+    }
+
     var node: Node
     var tower: Tower
-    
+    var qaDetails: QADetails?
+
     internal init(tower: Tower, node: Node) {
         self.tower = tower
         self.node = node
+        initializeQaDetails()
     }
     
     private static var dateFormatter: DateFormatter = {
@@ -61,7 +67,7 @@ class NodeDetailsViewModel: ObservableObject {
             return []
         }
     }()
-    
+
     private func makeFileDetails(with file: File) -> [NodeDetailViewModel] {
         var details = self.detailsFolder
         details.append(contentsOf: [
@@ -120,4 +126,32 @@ class NodeDetailsViewModel: ObservableObject {
         
         return "/" + path.reversed().dropFirst().joined(separator: "/")
     }()
+
+    private func initializeQaDetails() {
+        guard Constants.buildType.isQaOrBelow else {
+            return
+        }
+
+        guard let file = node as? File else {
+            return
+        }
+
+        qaDetails = QADetails(extendedAttributes: makeExtendedAttributes(file: file))
+    }
+
+    private func makeExtendedAttributes(file: File) -> String {
+        guard let revision = file.activeRevision else {
+            return "error: no active revision"
+        }
+
+        do {
+            let attributes = try revision.decryptedExtendedAttributes()
+            let jsonEncoder = JSONEncoder()
+            jsonEncoder.outputFormatting = .prettyPrinted
+            let attributesData = try jsonEncoder.encode(attributes)
+            return String(data: attributesData, encoding: .utf8) ?? "empty"
+        } catch {
+            return "error: \(error)"
+        }
+    }
 }

@@ -120,7 +120,7 @@ class ApplicationState: ObservableObject {
 
     @Published var deleteCount = 0
 
-    @Published var globalSyncStateDescription: String = "Synced"
+    @Published var globalSyncStateDescription: String?
     private var fullResyncStateDescription: String = "Full resync"
 
     // MARK: Computed
@@ -166,7 +166,7 @@ class ApplicationState: ObservableObject {
         case .synced:
             return formattedTimeSinceLastSync
         case .syncing:
-            return globalSyncStateDescription
+            return globalSyncStateDescription ?? self.overallStatus.displayLabel
         case .fullResync:
             return fullResyncStateDescription
         default:
@@ -176,11 +176,11 @@ class ApplicationState: ObservableObject {
 
     var notificationState: NotificationState {
         guard !fullResyncState.isHappening else { return .none }
-        if errorCount > 0 {
-            return .error(errorCount)
+        if isUpdateAvailable {
+            return .update
         } else {
-            if isUpdateAvailable {
-                return .update
+            if errorCount > 0 {
+                return .error(errorCount)
             } else {
                 return .none
             }
@@ -266,7 +266,7 @@ extension ApplicationState: CustomDebugStringConvertible {
             Property("fullResyncState", fullResyncState.description),
             Property("fullResyncStateDescription", fullResyncStateDescription),
             Property("deleteCount", deleteCount.description),
-            Property("globalSyncStateDescription", globalSyncStateDescription),
+            Property("globalSyncStateDescription", globalSyncStateDescription ?? self.overallStatus.displayLabel),
         ]
     }
 

@@ -74,7 +74,7 @@ public final class CompoundPhotoCompoundImporter: PhotoCompoundImporter {
                 importedCompounds.append(importedCompound)
             }
             try self.moc.saveOrRollback()
-            Log.info("\(Self.self): imported \(newCompounds.count) new compound/s. \(importedCompounds)", domain: .photosProcessing)
+            Log.info("imported \(newCompounds.count) new compound/s. \(importedCompounds)", domain: .photosProcessing)
             self.notificationCenter.post(name: .uploadPendingPhotos)
         }
         
@@ -94,7 +94,7 @@ public final class CompoundPhotoCompoundImporter: PhotoCompoundImporter {
             }
             
             try self.moc.saveOrRollback()
-            Log.info("\(Self.self): imported missing items of \(existingCompounds.count) partially uploaded compound/s.", domain: .photosProcessing)
+            Log.info("imported missing items of \(existingCompounds.count) partially uploaded compound/s.", domain: .photosProcessing)
             self.notificationCenter.post(name: .uploadPendingPhotos)
         }
     }

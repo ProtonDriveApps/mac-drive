@@ -51,7 +51,8 @@ struct EventsFactory {
         let processor = DriveEventsLoopProcessor(
             cloudSlot: tower.cloudSlot,
             conveyor: conveyor,
-            storage: tower.storage
+            storage: tower.storage,
+            externalInvitationConverter: tower.externalInvitationConverter
         )
         return DriveEventsLoop(
             volumeID: volumeId,

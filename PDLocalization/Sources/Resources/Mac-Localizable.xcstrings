@@ -98,7 +98,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "동기화 할 파일 검색 중…"
+            "value" : "동기화할 파일 검색 중…"
           }
         },
         "nb" : {
@@ -161,10 +161,22 @@
             "value" : "Eşitlenecek dosyalar aranıyor…"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пошук файлів для синхронізації…"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在查找要同步的文件……"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在搜尋要同步的檔案…"
           }
         }
       }
@@ -329,10 +341,22 @@
             "value" : "%d öge işlendi"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d елементів оброблено"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%d 个项目已处理"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 個項目已處理"
           }
         }
       }
@@ -886,6 +910,12 @@
             "state" : "translated",
             "value" : "正在启动...（%d%%）"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在啟動... (%d%%)"
+          }
         }
       }
     },
@@ -1241,10 +1271,22 @@
             "value" : "Tam yeniden eşitleme yapılıyor..."
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Виконується повна синхронізація..."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "执行完全重新同步..."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在執行完整重新同步..."
           }
         }
       }
@@ -1415,10 +1457,22 @@
             "value" : "Değişiklikler listeleniyor..."
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перелік змін..."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "更改列表中..."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出變更..."
           }
         }
       }
@@ -1961,10 +2015,22 @@
             "value" : "Değişiklikler listeleniyor... (%d öge)"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перелік змін... (%d елементів)"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "更改列表中... (%d 项)"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出變更... (%d 項目)"
           }
         }
       }
@@ -2548,6 +2614,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 項目同步失敗"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -2727,6 +2805,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "初始化同步..."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在初始化同步..."
           }
         }
       }
@@ -2908,6 +2992,12 @@
             "state" : "translated",
             "value" : "同步已暂停"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步暫停"
+          }
         }
       }
     },
@@ -3087,6 +3177,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您的文件是最新的"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的檔案已是最新"
           }
         }
       }
@@ -4413,6 +4509,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "有 %d 個問題"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -4576,10 +4684,22 @@
             "value" : "Güncelleme yayınlanmış. Yeniden başlatmak ve kurmak için tıklayın."
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступне оновлення. Натисніть, щоб перезапустити та установити."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "更新可用 — 点击重新启动并安装。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有可用的更新 — 點擊以重新啟動並安裝。"
           }
         }
       }
@@ -4761,6 +4881,12 @@
             "state" : "translated",
             "value" : "打开您的文件夹，点击启用，完成在 Mac 上设置 Proton Drive。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開您的資料夾並點擊啟用，以完成設定您的 Mac 上的 Proton Drive。"
+          }
         }
       }
     },
@@ -4941,6 +5067,12 @@
             "state" : "translated",
             "value" : "打开您的 Proton Drive 文件夹"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟你的Proton Drive資料夾"
+          }
         }
       }
     },
@@ -5120,6 +5252,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您快要完成了！"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您快到了！"
           }
         }
       }
@@ -5656,10 +5794,22 @@
             "value" : "Eşitleme sorunlarını düzeltin"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Виправлення проблем синхронізації"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "修复同步问题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修正同步問題"
           }
         }
       }
@@ -6027,6 +6177,12 @@
             "state" : "translated",
             "value" : "您可以在我们的[支持网站] (%@) 上获得进一步的帮助"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您可以在我們的[支援服務網站](%@)找到更多協助。"
+          }
         }
       }
     },
@@ -6206,6 +6362,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "如果您遇到任何问题，请报告问题。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如果您遇到任何問題，請回報問題。"
           }
         }
       }
@@ -7315,6 +7477,12 @@
             "state" : "translated",
             "value" : "同步已暂停。请升级或释放空间以恢复同步。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步已暫停。請升級或騰出空間以繼續同步。"
+          }
         }
       }
     },
@@ -7494,6 +7662,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用 %@ 中的 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已使用 %@ \/ %@"
           }
         }
       }
@@ -8419,6 +8593,12 @@
             "state" : "translated",
             "value" : "有新版本可用"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有新版本可用"
+          }
         }
       }
     },
@@ -8598,6 +8778,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Proton Drive 是最新版本：v%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Drive 已是最新版本: v%@"
           }
         }
       }
@@ -9336,6 +9522,12 @@
             "state" : "translated",
             "value" : "暂停同步"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暫停同步"
+          }
         }
       }
     },
@@ -9515,6 +9707,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "恢复同步"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "繼續同步"
           }
         }
       }

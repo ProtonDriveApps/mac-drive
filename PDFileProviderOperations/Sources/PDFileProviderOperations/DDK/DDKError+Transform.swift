@@ -16,10 +16,11 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import Foundation
-import PDClient
 import PDDesktopDevKit
+import PDClient
 import FileProvider
 import PDFileProvider
+import ProtonDriveProtos
 
 extension Swift.Error {
     func toFileProviderCompatibleError() -> Swift.Error {
@@ -71,7 +72,7 @@ extension DDKMetadataUpdater.MetadataUpdateError {
     }
 }
 
-extension PDDesktopDevKit.Error {
+extension ProtonDriveProtos.Error {
     func toFileProviderCompatibleError() -> Swift.Error {
         switch domain {
         case .successfulCancellation:
@@ -95,7 +96,7 @@ extension PDDesktopDevKit.Error {
 }
 
 extension NSFileProviderError {
-    static func create(_ status: NSFileProviderError.Code, from error: PDDesktopDevKit.Error) -> Self {
+    static func create(_ status: NSFileProviderError.Code, from error: ProtonDriveProtos.Error) -> Self {
         return NSFileProviderError(
             status,
             userInfo: [

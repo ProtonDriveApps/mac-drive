@@ -53,7 +53,7 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
             node.moc?.performAndWait {
                 let filename = (try? node.decryptName()) ?? "Filename decryption failed"
                 let mimeType: String = (try? NodeItem(node: node))?.mimeType ?? node.mimeType
-                return (filename: filename, mimeType: mimeType, size: node.size)
+                return (filename: filename, mimeType: mimeType, size: node.presentableNodeSize)
             }
         }
     }

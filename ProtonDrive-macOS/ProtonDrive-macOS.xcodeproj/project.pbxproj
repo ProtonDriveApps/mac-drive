@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -25,8 +25,6 @@
 		662365902AF94892008E62C6 /* ReleaseNotesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6623658E2AF94892008E62C6 /* ReleaseNotesViewModel.swift */; };
 		662365922AFA3D98008E62C6 /* ReleaseNotes.html in Resources */ = {isa = PBXBuildFile; fileRef = 662365912AFA3D98008E62C6 /* ReleaseNotes.html */; };
 		662365932AFA3D98008E62C6 /* ReleaseNotes.html in Resources */ = {isa = PBXBuildFile; fileRef = 662365912AFA3D98008E62C6 /* ReleaseNotes.html */; };
-		665308212D709C0C00292F5C /* PDDesktopDevKit in Frameworks */ = {isa = PBXBuildFile; productRef = 665308202D709C0C00292F5C /* PDDesktopDevKit */; };
-		665308232D709C1200292F5C /* PDDesktopDevKit in Frameworks */ = {isa = PBXBuildFile; productRef = 665308222D709C1200292F5C /* PDDesktopDevKit */; };
 		665542352D6386BF00CA678C /* FullResyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 665542332D6386AD00CA678C /* FullResyncService.swift */; };
 		665542362D6386BF00CA678C /* FullResyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 665542332D6386AD00CA678C /* FullResyncService.swift */; };
 		6657E2932D5F4C8E00ECBA5B /* ProtonCoreAuthentication in Frameworks */ = {isa = PBXBuildFile; productRef = 6657E2922D5F4C8E00ECBA5B /* ProtonCoreAuthentication */; };
@@ -75,6 +73,8 @@
 		66E62A752D7B1865008222AC /* FullResyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E62A732D7B185F008222AC /* FullResyncCoordinator.swift */; };
 		66E62A762D7B1865008222AC /* FullResyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E62A732D7B185F008222AC /* FullResyncCoordinator.swift */; };
 		66E9C1822CB6D299003F373E /* ProtonCoreCryptoPatchedGoImplementation in Frameworks */ = {isa = PBXBuildFile; productRef = 66E9C1812CB6D299003F373E /* ProtonCoreCryptoPatchedGoImplementation */; };
+		66EA24BE2E45E331006AB716 /* proton_drive_sdk.dylib in Copy proton_drive_sdk.dylib */ = {isa = PBXBuildFile; fileRef = 66EA24BD2E45E292006AB716 /* proton_drive_sdk.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		66EA24C02E45E363006AB716 /* proton_drive_sdk.dylib in Copy proton_drive_sdk.dylib */ = {isa = PBXBuildFile; fileRef = 66EA24BD2E45E292006AB716 /* proton_drive_sdk.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		66FAB3332AD55EF000ADAB83 /* LaunchOnBootService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66FAB3322AD55EF000ADAB83 /* LaunchOnBootService.swift */; };
 		76A2BBDA2AE25F26005B77A2 /* NotificationName+Window.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2BBD92AE25F26005B77A2 /* NotificationName+Window.swift */; };
 		76CEAF432A6CF67A000586F4 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CEAF422A6CF67A000586F4 /* OnboardingView.swift */; };
@@ -280,6 +280,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		661F92812E44F2C000F18D57 /* Copy proton_drive_sdk.dylib */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				66EA24BE2E45E331006AB716 /* proton_drive_sdk.dylib in Copy proton_drive_sdk.dylib */,
+			);
+			name = "Copy proton_drive_sdk.dylib";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6690C80C2AD49E3A0005FC8F /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -298,6 +309,17 @@
 			files = (
 				669777012AF15BE700929E9A /* ProtonDriveMacLauncher.app in CopyFiles */,
 			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		66EA24BF2E45E347006AB716 /* Copy proton_drive_sdk.dylib */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				66EA24C02E45E363006AB716 /* proton_drive_sdk.dylib in Copy proton_drive_sdk.dylib */,
+			);
+			name = "Copy proton_drive_sdk.dylib";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D80188232C53AA8A00BCC068 /* Embed Foundation Extensions */ = {
@@ -327,7 +349,6 @@
 /* Begin PBXFileReference section */
 		31CDDF512A9E04CE00FB8285 /* PDUploadVerifier.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDUploadVerifier.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		31CDDF532A9E04D800FB8285 /* PDUploadVerifier.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDUploadVerifier.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		660181D02CB5676A00021420 /* ProtonDriveSdk.xcframework */ = {isa = PBXFileReference; expectedSignature = "AppleDeveloperProgram:2SB5Z68H26:Proton AG"; lastKnownFileType = wrapper.xcframework; name = ProtonDriveSdk.xcframework; path = ../PDDesktopDevKit/Libraries/ProtonDriveSdk.xcframework; sourceTree = "<group>"; };
 		66196E662BA468A800363D89 /* DomainOperationsService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DomainOperationsService.swift; sourceTree = "<group>"; };
 		662365882AF946DE008E62C6 /* ReleaseNotesCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReleaseNotesCoordinator.swift; sourceTree = "<group>"; };
 		6623658B2AF94737008E62C6 /* ReleaseNotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesView.swift; sourceTree = "<group>"; };
@@ -348,6 +369,7 @@
 		66C25E712BFC9AB8004D7F8D /* InitializationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InitializationView.swift; sourceTree = "<group>"; };
 		66C25E722BFC9AB8004D7F8D /* InitializationCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InitializationCoordinator.swift; sourceTree = "<group>"; };
 		66E62A732D7B185F008222AC /* FullResyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullResyncCoordinator.swift; sourceTree = "<group>"; };
+		66EA24BD2E45E292006AB716 /* proton_drive_sdk.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; path = proton_drive_sdk.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		66F061982B850C5600A6B067 /* stress-tests */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = "stress-tests"; sourceTree = "<group>"; };
 		66FAB3322AD55EF000ADAB83 /* LaunchOnBootService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LaunchOnBootService.swift; sourceTree = "<group>"; };
 		763AA3F129374F9F00AEE68E /* Config-Release-Store.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Config-Release-Store.xcconfig"; sourceTree = "<group>"; };
@@ -462,7 +484,6 @@
 				D85AB8472C539D9C00FFDC10 /* PDClient in Frameworks */,
 				D8262F312C40364B00867704 /* PDLocalization in Frameworks */,
 				D85AB84B2C539DA900FFDC10 /* PDFileProvider in Frameworks */,
-				665308232D709C1200292F5C /* PDDesktopDevKit in Frameworks */,
 				D85AB8512C539DC000FFDC10 /* PDUploadVerifier in Frameworks */,
 				6605216C2D5F4A7100D3D751 /* ProtonCoreKeymaker in Frameworks */,
 				D85AB84F2C539DB800FFDC10 /* PDUIComponents in Frameworks */,
@@ -474,7 +495,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D85AB8572C539DD500FFDC10 /* PDFileProvider in Frameworks */,
-				665308212D709C0C00292F5C /* PDDesktopDevKit in Frameworks */,
 				D85AB8592C539DDB00FFDC10 /* PDLogin-macOS in Frameworks */,
 				D8262F332C40365400867704 /* PDLocalization in Frameworks */,
 				667B32062C69F4E500D15C95 /* PDCore in Frameworks */,
@@ -669,7 +689,7 @@
 		AB48E8D12428BB590016E4E2 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				660181D02CB5676A00021420 /* ProtonDriveSdk.xcframework */,
+				66EA24BD2E45E292006AB716 /* proton_drive_sdk.dylib */,
 				663D194D2B05044C00DC9DC1 /* PDUploadVerifier.framework */,
 				663D194A2B05043C00DC9DC1 /* PDUploadVerifier.framework */,
 				31CDDF532A9E04D800FB8285 /* PDUploadVerifier.framework */,
@@ -909,6 +929,7 @@
 				669776EE2AF15BE700929E9A /* Linter */,
 				669776EF2AF15BE700929E9A /* Frameworks */,
 				669776F62AF15BE700929E9A /* Resources */,
+				661F92812E44F2C000F18D57 /* Copy proton_drive_sdk.dylib */,
 				669777002AF15BE700929E9A /* CopyFiles */,
 				D80188272C53AA8E00BCC068 /* Embed Foundation Extensions */,
 			);
@@ -929,7 +950,6 @@
 				D85AB8502C539DC000FFDC10 /* PDUploadVerifier */,
 				667B320D2C69F54100D15C95 /* ProtonCoreCryptoPatchedGoImplementation */,
 				6605216B2D5F4A7100D3D751 /* ProtonCoreKeymaker */,
-				665308222D709C1200292F5C /* PDDesktopDevKit */,
 			);
 			productName = ProtonDrive;
 			productReference = 6697770A2AF15BE700929E9A /* Proton Drive.app */;
@@ -943,6 +963,7 @@
 				ABD8F159260110A500EAACD8 /* Linter */,
 				AB71531D24274ED900543720 /* Frameworks */,
 				AB71531E24274ED900543720 /* Resources */,
+				66EA24BF2E45E347006AB716 /* Copy proton_drive_sdk.dylib */,
 				6690C80C2AD49E3A0005FC8F /* CopyFiles */,
 				D80188232C53AA8A00BCC068 /* Embed Foundation Extensions */,
 			);
@@ -964,7 +985,6 @@
 				667B32072C69F4E500D15C95 /* PDUploadVerifier */,
 				66E9C1812CB6D299003F373E /* ProtonCoreCryptoPatchedGoImplementation */,
 				660521692D5F4A6A00D3D751 /* ProtonCoreKeymaker */,
-				665308202D709C0C00292F5C /* PDDesktopDevKit */,
 			);
 			productName = ProtonDrive;
 			productReference = AB71532024274ED900543720 /* Proton Drive.app */;
@@ -1686,7 +1706,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.6.0;
+				MARKETING_VERSION = 2.7.0;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = ch.protonmail.drive;
 				PRODUCT_MODULE_NAME = ProtonDriveMac;
@@ -1732,6 +1752,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEPLOYMENT_LOCATION = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -1772,7 +1793,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.6.0;
+				MARKETING_VERSION = 2.7.0;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = ch.protonmail.drive;
 				PRODUCT_MODULE_NAME = ProtonDriveMac;
@@ -1843,7 +1864,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.6.0;
+				MARKETING_VERSION = 2.7.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				OTHER_CODE_SIGN_FLAGS = "";
@@ -2635,14 +2656,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 661DC23D2CB94C3C00DECBDE /* XCRemoteSwiftPackageReference "CryptoSwift" */;
 			productName = CryptoSwift;
-		};
-		665308202D709C0C00292F5C /* PDDesktopDevKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = PDDesktopDevKit;
-		};
-		665308222D709C1200292F5C /* PDDesktopDevKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = PDDesktopDevKit;
 		};
 		6657E2922D5F4C8E00ECBA5B /* ProtonCoreAuthentication */ = {
 			isa = XCSwiftPackageProductDependency;

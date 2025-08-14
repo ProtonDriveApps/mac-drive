@@ -67,7 +67,7 @@ public class CoreDataPhotoImporter: PhotoImporter {
         coreDataPhoto.tags = asset.tags
 
         // Temporary values
-        let metadata = makeTemporalMetadata(from: asset.metadata).base64Encoded()
+        let metadata = TemporalMetadata(metadata: asset.metadata).base64Encoded()
         coreDataPhoto.tempBase64Metadata = metadata
 
         // Start Photo with the .interrupted state
@@ -101,35 +101,5 @@ public class CoreDataPhotoImporter: PhotoImporter {
         Log.info("\(type(of: self)) will create Photo with uploadID: \(uuid).", domain: .photosProcessing)
 
         return coreDataPhoto
-    }
-
-    private func makeTemporalMetadata(from metadata: PhotoAssetMetadata) -> TemporalMetadata {
-        return TemporalMetadata(
-            location: makeLocationMetadata(from: metadata),
-            camera: makeCameraMetadata(from: metadata.camera),
-            media: makeMediaMetadata(from: metadata.media),
-            iOSPhotos: makeiOSMetadata(from: metadata.iOSPhotos)
-        )
-    }
-
-    private func makeLocationMetadata(from metadata: PhotoAssetMetadata) -> ExtendedAttributes.Location? {
-        metadata.location.map { ExtendedAttributes.Location(latitude: $0.latitude, longitude: $0.longitude) }
-    }
-
-    private func makeCameraMetadata(from metadata: PhotoAssetMetadata.Camera) -> ExtendedAttributes.Camera {
-        return ExtendedAttributes.Camera(
-            captureTime: ISO8601DateFormatter().string(metadata.captureTime),
-            device: metadata.device,
-            orientation: metadata.orientation,
-            subjectCoordinates: metadata.subjectCoordinates.map { ExtendedAttributes.SubjectCoordinates(top: $0.top, left: $0.left, bottom: $0.bottom, right: $0.right) }
-        )
-    }
-
-    private func makeMediaMetadata(from metadata: PhotoAssetMetadata.Media) -> ExtendedAttributes.Media {
-        ExtendedAttributes.Media(width: metadata.width, height: metadata.height, duration: metadata.duration)
-    }
-
-    private func makeiOSMetadata(from metadata: PhotoAssetMetadata.iOSPhotos) -> ExtendedAttributes.iOSPhotos {
-        ExtendedAttributes.iOSPhotos(iCloudID: metadata.identifier, modificationTime: ISO8601DateFormatter().string(metadata.modificationTime))
     }
 }

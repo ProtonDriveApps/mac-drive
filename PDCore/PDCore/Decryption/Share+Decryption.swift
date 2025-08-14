@@ -130,7 +130,7 @@ extension Share {
 
     internal func getAddressKeys() throws -> [KeyPair] {
         if let addressID = addressID {
-            if let addressKeys = SessionVault.current.getAddress(withID: addressID)?.activeKeys {
+            if let addressKeys = SessionVault.current.getAddress(withId: addressID)?.activeKeys {
                 return addressKeys.compactMap(KeyPair.init)
             }
         }

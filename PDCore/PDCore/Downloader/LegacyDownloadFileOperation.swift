@@ -149,6 +149,7 @@ class LegacyDownloadFileOperation: SynchronousOperation, DownloadOperation {
 
     override func cancel() {
         Log.info("DownloadFileOperation.cancel, Cancel operation, file: \(fileIdentifier)", domain: .downloader)
+        self.internalQueue.isSuspended = true
         self.internalQueue.cancelAllOperations()
         self.completion = nil
         if !self.progress.isIndeterminate {

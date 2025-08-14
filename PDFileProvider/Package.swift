@@ -18,8 +18,8 @@ let package = Package(
         .package(name: "PDLocalization", path: "../PDLocalization"),
         .package(name: "PDUploadVerifier", path: "../PDUploadVerifier"),
         .package(name: "PMEventsManager", path: "../PMEventsManager"),
-        // exact version is defined by PDClient>ProtonCore
-        .package(url: "https://github.com/AliSoftware/OHHTTPStubs", .suitable),
+
+        .package(url: "https://github.com/AliSoftware/OHHTTPStubs", exact: "9.1.0"),
         .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "32.7.1"),
     ],
     targets: [
@@ -34,7 +34,3 @@ let package = Package(
         ),
     ]
 )
-
-extension Range where Bound == Version {
-    static let suitable = Self(uncheckedBounds: ("0.0.0", "99.0.0"))
-}

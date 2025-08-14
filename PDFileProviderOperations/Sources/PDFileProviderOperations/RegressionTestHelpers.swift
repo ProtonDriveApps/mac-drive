@@ -35,7 +35,7 @@ class RegressionTestHelpers {
             "proton_drive_test_error_cannotSynchronize.err": NSFileProviderError(.cannotSynchronize),
         ]
 
-        if operation == .rename, let error = fileNameToErrorMap[item.filename] {
+        if let error = fileNameToErrorMap[item.filename] {
             alreadyUsed.insert(item.filename)
             return error
         }

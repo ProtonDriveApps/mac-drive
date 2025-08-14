@@ -106,6 +106,7 @@ final class DownloadFileOperation: SynchronousOperation, DownloadOperation {
     override func cancel() {
         Log.info("DownloadFileOperation.cancel, Cancel operation, file: \(fileIdentifier)", domain: .downloader)
         downloadTask?.cancel()
+        self.internalQueue.isSuspended = true
         self.internalQueue.cancelAllOperations()
         self.completion = nil
         if !self.progress.isIndeterminate {
@@ -295,7 +296,12 @@ final class DownloadFileOperation: SynchronousOperation, DownloadOperation {
             let isLastBatch = idx == batches.count - 1
             let timeout = expirationDate.timeIntervalSinceNow
             let operations = storage.backgroundContext.performAndWait {
-                batch.map { self.createOperationFor($0, timeout: timeout) }
+                batch.compactMap { self.createOperationFor($0, timeout: timeout) }
+            }
+            guard operations.count == batch.count else {
+                Log.debug("Terminate download, incorrect operations count: \(operations.count), batch count \(batch.count)", domain: .downloader)
+                terminateOperationDueToError(Errors.unavailableDownloadURL)
+                return
             }
             Log.info("Download \(operations.count) blocks for file \(fileIdentifier), timeout after \(timeout) seconds", domain: .downloader)
             operations.forEach { operation in
@@ -332,9 +338,13 @@ final class DownloadFileOperation: SynchronousOperation, DownloadOperation {
         Date() > expirationDate.addingTimeInterval(-1 * expiredBuffer)
     }
     
-    private func createOperationFor(_ block: DownloadBlock, timeout: TimeInterval? = nil) -> DownloadBlockOperation {
+    private func createOperationFor(_ block: DownloadBlock, timeout: TimeInterval? = nil) -> DownloadBlockOperation? {
+        guard let url = URL(string: block.downloadUrl) else {
+            Log.error("Failed to create URL for \(block.downloadUrl)", error: nil, domain: .downloader)
+            return nil
+        }
         return DownloadBlockOperation(
-            downloadTaskURL: URL(string: block.downloadUrl)!,
+            downloadTaskURL: url,
             endpointFactory: endpointFactory,
             completionHandler: { [weak self] result in
                 guard let self = self else { return }
@@ -413,5 +423,6 @@ extension DownloadFileOperation {
         case errorReadingMetadata
         case blockListNotAvailable
         case mocDestroyedTooEarly
+        case unavailableDownloadURL
     }
 }

@@ -110,13 +110,7 @@ public class NodeItem: NSObject, NSFileProviderItem {
                 contentModificationDate = node.modifiedDate
             }
 
-            if !MimeType(value: node.mimeType).isProtonFile,
-               let activeRevision,
-               let size = try? activeRevision.decryptedExtendedAttributes().common?.size {
-                documentSize = NSNumber(value: size)
-            } else {
-                documentSize = NSNumber(value: node.size)
-            }
+            documentSize = NSNumber(value: node.presentableNodeSize)
 
             isShared = NodeItem.isShared(node)
 

@@ -26,8 +26,6 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
 
     @ObservedObject private var state: ApplicationState
 
-    private var shouldShowNewMenu: Bool = false
-
     /// Icon in the status bar
     private(set) var statusItem: NSStatusItem!
     public var button: NSButton? { statusItem.button }
@@ -61,12 +59,6 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
     private func updateIconAndMenu() {
         updateIcon()
         updateMenu()
-    }
-
-    func toggleNewMenu(enabled: Bool) {
-        Log.trace(enabled.description)
-
-        shouldShowNewMenu = enabled
     }
 
     /// Used to temporarily override the status shown by the status bar icon to "syncing", to indicate that there is some long-lasting operation in progress.
@@ -135,8 +127,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
             return
         }
 
-        if shouldShowNewMenu,
-           let statusButton = statusItem.button,
+        if let statusButton = statusItem.button,
            let event = NSApp.currentEvent,
            event.type == .leftMouseUp,
            !event.modifierFlags.contains(.option) {
@@ -147,7 +138,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
     }
     
     func showMenuProgramatically() {
-        if shouldShowNewMenu, let statusButton = statusItem.button {
+        if let statusButton = statusItem.button {
             userActions.app.showStatusWindow(from: statusButton)
         } else {
             showOldMenu()
@@ -430,7 +421,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
     }
 
     private var globalProgressVisibilityMenuItem: NSMenuItem {
-        let hidden = UserDefaults.standard.bool(forKey: QASettingsConstants.globalProgressStatusMenuEnabled)
+        let hidden = !UserDefaults.standard.bool(forKey: QASettingsConstants.globalProgressStatusMenuEnabled)
         let label = (hidden ? "Show" : "Hide") + " global progress"
         let menuItem = NSMenuItem(
             title: label,

@@ -31,11 +31,9 @@ public final class CompoundLogger: StructuredLogger {
             if let structuredLogger = $0 as? any StructuredLogger {
                 structuredLogger.log(logEntry)
             } else {
-                let prefix = "\(Log.formattedTime) [\(Thread.current.number.description)]"
-
                 $0.log(
                     logEntry.level,
-                    message: prefix + " " + logEntry.message,
+                    message: logEntry.formattedMessage,
                     system: logEntry.system,
                     domain: logEntry.domain,
                     context: logEntry.context,

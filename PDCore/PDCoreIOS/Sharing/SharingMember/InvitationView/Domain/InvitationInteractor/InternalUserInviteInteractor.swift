@@ -19,21 +19,21 @@ import Foundation
 import PDCore
 import PDClient
 
-protocol InternalUserInviteHandler {
+public protocol InternalUserInviteHandler {
     func execute(parameters: InternalUserInviteInteractor.Parameters) async throws -> ShareMemberInvitation?
 }
 
-final class InternalUserInviteInteractor: InternalUserInviteHandler {
+public final class InternalUserInviteInteractor: InternalUserInviteHandler {
     static let signatureContext = "drive.share-member.inviter"
     private let client: ShareInvitationAPIClient
     private let encryptor: EncryptionResource
     
-    init(client: ShareInvitationAPIClient, encryptionResource: EncryptionResource) {
+    public init(client: ShareInvitationAPIClient, encryptionResource: EncryptionResource) {
         self.client = client
         self.encryptor = encryptionResource
     }
     
-    func execute(parameters: Parameters) async throws -> ShareMemberInvitation? {
+    public func execute(parameters: Parameters) async throws -> ShareMemberInvitation? {
         assert(!parameters.shareID.isEmpty)
         if parameters.shareID.isEmpty { return nil }
         
@@ -59,7 +59,8 @@ final class InternalUserInviteInteractor: InternalUserInviteHandler {
                         inviterEmail: parameters.shareCreator,
                         keyPacket: keyPacket.encodeBase64(),
                         keyPacketSignature: signature.encodeBase64(),
-                        permissions: parameters.permission
+                        permissions: parameters.permission,
+                        externalInvitationID: parameters.externalInvitationID
                     )
                 )
             )
@@ -74,7 +75,7 @@ final class InternalUserInviteInteractor: InternalUserInviteHandler {
 }
 
 extension InternalUserInviteInteractor {
-    struct Parameters {
+    public struct Parameters {
         let emailDetails: ShareInviteEmailDetails?
         let internalEmail: String
         let inviteePublicKey: String
@@ -83,5 +84,6 @@ extension InternalUserInviteInteractor {
         let shareCreator: String
         let shareID: String
         let signersKit: SignersKit
+        let externalInvitationID: String?
     }
 }

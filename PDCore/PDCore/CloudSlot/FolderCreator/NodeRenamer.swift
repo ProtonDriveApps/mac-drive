@@ -47,10 +47,10 @@ public final class NodeRenamer: NodeRenamerProtocol {
             let nodeID = node.id
             let shareID = try node.getContextShare().id
 #if os(macOS)
-            let signersKit = try self.signersKitFactory.make(forSigner: .main)
+            let signersKit = try node.getContextShareAddressBasedSignersKit(signersKitFactory: self.signersKitFactory,
+                                                                            fallbackSigner: .main)
 #else
-            let addressID = try node.getContextShareAddressID()
-            let signersKit = try self.signersKitFactory.make(forAddressID: addressID)
+            let signersKit = try node.getContextShareAddressBasedSignersKit(signersKitFactory: self.signersKitFactory)
 #endif
             guard let oldNodeName = node.name else { throw node.invalidState("The renaming Node should have a valid old name.") }
 
@@ -125,8 +125,9 @@ public final class DeviceRenamer: NodeRenamerProtocol {
         let (nodeID, shareID, oldNodeName, shareKey, parentPassphrase, signersKit) = try await moc.perform {
             let node = node.in(moc: self.moc)
             let nodeID = node.id
-            let shareID = try node.getContextShare().id
-            let addressID = try node.getContextShareAddressID()
+            let contextShare = try node.getContextShare()
+            let shareID = contextShare.id
+            let addressID = try contextShare.getAddressID()
             let signersKit = try self.signersKitFactory.make(forAddressID: addressID)
             guard let oldNodeName = node.name else { throw node.invalidState("The renaming Node should have a valid old name.") }
             guard let share = node.primaryDirectShare else { throw node.invalidState("Device Root should have a Share") }

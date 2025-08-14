@@ -58,6 +58,12 @@ public protocol MainVolumeEventsReferenceProtocol {
 
 extension Tower: EventsSystemManager {
 
+    public func set(externalInvitationConverter: ExternalInvitationConvertProtocol) {
+#if os(iOS)
+        self.externalInvitationConverter = externalInvitationConverter
+#endif
+    }
+
     public func intializeEventsSystem(includeAllVolumes: Bool) throws {
         Log.trace()
         let moc = storage.backgroundContext
@@ -112,7 +118,7 @@ extension Tower: EventsSystemManager {
             return
         }
 
-        Log.info("Adding shared volumes loops", domain: .events)
+        Log.info("Adding shared volumes loops \(volumeId)", domain: .events)
         let factory = EventsFactory()
         let volumeConveyor = factory.makeVolumeConveyor(tower: self, volumeId: volumeId, referenceStorage: volumeEventsReferenceStorage)
         let loop = factory.makeEventsLoop(tower: self, conveyor: volumeConveyor, volumeId: volumeId)
@@ -126,7 +132,7 @@ extension Tower: EventsSystemManager {
             return
         }
 
-        Log.info("Adding shared volumes loops", domain: .events)
+        Log.info("Adding shared volumes loops \(volumeIds)", domain: .events)
         let factory = EventsFactory()
         volumeIds.forEach { volumeId in
             let volumeConveyor = factory.makeVolumeConveyor(tower: self, volumeId: volumeId, referenceStorage: volumeEventsReferenceStorage)

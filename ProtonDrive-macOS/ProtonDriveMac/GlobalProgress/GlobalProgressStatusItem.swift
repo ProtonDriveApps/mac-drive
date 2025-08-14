@@ -28,29 +28,30 @@ class GlobalProgressStatusItem {
     init() {
         self.makeStatusItem()
     }
+    
+    public func remove() {
+        NSStatusBar.system.removeStatusItem(progressStatusItem)
+    }
 
     private func makeStatusItem() {
         self.progressStatusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         self.progressStatusItem.button?.font = NSFont.labelFont(ofSize: NSFont.labelFontSize)
+        refresh()
     }
 
     func toggleGlobalProgressStatusItem() {
         let shouldHideStatusItem = !UserDefaults.standard.bool(forKey: QASettingsConstants.globalProgressStatusMenuEnabled)
         UserDefaults.standard.set(shouldHideStatusItem, forKey: QASettingsConstants.globalProgressStatusMenuEnabled)
-        if shouldHideStatusItem {
-            hide()
-        } else {
-            // We don't update when reshowing - we have to wait until the next progress update,
-            // as we don't have access to the global progresses from here.
-        }
+        refresh()
     }
 
     func updateProgress(downloadProgress: Progress?, uploadProgress: Progress?) {
         Log.trace()
 
         var accumulated = ""
-        if !UserDefaults.standard.bool(forKey: QASettingsConstants.globalProgressStatusMenuEnabled) {
-            for progress in [downloadProgress, uploadProgress].compactMap({ $0 }) {
+        if UserDefaults.standard.bool(forKey: QASettingsConstants.globalProgressStatusMenuEnabled) {
+            let progresses = [downloadProgress, uploadProgress].compactMap({ $0 })
+            for progress in progresses {
                 let text: String
                 let isDownload = progress == downloadProgress
                 let direction = isDownload ? "⬇️" : "⬆️"
@@ -75,15 +76,15 @@ class GlobalProgressStatusItem {
                 }
                 accumulated.append(text)
             }
+            if progresses.isEmpty {
+                accumulated = " "
+            }
         }
-
-        // If we are hidden (or end up with an empty string), we use a space as otherwise our status item ends up
-        // unclickable with zero width so we can't show it again.
-        progressStatusItem.button?.title = accumulated.isEmpty ? " " : accumulated
+        progressStatusItem.button?.title = accumulated
         progressStatusItem.button?.sizeToFit()
     }
 
-    public func hide() {
+    func refresh() {
         updateProgress(downloadProgress: nil, uploadProgress: nil)
     }
 }

@@ -73,12 +73,14 @@ final class VolumeEventsConveyor: EventsConveyor {
                     eventID: volumeEvent.eventId,
                     eventType: volumeEvent.eventType,
                     createTime: volumeEvent.createTime,
-                    link: .init(link: volumeEvent.link, volumeID: volumeId)
+                    link: .init(link: volumeEvent.link, volumeID: volumeId),
+                    data: volumeEvent.data
                 )
                 processEvents.append(copiedEvent)
             } else {
                 processEvents.append(volumeEvent)
             }
+            Log.debug("Persist event \(volumeEvent.eventId) to db", domain: .events)
         }
         persistentQueue.persist(
             events: zip(processEvents, processEvents.compactMap { try? serializer.serialize(event: $0) }),
@@ -105,7 +107,8 @@ final class VolumeEventsConveyor: EventsConveyor {
                 eventID: volumeEvent.eventId,
                 eventType: volumeEvent.eventType,
                 createTime: volumeEvent.createTime,
-                link: .init(link: volumeEvent.link, volumeID: "")
+                link: .init(link: volumeEvent.link, volumeID: ""),
+                data: volumeEvent.data
             )
             return (copiedEvent, shareId, objectID)
         } else {

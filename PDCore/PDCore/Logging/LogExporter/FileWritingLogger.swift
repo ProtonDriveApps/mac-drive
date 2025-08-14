@@ -28,6 +28,7 @@ public protocol FileLogExporter {
 public final class FileWritingLogger: LoggerProtocol {
     private let fileManager = FileManager.default
     private let workingDirectory = PDFileManager.logsWorkingDirectory
+    private let formatter: ISO8601DateFormatter
 
     private let system: LogSystem
     private let maxFileSize: UInt64
@@ -42,12 +43,14 @@ public final class FileWritingLogger: LoggerProtocol {
         logSystem: LogSystem,
         maxFileSize: UInt64,
         rotator: FileLogRotator,
+        formatter: ISO8601DateFormatter = .fileLogFormatter,
         dateProvider: @escaping () -> Date = Date.init
     ) {
         self.system = logSystem
         self.maxFileSize = maxFileSize
         self.logsFileURL = workingDirectory.appendingPathComponent(logSystem.name + ".log", isDirectory: false)
         self.rotator = rotator
+        self.formatter = formatter
         self.dateProvider = dateProvider
 
         openFile()
@@ -69,9 +72,9 @@ public final class FileWritingLogger: LoggerProtocol {
     }
 
     private func formatLogEntry(level: LogLevel, message: String, domain: LogDomain, context: LogContext?) -> String {
-        let dateTime = ISO8601DateFormatter.fileLogFormatter.string(from: getDate())
+        let dateTime = formatter.string(from: getDate())
         let version = Constants.clientVersion.map { " | v\($0)" } ?? " | v?.?.?"
-        var logLine = "\(dateTime)\(version) | \(system.name) | \(domain.name.uppercased()) | \(level.description) | \(message)"
+        var logLine = "\(dateTime)\(version) | \(domain.name.uppercased()) | \(level.description) | \(message)"
         if let context, !context.debugDescription.isEmpty {
             logLine += " | " + context.debugDescription
         }

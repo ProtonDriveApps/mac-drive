@@ -51,6 +51,7 @@ class ExternalFeatureFlagsRepository: FeatureFlagsRepository {
             .sink { [weak self] _, _ in
                 guard let self = self else { return }
 
+                var messages: [String] = ["⛳️ FeatureFlag updated"]
                 for externalFlag in ExternalFeatureFlag.allCases {
                     let storageFlag = self.mapExternalFeatureFlagToAvailability(external: externalFlag)
                     let value: Bool
@@ -59,9 +60,10 @@ class ExternalFeatureFlagsRepository: FeatureFlagsRepository {
                     } else {
                         value = self.externalResource.isEnabled(flag: externalFlag)
                     }
-                    Log.info("⛳️ FeatureFlag: \(storageFlag) value: \(value)", domain: .featureFlags)
+                    messages.append("Flag: \(storageFlag) value: \(value)")
                     self.externalStore.setFeatureEnabled(storageFlag, value: value)
                 }
+                Log.info(messages.joined(separator: "\n"), domain: .featureFlags)
                 self.subject.send()
             }
             .store(in: &cancellables)
@@ -139,7 +141,6 @@ class ExternalFeatureFlagsRepository: FeatureFlagsRepository {
         case .logsCompressionDisabled: return .logsCompressionDisabled
         case .postMigrationJunkFilesCleanup: return .postMigrationJunkFilesCleanup
         case .domainReconnectionEnabled: return .domainReconnectionEnabled
-        case .newTrayAppMenuEnabled: return .newTrayAppMenuEnabled
         case .pushNotificationIsEnabled: return .pushNotificationIsEnabled
         case .logCollectionEnabled: return .logCollectionEnabled
         case .logCollectionDisabled: return .logCollectionDisabled
@@ -147,7 +148,7 @@ class ExternalFeatureFlagsRepository: FeatureFlagsRepository {
         case .driveDisablePhotosForB2B: return .driveDisablePhotosForB2B
         case .driveDDKEnabled: return .driveDDKEnabled
         case .driveMacSyncRecoveryDisabled: return .driveMacSyncRecoveryDisabled
-        case .driveMacKeepDownloaded: return .driveMacKeepDownloaded
+        case .driveMacKeepDownloadedDisabled: return .driveMacKeepDownloadedDisabled
         // Sharing
         case .driveSharingMigration: return .driveSharingMigration
         case .driveSharingInvitations: return .driveSharingInvitations

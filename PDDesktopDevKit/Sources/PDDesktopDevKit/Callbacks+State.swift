@@ -16,6 +16,8 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import Foundation
+import ProtonDriveSdk
+import ProtonDriveProtos
 import SwiftProtobuf
 
 final class TaskCompletionSource<T> {

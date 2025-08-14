@@ -371,8 +371,7 @@ public class StorageManager: NSObject, ManagedStorage, RecoverableStorage {
                     let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
                     deleteRequest.resultType = .resultTypeObjectIDs
                     do {
-                        _ = try self.persistentContainer.persistentStoreCoordinator.execute(deleteRequest, with: self.backgroundContext)
-                        if let result = try? self.persistentContainer.persistentStoreCoordinator.execute(deleteRequest, with: self.backgroundContext) as? NSBatchDeleteResult,
+                        if let result = try self.persistentContainer.persistentStoreCoordinator.execute(deleteRequest, with: self.backgroundContext) as? NSBatchDeleteResult,
                            let objectIDs = result.result as? [NSManagedObjectID] {
                             let changes: [String: Any] = [NSDeletedObjectsKey: objectIDs]
                             let activeContexts = self.contexts.value.compactMap { $0.reference }

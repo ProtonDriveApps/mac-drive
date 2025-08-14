@@ -125,7 +125,7 @@ private struct SettingsAccountSection: View {
             Spacer()
 
             Button(Localization.setting_account_manage_account) {
-                viewModel.actions.links.manageAccount()
+                viewModel.actions.links.manageAccount(email: viewModel.emailAddress)
             }
 
         }
@@ -173,7 +173,7 @@ private struct SettingsStorageSection<ViewModel: SettingsViewModelProtocol>: Vie
                 Spacer(minLength: 55)
 
                 Button(Localization.general_get_more_storage) {
-                    viewModel.actions.links.getMoreStorage()
+                    viewModel.actions.links.getMoreStorage(email: viewModel.emailAddress)
                 }
                 .buttonStyle(.bordered)
             }

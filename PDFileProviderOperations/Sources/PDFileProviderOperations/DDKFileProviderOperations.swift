@@ -24,6 +24,7 @@ import ProtonCoreCryptoGoInterface
 import ProtonCoreNetworking
 import ProtonCoreLog
 import ProtonCoreUtilities
+import ProtonDriveProtos
 
 /// DDK implementations of file provider operations.
 public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
@@ -116,10 +117,10 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
                 do {
                     let filename = try node.decryptNameWithCryptoGo()
                     let mimeType = try NodeItem(node: node).mimeType ?? node.mimeType
-                    return (filename: filename, mimeType: mimeType, size: node.size)
+                    return (filename: filename, mimeType: mimeType, size: node.presentableNodeSize)
                 } catch {
                     Log.error("Filename decryption failed", error: error, domain: .fileProvider)
-                    return (filename: "Filename decryption failed", mimeType: node.mimeType, size: node.size)
+                    return (filename: "Filename decryption failed", mimeType: node.mimeType, size: node.presentableNodeSize)
                 }
             }
         }
@@ -496,7 +497,10 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
                 operationLog.logEnd(item.itemIdentifier)
                 completionBlockWrapper(item, [], false, nil)
             } catch {
-                Log.error("createItem failed - \(error.localizedDescription.upTo("\n"))", error: error, domain: .fileProvider)
+                var logContext = LogContext()
+                logContext["item"] = itemTemplate.itemIdentifier.rawValue
+                logContext["parent"] = itemTemplate.parentItemIdentifier.rawValue
+                Log.error("createItem failed - \(error.localizedDescription.upTo("\n"))", error: error, domain: .fileProvider, context: logContext)
 
                 didCompleteFileOperation(progress: progress)
                 syncReporter.didCompleteFileOperation(
@@ -519,31 +523,42 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
         return progress
     }
 
-    static func nodeIdentity(of node: Node, tower: Tower) async throws -> NodeIdentity {
-        let (nodeIdentifier, volumeID): (PDCore.NodeIdentifier, String) = try await tower.storage.backgroundContext.perform {
+    static func nodeIdentityAndContextShareAddressId(of node: Node, tower: Tower) async throws -> (NodeIdentity, String?) {
+        let (nodeIdentifier, volumeID, addressId): (PDCore.NodeIdentifier, String, String?) = try await tower.storage.backgroundContext.perform {
             guard let volumeID = Self.volumeID(tower) else {
                 throw Errors.nodeIdentifierNotFound
             }
-            return (node.identifierWithinManagedObjectContext, volumeID)
+            do {
+                let addressId = try node.getContextShareAddressID()
+                return (node.identifierWithinManagedObjectContext, volumeID, addressId)
+            } catch {
+                Log.warning("DDKFileProviderOperations.nodeIdentityAndContextShareAddressId.getContextShareAddressID failed with error: \(error.localizedDescription)",
+                            domain: .encryption)
+                return (node.identifierWithinManagedObjectContext, volumeID, nil)
+            }
         }
 
-        return NodeIdentity.with {
+        return (NodeIdentity.with {
             $0.nodeID.value = nodeIdentifier.nodeID
             $0.shareID.value = nodeIdentifier.shareID
             $0.volumeID.value = volumeID
-        }
+        }, addressId)
     }
 
     static func shareMetadata(
-        identity: PDDesktopDevKit.NodeIdentity, tower: Tower
-    ) async throws -> PDDesktopDevKit.ShareMetadata {
-        guard let currentAddress = tower.sessionVault.currentAddress() else {
+        identity: ProtonDriveProtos.NodeIdentity, addressId: String?, tower: Tower
+    ) async throws -> ProtonDriveProtos.ShareMetadata {
+        if addressId == nil {
+            Log.warning("DDKFileProviderOperations.shareMetadata called without addressId", domain: .encryption)
+        }
+        let addressToUse = addressId.map { tower.sessionVault.getAddress(withId: $0) } ?? tower.sessionVault.currentAddress()
+        guard let addressToUse else {
             throw Errors.noAddressInTower
         }
-        return PDDesktopDevKit.ShareMetadata.with {
+        return ProtonDriveProtos.ShareMetadata.with {
             $0.shareID = identity.shareID
-            $0.membershipAddressID.value = currentAddress.addressID
-            $0.membershipEmailAddress = currentAddress.email
+            $0.membershipAddressID.value = addressToUse.addressID
+            $0.membershipEmailAddress = addressToUse.email
         }
     }
 

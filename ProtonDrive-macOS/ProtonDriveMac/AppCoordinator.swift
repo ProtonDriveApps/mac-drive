@@ -57,10 +57,6 @@ class AppCoordinator: NSObject, ObservableObject {
     @SettingsStorage(UserDefaults.FileProvider.shouldReenumerateItemsKey.rawValue) var shouldReenumerateItems: Bool?
     @SettingsStorage(UserDefaults.Migration.hasPostMigrationStepRunKey.rawValue) var hasPostMigrationStepRun: Bool?
 
-#if HAS_QA_FEATURES
-    @SettingsStorage("newTrayAppMenuEnabled") var newTrayAppMenuEnabledInQASettings: Bool?
-#endif
-
     enum SignInStep {
         case login
         case initialization
@@ -297,7 +293,7 @@ class AppCoordinator: NSObject, ObservableObject {
         menuBarCoordinator?.showActivityIndicator()
         appState.setLaunchCompletion(5)
 
-        try await domainOperationsService.identifyDomain()
+        try await domainOperationsService.identifyCurrentDomain()
         appState.setLaunchCompletion(20)
 
         await fetchFeatureFlags()
@@ -318,7 +314,7 @@ class AppCoordinator: NSObject, ObservableObject {
         // error fetching feature flags should not cause the login process to fail, we will use the default values
         try? await postLoginServices.tower.featureFlags.startAsync()
 
-        if try await !domainOperationsService.domainExists() {
+        if try await !domainOperationsService.currentDomainExists() {
             await postLoginServices.tower.cleanUpEventsAndMetadata(cleanupStrategy: .cleanEverything)
         }
         appState.setLaunchCompletion(50)
@@ -354,10 +350,6 @@ class AppCoordinator: NSObject, ObservableObject {
         if GroupContainerMigrator.instance.hasGroupContainerMigrationHappened {
             await GroupContainerMigrator.instance.presentDatabaseMigrationPopup()
         }
-        appState.setLaunchCompletion(75)
-
-        menuBarCoordinator?.toggleNewMenu(enabled: shouldShowNewMenu)
-
         appState.setLaunchCompletion(80)
 
         if wasRefreshingNodes {
@@ -412,17 +404,6 @@ class AppCoordinator: NSObject, ObservableObject {
             // error fetching feature flags should not cause failure, we will use the default values
             Log.error("Could not retrieve feature flags", error: error, domain: .featureFlags)
         }
-    }
-
-    private var shouldShowNewMenu: Bool {
-        assert(self.featureFlags != nil)
-        assert(self.featureFlags?.isEnabled(flag: .newTrayAppMenuEnabled) != nil)
-#if HAS_QA_FEATURES
-        _newTrayAppMenuEnabledInQASettings.configure(with: Constants.appGroup)
-        return newTrayAppMenuEnabledInQASettings ?? self.featureFlags?.isEnabled(flag: .newTrayAppMenuEnabled) == true
-#else
-        return self.featureFlags?.isEnabled(flag: .newTrayAppMenuEnabled) == true
-#endif
     }
 
     // MARK: - Authentication
@@ -499,7 +480,7 @@ class AppCoordinator: NSObject, ObservableObject {
 
         let postLoginServices: PostLoginServices
         do {
-            try await self.domainOperationsService.identifyDomain()
+            try await self.domainOperationsService.identifyCurrentDomain()
             postLoginServices = preparePostLoginServices()
 
             try await postLoginServices.tower.cleanUpLockedVolumeIfNeeded(using: domainOperationsService)
@@ -550,8 +531,6 @@ class AppCoordinator: NSObject, ObservableObject {
         }
 
         subscriptionService.fetchSubscription(state: appState)
-
-        await menuBarCoordinator?.toggleNewMenu(enabled: shouldShowNewMenu)
 
         await menuBarCoordinator?.hideActivityIndicator()
     }
@@ -746,7 +725,7 @@ class AppCoordinator: NSObject, ObservableObject {
 
         // Drop system FileProvider cache
         postLoginServices.tower.pauseEventsSystem()
-        try await domainOperationsService.disconnectDomainsDuringMainKeyCleanup()
+        try await domainOperationsService.disconnectAllDomainsDuringMainKeyCleanup()
 
         await menuBarCoordinator?.showActivityIndicator()
 
@@ -755,7 +734,7 @@ class AppCoordinator: NSObject, ObservableObject {
 
         await menuBarCoordinator?.hideActivityIndicator()
 
-        try await domainOperationsService.connectDomain()
+        try await domainOperationsService.connectCurrentDomain()
         domainOperationsService.cacheReset = false
 
         // this causes the file provider to enumerate items
@@ -938,7 +917,7 @@ extension AppCoordinator {
 
             await menuBarCoordinator?.showActivityIndicator() // TODO: When does this get hidden?
 
-            try await domainOperationsService.connectDomain()
+            try await domainOperationsService.connectCurrentDomain()
             domainOperationsService.cacheReset = false
 
             shouldReenumerateItems = true
@@ -957,7 +936,7 @@ extension AppCoordinator {
 
     private func startDomainReconnection(tower: Tower) async throws {
         await menuBarCoordinator?.showActivityIndicator()
-        if try await domainOperationsService.domainExists() {
+        if try await domainOperationsService.currentDomainExists() {
             try await tower.bootstrapIfNeeded()
             try await refreshUsingDirtyNodesApproach(tower: tower)
         } else {
@@ -1209,10 +1188,10 @@ extension AppCoordinator: UserActionsDelegate {
         domainOperationsService.cleanUpErrors()
     }
 
-    func signInUsingTestCredentials(email: String, password: String) {
+    func signInUsingTestCredentials(login: String, password: String) {
         Task { @MainActor in
             await userRequestedSignOut()
-            loginManager?.logIn(as: email, password: password)
+            loginManager?.logIn(as: login, password: password)
         }
     }
 
@@ -1337,7 +1316,7 @@ extension AppCoordinator: UserActionsDelegate {
                     userActions: UserActions(delegate: self),
                     appUpdateService: appUpdateService,
                     isFullResyncEnabled: { [weak self] in
-                        self?.postLoginServices?.tower.featureFlags.isEnabled(flag: .driveMacSyncRecoveryDisabled) != true && self?.postLoginServices?.tower.featureFlags.isEnabled(flag: .newTrayAppMenuEnabled) == true
+                        self?.postLoginServices?.tower.featureFlags.isEnabled(flag: .driveMacSyncRecoveryDisabled) != true
                     }
                 )
             }
@@ -1375,15 +1354,17 @@ extension AppCoordinator: UserActionsDelegate {
                     userActions: UserActions(delegate: self),
                     applicationEventObserver: applicationEventObserver!,
                     metadataStorage: self.tower?.storage,
-                    eventsStorage: self.tower?.eventStorageManager
+                    eventsStorage: self.tower?.eventStorageManager,
+                    jailDependencies: self.client.map { (initialServices.networkService, $0) }
                 )
             }
             await qaSettingsWindowCoordinator!.start()
         }
     }
 
-    func toggleGlobalProgressStatusItem() async {
-        await globalProgressObserver?.toggleGlobalProgressStatusItem()
+    @MainActor
+    func toggleGlobalProgressStatusItem() {
+        globalProgressObserver?.toggleGlobalProgressStatusItem()
     }
 #endif
 

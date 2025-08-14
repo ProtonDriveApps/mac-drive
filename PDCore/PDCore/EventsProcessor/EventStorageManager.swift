@@ -440,10 +440,12 @@ extension EventStorageManager {
     public func eventsAwaitingEnumeration(since anchorID: EventID?, volumeId: String) throws -> [Entry] {
         var anchorTimestamp: TimeInterval?
         if let anchorID = anchorID {
-            guard let timestamp = try self.event(with: anchorID)?.eventEmittedAt else {
+            guard let event = try self.event(with: anchorID) else {
                 return []
             }
-            anchorTimestamp = timestamp
+            anchorTimestamp = self.backgroundContext.performAndWait {
+                event.eventEmittedAt
+            }
         }
         
         let fetchRequest = self.requestEvents(since: anchorTimestamp, excludeIsProcessedEqualTo: false, excludeIsEnumeratedEqualTo: true, volumeId: volumeId)

@@ -351,6 +351,10 @@ extension Encryptor: EncryptionResource {
         return try Encryptor.encryptAndSign(cleartext, key: key, addressPassphrase: addressPassphrase, addressPrivateKey: addressPrivateKey)
     }
 
+    public func encryptAndSignWithCompression(_ plainData: Data, encryptionKey: ArmoredKey, signingKey: ArmoredKey, passphrase: String) throws -> String {
+        try Encryptor.encryptAndSignWithCompression(plainData, encryptionKey: encryptionKey, signingKey: signingKey, passphrase: passphrase)
+    }
+
     public func makeHmac(string: String, hashKey: String) throws -> String {
         return try Encryptor.hmac(filename: string, parentHashKey: hashKey)
     }
@@ -417,5 +421,9 @@ extension Encryptor: EncryptionResource {
             oldParentPassphrase: oldParentPassphrase,
             newParentKey: newParentKey
         )
+    }
+
+    public func getPublicKey(fromPrivateKey privateKey: ArmoredKey) throws -> ArmoredKey {
+        try Encryptor.getPublicKey(fromPrivateKey: privateKey)
     }
 }

@@ -17,7 +17,7 @@
 
 import Foundation
 import ProtonDriveSdk
-import SwiftProtobuf
+import ProtonDriveProtos
 
 extension Int32 {
     var asStatus: Status { Status(rawValue: Int(exactly: self)!)! }

@@ -17,6 +17,7 @@
 
 import Foundation
 import ProtonDriveSdk
+import ProtonDriveProtos
 
 public enum LogLevel: UInt8 {
     case trace = 0

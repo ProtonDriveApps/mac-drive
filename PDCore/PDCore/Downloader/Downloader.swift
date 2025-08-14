@@ -19,7 +19,12 @@ import Foundation
 import Combine
 import PDClient
 
-public class Downloader: NSObject, ProgressTrackerProvider {
+protocol DownloaderProtocol: AnyObject {
+    func cancel(operationsOf identifiers: [NodeIdentifier])
+    func cancel(operationsOf identifiers: [any VolumeIdentifiable])
+}
+
+public class Downloader: NSObject, ProgressTrackerProvider, DownloaderProtocol {
     public typealias Enumeration = (Node) -> Void
     private static let downloadFail: NSNotification.Name = .init("ch.protondrive.PDCore.downloadFail")
     
@@ -63,12 +68,12 @@ public class Downloader: NSObject, ProgressTrackerProvider {
     public func cancel(operationsOf identifiers: [NodeIdentifier]) {
         Log.info("Downloader.cancel(operationsOf:), will cancel downloads of \(identifiers)", domain: .downloader)
         successRateMonitor.cancel(identifiers: identifiers)
-        self.queue.operations
-            .compactMap { $0 as? DownloadFileOperation }
+
+        queue.operations
+            .compactMap { $0 as? DownloadOperation }
             .filter { operation in
                 identifiers.contains { identifier in
-                    operation.fileIdentifier.nodeID == identifier.nodeID
-                        && operation.fileIdentifier.shareID == identifier.shareID
+                    operation.identifier.id == identifier.nodeID && operation.identifier.volumeID == identifier.volumeID
                 }
             }
             .forEach { $0.cancel() }
@@ -77,12 +82,11 @@ public class Downloader: NSObject, ProgressTrackerProvider {
     public func cancel(operationsOf identifiers: [any VolumeIdentifiable]) {
         Log.info("Downloader.cancel(operationsOf:), will cancel downloads of \(identifiers)", domain: .downloader)
         successRateMonitor.cancel(identifiers: identifiers)
-        self.queue.operations
-            .compactMap { $0 as? DownloadFileOperation }
+        queue.operations
+            .compactMap { $0 as? DownloadOperation }
             .filter { operation in
                 identifiers.contains { identifier in
-                    operation.fileIdentifier.nodeID == identifier.id
-                    && operation.fileIdentifier.volumeID == identifier.volumeID
+                    operation.identifier.id == identifier.id && operation.identifier.volumeID == identifier.volumeID
                 }
             }
             .forEach { $0.cancel() }
@@ -91,8 +95,8 @@ public class Downloader: NSObject, ProgressTrackerProvider {
     func presentOperationFor(file: File) -> Operation? {
         self.queue.operations
             .filter { !$0.isCancelled }
-            .compactMap({ $0 as? DownloadFileOperation })
-            .first(where: { $0.fileIdentifier == file.identifier })
+            .compactMap({ $0 as? DownloadOperation })
+            .first(where: { $0.identifier == file.identifier.any() })
     }
 
     @discardableResult

@@ -12,8 +12,6 @@ let package = Package(
         .library(name: "PDLogin-macOS", targets: ["PDLogin-macOS"]),
     ],
     dependencies: [
-
-        // exact version is defined by PDClient
         .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "32.7.1"),
         .package(name: "PDUIComponents", path: "../PDUIComponents"),
     ],
@@ -31,7 +29,3 @@ let package = Package(
         ),
     ]
 )
-
-extension Range where Bound == Version {
-    static let suitable = Self(uncheckedBounds: ("0.0.0", "99.0.0"))
-}

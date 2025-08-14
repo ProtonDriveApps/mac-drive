@@ -94,7 +94,8 @@ public final class ItemProvider {
                 Log.error(error: Errors.nodeNotFound, domain: .fileProvider)
                 return (nil, Errors.nodeNotFound)
             }
-            guard node.state != .deleted && !node.isTrashInheriting else {
+            let (nodeState, isTrashInheriting) = fileSystemSlot.moc.performAndWait { (node.state, node.isTrashInheriting) }
+            guard nodeState != .deleted, !isTrashInheriting else {
                 // We don't want trashed items to display locally (disassociated items are
                 // no longer managed by the File Provider and so don't get asked for)
                 return (nil, Errors.nodeNotFound)
@@ -144,7 +145,11 @@ public final class ItemProvider {
         do {
             let remoteNode = try await cloudSlot.scanNode(nodeId, linkProcessingErrorTransformer: { $1 })
             
-            guard remoteNode.state != .deleted, !remoteNode.isTrashInheriting else {
+            let (remoteNodeState, remoteNodeIsTrashInheriting) = cloudSlot.moc.performAndWait {
+                (remoteNode.state, remoteNode.isTrashInheriting)
+            }
+            
+            guard remoteNodeState != .deleted, !remoteNodeIsTrashInheriting else {
                 // We don't want trashed items to display locally (disassociated items are
                 // no longer managed by the File Provider and so don't get asked for)
                 return (nil, Errors.nodeNotFound)

@@ -87,10 +87,6 @@ public extension Folder {
         super.fulfillNode(with: meta)
         self.nodeHashKey = meta.folderProperties?.nodeHashKey
     }
-
-    func fulfillFolder(with newFolderDetails: NewFolder) {
-        self.id = newFolderDetails.ID
-    }
 }
 
 public extension Photo {

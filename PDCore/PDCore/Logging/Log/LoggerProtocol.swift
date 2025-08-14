@@ -83,7 +83,7 @@ extension StructuredLogger {
                 domain: domain,
                 context: context,
                 sendToSentryIfPossible: sendToSentryIfPossible,
-                file: (file as NSString).lastPathComponent,
+                file: URL(fileURLWithPath: file).deletingPathExtension().lastPathComponent,
                 function: function,
                 line: line
             )
@@ -103,6 +103,11 @@ public struct StructuredLogEntry {
     let file: String
     let function: String
     let line: Int
+
+    var formattedMessage: String {
+        let result = "[\(threadNumber)] \(file).\(function):\(line) \(message)"
+        return result
+    }
 }
 
 /// Any information logged together with a message and/or error.

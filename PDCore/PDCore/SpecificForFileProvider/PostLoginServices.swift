@@ -75,7 +75,9 @@ public class PostLoginServices {
                            eventLoopInterval: eventLoopInterval,
                            uploadVerifierFactory: uploadVerifierFactory,
                            localSettings: initialServices.localSettings,
-                           populatedStateController: populatedStateController)
+                           populatedStateController: populatedStateController,
+                           connectionStateResource: initialServices.connectionStateResource
+        )
 
         self.initialServices.networkClient.publisher(for: \.currentActivity)
             .dropFirst() // ignore the current value

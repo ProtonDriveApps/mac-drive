@@ -133,6 +133,9 @@ public class SessionVault: CredentialProvider, ObservableObject {
 
     public init(mainKeyProvider: MainKeyProvider) {
         self.mainKeyProvider = mainKeyProvider
+        // This ensures the main key is read from the keychain and loaded into memory early
+        // in the app initialization process, before it's used for all the secrets property wrappers.
+        _ = try? mainKeyProvider.mainKeyOrError
         
         if Constants.runningInExtension {
             self._fileProviderExtensionChildSessionCredential.configure(with: mainKeyProvider)
@@ -292,6 +295,10 @@ extension SessionVault: SessionStore {
         } else {
             // in a single user app, there's never a situation when we need to keep unauth credentials once we obtain auth credentials
             removeUnauthenticatedCredential()
+            var credentialToStore = credentialToStore
+            if credentialToStore.mailboxPassword.isEmpty {
+                credentialToStore.mailboxPassword = credential?.mailboxPassword ?? ""
+            }
             credential = credentialToStore
         }
     }
@@ -576,16 +583,12 @@ extension SessionVault {
         return self.addresses?.first(where: { $0.email.canonicalEmailForm == canonicalForm })
     }
 
-    public func getAddress(withId id: String) -> Address? {
-        return self.addresses?.first(where: { $0.addressID == id })
-    }
-
-    public func getAddress(withID addressID: String) -> Address? {
-        return self.addresses?.first(where: { $0.addressID == addressID })
+    public func getAddress(withId addressId: String) -> Address? {
+        return self.addresses?.first(where: { $0.addressID == addressId })
     }
 
     public func getEmail(addressId: String) -> String? {
-        return addresses?.first(where: { $0.addressID == addressId })?.email
+        return getAddress(withId: addressId)?.email
     }
 
     public func getPublicKeys(for email: String) -> [PublicKey] {

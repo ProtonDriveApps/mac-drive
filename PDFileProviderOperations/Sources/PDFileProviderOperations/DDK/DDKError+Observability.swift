@@ -44,7 +44,7 @@ extension DDKError {
             case .nodeMetadataDecryption:
                 DriveIntegrityErrorMonitor.reportMetadataError(for: node)
             case .uploadKeyMismatch:
-                DriveIntegrityErrorMonitor.reportUploadBlockVerificationError(for: share, fileSize: Int64(node.size))
+                DriveIntegrityErrorMonitor.reportUploadBlockVerificationError(for: share, fileSize: Int64(node.presentableNodeSize))
             }
         }
     }

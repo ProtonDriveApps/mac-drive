@@ -40,7 +40,3 @@ let package = Package(
             ]),
     ]
 )
-
-extension Range where Bound == Version {
-    static let suitable = Self(uncheckedBounds: ("0.0.0", "99.0.0"))
-}

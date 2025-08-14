@@ -37,4 +37,8 @@ extension PMAPIService: CoreAPIService {
     public func perform(request route: Request, dataTaskBlock: @escaping (URLSessionDataTask) -> Void, completion: @escaping (_ task: URLSessionDataTask?, _ result: Result<JSONDictionary, ResponseError>) -> Void) {
         self.perform(request: route, onDataTaskCreated: dataTaskBlock, jsonDictionaryCompletion: completion)
     }
+    
+    public func perform(request route: any Request, callCompletionBlockUsing executor: CompletionBlockExecutor, dataTaskBlock: @escaping (URLSessionDataTask) -> Void, completion: @escaping (URLSessionDataTask?, Result<JSONDictionary, ResponseError>) -> Void) {
+        self.perform(request: route, callCompletionBlockUsing: executor, onDataTaskCreated: dataTaskBlock, jsonDictionaryCompletion: completion)
+    }
 }

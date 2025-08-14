@@ -16,7 +16,6 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import CoreData
-import Reachability
 import PDClient
 import Combine
 
@@ -24,8 +23,8 @@ public final class OfflineSaver: NSObject {
 
     weak var storage: StorageManager?
     weak var downloader: Downloader?
-    var reachability: Reachability?
-    
+    let connectionStateResource: ConnectionStateResource
+
     private var progress = Progress()
     private var fractionObservation: NSKeyValueObservation?
     @objc public dynamic var fractionCompleted: Double = 0
@@ -40,12 +39,13 @@ public final class OfflineSaver: NSObject {
         clientConfig: APIService.Configuration,
         storage: StorageManager,
         downloader: Downloader,
-        populatedStateController: PopulatedStateControllerProtocol
+        populatedStateController: PopulatedStateControllerProtocol,
+        connectionStateResource: ConnectionStateResource
     ) {
         self.storage = storage
         self.downloader = downloader
-        self.reachability = nil
-        
+        self.connectionStateResource = connectionStateResource
+
         super.init()
         
         self.trackReachability(toHost: clientConfig.apiOrigin)
@@ -74,22 +74,10 @@ public final class OfflineSaver: NSObject {
         storage?.backgroundContext.perform {
             self.subscribeToUpdates()
         }
-        
-        do {
-            try reachability?.startNotifier()
-        } catch let error {
-            assert(false, error.localizedDescription)
-            Log.error(error: error, domain: .networking)
-        }
     }
     
     func cleanUp() {
         self.isCleaningUp = true
-
-        self.reachability?.stopNotifier()
-        self.reachability?.whenReachable = nil
-        self.reachability?.whenUnreachable = nil
-        self.reachability = nil
 
         self.fractionObservation?.invalidate()
         self.fractionObservation = nil
@@ -97,7 +85,11 @@ public final class OfflineSaver: NSObject {
         self.frc?.delegate = nil
         self.frc = nil
     }
-    
+
+    func add(cancellable: AnyCancellable) {
+        cancelables.insert(cancellable)
+    }
+
     internal func markedFoldersAndFiles() -> (folders: [Folder], files: [File]) {
         let folders = frc?.sections?.first { info in
             info.indexTitle == NSNumber(value: true).stringValue

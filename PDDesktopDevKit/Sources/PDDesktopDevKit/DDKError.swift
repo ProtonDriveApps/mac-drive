@@ -16,8 +16,9 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import Foundation
+import ProtonDriveProtos
 
-extension PDDesktopDevKit.Error: LocalizedError, Equatable {
+extension ProtonDriveProtos.Error: @retroactive LocalizedError {
     public var errorDescription: String? {
         let description = "\(message)\nType: \(type)\nContext: \(context)"
 
@@ -30,7 +31,6 @@ extension PDDesktopDevKit.Error: LocalizedError, Equatable {
 }
 
 public enum DDKError: LocalizedError, Equatable {
-    
     public enum DataIntegrityErrorType: Equatable {
         case unknown
         case shareMetadataDecryption
@@ -74,11 +74,11 @@ public enum DDKError: LocalizedError, Equatable {
     
     case invalidRefreshToken(failedFunctionName: String)
     case functionCallFailed(failedFunctionName: String)
-    case dataIntegrity(message: String, type: DataIntegrityErrorType, inner: PDDesktopDevKit.Error, failedFunctionName: String)
-    case userActionable(message: String, inner: PDDesktopDevKit.Error, failedFunctionName: String)
-    case nonActionable(message: String, inner: PDDesktopDevKit.Error, failedFunctionName: String)
-    case developerError(inner: PDDesktopDevKit.Error, failedFunctionName: String)
-    case cancellation(inner: PDDesktopDevKit.Error, failedFunctionName: String)
+    case dataIntegrity(message: String, type: DataIntegrityErrorType, inner: ProtonDriveProtos.Error, failedFunctionName: String)
+    case userActionable(message: String, inner: ProtonDriveProtos.Error, failedFunctionName: String)
+    case nonActionable(message: String, inner: ProtonDriveProtos.Error, failedFunctionName: String)
+    case developerError(inner: ProtonDriveProtos.Error, failedFunctionName: String)
+    case cancellation(inner: ProtonDriveProtos.Error, failedFunctionName: String)
 
     private static let invalidRefreshTokenCode: Int = 10013
 
@@ -86,7 +86,7 @@ public enum DDKError: LocalizedError, Equatable {
         self = .functionCallFailed(failedFunctionName: failedFunctionName)
     }
 
-    init(errorResponse: PDDesktopDevKit.Error, failedFunctionName: String) {
+    init(errorResponse: ProtonDriveProtos.Error, failedFunctionName: String) {
         switch errorResponse.domain {
         case .undefined:
             self = .nonActionable(message: "\(errorResponse.message) [\(errorResponse.type)]",

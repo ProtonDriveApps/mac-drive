@@ -144,7 +144,20 @@ public struct TemporalMetadata: Codable {
     public let camera: ExtendedAttributes.Camera?
     public let media: ExtendedAttributes.Media
     public let iOSPhotos: ExtendedAttributes.iOSPhotos
-    
+
+    public init(metadata: PhotoAssetMetadata) {
+        let formatter = ISO8601DateFormatter()
+        self.location = metadata.location.map { ExtendedAttributes.Location(latitude: $0.latitude, longitude: $0.longitude) }
+        self.camera = ExtendedAttributes.Camera(
+            captureTime: formatter.string(metadata.camera.captureTime),
+            device: metadata.camera.device,
+            orientation: metadata.camera.orientation,
+            subjectCoordinates: ExtendedAttributes.SubjectCoordinates(subjectCoordinates: metadata.camera.subjectCoordinates)
+        )
+        self.media = ExtendedAttributes.Media(width: metadata.media.width, height: metadata.media.height, duration: metadata.media.duration)
+        self.iOSPhotos = ExtendedAttributes.iOSPhotos(iCloudID: metadata.iOSPhotos.identifier, modificationTime: formatter.string(metadata.iOSPhotos.modificationTime))
+    }
+
     func base64Encoded() -> String? {
         try? JSONEncoder().encode(self).base64EncodedString()
     }
@@ -224,7 +237,7 @@ extension Photo {
             "image/x-kodak-kdc", "image/x-leaf-mos", "image/x-minolta-mrw", "image/x-nikon-nef", "image/x-nikon-nrw",
             "image/x-olympus-orf", "image/x-panasonic-raw", "image/x-raw", "image/x-panasonic-rw2", "image/x-rwz",
             "image/x-pentax-pef", "image/x-pentax-ptx", "image/x-sigma-x3f", "image/x-sony-srf", "image/x-sony-sr2",
-            "x-samsung-srw", "image/x-sony-arw", "image/x-phaseone-iiq", "image/x-mamiya-mef", "image/x-leica-rwl",
+            "image/x-samsung-srw", "image/x-sony-arw", "image/x-phaseone-iiq", "image/x-mamiya-mef", "image/x-leica-rwl",
             "image/x-hasselblad-3fr"
         ]
 

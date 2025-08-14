@@ -56,7 +56,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     }
 
     private var isKeepDownloadedEnabled: Bool {
-        tower.featureFlags.isEnabled(flag: .driveMacKeepDownloaded)
+        tower.featureFlags.isEnabled(flag: .driveMacKeepDownloadedDisabled) != true
     }
 
     private var domainSettings: DomainSettings
@@ -128,55 +128,100 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         FileProviderExtension.configureCoreLogger()
         FileProviderExtension.setupLogger { featureFlags }
         Log.debug("Init with domain \(domain.identifier)", domain: .fileProvider)
+        
+        let lastLineBeforeHanging: Atomic<Int> = .init(#line)
+        func updateLastLineBeforeHanging(line: Int = #line) { lastLineBeforeHanging.mutate { $0 = line } }
+        let hangLogCancellation = performUnlessCancelled(after: .seconds(60)) {
+            let message = "FileProviderExtension.init hangs after line \(lastLineBeforeHanging.value)"
+            Log.warning(message, domain: .fileProvider, sendToSentryIfPossible: true)
+        }
+        defer {
+            let hasCancelled = hangLogCancellation()
+            if !hasCancelled {
+                Log.info("False positive cancellation info sent to Sentry",
+                         domain: .fileProvider,
+                         sendToSentryIfPossible: true)
+            } else {
+                Log.info("No hang in FileProviderExtension.init identified",
+                         domain: .fileProvider,
+                         sendToSentryIfPossible: false)
+            }
+        }
+        
         self.domain = domain
         guard let manager = NSFileProviderManager(for: domain) else {
             fatalError("File provider manager is required by the file provider extension to operate")
         }
         self.manager = manager
-
+        updateLastLineBeforeHanging()
+        
         _shouldReenumerateItems.configure(with: Constants.appGroup)
         _openItemsInBrowser.configure(with: Constants.appGroup)
         _cacheReset.configure(with: Constants.appGroup)
-
+        updateLastLineBeforeHanging()
+        
         domainSettings = LocalSettings.shared
-
+        updateLastLineBeforeHanging()
+        
         self.observationCenter = UserDefaultsObservationCenter(userDefaults: Constants.appGroup.userDefaults)
-
+        updateLastLineBeforeHanging()
+        
         super.init()
-
+        updateLastLineBeforeHanging()
+        
         let syncStorage = tower.syncStorage ?? SyncStorageManager(suite: Constants.appGroup)
+        updateLastLineBeforeHanging()
+        
         self.enumerationObserver = EnumerationObserver(syncStorage: syncStorage)
-
+        updateLastLineBeforeHanging()
+        
         self.setUpFileProviderOperations()
-
+        updateLastLineBeforeHanging()
+        
         // expose featureFlags to logger
         featureFlags = tower.featureFlags
-
+        updateLastLineBeforeHanging()
+        
         guard tower.rootFolderAvailable() else {
             Log.error("No root folder means the database was not bootstrapped yet by the main app. Disconnect the domain until the app reconnects it.", error: nil, domain: .fileProvider)
+            updateLastLineBeforeHanging()
             disconnectDomainDueToSignOut()
             return
         }
+        updateLastLineBeforeHanging()
+        
         // this line covers a rare scenario in which the child session credentials
         // were fetched and saved to keychain by the main app, but file provider extension
         // somehow did not get informed about them through the user defaults.
         // the one confirmed case of this scenario happening was when user denied access
         // to group container on the Sequoia, so the user defaults were not available
         tower.sessionVault.consumeChildSessionCredentials(kind: .fileProviderExtension)
+        updateLastLineBeforeHanging()
         tower.sessionVault.consumeChildSessionCredentials(kind: .ddk)
-
+        updateLastLineBeforeHanging()
+        
         self.clearDrafts()
-
+        updateLastLineBeforeHanging()
+        
         Log.info("FileProviderExtension init: \(instanceIdentifier.uuidString)", domain: .syncing)
-
+        updateLastLineBeforeHanging()
+        
         self.tower.start(options: [])
+        updateLastLineBeforeHanging()
+        
         self.startObservingRunningAppChanges()
+        updateLastLineBeforeHanging()
+        
         self.syncReporter.cleanUpOnLaunch()
+        updateLastLineBeforeHanging()
         
         self.setUpKeepDownloadedObservers()
-
+        updateLastLineBeforeHanging()
         let hasKeepDownloadedStateChanged = handleKeepDownloadedStateChange()
+        updateLastLineBeforeHanging()
+        
         self.reenumerateIfNecessary(hasKeepDownloadedStateChanged: hasKeepDownloadedStateChanged)
+        updateLastLineBeforeHanging()
     }
 
     private func setUpKeepDownloadedObservers() {
@@ -293,7 +338,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
 
     private func handleKeepDownloadedStateChange() -> Bool {
         let oldState = isKeepDownloadedEnabledAccordingToExtension ?? false
-        let newState = tower.featureFlags.isEnabled(flag: .driveMacKeepDownloaded)
+        let newState = tower.featureFlags.isEnabled(flag: .driveMacKeepDownloadedDisabled) != true
 
         if oldState != newState {
             isKeepDownloadedEnabledAccordingToExtension = newState
@@ -391,15 +436,23 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     }
 
     private func runningAppsChangeHandler(_ workspace: NSWorkspace) {
-        // the error is ignored by design — if there's an error, we just rely on the `self.domain` state
-        NSFileProviderManager.getDomainsWithCompletionHandler { [weak self] domains, _ in
+        // There is a mysterious crash on Sentry with "NSRunningApplication > Attempted to dereference null pointer".
+        // Since it's a crash in underlying Obj-C code, stacktrace points it's related to an array copy,
+        // I've decided it's best to not pass the workspace and access runningApplications from the Task.
+        let runningApplicationBundleIdentifiers = workspace.runningApplications.compactMap(\.bundleIdentifier)
+        // we dispatch to Task because there's no need to keep the calling thread waiting
+        // on the `getDomainsWithCompletionHandler` call
+        Task(priority: .userInitiated) { [weak self] in
+            // the error is ignored by design — if there's an error, we just rely on the `self.domain` state
+            let domains = (try? await NSFileProviderManager.domains()) ?? []
+                
             guard let self else { return }
             
-            let isAppRunning = workspace.runningApplications.contains { Self.isMenuBarAppIdentified($0.bundleIdentifier) }
-            let isSignedIn = tower.rootFolderAvailable()
+            let isAppRunning = runningApplicationBundleIdentifiers.contains { Self.isMenuBarAppIdentified($0) }
+            let isSignedIn = self.tower.rootFolderAvailable()
             let currentDomain = domains.first(where: { $0.identifier == self.domain.identifier }) ?? self.domain
             let isDomainConnected = !currentDomain.isDisconnected
-
+            
             if !isAppRunning && isSignedIn && isDomainConnected {
                 self.disconnectDomainDueToMenuBarAppNotRunning()
             } else if isAppRunning && isSignedIn && !isDomainConnected {

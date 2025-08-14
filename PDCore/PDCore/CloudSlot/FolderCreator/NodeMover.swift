@@ -120,10 +120,10 @@ public final class NodeMover: NodeMoverProtocol {
         try await moc.perform {
             let node = node.in(moc: self.moc)
 #if os(macOS)
-            let signersKit = try self.signersKitFactory.make(forSigner: .main)
+            let signersKit = try node.getContextShareAddressBasedSignersKit(signersKitFactory: self.signersKitFactory,
+                                                                            fallbackSigner: .main)
 #else
-            let addressID = try node.getContextShareAddressID()
-            let signersKit = try self.signersKitFactory.make(forAddressID: addressID)
+            let signersKit = try node.getContextShareAddressBasedSignersKit(signersKitFactory: self.signersKitFactory)
 #endif
             let newParent = newParent.in(moc: self.moc)
             guard let oldParent = album ?? node.parentFolder else {

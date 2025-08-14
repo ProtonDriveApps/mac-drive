@@ -47,6 +47,7 @@ public class Tower: NSObject {
     public let localSettings: LocalSettings
     public let paymentsStorage: PaymentsSecureStorage
     public let offlineSaver: OfflineSaver?
+    public let connectionStateResource: ConnectionStateResource
 
     public var photoUploader: FileUploader?
 
@@ -63,6 +64,7 @@ public class Tower: NSObject {
     private var cancellables = Set<AnyCancellable>()
 
     // internal for Tower+Events.swift
+    var externalInvitationConverter: ExternalInvitationConvertProtocol?
     var storageSuite: SettingsStorageSuite
     var mainVolumeEventsConveyor: EventsConveyor?
     var volumeEventsReferenceStorage: VolumeEventsReferenceStorageProtocol?
@@ -115,7 +117,8 @@ public class Tower: NSObject {
                 networkSpy: DriveAPIService? = nil,
                 uploadVerifierFactory: UploadVerifierFactory,
                 localSettings: LocalSettings,
-                populatedStateController: PopulatedStateControllerProtocol
+                populatedStateController: PopulatedStateControllerProtocol,
+                connectionStateResource: ConnectionStateResource
     ) {
         Log.trace("eventLoopInterval: \(eventLoopInterval)")
 
@@ -136,6 +139,7 @@ public class Tower: NSObject {
         let client = Client(credentialProvider: self.sessionVault, service: api, networking: networkSpy ?? network)
         client.errorMonitor = ErrorMonitor(Log.deserializationErrors)
         self.client = client
+        self.connectionStateResource = connectionStateResource
 
         #if os(macOS)
         self.cloudSlot = CloudSlot(client: client, storage: storage, sessionVault: sessionVault)
@@ -147,6 +151,11 @@ public class Tower: NSObject {
         let endpointFactory = DriveEndpointFactory(service: api, credentialProvider: sessionVault)
         let downloader = Downloader(cloudSlot: cloudSlot, storage: storage, endpointFactory: endpointFactory)
         self.downloader = downloader
+        #if os(iOS)
+        if let slot = cloudSlot as? VolumeDBCloudSlot {
+            slot.set(downloader: downloader)
+        }
+        #endif
 
         self.featureFlags = FeatureFlagsRepositoryFactory().makeRepository(
            configuration: clientConfig,
@@ -212,7 +221,13 @@ public class Tower: NSObject {
                 filecleaner: cloudSlot,
                 moc: storage.backgroundContext
             )
-            self.offlineSaver = OfflineSaver(clientConfig: clientConfig, storage: storage, downloader: downloader, populatedStateController: populatedStateController)
+            self.offlineSaver = OfflineSaver(
+                clientConfig: clientConfig,
+                storage: storage,
+                downloader: downloader,
+                populatedStateController: populatedStateController,
+                connectionStateResource: connectionStateResource
+            )
         }
         #endif
 
@@ -233,6 +248,10 @@ public class Tower: NSObject {
 
         // iOS uses `subscribeToCleanUpNotifications`
         #endif
+    }
+
+    deinit {
+        Log.info("Deinitializing Tower", domain: .application)
     }
 
     public func cleanUpLockedVolumeIfNeeded(using domainManager: DomainOperationsServiceProtocol) async throws {
@@ -370,6 +389,7 @@ public class Tower: NSObject {
             let excludedKeys = SettingsStorageKey.keysExcludedFromWiping.map { $0.value }
             keys.subtract(excludedKeys)
         }
+        keys.subtract(AppDefaultKey.keysExcludedFromWiping.map(\.value))
         keys.forEach {
             UserDefaults.standard.removeObject(forKey: $0)
         }

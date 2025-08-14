@@ -17,6 +17,7 @@
 
 import Foundation
 import ProtonDriveSdk
+import ProtonDriveProtos
 import SwiftProtobuf
 
 public typealias ObjectHandle = Int
@@ -299,13 +300,13 @@ func safeAccess<T>(_ message: Message, closure: (ByteArray) -> T) throws -> T {
 
 let errorCallbackForContinuation: @convention(c) (UnsafeRawPointer?, ByteArray) -> Void = { tcsPtr, errorBytes in
     guard let tcs = tcsPtr?.unretainedTaskCompletion(with: ProtonApiSession.self) else { return }
-    let error = DDKError(errorResponse: errorBytes.to(PDDesktopDevKit.Error.self), failedFunctionName: tcs.functionName)
+    let error = DDKError(errorResponse: errorBytes.to(ProtonDriveProtos.Error.self), failedFunctionName: tcs.functionName)
     tcs.setError(error: error)
 }
 
 let errorCallbackForSemaphore: @convention(c) (UnsafeRawPointer?, ByteArray) -> Void = { tcsPtr, errorBytes in
     guard let tcs = tcsPtr?.unretainedTaskCompletion(with: ProtonApiSession.self) else { return }
-    let error = DDKError(errorResponse: errorBytes.to(PDDesktopDevKit.Error.self), failedFunctionName: tcs.functionName)
+    let error = DDKError(errorResponse: errorBytes.to(ProtonDriveProtos.Error.self), failedFunctionName: tcs.functionName)
     tcs.setError(error: error)
 }
 

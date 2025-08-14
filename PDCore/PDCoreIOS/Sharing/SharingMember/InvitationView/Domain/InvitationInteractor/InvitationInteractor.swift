@@ -176,7 +176,8 @@ extension InvitationInteractor {
                 sessionKey: parameters.sessionKey,
                 shareCreator: parameters.share.creator,
                 shareID: parameters.share.shareID,
-                signersKit: parameters.signersKit
+                signersKit: parameters.signersKit,
+                externalInvitationID: nil
             )
         )
     }

@@ -20,10 +20,12 @@ import PDClient
 import PDCore
 import PDDesktopDevKit
 import PDFileProvider
+import ProtonCoreCryptoGoInterface
 import ProtonCoreNetworking
 import ProtonCoreServices
 import ProtonCoreLog
 import ProtonCoreUtilities
+import ProtonDriveProtos
 
 actor ProtonDriveClientProvider {
 
@@ -95,6 +97,7 @@ actor ProtonDriveClientProvider {
                 $0.scopes = credential.scopes
                 $0.isWaitingForSecondFactorCode = false
                 $0.passwordMode = .single
+                $0.cryptoTimestamp = CryptoGo.CryptoGetUnixTime()
             }
 
             newSession = ProtonApiSession.renewSession(
@@ -205,6 +208,7 @@ actor ProtonDriveClientProvider {
             $0.scopes = credentials.scope
             $0.isWaitingForSecondFactorCode = false
             $0.passwordMode = .single
+            $0.cryptoTimestamp = CryptoGo.CryptoGetUnixTime()
         }
 
         let protonApiSession = ProtonApiSession.resumeSession(

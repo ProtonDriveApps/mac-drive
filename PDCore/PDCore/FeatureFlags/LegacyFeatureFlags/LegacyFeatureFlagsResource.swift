@@ -30,7 +30,7 @@ final class LegacyFeatureFlagsResource: ExternalFeatureFlagsResource {
     private var timer: Timer?
     private lazy var decoder = {
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .decapitaliseFirstLetter
+        decoder.keyDecodingStrategy = .driveImplementationOfDecapitaliseFirstLetter
         return decoder
     }()
     private var ratingIOSDrive = Atomic<Bool>(false)

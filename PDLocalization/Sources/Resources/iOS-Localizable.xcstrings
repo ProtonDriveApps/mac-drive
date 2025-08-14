@@ -23,6 +23,12 @@
             "value" : "Otevřít nabídku akcí pro %@"
           }
         },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Åbn handlingsmenu for %@"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -53,16 +59,46 @@
             "value" : "Abrir menú de acciones para %@"
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avaa toimintovalikko kohteelle %@"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ouvrir le menu d'action pour %@"
           }
         },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Műveleti menü megnyitása ehhez: %@"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buka menu tindakan untuk %@"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apri il menu delle azioni per %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ のアクションメニューを開く"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@의 작업 메뉴 열기"
           }
         },
         "nb" : {
@@ -75,6 +111,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open actiemenu voor %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz menu akcji dla %@"
           }
         },
         "pt" : {
@@ -95,6 +137,12 @@
             "value" : "Deschidere meniu de acțiuni pentru %@"
           }
         },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otvoriť ponuku akcií pre %@"
+          }
+        },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
@@ -105,6 +153,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ işlem menüsünü aç"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відкрити меню дій для %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 %@ 的操作菜单"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟 %@ 的動作選單"
           }
         }
       }
@@ -129,6 +195,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Otevřít %@"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Åbn %@"
           }
         },
         "de" : {
@@ -161,16 +233,46 @@
             "value" : "Abrir %@"
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avaa %@"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ouvrir %@"
           }
         },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ megnyitása"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buka %@"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apri %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ を開く"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 열기"
           }
         },
         "nb" : {
@@ -183,6 +285,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ openen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz %@"
           }
         },
         "pt" : {
@@ -203,6 +311,12 @@
             "value" : "Deschidere %@"
           }
         },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otvoriť %@"
+          }
+        },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
@@ -213,6 +327,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ aç"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відкрити %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open %@"
           }
         }
       }
@@ -509,7 +641,7 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Bist du sicher, dass du diese Datei in den Papierkorb verschieben möchtest?"
+                  "value" : "Möchtest du diese Datei wirklich in den Papierkorb verschieben?"
                 }
               },
               "other" : {
@@ -978,6 +1110,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "您确定要将 %d 个文件移至回收站吗？"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "您確定要移動 %d 檔案至垃圾桶嗎？"
                 }
               }
             }
@@ -1564,6 +1708,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "您確定要移動 %d 資料夾至垃圾桶嗎？"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -2146,6 +2302,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "您確定要移動 %d 項目至垃圾嗎？"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -2237,6 +2405,12 @@
             "value" : "Le foto che tu o altri membri aggiungete appariranno qui."
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "あなたや他のメンバーによって追加された写真がここに表示されます"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2313,6 +2487,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您或其他成员添加的照片将在此处显示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您或其他成員新增的照片將出現在此處"
           }
         }
       }
@@ -2488,6 +2668,12 @@
             "state" : "translated",
             "value" : "新建相册邀请"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新的相簿邀請"
+          }
         }
       }
     },
@@ -2662,6 +2848,12 @@
             "state" : "translated",
             "value" : "相册共享邀请"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相簿邀請"
+          }
         }
       }
     },
@@ -2753,6 +2945,12 @@
             "value" : "Il mio album condiviso"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "私の共有アルバム"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2829,6 +3027,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "我共享的相册"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我的分享相簿"
           }
         }
       }
@@ -3010,6 +3214,12 @@
             "state" : "translated",
             "value" : "与我共享"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "與我共享"
+          }
         }
       }
     },
@@ -3183,6 +3393,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已与您分享 10+ 个相册"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已有 10+ 個相簿共享給您"
           }
         }
       }
@@ -3748,6 +3964,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "已有 %d 個相簿分享給您"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -4300,6 +4528,12 @@
             "state" : "translated",
             "value" : "点击文件或文件夹菜单中的“使其可离线使用”，即可在没有互联网连接的情况下访问它。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輕點檔案或資料夾選單中的「設為離線可用」，即可不需網際網路連線存取該項目。"
+          }
         }
       }
     },
@@ -4479,6 +4713,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "暂无离线文件或文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有離線檔案或資料夾"
           }
         }
       }
@@ -4846,6 +5086,12 @@
             "state" : "translated",
             "value" : "在“设置”中更改应用权限"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在設定值中更改應用程式權限"
+          }
         }
       }
     },
@@ -5026,6 +5272,12 @@
             "state" : "translated",
             "value" : "“ProtonDrive”希望访问摄像头"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「ProtonDrive」想要存取相機"
+          }
         }
       }
     },
@@ -5086,6 +5338,12 @@
             "value" : "Inicie sesión en [account.proton.me](https:\/\/account.proton.me\/u\/0\/settings\/recovery) y luego vaya a Ajustes --> Recuperación."
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kirjaudu sisään osoitteessa [account.proton.me](https:\/\/account.proton.me\/u\/0\/settings\/recovery), avaa sen jälkeen Asetukset --> Palautus."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5108,6 +5366,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Accedi a [account.proton.me](https:\/\/account.proton.me\/u\/0\/settings\/recovery), quindi vai a Impostazioni > Recupero."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[account.proton.me](https:\/\/account.proton.me\/u\/0\/settings\/recovery)にサインインし、設定-->回復に移動します。"
           }
         },
         "ko" : {
@@ -5152,6 +5416,12 @@
             "value" : "Autentificați-vă la https:\/\/account.proton.me\/u\/0\/settings\/recovery, apoi accesați Setări --> Recuperare."
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Войдите в [account.proton.me](https:\/\/account.proton.me\/u\/0\/settings\/recovery), затем перейдите в Настройки --> Восстановление."
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5180,6 +5450,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在 [account.proton.me](https:\/\/account.proton.me\/u\/0\/settings\/recovery) 上登录，然后转到设置 --> 恢复。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在 [account.proton.me](https:\/\/account.proton.me\/u\/0\/settings\/recovery) 登入，然後前往 設定值 --> 復原。"
           }
         }
       }
@@ -5414,6 +5690,12 @@
             "value" : "Seleccione un archivo, carpeta o álbum para compartir directamente o con un enlace."
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valitse tiedosto, kansio tai albumi jaettavaksi suoraan tai linkin kautta."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5436,6 +5718,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Seleziona un file, una cartella o un album da condividere direttamente o utilizzando un link."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイル、フォルダー、またはアルバムを直接またはリンクで共有するには選択してください。"
           }
         },
         "ko" : {
@@ -5508,6 +5796,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请选择要直接共享或通过链接共享的文件、文件夹或相册。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選取檔案、資料夾或相簿，以供直接或透過連結共享。"
           }
         }
       }
@@ -5647,6 +5941,12 @@
             "value" : "Partajare articol"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поделиться элементом"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5675,6 +5975,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "共享项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享項目"
           }
         }
       }
@@ -5766,6 +6072,12 @@
             "value" : "Tutti i tuoi file verranno crittografati."
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのファイルは暗号化されます。"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5806,6 +6118,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Toate fișierele vor fi criptate."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все ваши файлы будут зашифрованы."
           }
         },
         "sk" : {
@@ -5931,6 +6249,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Carica un file O abilita il backup delle foto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルをアップロードするか、写真のバックアップを有効にしてください"
           }
         },
         "ko" : {
@@ -6172,10 +6496,22 @@
             "value" : "Bilgisayar ayrıntıları"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подробиці комп'ютера"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "计算机详情"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "電腦詳細資料"
           }
         }
       }
@@ -6343,6 +6679,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Oluşturulma"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Створено"
           }
         },
         "zh-Hans" : {
@@ -6518,10 +6860,22 @@
             "value" : "Oluşturan"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Створено"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "由...创建"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建立者"
           }
         }
       }
@@ -6685,10 +7039,22 @@
             "value" : "Bilgisayar adı"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Назва комп'ютера"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "计算机名称"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "電腦名稱"
           }
         }
       }
@@ -6858,10 +7224,22 @@
             "value" : "Klasörleri eşitlemek için bilgisayar uygulamasını edinin"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отримайте настільний застосунок, щоби синхронізувати теки"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "获取桌面应用程序以同步文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取得桌面版應用程式以便同步資料夾"
           }
         }
       }
@@ -7216,10 +7594,22 @@
             "value" : "Burada klasör oluşturulamıyor. Yeni bir klasör eklemek için masaüstü uygulamasını açın."
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тут неможливо створити теку. Аби додати нову теку, відкрийте настільний застосунок."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法在此处创建文件夹。要添加新文件夹，请打开桌面应用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法在這裡建立資料夾。若要新增資料夾，請開啟桌面應用程式。"
           }
         }
       }
@@ -7387,6 +7777,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ayrıntılar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подробиці"
           }
         },
         "zh-Hans" : {
@@ -7562,10 +7958,22 @@
             "value" : "Bilgisayarı kaldır"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити комп'ютер"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "移除计算机"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除電腦"
           }
         }
       }
@@ -7733,6 +8141,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yeniden adlandır"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перейменувати"
           }
         },
         "zh-Hans" : {
@@ -7914,6 +8328,12 @@
             "value" : "İptal"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скасувати"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8087,10 +8507,22 @@
             "value" : "Bilgisayarı kaldır"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити комп'ютер"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "移除计算机"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除電腦"
           }
         }
       }
@@ -8254,10 +8686,22 @@
             "value" : "Bilgisayarı kaldırmak istediğinize emin misiniz?"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Упевнені, що хочете вилучити комп'ютер?"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "您确定要移除此计算机吗？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您確定要移除電腦？"
           }
         }
       }
@@ -8652,7 +9096,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nelze načíst kontakty. Zkontrolujte prosím síťové připojení a zkuste to znovu."
+            "value" : "Nelze stáhout kontakty. Zkontrolujte prosím síťové připojení a zkuste to znovu."
           }
         },
         "da" : {
@@ -8809,6 +9253,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法获取联系人。请检查您的网络连接并重试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法取得聯絡人。請檢查您的網路連線並再試一次。"
           }
         }
       }
@@ -9175,6 +9625,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法创建新文档。请稍后重试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法建立新文件。請稍後重試。"
           }
         }
       }
@@ -10011,6 +10467,12 @@
             "value" : "Crea foglio di calcolo"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スプレッドシートを作成"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10071,10 +10533,22 @@
             "value" : "Hesap tablosu oluştur"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Створити електронну таблицю"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "创建电子表格"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建立試算表"
           }
         }
       }
@@ -10353,6 +10827,12 @@
             "value" : "Creazione di un nuovo foglio di calcolo"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しいスプレッドシートを作成中"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10413,10 +10893,22 @@
             "value" : "Yeni hesap tablosu oluşturuluyor"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Створення нової електронної таблиці"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在创建新的电子表格"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在建立新的試算表"
           }
         }
       }
@@ -10597,6 +11089,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "选择屏幕默认打开方式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇預設開啟的畫面"
           }
         }
       }
@@ -10964,6 +11462,12 @@
             "state" : "translated",
             "value" : "我们无法读取此文件夹的内容"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我們無法讀取此資料夾的內容"
+          }
         }
       }
     },
@@ -11143,6 +11647,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您的设备未连接"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的裝置沒有連線"
           }
         }
       }
@@ -11882,6 +12392,12 @@
             "state" : "translated",
             "value" : "链接设置已更新"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連結設定已更新"
+          }
         }
       }
     },
@@ -12347,7 +12863,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "コンピュータの名前を変更"
+            "value" : "コンピュータ名を変更"
           }
         },
         "ko" : {
@@ -12414,6 +12930,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bilgisayarı yeniden adlandır"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перейменувати комп'ютер"
           }
         },
         "zh-Hans" : {
@@ -12705,7 +13227,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "フォルダー名の変更"
+            "value" : "フォルダー名を変更"
           }
         },
         "ka" : {
@@ -14093,6 +14615,12 @@
             "state" : "translated",
             "value" : "从离线可用删除"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除可離線使用"
+          }
         }
       }
     },
@@ -15186,6 +15714,12 @@
             "value" : "Albüm oluştur"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Створити альбом"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15288,6 +15822,12 @@
             "value" : "Gli album che crei o a cui ti unisci appariranno qui."
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "作成または参加したアルバムがここに表示されます。"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15354,10 +15894,22 @@
             "value" : "Oluşturduğunuz veya katıldığınız albümler burada görüntülenir."
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Альбоми, які ви створюєте або до яких приєднуєтеся, з'являться тут."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "您创建或加入的相册将显示在此处."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您建立或加入的項目將會出現在此處."
           }
         }
       }
@@ -15522,10 +16074,22 @@
             "value" : "Albüm yok"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Немає альбомів"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "无相册"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有相簿"
           }
         }
       }
@@ -15690,10 +16254,22 @@
             "value" : "Ardışık fotoğraflarınız burada görüntülenir"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваші серійні фотографії з'являться тут"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "您的连拍照片将显示在此处"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的照片連拍會顯示在這裡"
           }
         }
       }
@@ -15858,10 +16434,22 @@
             "value" : "Herhangi bir ardışık fotoğraf yok"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Немає серій"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "无连拍"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無連拍"
           }
         }
       }
@@ -16031,10 +16619,22 @@
             "value" : "Bilgisayar ile eşitlediğiniz klasörler burada görüntülenir"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тут з'являтимуться теки, які ви синхронізуєте з комп'ютером"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "从您的计算机同步的文件夹将出现在这里"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您從電腦上同步的資料夾將出現在此處"
           }
         }
       }
@@ -16384,10 +16984,22 @@
             "value" : "Beğendiğiniz fotoğraflar burada görüntülenir"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваші улюблені фотографії з'являться тут"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "您收藏的照片将显示在此处"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您收藏的照片會顯示在這裡"
           }
         }
       }
@@ -16562,6 +17174,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无收藏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有最愛"
           }
         }
       }
@@ -16742,6 +17360,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "点击 + 按钮上传文件或创建新内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輕點 + 按鈕以上載檔案或建立新內容"
           }
         }
       }
@@ -17103,6 +17727,12 @@
             "state" : "translated",
             "value" : "您的实时照片将显示在此处"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的原況照片會顯示在這裡"
+          }
         }
       }
     },
@@ -17276,6 +17906,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无实时照片"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有及時照片"
           }
         }
       }
@@ -17451,6 +18087,12 @@
             "state" : "translated",
             "value" : "您创建的相册将显示在此处"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您建立的相簿將會出現在此處"
+          }
         }
       }
     },
@@ -17624,6 +18266,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您的全景图将显示在此处"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的全景照片會顯示在這裡"
           }
         }
       }
@@ -17799,6 +18447,12 @@
             "state" : "translated",
             "value" : "无全景图"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有全景圖"
+          }
         }
       }
     },
@@ -17815,7 +18469,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cap foto"
+            "value" : "Sense fotos"
           }
         },
         "cs" : {
@@ -17978,6 +18632,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "暂无照片"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有照片"
           }
         }
       }
@@ -18153,6 +18813,12 @@
             "state" : "translated",
             "value" : "您的肖像照将显示在此处"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的肖像照片會顯示在這裡"
+          }
         }
       }
     },
@@ -18327,6 +18993,12 @@
             "state" : "translated",
             "value" : "无头像"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有肖像"
+          }
         }
       }
     },
@@ -18500,6 +19172,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您的 RAW 照片将显示在此处"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的 RAW 照片會顯示在這裡"
           }
         }
       }
@@ -18855,6 +19533,12 @@
             "state" : "translated",
             "value" : "您的截图将显示在此处"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的螢幕截圖會顯示在這裡"
+          }
         }
       }
     },
@@ -19028,6 +19712,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无截图"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有螢幕截圖"
           }
         }
       }
@@ -19203,6 +19893,12 @@
             "state" : "translated",
             "value" : "您的自拍将显示在此处"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的自拍照會顯示在這裡"
+          }
         }
       }
     },
@@ -19219,7 +19915,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cap selfie"
+            "value" : "Sense selfies"
           }
         },
         "cs" : {
@@ -19376,6 +20072,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无自拍"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有自拍"
           }
         }
       }
@@ -19551,6 +20253,12 @@
             "state" : "translated",
             "value" : "您共享的相册将显示在此处"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您已共享的相簿會顯示在這裡"
+          }
         }
       }
     },
@@ -19724,6 +20432,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无共享相册"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有分享的相簿"
           }
         }
       }
@@ -19899,6 +20613,12 @@
             "state" : "translated",
             "value" : "与您共享的相册将显示在此处"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "與您共享的相簿會顯示在這裡"
+          }
         }
       }
     },
@@ -20072,6 +20792,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "没有与我共享的相册"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有與我共享的相簿"
           }
         }
       }
@@ -20247,6 +20973,12 @@
             "state" : "translated",
             "value" : "您的视频将显示在此处"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的影片會顯示在這裡"
+          }
         }
       }
     },
@@ -20263,7 +20995,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cap vídeo"
+            "value" : "Sense vídeos"
           }
         },
         "cs" : {
@@ -20420,6 +21152,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无视频"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有影片"
           }
         }
       }
@@ -20609,6 +21347,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "Se copiaron %d fotos en la cronología y se marcaron como favoritas allí."
+                }
+              }
+            }
+          }
+        },
+        "fi" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Yksi kuva kopioitiin virtaan ja merkittiin siellä suosikiksi."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d kuvaa kopioitiin virtaan ja merkittiin siellä suosikeiksi."
                 }
               }
             }
@@ -20963,6 +21719,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 张照片已复制到动态流，并在该位置标记为收藏。"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 張相片已複製至串流並將其標記為我的最愛。"
                 }
               }
             }
@@ -21531,6 +22299,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 張照片已標記為我的最愛。"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -21719,6 +22499,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "Ya hay %d fotos en su cronología. Márquelas como favoritas allí."
+                }
+              }
+            }
+          }
+        },
+        "fi" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Yksi kuva on jo virrassasi. Merkitse se suosikiksi siellä."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d kuvaa on jo virrassasi. Merkitse ne suosikeiksi siellä."
                 }
               }
             }
@@ -22055,6 +22853,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "您的动态中已有 %d 张照片，请在该处将其标记为收藏。"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 張相片已在您的影音串流中。請在那裡將其標記為最愛。"
                 }
               }
             }
@@ -22619,6 +23429,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "已取消将 %d 张照片标记为收藏"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "已將 %d 張照片取消標記為最愛。"
                 }
               }
             }
@@ -24477,6 +25299,12 @@
             "state" : "translated",
             "value" : "%@ | 几分钟前"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ | 剛才"
+          }
         }
       }
     },
@@ -25208,6 +26036,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法导入 %@：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法匯入%@：%@"
           }
         }
       }
@@ -25983,6 +26817,12 @@
             "state" : "translated",
             "value" : "请打开 Proton Drive 应用程序登录以继续"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請開啟 Proton Drive 應用程式以登入並繼續"
+          }
         }
       }
     },
@@ -26162,6 +27002,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "登录 Proton Drive"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登入 Proton Drive"
           }
         }
       }
@@ -26343,6 +27189,12 @@
             "state" : "translated",
             "value" : "在 Proton Drive 上启用 PIN 码或 Face ID\/Touch ID 后，无法在“文件”中访问内容"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當 Proton Drive 啟用個人識別號碼或 Face ID\/Touch ID 時，內容無法在檔案中存取。"
+          }
         }
       }
     },
@@ -26522,6 +27374,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Proton Drive 已锁定"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Drive 已鎖定"
           }
         }
       }
@@ -26703,6 +27561,12 @@
             "state" : "translated",
             "value" : "有些文件未上传。请尝试重新上传。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "某些檔案未上載。請嘗試再次上載。"
+          }
         }
       }
     },
@@ -26882,6 +27746,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "文件上传已暂停。打开应用程序即可恢复。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檔案上載暫停。打開應用程式以繼續。"
           }
         }
       }
@@ -27465,6 +28335,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "上載 %d 個檔案失敗"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -27644,6 +28526,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "启动文件夹时缺少必要信息"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟資料夾但上下文不足"
           }
         }
       }
@@ -27825,6 +28713,12 @@
             "state" : "translated",
             "value" : "在调用 Go-Move 操作时未提供足够的上下文参数信息"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已呼叫 Go-Move，但上下文不足"
+          }
         }
       }
     },
@@ -28005,6 +28899,12 @@
             "state" : "translated",
             "value" : "启动共享文件夹时未提供足够的上下文参数信息"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟共享資料夾但上下文不足"
+          }
         }
       }
     },
@@ -28184,6 +29084,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "执行移动操作时未提供足够的上下文参数信息"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始移動但上下文不足"
           }
         }
       }
@@ -28949,6 +29855,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 个文件夹"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個資料夾"
                 }
               }
             }
@@ -35854,6 +36772,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "移除 %d 檔案"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -37030,6 +37960,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "移除%d項目"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -37947,6 +38889,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "全部保存"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部儲存"
           }
         }
       }
@@ -40573,6 +41521,12 @@
             "state" : "translated",
             "value" : "查看"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢視"
+          }
         }
       }
     },
@@ -41124,6 +42078,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "导入文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯入檔案"
           }
         }
       }
@@ -42182,6 +43142,12 @@
             "value" : "Salva ed esci"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存して終了"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -42259,6 +43225,12 @@
             "state" : "translated",
             "value" : "保存并退出"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存並離開"
+          }
         }
       }
     },
@@ -42275,7 +43247,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No tornareu a tenir accés a aquestes fotos tret que us les tornin a compartir. Si voleu conservar-ne alguna, deseu-la abans al vostre dispositiu."
+            "value" : "No tornareu a tenir accés a aquestes fotos tret que us les tornin a compartir. Si voleu conservar alguna foto, primer deseu-la al vostre dispositiu."
           }
         },
         "cs" : {
@@ -42320,6 +43292,12 @@
             "value" : "No tendrá acceso a estas fotos de nuevo a menos que se vuelvan a compartir con usted. Si quiere conservar alguna foto, guárdelas en su dispositivo primero."
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sinulla ei ole enää pääsyä näihin kuviin, ellei niitä jaeta uudelleen kanssasi. Jos haluat säilyttää kuvia, tallenna ne ensin laitteellesi."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -42342,6 +43320,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Non potrai più accedere a queste foto a meno che non vengano ricondivise con te. Se vuoi conservare delle foto, salvale prima sul tuo dispositivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "これらの写真は、お客様と再共有されない限り、二度とアクセスできなくなります。写真を保持したい場合は、まずお客様のデバイスに保存してください。"
           }
         },
         "ko" : {
@@ -42414,6 +43398,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "除非重新分享给您，否则您将无法再访问这些照片。如果您想保留任何照片，请先将它们保存到您的设备中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您將無法再存取這些照片，除非重新與您分享。如果您想保留任何照片，請先將它們儲存到您的裝置。"
           }
         }
       }
@@ -42589,6 +43579,12 @@
             "state" : "translated",
             "value" : "正在离开 %@"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在離開 %@"
+          }
         }
       }
     },
@@ -42683,7 +43679,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "離れる"
+            "value" : "保存せずに出る"
           }
         },
         "ka" : {
@@ -42955,6 +43951,12 @@
             "state" : "translated",
             "value" : "应用程序将保持屏幕唤醒以确保更快的备份。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此應用程式將會保持您的螢幕喚醒，以確保更快的備份。"
+          }
         }
       }
     },
@@ -43133,6 +44135,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "退出后，所有离线保存的文件都将从您的设备中删除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登出後，所有離線儲存的檔案將會從您的裝置中刪除"
           }
         }
       }
@@ -44708,6 +45716,12 @@
             "value" : "Ottieni il tuo bonus di archiviazione di 3 GB"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3 GBストレージボーナスを獲得する"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -44772,6 +45786,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "获取 3 GB 存储空间奖励"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "獲得您的 3 GB 儲存獎勵"
           }
         }
       }
@@ -45509,6 +46529,12 @@
             "state" : "translated",
             "value" : "打开方式..."
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開於..."
+          }
         }
       }
     },
@@ -45688,6 +46714,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移到此处"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移至此處"
           }
         }
       }
@@ -46049,6 +47081,12 @@
             "state" : "translated",
             "value" : "用我们全新的相册功能整理您的回忆。通过视频、收藏夹等进行筛选，所有这些都采用您值得信赖的端到端加密。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用我們全新的相簿功能整理您的回憶。依影片、最愛等篩選，全都採用您所信任的端對端加密技術。"
+          }
         }
       }
     },
@@ -46222,6 +47260,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "相册在这里！"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相簿功能上線了！"
           }
         }
       }
@@ -46589,6 +47633,12 @@
             "state" : "translated",
             "value" : "转到本地存储设置"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前往本機儲存設定值"
+          }
         }
       }
     },
@@ -46768,6 +47818,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "存储空间不足，无法上传。请考虑升级您的账户或联系我们的客户支持。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存空間不足，無法上載。請考慮升級您的帳號，或聯絡我們的客戶支援服務。"
           }
         }
       }
@@ -46949,6 +48005,12 @@
             "state" : "translated",
             "value" : "您的设备上没有足够的存储空间来下载所有标记为离线可用的文件。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的裝置沒有足夠的儲存空間來下載所有被標記為離線可用的檔案。"
+          }
         }
       }
     },
@@ -47129,6 +48191,12 @@
             "state" : "translated",
             "value" : "您的设备已被打包。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的裝置已滿。"
+          }
         }
       }
     },
@@ -47308,6 +48376,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您已达到计划的限制。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您已達到方案的上限。"
           }
         }
       }
@@ -48077,6 +49151,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "有 %d 個問題"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -48443,6 +49529,12 @@
             "state" : "translated",
             "value" : "如果您的上传或下载出现中断，我们会通知您。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如果您的上載或下載有任何中斷，我們將會通知您。"
+          }
         }
       }
     },
@@ -48622,6 +49714,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "开启通知"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟通知"
           }
         }
       }
@@ -48803,6 +49901,12 @@
             "state" : "translated",
             "value" : "仅当需要您执行操作来完成备份和上传时，我们才会通知您。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我們只會在您需要採取行動以完成備份和上載時通知您。"
+          }
         }
       }
     },
@@ -48983,6 +50087,12 @@
             "state" : "translated",
             "value" : "确保无缝备份"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "確保無縫備份"
+          }
         }
       }
     },
@@ -49162,6 +50272,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "到 Proton Drive 里确认您的照片已备份且安全。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請在 Proton Drive 中確認您的相片已備份且安全無虞。"
           }
         }
       }
@@ -50087,6 +51203,12 @@
             "state" : "translated",
             "value" : "确保您的回忆在未来几年内保持安全、私密、并保持其原始质量。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "確保您的回憶在未來數年內保持安全、私有，並維持其原始品質。"
+          }
         }
       }
     },
@@ -50266,6 +51388,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自动照片备份"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動照片備份"
           }
         }
       }
@@ -50819,6 +51947,12 @@
             "state" : "translated",
             "value" : "当您需要更多存储空间，但又不需要太多时。我们推出了 Drive Lite，每月仅需 %@ 即可获得 20 GB 存储空间。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當您需要多一點，但不是很多的儲存空間時。隆重推出 Drive Lite，每月只需 %@ 即可享有 20 GB 儲存空間。"
+          }
         }
       }
     },
@@ -50997,6 +52131,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "获取 Drive Lite"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取得 Drive Lite"
           }
         }
       }
@@ -52294,6 +53434,12 @@
             "state" : "translated",
             "value" : "设置您的 PIN 码"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定您的個人識別數字代碼"
+          }
         }
       }
     },
@@ -52472,6 +53618,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用 PIN 码"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用個人識別數字代碼"
           }
         }
       }
@@ -53018,6 +54170,12 @@
           }
         },
         "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享日期"
+          }
+        },
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "共享日期"
@@ -53789,6 +54947,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "移除%d項目"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -53968,6 +55138,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在备份，这可能需要一些时间。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "備份進行中。這可能需要一段時間。"
           }
         }
       }
@@ -54334,6 +55510,12 @@
             "state" : "translated",
             "value" : "您确定要禁用此功能吗？如果需要，您可以稍后在设置中重新启用。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您確定要停用此功能嗎？如果需要，您可以稍後在設定值中重新啟用。"
+          }
         }
       }
     },
@@ -54512,6 +55694,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "禁用图片备份功能"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停用相片備份功能"
           }
         }
       }
@@ -54692,6 +55880,12 @@
             "state" : "translated",
             "value" : "您确定要启用此功能吗？照片备份将被激活并再次显示。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您確定要啟用此功能嗎？相片備份將會再次啟用並顯示。"
+          }
         }
       }
     },
@@ -54870,6 +56064,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "启用图片备份功能"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用相片備份功能"
           }
         }
       }
@@ -55050,6 +56250,12 @@
             "state" : "translated",
             "value" : "这将在此设备上启用照片备份功能。将显示 “照片” 选项卡和功能设置。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這將會在此裝置上啟用相片備份功能。相片標籤頁及功能設定值將會顯示。"
+          }
         }
       }
     },
@@ -55229,6 +56435,12 @@
             "state" : "translated",
             "value" : "获取照片失败。请稍后再试。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法取得相片。請稍後再試一次。"
+          }
         }
       }
     },
@@ -55402,6 +56614,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法在迁移过程中使用照片，请等待迁移完成。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "遷移期間無法使用相片。請等候遷移完成。"
           }
         }
       }
@@ -55583,6 +56801,12 @@
             "state" : "translated",
             "value" : "重要更新"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重要更新"
+          }
         }
       }
     },
@@ -55756,6 +56980,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "迁移后，您即可使用筛选器和相册等全新功能。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "遷移後，您可以使用濾鏡和相簿等新功能。"
           }
         }
       }
@@ -55931,6 +57161,12 @@
             "state" : "translated",
             "value" : "需要更新图库"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相片圖庫需要更新"
+          }
         }
       }
     },
@@ -56105,6 +57341,12 @@
             "state" : "translated",
             "value" : "如果您拥有一个很大的相册库，这可能需要一些时间。您可以关闭应用，我们将会在后台处理。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如果您有大量的照片圖庫，可能需要一些時間。您可以關閉應用程式。我們會將其在背景處理。"
+          }
         }
       }
     },
@@ -56196,6 +57438,12 @@
             "value" : "Configurazione di album e filtri"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アルバムとフィルタを設定中"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -56273,6 +57521,12 @@
             "state" : "translated",
             "value" : "设置相册和过滤器"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定相簿與濾鏡"
+          }
         }
       }
     },
@@ -56332,6 +57586,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Esta actualización rápida prepara sus fotos para nuevas características como filtros y álbumes"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tämä nopea päivitys valmistelee kuviasi uusia ominaisuuksia, kuten suodattimia ja albumeita, varten"
           }
         },
         "fr" : {
@@ -56440,6 +57700,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此快速更新可为您的照片准备滤镜和相册等新功能"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這次快速更新會讓您的照片準備好迎接新的功能，例如濾鏡和相簿。"
           }
         }
       }
@@ -56620,6 +57886,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "我们需要更新您的数据"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我們需要更新您的資料"
           }
         }
       }
@@ -57129,6 +58401,12 @@
             "value" : "Conservări fără efort"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Резервное копирование без усилий"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -57157,6 +58435,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "轻松备份"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輕鬆備份"
           }
         }
       }
@@ -57336,6 +58620,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "照片可通过 WiFi 以原始质量备份。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "照片會透過無線網路以原始品質進行備份。"
           }
         }
       }
@@ -57875,6 +59165,12 @@
             "state" : "translated",
             "value" : "授予访问权限"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "給予存取"
+          }
         }
       }
     },
@@ -58054,6 +59350,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这可确保您的所有照片都已备份，并可在您的设备上使用。\n\n在下一个屏幕中，更改设置以允许 Proton Drive 访问 “所有照片” 。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這可確保您所有的相片都已備份並可供跨您的裝置使用。\n\n在下一個畫面中，變更您的設定值以允許 Proton Drive 存取所有相片。"
           }
         }
       }
@@ -58235,6 +59537,12 @@
             "state" : "translated",
             "value" : "Proton Drive 需要完全访问您的照片"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Drive 需要您的照片的完整存取權"
+          }
         }
       }
     },
@@ -58414,6 +59722,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "确保您的设备已连接到互联网，然后再试一次。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請確定您的裝置已連接至網際網路，然後再試一次。"
           }
         }
       }
@@ -58595,6 +59909,12 @@
             "state" : "translated",
             "value" : "无法加载此照片"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法載入此照片"
+          }
         }
       }
     },
@@ -58774,6 +60094,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加载此照片时出错"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "載入此相片時發生錯誤"
           }
         }
       }
@@ -58955,6 +60281,12 @@
             "state" : "translated",
             "value" : "无法加载这张照片"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法載入此相片"
+          }
         }
       }
     },
@@ -59134,6 +60466,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不支持此格式的完整预览。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不支援此格式的完整預覽。"
           }
         }
       }
@@ -59315,6 +60653,12 @@
             "state" : "translated",
             "value" : "无法加载此视频"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法載入此影片"
+          }
         }
       }
     },
@@ -59494,6 +60838,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下载和解密可能需要一些时间。感谢耐心等待。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載和解密可能需要一些時間。感謝您的耐心。"
           }
         }
       }
@@ -59675,6 +61025,12 @@
             "state" : "translated",
             "value" : "载入中"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在載入中"
+          }
         }
       }
     },
@@ -59854,6 +61210,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您的存储空间已使用满 **80%** 以上了"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的儲存空間已超過 **80%** 滿"
           }
         }
       }
@@ -60035,6 +61397,12 @@
             "state" : "translated",
             "value" : "您的存储空间已使用满 **50%** 了"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的儲存量已達 **50%** 滿"
+          }
         }
       }
     },
@@ -60214,6 +61582,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "若要继续该过程，您需要升级您的计划。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要繼續此程序，您必須升級您的方案。"
           }
         }
       }
@@ -60581,6 +61955,12 @@
             "state" : "translated",
             "value" : "%@ 剩余"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剩下 %@"
+          }
         }
       }
     },
@@ -60760,6 +62140,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "后台照片备份速度较慢。打开应用即可快速上传。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相片備份在背景中速度較慢。開啟應用程式以加快上載速度。"
           }
         }
       }
@@ -61313,6 +62699,12 @@
             "state" : "translated",
             "value" : "正在导入文件。请保持应用程序打开以避免中断。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在匯入檔案。請保持應用程式開啟，以避免中斷。"
+          }
         }
       }
     },
@@ -61665,6 +63057,12 @@
             "state" : "translated",
             "value" : "出了点问题……请稍后再试。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "發生錯誤... 請稍後再試。"
+          }
         }
       }
     },
@@ -61844,6 +63242,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在准备..."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在準備..."
           }
         }
       }
@@ -62210,6 +63614,12 @@
             "state" : "translated",
             "value" : "十连拍"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連拍"
+          }
         }
       }
     },
@@ -62386,6 +63796,12 @@
           }
         },
         "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "封面"
+          }
+        },
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "封面"
@@ -62972,6 +64388,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "總共有 %d 張照片"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -63151,6 +64579,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "实况"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "居住"
           }
         }
       }
@@ -64292,6 +65726,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "剩下 %d%@ 個項目"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -65214,6 +66660,12 @@
             "state" : "translated",
             "value" : "等待中..."
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等待中..."
+          }
         }
       }
     },
@@ -65393,6 +66845,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "启用自动锁定会停止后台进程，除非设置为“启动后”。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用自動鎖定會停止背景程序，除非設定為「啟動後」"
           }
         }
       }
@@ -65574,6 +67032,12 @@
             "state" : "translated",
             "value" : "重复输入您的 PIN 码以确认。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再次輸入您的個人識別號碼以確認。"
+          }
         }
       }
     },
@@ -65754,6 +67218,12 @@
             "state" : "translated",
             "value" : "重复输入您的 PIN 码"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重複您的個人識別數字代碼"
+          }
         }
       }
     },
@@ -65933,6 +67403,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打开此功能可自动锁定并使用 PIN 码或生物识别传感器解锁。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用此功能可自動鎖定並透過個人識別數字代碼或生物辨識感測器來解鎖。"
           }
         }
       }
@@ -66300,6 +67776,12 @@
             "state" : "translated",
             "value" : "应用程序在后台运行几分钟后或退出应用程序后将需要输入 PIN 码。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "應用程式在背景執行數分鐘後或退出應用程式後，將會要求輸入個人識別數字代碼。"
+          }
         }
       }
     },
@@ -66480,6 +67962,12 @@
             "state" : "translated",
             "value" : "时间"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "閒置計時"
+          }
         }
       }
     },
@@ -66659,6 +68147,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用生物识别"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用生物辨識"
           }
         }
       }
@@ -67025,6 +68519,12 @@
             "state" : "translated",
             "value" : "下载文件失败"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法下載檔案"
+          }
         }
       }
     },
@@ -67203,6 +68703,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法打开文档编辑器"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法打開文件編輯器"
           }
         }
       }
@@ -67480,6 +68986,12 @@
             "value" : "Aggiungi da file"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルから追加"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -67550,6 +69062,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "从文件添加"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從檔案加入"
           }
         }
       }
@@ -67641,6 +69159,12 @@
             "value" : "Aggiungi dalla galleria"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ギャラリーから追加"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -67711,6 +69235,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "从图库添加"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從圖庫加入"
           }
         }
       }
@@ -67802,6 +69332,12 @@
             "value" : "Includi i log da Proton Drive"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Drive のログを含める"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -67873,6 +69409,12 @@
             "state" : "translated",
             "value" : "包括 Proton Drive 的日志"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含來自 Proton Drive 的日誌"
+          }
         }
       }
     },
@@ -67888,7 +69430,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fitxers adjunts"
+            "value" : "Adjunts"
           }
         },
         "cs" : {
@@ -68011,6 +69553,12 @@
             "value" : "Atașamente"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вложения"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -68027,6 +69575,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ek dosyalar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вкладення"
           }
         },
         "zh-Hans" : {
@@ -68101,6 +69655,12 @@
             "value" : "Carga total: %.1f MB de 50 MB • %d de 10 archivos"
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kokonaislähetys: %.1f Mt 50 Mt:sta • %d\/10 tiedostosta"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -68123,6 +69683,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Upload totale: %.1f MB di 50 MB • %d di 10 file"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合計アップロード: %.1f MB \/ 50 MB • %d \/ 10 ファイル"
           }
         },
         "ko" : {
@@ -68185,10 +69751,22 @@
             "value" : "Toplam yüklenen: %.1f MB \/ 50 MB • %d \/ 10 dosya"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Усього вивантажено: %.1f МБ із 50 МБ • %d з 10 файлів"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "上传总量：%.1f MB\/ 50 MB • %d \/ 10 文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "總上載：%.1f MB（共 50 MB）• %d 個檔案（共 10 個）"
           }
         }
       }
@@ -68328,6 +69906,12 @@
             "value" : "Raportare problemă"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сообщить о проблеме"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -68344,6 +69928,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sorun bildireceğim"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повідомити про проблему"
           }
         },
         "zh-Hans" : {
@@ -68417,6 +70007,12 @@
             "value" : "Describa su problema e incluya cualquier mensaje de error..."
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kuvaile ongelmaa ja sisällytä mahdolliset virheilmoitukset..."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -68439,6 +70035,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Descrivi il tuo problema e includi eventuali messaggi di errore..."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "問題について、エラーメッセージ等も含めてご記入下さい。"
           }
         },
         "ko" : {
@@ -68501,10 +70103,22 @@
             "value" : "Lütfen sorunu açıklayın ve varsa hata iletilerini ekleyin..."
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Опишіть вашу проблему та додайте будь-які повідомлення про помилки..."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "请描述您的问题并包含任何错误信息..."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請詳細描述您的問題，若有出現任何錯誤訊息，還請您一併附上..."
           }
         }
       }
@@ -68599,7 +70213,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "どの様な問題が発生しましたか?"
+            "value" : "どのような問題ですか？"
           }
         },
         "ko" : {
@@ -68644,6 +70258,12 @@
             "value" : "Ce nu a funcționat?"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Что пошло не так?"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -68660,6 +70280,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sorun neydi?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Що сталося?"
           }
         },
         "zh-Hans" : {
@@ -68763,6 +70389,12 @@
             "value" : "Minimo 10 caratteri"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最低10文字"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -68823,10 +70455,22 @@
             "value" : "En az 10 karakter"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мінімум 10 символів"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "至少 10 个字符"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最少 10 個字元"
           }
         }
       }
@@ -68843,7 +70487,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Envieu-ho"
+            "value" : "Envia"
           }
         },
         "cs" : {
@@ -68972,6 +70616,12 @@
             "value" : "Trimitere"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отправить"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -68988,6 +70638,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gönder"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надіслати"
           }
         },
         "zh-Hans" : {
@@ -69091,6 +70747,12 @@
             "value" : "Invio segnalazione non riuscito."
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "レポートの送信に失敗しました。"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -69151,10 +70813,22 @@
             "value" : "Rapor gönderilemedi."
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося надіслати звіт."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "报告发送失败。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "報告傳送失敗。"
           }
         }
       }
@@ -69246,6 +70920,12 @@
             "value" : "Segnalazione inviata correttamente!"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "レポートは正常に送信されました!"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -69288,6 +70968,12 @@
             "value" : "Raportul a fost trimis!"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отчет успешно отправлен"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -69306,10 +70992,22 @@
             "value" : "Rapor gönderildi!"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Звіт успішно відправлено!"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "报告发送成功！"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回報已成功傳送!"
           }
         }
       }
@@ -69401,10 +71099,16 @@
             "value" : "Voglio segnalare un problema con:"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以下についての問題を報告したい:"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "신고하고자 하는 문제는:"
+            "value" : "신고하고자 하는 문제:"
           }
         },
         "nb" : {
@@ -69443,6 +71147,12 @@
             "value" : "Doresc să raportez o problemă cu:"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Я хочу сообщить о проблеме с:"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -69459,6 +71169,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Şununla ilgili bir sorun bildirmek istiyorum:"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Я хочу повідомити про проблему:"
           }
         },
         "zh-Hans" : {
@@ -69610,6 +71326,12 @@
             "value" : "Albume"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Альбомы"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -69626,6 +71348,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Albümler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Альбоми"
           }
         },
         "zh-Hans" : {
@@ -69777,6 +71505,12 @@
             "value" : "Decriptare"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дешифрование"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -69793,6 +71527,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Şifre çözme"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Розшифрування"
           }
         },
         "zh-Hans" : {
@@ -69944,6 +71684,12 @@
             "value" : "Criptare"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шифрование"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -69960,6 +71706,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Şifreleme"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шифрування"
           }
         },
         "zh-Hans" : {
@@ -70063,6 +71815,12 @@
             "value" : "Files app"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルアプリ"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -70117,10 +71875,22 @@
             "value" : "Dosyalar uygulaması"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Застосунок «Файли»"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "文件应用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檔案應用程式"
           }
         }
       }
@@ -70182,6 +71952,12 @@
             "value" : "Disponible sin conexión"
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saatavilla yhteydettömästi"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -70204,6 +71980,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disponibile Offline"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オフラインで利用可能"
           }
         },
         "ko" : {
@@ -70266,10 +72048,22 @@
             "value" : "Çevrim dışı kullanılabilir"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступно поза мережею"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "离线可用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "離線可用"
           }
         }
       }
@@ -70415,6 +72209,12 @@
             "value" : "Alt motiv"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Другое"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -70433,10 +72233,22 @@
             "value" : "Diğer"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Інше"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "其他"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其它"
           }
         }
       }
@@ -70600,6 +72412,12 @@
             "value" : "Fotoğraflar"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фото"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -70755,6 +72573,12 @@
             "value" : "Partajare"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Совместное использование"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -70771,6 +72595,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Paylaşma"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поширення"
           }
         },
         "zh-Hans" : {
@@ -70963,6 +72793,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法连接到 iCloud"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法連接 iCloud"
           }
         }
       }
@@ -71702,6 +73538,12 @@
             "state" : "translated",
             "value" : "加载资源失败"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "載入資源失敗"
+          }
         }
       }
     },
@@ -71881,6 +73723,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法访问原始文件。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法存取原始檔案。"
           }
         }
       }
@@ -72062,6 +73910,12 @@
             "state" : "translated",
             "value" : "缺少权限"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "缺少權限"
+          }
         }
       }
     },
@@ -72241,6 +74095,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "名称验证失败"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名稱驗證失敗"
           }
         }
       }
@@ -73568,6 +75428,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個項目備份失敗"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -73917,10 +75789,178 @@
             "value" : "Paylaşılan fotoğrafı kaydet"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зберегти поширене фото"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "保存共享照片"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存已共享的相片"
+          }
+        }
+      }
+    },
+    "setting_about" : {
+      "comment" : "Section title ",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ПРА ПРАГРАМУ"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUANT A"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O APLIKACI"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OM"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ÜBER"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ΣΧΕΤΙΚΑ"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ABOUT"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ACERCA DE"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ACERCA DE"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TIETOJA"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À PROPOS"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NÉVJEGY"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "INFORMAZIONI"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "소개"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OM"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OVER"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O APLIKACJI"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SOBRE"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SOBRE"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DESPRE"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O APLIKÁCII"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OM"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HAKKINDA"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关于"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關於"
           }
         }
       }
@@ -74111,6 +76151,624 @@
         }
       }
     },
+    "setting_account_settings" : {
+      "comment" : "Section title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Налады ўліковага запісу"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuració del compte"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastavení účtu"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontoindstillinger"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontoeinstellungen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ρυθμίσεις Λογαριασμού"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes de la cuenta"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes de la cuenta"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiliasetukset"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paramètres du compte"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fiók beállítások"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impostazioni dell'account"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "계정 설정"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontoinnstillinger"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accountinstellingen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ustawienia konta"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Definições da conta"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurações da conta"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setări cont"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastavenia účtu"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontoinställningar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hesap ayarları"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "账户设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帳號設定"
+          }
+        }
+      }
+    },
+    "setting_acknowledgments" : {
+      "comment" : "Title of acknowledgments page",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Падзякі"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crèdits"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poděkování"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anerkendelser"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danksagungen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ευχαριστίες"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acknowledgments"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agradecimientos"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agradecimientos"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kiitokset"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remerciements"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Közreműködők"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riconoscimenti"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "감사의 인사"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anerkjennelser"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Met dank aan"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podziękowania"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agradecimentos"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agradecimentos"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mulțumiri"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poďakovanie"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teşekkürler"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "致谢"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "致謝聲明"
+          }
+        }
+      }
+    },
+    "setting_app_settings" : {
+      "comment" : "Section title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "НАЛАДЫ ПРАГРАМЫ"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferències de l'aplicació"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NASTAVENÍ APLIKACE"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "APP-INDSTILLINGER"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-Einstellungen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ΡΥΘΜΙΣΕΙΣ ΕΦΑΡΜΟΓΗΣ"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "APP SETTINGS"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AJUSTES DE LA APLICACIÓN"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AJUSTES DE LA APLICACIÓN"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SOVELLUKSEN ASETUKSET"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PARAMÈTRES DE L'APPLICATION"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ALKALMAZÁS BEÁLLÍTÁSOK"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IMPOSTAZIONI DELL'ACCOUNT"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱 설정"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "APP-INNSTILLINGER"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-instellingen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USTAWIENIA APLIKACJI"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DEFINIÇÕES DA APLICAÇÃO"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CONFIGURAÇÕES DO APLICATIVO"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SETĂRI APLICAȚIE"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastavenia aplikácie"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "APPINSTÄLLNINGAR"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UYGULAMA AYARLARI"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "應用程式設定"
+          }
+        }
+      }
+    },
+    "setting_app_version" : {
+      "comment" : "#@version: String@#",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Версія праграмы: %@"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versió de l'aplicació: %@"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verze aplikace: %@"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-version: %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-Version: %@"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Έκδοση εφαρμογής: %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Version: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versión de la aplicación: %@"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versión de la aplicación: %@"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sovellusversio: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version de l'application : %@"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alkalmazásverzió: %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versione app: %@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱 버전: %@"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-versjon: %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-versie: %@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wersja aplikacji: %@"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versão da aplicação: %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versão do aplicativo: %@"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versiune aplicație: %@"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verzia aplikácie: %@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appversion: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama sürümü: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "程序版本：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "應用程式版本：%@"
+          }
+        }
+      }
+    },
     "setting_biometry" : {
       "comment" : "Biometry protection setting title",
       "extractionState" : "manual",
@@ -74287,6 +76945,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "生物识别"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "生物辨識"
           }
         }
       }
@@ -74564,6 +77228,12 @@
             "value" : "Cancella la cache dei log"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ログキャッシュをクリアする"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -74630,10 +77300,22 @@
             "value" : "Günlük ön belleğini temizle"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очистити кеш журналів"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "清除日志缓存"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除日誌快取"
           }
         }
       }
@@ -74642,10 +77324,166 @@
       "comment" : "Manage Debug Mode",
       "extractionState" : "manual",
       "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Рэжым адладкі"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode de depuració"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Režim ladění"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fejlfindingstilstand"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Debug-Modus"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Λειτουργία Αποσφαλμάτωσης"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Debug Mode"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo de depuración"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo de depuración"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vianselvitystila"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode de débogage"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hibakeresési mód"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modalità debug"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デバッグモード"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "디버그 로그"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feilsøkingsmodus"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foutopsporingsmodus"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tryb debugowania"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo de depuração"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo de depuração"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mod depanare"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Režim ladenia"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Felsökningsläge"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hata ayıklama kipi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Режим налагодження"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调试模式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "偵錯模式"
           }
         }
       }
@@ -74654,10 +77492,166 @@
       "comment" : "Instructions section title",
       "extractionState" : "manual",
       "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Інструкцыі"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instruccions"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokyny"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instruktioner"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anleitung"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οδηγίες"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Instructions"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instrucciones"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instrucciones"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohjeet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instructions"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utasítások"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Istruzioni"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "説明"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지침"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instruksjoner"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instructies"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instrukcje"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instruções"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instruções"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instrucțiuni"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokyny"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instruktioner"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yönergeler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Інструкції"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指引"
           }
         }
       }
@@ -74665,10 +77659,160 @@
     "setting_debug_mode_instructions_body" : {
       "extractionState" : "manual",
       "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Націсніце жоўтую кнопку з памылкай, каб пазначыць бягучы момант. Гэта дапаможа нам вызначыць, калі ўзнікла праблема.\n\n2. Націсніце і ўтрымлівайце кнопку з памылкай, каб адкрыць экран справаздачы аб памылцы і абагуліць больш падрабязнасцей."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Toqueu el botó groc d'error per marcar el moment actual; això ens ajuda a identificar quan s'ha produït el problema.\n\n2. Mantingueu premut el botó per obrir la pantalla d'informe d'errors i compartir més detalls."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Klepněte na žluté tlačítko s chybou a označte aktuální okamžik — to nám pomůže určit, kdy k problému došlo.\n\n2. Stiskněte a podržte tlačítko chyby, otevřete obrazovku hlášení chyby a sdílejte další detaily."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Tryk på den gule fejlknap, for at markere det nuværende tidspunkt — dette hjælper os med at identificere, hvornår problemet opstod.\n\n2. Tryk og hold fejlknappen nede, for at åbne fejlrapportskærmen og dele flere detaljer."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Tippe auf die gelbe Fehler-Taste, um den aktuellen Zustand festzuhalten – dies hilft uns, zu identifizieren, wann das Problem aufgetreten ist.\n\n2. Drücke und halte die Fehler-Taste, um den Fehlerbericht-Bildschirm zu öffnen und weitere Details zu teilen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Πατήστε το κίτρινο κουμπί σφάλματος για να σημαδέψετε την τρέχουσα στιγμή — αυτό μας βοηθά να αναγνωρίσουμε πότε παρουσιάστηκε το πρόβλημα.\n\n2. Πατήστε παρατεταμένα το κουμπί σφάλματος για να ανοίξετε την οθόνη αναφοράς σφάλματος και να μοιραστήτε περισσότερες λεπτομέρειες."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "1. Tap the yellow bug button to mark the current moment — this helps us identify when the issue occurred.\n\n2. Press and hold the bug button to open the bug report screen and share more details."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Pulsa el botón amarillo de error para marcar el momento actual — esto nos ayuda a identificar cuándo ocurrió el problema.\n\n2. Mantén pulsado el botón de error para abrir la pantalla de informe de errores y compartir más detalles."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Pulse el botón amarillo de error para marcar el momento actual — esto nos ayuda a identificar cuándo ocurrió el problema.\n\n2. Mantenga pulsado el botón de error para abrir la pantalla de informe de errores y compartir más detalles."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Napauta keltaista vikapainiketta merkitäksesi nykyisen hetken – tämä auttaa meitä tunnistamaan, milloin ongelma ilmeni.\n\n2. Paina ja pidä vikapainiketta painettuna avataksesi vikailmoitusnäytön ja antaaksesi lisätietoja."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Appuyez sur le bouton bug jaune pour marquer le moment actuel – cela nous aide à savoir quand le problème s'est produit\n\n2. Appuyez et maintenez le bouton bug pour ouvrir l'écran de rapport de bug et partager plus d'informations"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Érintse meg a sárga hiba gombot az aktuális pillanat megjelöléséhez – ez segít azonosítani, hogy mikor történt a probléma.\n\n2. Nyomja meg és tartsa lenyomva a hiba gombot a hibajelentés képernyő megnyitásához és további részletek megosztásához."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Tocca il pulsante giallo del bug per contrassegnare il momento attuale: questo ci aiuta a identificare quando si è verificato il problema.\n\n2. Tieni premuto il pulsante del bug per aprire la schermata di segnalazione del bug e condividere maggiori dettagli."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. 黄色のバグボタンをタップして現在の時刻をマークすると、問題がいつ発生したかを特定できます。\n\n2. バグボタンを長押ししてバグ報告画面を開き、さらに詳細を共有します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. 노란색 버그 버튼을 탭하여 현재 시간을 표시해 주세요. 문제가 언제 발생했는지 파악하는 데 도움이 됩니다.\n\n2. 버그 버튼을 길게 눌러 버그 신고 화면을 연 뒤 더 많은 세부사항을 공유해 주세요."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Trykk på den gule feilknappen for å markere det nåværende øyeblikket – dette hjelper oss å identifisere når problemet oppsto.\n\n2. Trykk og hold feilknappen for å åpne feilrapportskjermbildet og dele flere detaljer."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Tik op de gele bugknop om het huidige moment te markeren — dit helpt ons te identificeren wanneer het probleem zich voordeed.\n\n2. Houd de bugknop ingedrukt om het bugrapportscherm te openen en meer gegevens te delen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Kliknij żółty przycisk błędu, aby oznaczyć bieżący moment — pomoże nam to zidentyfikować, kiedy wystąpił problem.\n\n2. Przytrzymaj przycisk błędu, aby otworzyć ekran raportu błędu i udostępnić więcej szczegółów."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Toque no botão de erro amarelo para marcar o momento atual. Isso nos ajuda a identificar quando o problema ocorreu.\n\n2. Pressione e segure o botão de erro para abrir o ecrã de relatório de erro e para partilhar mais detalhes."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Toque no botão de erro amarelo para marcar o momento atual. Isso nos ajuda a identificar quando o problema ocorreu.\n\n2. Pressione e segure o botão de erro para abrir a tela de relatório de erro e compartilhar mais detalhes."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Atingeți butonul galben de eroare pentru a marca momentul curent — aceasta ne ajută să identificăm când a apărut problema.\n\n2. Apăsați și mențineți butonul de eroare pentru a deschide ecranul raportului de eroare și furnizați mai multe detalii."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Ťuknite na žlté tlačidlo chyby na označenie aktuálneho okamihu — čo nám pomôže identifikovať, kedy nastal problém.\\n\\n2. Stlačte a podržte tlačidlo chyby na otvorenie obrazovky hlásenia chýb a zdieľajte ďalšie podrobnosti."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Sarı hata düğmesine dokunarak geçerli anı işaretleyin — Böylece sorunun ne zaman oluştuğunu anlamamıza yardımcı olursunuz.\n\n2. Hata düğmesini basılı tutarak hata bildirimi sayfasını açın ve daha fazla ayrıntı paylaşın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Торкніться жовтої кнопки помилки, щоби позначити поточний момент. Це допоможе нам визначити, коли виникла проблема.\n\n2. Натисніть і утримуйте кнопку помилки, аби відкрити екран звіту про помилку та поділитись додатковими подробицями."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. 轻触黄色问题按钮，标记当前时间 — 这有助于我们识别问题何时发生。\n\n2. 长按问题按钮，打开问题反馈屏幕并分享更多详细信息。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. 輕點黃色的問題按鈕以標記當前時刻 — 這有助於我們識別問題發生時間。\n\n2. 按住問題按鈕以開啟錯誤回報畫面並共享更多詳細資料。"
           }
         }
       }
@@ -74849,6 +77993,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "导出日志"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯出日誌"
           }
         }
       }
@@ -75216,6 +78366,12 @@
             "state" : "translated",
             "value" : "您可以在我们的[支持网站] (%@) 上获得进一步的帮助"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您可以在我們的[支援服務網站](%@)找到更多協助。"
+          }
         }
       }
     },
@@ -75395,6 +78551,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "如果您遇到任何问题，请报告问题。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如果您遇到任何問題，請回報問題。"
           }
         }
       }
@@ -75784,7 +78946,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Llengua"
+            "value" : "Idioma"
           }
         },
         "cs" : {
@@ -75859,6 +79021,12 @@
             "value" : "Lingua"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "言語"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -75901,6 +79069,12 @@
             "value" : "Limba"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Язык"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -75917,6 +79091,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dil"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мова"
           }
         },
         "zh-Hans" : {
@@ -76301,6 +79481,318 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "PIN碼"
+          }
+        }
+      }
+    },
+    "setting_privacy_policy" : {
+      "comment" : "Title of privacy policy page",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Палітыка прыватнасці"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacitat"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zásady ochrany osobních údajů"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privatlivspolitik"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenschutzerklärung"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πολιτική Απορρήτου"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy policy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacidad"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacidad"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tietosuojakäytäntö"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Politique de confidentialité"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adatvédelmi irányelvek"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informativa sulla privacy"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "개인정보처리방침"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personvernerklæring"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacybeleid"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Polityka prywatności"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacidade"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacidade"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Politica de confidențialitate"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zásady ochrany osobných údajov"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Integritetspolicy"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gizlilik ilkesi"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐私政策"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隱私權政策"
+          }
+        }
+      }
+    },
+    "setting_security_key" : {
+      "comment" : "Title of security key page ",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ключы бяспекі"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claus de seguretat"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezpečnostní klíče"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sikkerhedsnøgler"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sicherheitsschlüssel"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Κλειδιά ασφαλείας"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Security keys"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claves de seguridad"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claves de seguridad"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suojausavaimet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clés de sécurité"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hitelesítési kulcsok"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiavi di sicurezza"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "보안 키"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sikkerhetsnøkler"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beveiligingssleutels"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klucze bezpieczeństwa"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaves de segurança"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaves de segurança"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chei de securitate"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezpečnostné kľúče"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Säkerhetsnycklar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Güvenlik anahtarları"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安全密钥"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安全金鑰"
           }
         }
       }
@@ -76852,6 +80344,12 @@
             "state" : "translated",
             "value" : "同步已暂停。请升级或释放空间以恢复同步。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步已暫停。請升級或騰出空間以繼續同步。"
+          }
         }
       }
     },
@@ -77031,6 +80529,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用 %@ 中的 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已使用 %@ \/ %@"
           }
         }
       }
@@ -77956,6 +81460,12 @@
             "state" : "translated",
             "value" : "有新版本可用"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有新版本可用"
+          }
         }
       }
     },
@@ -78135,6 +81645,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Proton Drive 是最新版本：v%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Drive 已是最新版本: v%@"
           }
         }
       }
@@ -78506,6 +82022,162 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "條款與細則"
+          }
+        }
+      }
+    },
+    "setting_terms_of_service" : {
+      "comment" : "Title of terms of service page",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Умовы абслугоўвання"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Condicions del servei"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podmínky použití"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servicevilkår"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutzungsbedingungen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Όροι παροχής υπηρεσιών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms of service"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Términos de servicio"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Términos de servicio"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käyttöehdot"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conditions d'utilisation"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szolgáltatási feltételek"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termini di servizio"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서비스 이용약관"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bruksvilkår"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servicevoorwaarden"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regulamin"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termos de serviço"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termos de serviço"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termenii serviciului"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podmienky používania"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Användarvillkor"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hizmet şartları"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务条款"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服務條款"
           }
         }
       }
@@ -79431,6 +83103,12 @@
             "state" : "translated",
             "value" : "保存连拍照片"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存連拍"
+          }
         }
       }
     },
@@ -79611,6 +83289,12 @@
             "state" : "translated",
             "value" : "保存图像"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存圖片"
+          }
         }
       }
     },
@@ -79790,6 +83474,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "保存实时照片"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存即時照片"
           }
         }
       }
@@ -80529,6 +84219,12 @@
             "state" : "translated",
             "value" : "创建链接并与他人共享文件"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "創建連結並與其他人共享檔案"
+          }
         }
       }
     },
@@ -81081,6 +84777,12 @@
             "state" : "translated",
             "value" : "此链接是用旧版本的 Drive 创建的，无法修改。 请删除此链接并创建新的链接来更改设置。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此連結乃以舊 Drive 版本建立，無法修改。請刪除此連結並建立新的連結以變更設定。"
+          }
         }
       }
     },
@@ -81447,6 +85149,12 @@
             "state" : "translated",
             "value" : "退出而不保存"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不儲存離開"
+          }
         }
       }
     },
@@ -81811,6 +85519,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请选择未来的失效日期"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選取未來的到期日"
           }
         }
       }
@@ -82364,6 +86078,12 @@
             "state" : "translated",
             "value" : "您未保存的更改将丢失。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未儲存的變更將會消失。"
+          }
         }
       }
     },
@@ -82544,6 +86264,12 @@
             "state" : "translated",
             "value" : "更新设置中"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在更新設定值"
+          }
         }
       }
     },
@@ -82603,6 +86329,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "El número máximo de URL públicas editables está limitado a 3 en su plan actual. Considere mejorarlo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nykyisen tilauksesi sallimien muokattavien julkisten URL-osoitteiden enimmäismäärä on 3. Päivitä tilauksesi."
           }
         },
         "fr" : {
@@ -82707,10 +86439,22 @@
             "value" : "Tarifenizle düzenlenebilecek herkese açık adres sayısı en fazla 3 tanedir. Lütfen tarifenizi yükseltin."
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Максимальна кількість редагованих публічних посилань у вашому тарифі обмежена до 3. Покращте його."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "在您的计划中，可编辑公共网址的最大数量限制为 3 个。请升级。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可編輯的公開網址數量上限在您的方案中限制為 3 個。請升級。"
           }
         }
       }
@@ -83263,6 +87007,12 @@
             "state" : "translated",
             "value" : "这将删除链接，并禁止任何拥有该链接的人访问您的文件或文件夹。此操作无法撤销。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此操作將會刪除連結，並且阻止其他嘗試使用此連結存取檔案或資料夾的人。您無法復原此操作。"
+          }
         }
       }
     },
@@ -83393,7 +87143,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qualquer pessoa com a ligação e a palavra-passe pode aceder ao ficheiro ou à pasta."
+            "value" : "Qualquer pessoa com a ligação e a palavra-passe pode aceder ao ficheiro ou à pasta. "
           }
         },
         "pt-BR" : {
@@ -83442,6 +87192,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "任何拥有链接和密码的人都可以访问文件\/文件夹 "
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任何擁有連結與密碼字元的人都可以存取檔案\/資料夾 "
           }
         }
       }
@@ -83623,6 +87379,12 @@
             "state" : "translated",
             "value" : "任何拥有此链接的人都可以访问您的文件\/文件夹"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任何人憑此連結均可存取您的檔案\/資料夾"
+          }
         }
       }
     },
@@ -83803,6 +87565,12 @@
             "state" : "translated",
             "value" : "正在准备安全链接"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在準備安全加密鏈結"
+          }
         }
       }
     },
@@ -83981,6 +87749,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您与他人共享的文件和文件夹将显示在此处"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您與其他人分享的檔案與資料夾將會在此出現"
           }
         }
       }
@@ -84716,6 +88490,12 @@
             "state" : "translated",
             "value" : "已复制书签链接"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "書籤連結已複製"
+          }
         }
       }
     },
@@ -84894,6 +88674,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "我们无法复制书签 URL"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我們無法複製書籤網址"
           }
         }
       }
@@ -85074,6 +88860,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您将要删除 \"%@\" 。您确定要继续吗？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您即將刪除「%@」。您確定要繼續嗎？"
           }
         }
       }
@@ -85439,6 +89231,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "公共链接 • 已创建 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "公開連結 • 建立於 %@"
           }
         }
       }
@@ -86176,6 +89974,12 @@
             "state" : "translated",
             "value" : "10+ 个项目共享给您"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已有 10 個以上項目共享給您"
+          }
         }
       }
     },
@@ -86354,6 +90158,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "与您共享 1 个项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已有 1 個項目共享給您"
           }
         }
       }
@@ -86534,6 +90344,12 @@
             "state" : "translated",
             "value" : "与您共享的项目"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已有 個項目分享給您"
+          }
         }
       }
     },
@@ -86713,6 +90529,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您即将离开“%@”。在所有者再次与您共享之前，您将无法再次访问它。您确定要继续吗？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您將離開「%@」。您將無法再次存取它，直到擁有者與您共享。您確定要繼續嗎？"
           }
         }
       }
@@ -87450,6 +91272,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "访问已删除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "存取已移除"
           }
         }
       }
@@ -88591,6 +92419,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "已新增 %d 位編輯者"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -88770,6 +92610,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "受邀者已被邀请。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "該受邀者已被邀請。"
           }
         }
       }
@@ -88951,6 +92797,12 @@
             "state" : "translated",
             "value" : "目前不支持群组共享。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此刻不支援群組共享。"
+          }
         }
       }
     },
@@ -89129,6 +92981,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您的邀请和成员人数已达上限。请考虑删除某人以扩大共享限制。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您已達到此共享中的邀請與成員上限。請考慮移除某人以擴展共享上限。"
           }
         }
       }
@@ -89310,6 +93168,12 @@
             "state" : "translated",
             "value" : "该用户参与了太多共享。在邀请他之前，请先让他离开一个共享。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此使用者已加入太多共享。請他們在受邀前先離開一個共享。"
+          }
         }
       }
     },
@@ -89489,6 +93353,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "受邀请者的电子邮件与 Proton 帐户无关，或者您正在尝试邀请您自己。请检查该电子邮件，然后重试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "被邀請者的電子郵件未與 Proton 帳號關聯，或您正嘗試邀請自己。請檢查該電子郵件並再試一次。"
           }
         }
       }
@@ -89670,6 +93540,12 @@
             "state" : "translated",
             "value" : "您的电子邮件与共享此内容的电子邮件不匹配。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的電子郵件不符合用於共享此內容的電子郵件。"
+          }
         }
       }
     },
@@ -89849,6 +93725,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "检测到无效密钥包。请联系客户支持"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "偵測到無效的金鑰封包。請洽客戶支援服務"
           }
         }
       }
@@ -90030,6 +93912,12 @@
             "state" : "translated",
             "value" : "密钥包签名无效。请联系客户支持"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "金鑰封包簽名檔無效。請洽客戶支援服務"
+          }
         }
       }
     },
@@ -90209,6 +94097,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "该用户已经在此共享中使用了不同的电子邮件。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "該使用者已使用不同的電子郵件加入此共享。"
           }
         }
       }
@@ -90390,6 +94284,12 @@
             "state" : "translated",
             "value" : "我们找不到受邀者的电子邮件地址或密钥。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我們找不到受邀者的電郵位址或金鑰。"
+          }
         }
       }
     },
@@ -90569,6 +94469,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "当前用户没有该共享的管理员权限"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前的使用者沒有此共享的管理員權限"
           }
         }
       }
@@ -90936,6 +94842,12 @@
             "state" : "translated",
             "value" : "共享暂时禁用。请稍后再试。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享已暫時停用。請稍後再試。"
+          }
         }
       }
     },
@@ -91301,6 +95213,12 @@
             "state" : "translated",
             "value" : "邀请电子邮件中的信息和文件名采用零访问加密存储。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當包含於邀請電子郵件時，訊息和檔案名稱會以零漏洞完美加密儲存。"
+          }
         }
       }
     },
@@ -91477,6 +95395,12 @@
           }
         },
         "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未包含"
+          }
+        },
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "未包含"
@@ -91661,6 +95585,12 @@
             "state" : "translated",
             "value" : "给收件人的留言"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "至收件者的訊息"
+          }
         }
       }
     },
@@ -91840,6 +95770,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "添加要分享的人或组"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增與他人或群組分享"
           }
         }
       }
@@ -92578,6 +96514,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "创建本项目的链接"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此項目連結已建立"
           }
         }
       }
@@ -93502,6 +97444,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "添加用户或群组"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增夥伴或群組"
           }
         }
       }
@@ -94799,6 +98747,12 @@
             "state" : "translated",
             "value" : "消息设置"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "訊息設定"
+          }
         }
       }
     },
@@ -95381,6 +99335,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "與 %d 個人分享"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -95959,6 +99925,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 查看者已添加"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 位檢視者已新增"
                 }
               }
             }
@@ -96663,7 +100641,7 @@
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Logg på en annen enhet"
+            "value" : "Logg inn på en annen enhet"
           }
         },
         "nl" : {
@@ -96720,10 +100698,22 @@
             "value" : "Başka bir aygıta oturum açın"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увійти на іншому пристрої"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "登录到其他设备"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登入服務"
           }
         }
       }
@@ -96818,7 +100808,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Proton Driveを使って始める"
+            "value" : "Proton Driveを使い始める"
           }
         },
         "ka" : {
@@ -97834,6 +101824,12 @@
             "state" : "translated",
             "value" : "您的账户面临删除风险"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的帳號有遭刪除的風險"
+          }
         }
       }
     },
@@ -98012,6 +102008,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "为了避免数据丢失，请要求您的管理员升级。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "為避免資料遺失，請您的管理員進行升級。"
           }
         }
       }
@@ -98192,6 +102194,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在备份"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在備份…"
           }
         }
       }
@@ -98559,6 +102567,12 @@
             "state" : "translated",
             "value" : "备份已关闭"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "備份已停用"
+          }
         }
       }
     },
@@ -98738,6 +102752,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "现在还可使用移动数据备份照片"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "照片備份現在也允許透過行動數據進行"
           }
         }
       }
@@ -99477,6 +103497,12 @@
             "state" : "translated",
             "value" : "备份：检测到问题"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "備份：已偵測到問題"
+          }
         }
       }
     },
@@ -100028,6 +104054,12 @@
             "state" : "translated",
             "value" : "备份需要 Wi-Fi"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要無線網路才能備份"
+          }
         }
       }
     },
@@ -100208,6 +104240,12 @@
             "state" : "translated",
             "value" : "备份需要权限"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "備份需要權限"
+          }
         }
       }
     },
@@ -100386,6 +104424,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已准备好备份"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在準備備份"
           }
         }
       }
@@ -100741,10 +104785,22 @@
             "value" : "Yeni fotoğraflar aranıyor…"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пошук нових фотографій…"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "查找新照片…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在尋找新照片…"
           }
         }
       }
@@ -100914,10 +104970,22 @@
             "value" : "Fotoğraf kitaplığı yükleniyor…"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завантаження бібліотека фотографій…"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "载入图库…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "載入相片圖庫…"
           }
         }
       }
@@ -101470,6 +105538,12 @@
             "state" : "translated",
             "value" : "若要上传文件，请释放空间或升级以获得更多存储空间。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "若要上載檔案，您需要釋出空間或升級以便取得更多儲存空間。"
+          }
         }
       }
     },
@@ -102021,6 +106095,12 @@
             "state" : "translated",
             "value" : "升级以恢复完全访问权限并避免数据丢失。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "升級以還原完整存取權並避免資料遺失。"
+          }
         }
       }
     },
@@ -102200,6 +106280,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "上传照片暂时不可用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上載照片暫時不可用"
           }
         }
       }
@@ -102753,6 +106839,12 @@
             "state" : "translated",
             "value" : "这将删除链接，并禁止任何拥有该链接的人访问您的文件或文件夹。此操作无法撤销。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此操作將會刪除連結，並且阻止其他嘗試使用此連結存取檔案或資料夾的人。您無法復原此操作。"
+          }
         }
       }
     },
@@ -103119,6 +107211,12 @@
             "state" : "translated",
             "value" : "分享已删除"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享已移除"
+          }
         }
       }
     },
@@ -103179,6 +107277,12 @@
             "value" : "Complete estos pasos en sus primeros 30 días para mejorar el almacenamiento gratuito."
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suorita nämä toimet ensimmäisten 30 päivän aikana, niin saat veloituksetta lisää tallennustilaa."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -103201,6 +107305,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Completa questi passaggi entro i primi 30 giorni per ottenere un upgrade gratuito dello spazio di archiviazione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無料でストレージをアップグレードするには、最初の30日間に次の手順を完了してください。"
           }
         },
         "ko" : {
@@ -103245,6 +107355,12 @@
             "value" : "Completați acești pași în primele 30 de zile pentru a vă mări spațiul de stocare."
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершите эти шаги за первые 30 дней для бесплатного улучшения хранилища."
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -103261,6 +107377,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ücretsiz depolama alanınızı yükseltmek için ilk 30 gününüzde bu adımları tamamlayın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Виконайте ці кроки протягом перших 30 днів, щоб отримати безплатне збільшення сховища."
           }
         },
         "zh-Hans" : {
@@ -103364,6 +107486,12 @@
             "value" : "Ottieni il tuo bonus di archiviazione di 3 GB"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3 GBストレージボーナスを獲得する"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -103418,10 +107546,22 @@
             "value" : "3 GB depolama alanı hediyenizi alın"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отримайте 3 ГБ бонусного сховища"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "获取 3 GB 存储空间奖励"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "獲得您的 3 GB 儲存獎勵"
           }
         }
       }
@@ -104533,6 +108673,12 @@
             "state" : "translated",
             "value" : "出错了，请稍后再试"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "發生錯誤，請稍後再試"
+          }
         }
       }
     },
@@ -104898,6 +109044,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ 将被永久删除。\n无论如何都要删除？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 將會被永久刪除。\n仍要刪除？"
           }
         }
       }
@@ -105265,6 +109417,12 @@
             "state" : "translated",
             "value" : "还原 %@"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還原 %@"
+          }
         }
       }
     },
@@ -105445,6 +109603,12 @@
             "state" : "translated",
             "value" : "恢复所有文件"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還原所有檔案"
+          }
         }
       }
     },
@@ -105624,6 +109788,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "恢复所有文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還原所有資料夾"
           }
         }
       }
@@ -106549,6 +110719,12 @@
             "state" : "translated",
             "value" : "解锁应用"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解鎖應用程式"
+          }
         }
       }
     },
@@ -106716,6 +110892,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Güncellenmesi gerekiyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Необхідне оновлення"
           }
         },
         "zh-Hans" : {
@@ -106909,6 +111091,12 @@
             "state" : "translated",
             "value" : "要实现不间断上传，请打开应用程序。应用程序处于后台时，上传会暂停。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "為了不間斷地上載，請保持應用程式開啟。當應用程式在背景執行時，上載將會暫停。"
+          }
         }
       }
     },
@@ -107088,6 +111276,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "上传照片"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上載照片"
           }
         }
       }

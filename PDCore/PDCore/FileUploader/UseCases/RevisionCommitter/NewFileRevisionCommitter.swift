@@ -142,10 +142,10 @@ class NewFileRevisionCommitter: RevisionCommitter {
             }
 
 #if os(macOS)
-            let signersKit = try signersKitFactory.make(forSigner: .address(email))
+            let signersKit = try file.getContextShareAddressBasedSignersKit(signersKitFactory: self.signersKitFactory,
+                                                                            fallbackSigner: .address(email))
 #else
-            let addressID = try file.getContextShareAddressID()
-            let signersKit = try signersKitFactory.make(forAddressID: addressID)
+            let signersKit = try file.getContextShareAddressBasedSignersKit(signersKitFactory: signersKitFactory)
 #endif
             let addressKey = signersKit.addressKey.privateKey
             let addressPassphrase = signersKit.addressPassphrase

@@ -55,11 +55,11 @@ public final class SyncStateDelegate: SyncStateDelegateProtocol {
         case (_, _, true):
             try await domainOperationsService.performingFullResync()
         case (true, _, false):
-            try await domainOperationsService.domainWasPaused()
+            try await domainOperationsService.syncWasPaused()
         case (false, true, false):
             try await domainOperationsService.networkConnectionLost()
         case (false, false, false):
-            try await domainOperationsService.domainWasResumed()
+            try await domainOperationsService.syncWasResumed()
         }
     }
 }

@@ -17,6 +17,7 @@
 
 import Foundation
 import ProtonDriveSdk
+import ProtonDriveProtos
 
 public final class ProtonDriveClient {
 

@@ -122,13 +122,17 @@ extension DiscreteBlocksRevisionEncryptor {
     private func getSignersKit(for revision: Revision) throws -> SignersKit {
         guard !isCancelled else { throw BlockGenerationError.cancelled }
 #if os(macOS)
-        guard let signatureAddress = revision.signatureAddress else {
-            throw RevisionEncryptorError.noSignatureEmailInRevision
+        func getSignatureAddress() throws -> String {
+            guard let signatureAddress = revision.signatureAddress else {
+                throw RevisionEncryptorError.noSignatureEmailInRevision
+            }
+            return signatureAddress
         }
-        return try signersKitFactory.make(forSigner: .address(signatureAddress))
+        
+        return try revision.file.getContextShareAddressBasedSignersKit(signersKitFactory: self.signersKitFactory,
+                                                                       fallbackSigner: .address(getSignatureAddress()))
 #else
-        let addressID = try revision.file.getContextShareAddressID()
-        return try signersKitFactory.make(forAddressID: addressID)
+        return try revision.file.getContextShareAddressBasedSignersKit(signersKitFactory: signersKitFactory)
 #endif
     }
 

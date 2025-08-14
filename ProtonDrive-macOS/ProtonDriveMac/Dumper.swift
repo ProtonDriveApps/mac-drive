@@ -26,7 +26,7 @@ struct DumperDependencies {
 }
 
 struct Dumper {
-    private let dependencies: DumperDependencies
+    let dependencies: DumperDependencies
     
     init(dependencies: DumperDependencies) {
         self.dependencies = dependencies

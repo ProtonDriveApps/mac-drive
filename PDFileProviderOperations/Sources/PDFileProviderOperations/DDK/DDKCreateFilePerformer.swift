@@ -20,6 +20,7 @@ import CoreData
 import PDCore
 import PDDesktopDevKit
 import PDFileProvider
+import ProtonDriveProtos
 
 final class DDKCreateFilePerformer: CreateFilePerformer {
     
@@ -38,7 +39,6 @@ final class DDKCreateFilePerformer: CreateFilePerformer {
         self.updateProgress = updateProgress
     }
     
-    // swiftlint:disable:next function_parameter_count function_body_length
     public func createFile(tower: PDCore.Tower,
                            item itemTemplate: NSFileProviderItem,
                            with url: URL?,
@@ -83,12 +83,12 @@ final class DDKCreateFilePerformer: CreateFilePerformer {
                 try? FileManager.default.removeItem(at: fileUrl.deletingLastPathComponent())
             }
             
-            let parentFolderIdentity = try await performIfNotCancelled(progress: progress) {
-                try await DDKFileProviderOperations.nodeIdentity(of: parent, tower: tower)
+            let (parentFolderIdentity, addressId) = try await performIfNotCancelled(progress: progress) {
+                try await DDKFileProviderOperations.nodeIdentityAndContextShareAddressId(of: parent, tower: tower)
             }
             
             let shareMetadata = try await performIfNotCancelled(progress: progress) {
-                try await DDKFileProviderOperations.shareMetadata(identity: parentFolderIdentity, tower: tower)
+                try await DDKFileProviderOperations.shareMetadata(identity: parentFolderIdentity, addressId: addressId, tower: tower)
             }
             let lastModificationDate = itemTemplate.contentModificationDate?.flatMap { $0.timeIntervalSince1970 }
             ?? Date().timeIntervalSince1970

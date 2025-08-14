@@ -34,7 +34,6 @@ class GlobalProgressObserver {
     // This is independent from the code that shows the real state in statusItem's menu.
 #if HAS_QA_FEATURES
     private var statusItem: GlobalProgressStatusItem
-
 #endif
 
     init(state: ApplicationState, domainOperationsService: DomainOperationsService) async {
@@ -47,6 +46,12 @@ class GlobalProgressObserver {
     }
 
     deinit {
+#if HAS_QA_FEATURES
+        let statusItem = self.statusItem
+        Task { @MainActor in
+            statusItem.remove()
+        }
+#endif
         Log.trace()
         stopMonitoring()
     }
@@ -60,21 +65,21 @@ class GlobalProgressObserver {
             guard let progress else {
                 continue
             }
-            var observer = progress.observe(\.description) { progress, change in
+            var observer = progress.observe(\.description) { [weak self] progress, change in
                 Log.trace("description")
-                self.didUpdateGlobalProgress()
+                self?.didUpdateGlobalProgress()
             }
             globalProgressObservers.append(observer)
 
-            observer = progress.observe(\.localizedAdditionalDescription) { progress, change in
+            observer = progress.observe(\.localizedAdditionalDescription) { [weak self] progress, change in
                 Log.trace("localizedAdditionalDescription")
-                self.didUpdateGlobalProgress()
+                self?.didUpdateGlobalProgress()
             }
             globalProgressObservers.append(observer)
 
-            observer = progress.observe(\.fractionCompleted) { progress, change in
+            observer = progress.observe(\.fractionCompleted) { [weak self] progress, change in
                 Log.trace("fractionCompleted")
-                self.didUpdateGlobalProgress()
+                self?.didUpdateGlobalProgress()
             }
             globalProgressObservers.append(observer)
         }
@@ -88,8 +93,9 @@ class GlobalProgressObserver {
     }
 
 #if HAS_QA_FEATURES
-    func toggleGlobalProgressStatusItem() async {
-        await statusItem.toggleGlobalProgressStatusItem()
+    @MainActor
+    func toggleGlobalProgressStatusItem() {
+        statusItem.toggleGlobalProgressStatusItem()
     }
 #endif
 
@@ -98,7 +104,7 @@ class GlobalProgressObserver {
             downloadProgress: self.globalDownloadProgress,
             uploadProgress: self.globalUploadProgress) else {
 
-            state.globalSyncStateDescription = "Synced"
+            state.globalSyncStateDescription = nil
             state.totalFilesLeftToSync = 0
             return
         }
@@ -114,4 +120,4 @@ class GlobalProgressObserver {
         }
 #endif
     }
-    }
+}

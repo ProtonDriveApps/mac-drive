@@ -15,13 +15,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
+import Foundation
 import Combine
 import ProtonCoreNetworking
 
 /// Adds retry mechanism with exponential backoff
-public final class NetworkErrorHandlingCommand: Command {
+public final class NetworkErrorHandlingCommand: Command, WorkingNotifier {
     private let interactor: any ThrowingAsynchronousWithoutDataInteractor
     private var task: Task<Void, Never>?
+    private let workingSubject: CurrentValueSubject<Bool, Never> = .init(false)
+    public var isWorkingPublisher: AnyPublisher<Bool, Never> {
+        workingSubject.receive(on: DispatchQueue.main).eraseToAnyPublisher()
+    }
 
     public init(interactor: any ThrowingAsynchronousWithoutDataInteractor) {
         self.interactor = interactor
@@ -39,17 +44,22 @@ public final class NetworkErrorHandlingCommand: Command {
 
     private func executeWithPotentialRetry(attempt: Int = 0) async {
         guard !Task.isCancelled else {
+            workingSubject.send(false)
             return
         }
 
         guard attempt < 10 else {
+            workingSubject.send(false)
             Log.error("Reached maximal number of network issues. Cancelling command now.", error: nil, domain: .networking)
             return
         }
 
         do {
+            workingSubject.send(true)
             try await interactor.execute()
+            workingSubject.send(false)
         } catch let error as ResponseError {
+            workingSubject.send(false)
             if error.isRetryableIncludingInternetIssues {
                 Log.info("Received networking issue, will retry after exponential backoff", domain: .networking)
                 try? await Task.sleep(for: .seconds(ExponentialBackoffWithJitter.getDelay(attempt: attempt)))
@@ -58,6 +68,7 @@ public final class NetworkErrorHandlingCommand: Command {
                 Log.error(nil, error: error, domain: .networking)
             }
         } catch {
+            workingSubject.send(false)
             Log.error(nil, error: error, domain: .networking)
         }
     }

@@ -85,12 +85,12 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
     private let assertionProvider: any AssertionProvider
     
     #if HAS_QA_FEATURES
-    private(set) var fileProviderDomain: NSFileProviderDomain?
+    private(set) var currentDomain: NSFileProviderDomain?
     #else
-    private var fileProviderDomain: NSFileProviderDomain?
+    private var currentDomain: NSFileProviderDomain?
     #endif
     private var fileManagerForDomain: FileProviderManagerProtocol? {
-        fileProviderDomain.flatMap(fileProviderManagerFactory.create(for:))
+        currentDomain.flatMap(fileProviderManagerFactory.create(for:))
     }
     
     init(accountInfoProvider: AccountInfoProvider,
@@ -120,7 +120,7 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
             #else
             let reason = ""
             #endif
-            try await disconnectDomains(reason: reason)
+            try await disconnectAllDomains(reason: reason)
         } else {
             try await removeAllDomains()
         }
@@ -159,7 +159,7 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
     }
     
     public func groupContainerMigrationStarted() async throws {
-        try await disconnectDomain(reason: "One-time migration for Sequoia")
+        try await disconnectCurrentDomain(reason: "One-time migration for Sequoia")
     }
 
     // MARK: - Resolving errors
@@ -188,24 +188,24 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
 
     // MARK: - Internal API
     
-    func identifyDomain() async throws {
-        try await identifyDomainWithRetry()
+    func identifyCurrentDomain() async throws {
+        try await identifyCurrentDomainWithRetry()
     }
     
     func setUpDomain() async throws {
         if hasDomainReconnectionCapability {
-            try await connectDomain()
+            try await connectCurrentDomain()
         } else {
-            try await addNewFileProvider()
+            try await addCurrentDomainDisconnectingAllOthers()
         }
     }
     
-    func connectDomain() async throws {
-        guard let domain = fileProviderDomain else {
+    func connectCurrentDomain() async throws {
+        guard let domain = currentDomain else {
             // identify domain
-            try await identifyDomainWithRetry()
+            try await identifyCurrentDomainWithRetry()
             // retry
-            try await connectDomain()
+            try await connectCurrentDomain()
             return
         }
         
@@ -231,53 +231,53 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
         }
     }
     
-    func domainExists() async throws -> Bool {
-        guard let domain = fileProviderDomain else { return false }
+    func currentDomainExists() async throws -> Bool {
+        guard let domain = currentDomain else { return false }
         let domains = try await self.getDomainsWithRetry()
         let userDomains = domains.filter { $0.identifier == domain.identifier }
         return !userDomains.isEmpty
     }
     
-    func domainWasPaused() async throws {
-        try await disconnectDomain(reason: pauseReason)
+    func syncWasPaused() async throws {
+        try await disconnectCurrentDomain(reason: pauseReason)
     }
     
     func performingFullResync() async throws {
-        try await disconnectDomain(reason: fullResyncReason)
+        try await disconnectCurrentDomain(reason: fullResyncReason)
     }
     
-    func domainWasResumed() async throws {
-        try await reconnectDomain()
+    func syncWasResumed() async throws {
+        try await reconnectCurrentDomain()
     }
     
     func networkConnectionLost() async throws {
-        try await disconnectDomain(reason: offlineReason)
+        try await disconnectCurrentDomain(reason: offlineReason)
     }
     
-    func disconnectDomainsDuringMainKeyCleanup() async throws {
-        try await disconnectDomains(
+    func disconnectAllDomainsDuringMainKeyCleanup() async throws {
+        try await disconnectAllDomains(
             reason: "Attempting to reconnect. This may take a few minutes. Please do not quit the application"
         )
     }
     
     #if HAS_QA_FEATURES
     func disconnectDomainsForQA(reason: (NSFileProviderDomain?) -> String) async throws {
-        try await disconnectDomains(reason: reason(fileProviderDomain))
+        try await disconnectAllDomains(reason: reason(currentDomain))
     }
     #endif
     
-    func disconnectDomainBeforeAppClosing() async throws {
-        try await disconnectDomain(reason: "Proton Drive needs to be running in order to sync these files.")
+    func disconnectCurrentDomainBeforeAppClosing() async throws {
+        try await disconnectCurrentDomain(reason: "Proton Drive needs to be running in order to sync these files.")
     }
     
     func dumpingStarted() async throws {
-        try await disconnectDomain(reason: "Dumping FS...")
+        try await disconnectCurrentDomain(reason: "Dumping FS...")
     }
     
     func cleanAfterDumping() {
         if cacheReset != true {
             Task {
-                try await reconnectDomain()
+                try await reconnectCurrentDomain()
             }
         }
     }
@@ -325,13 +325,13 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
             .map { DomainFactory.createDomain(identifier: .init($0), displayName: $0) }
     }
     
-    private func addNewFileProvider() async throws {
+    private func addCurrentDomainDisconnectingAllOthers() async throws {
         
-        guard let domain = fileProviderDomain else {
+        guard let domain = currentDomain else {
             // identify domain
-            try await identifyDomainWithRetry()
+            try await identifyCurrentDomainWithRetry()
             // retry
-            try await addNewFileProvider()
+            try await addCurrentDomainDisconnectingAllOthers()
             return
         }
 
@@ -364,20 +364,20 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
         }
     }
     
-    private func reconnectDomain() async throws {
+    private func reconnectCurrentDomain() async throws {
         // do not reconnect if we're recreating the cache
         guard cacheReset != true else { return }
         
-        guard let fileProviderDomain else {
+        guard let currentDomain else {
             // identify domain
-            try await identifyDomainWithRetry()
+            try await identifyCurrentDomainWithRetry()
             // retry
-            try await reconnectDomain()
+            try await reconnectCurrentDomain()
             return
         }
         
         do {
-            try await reconnectDomainWithRetry(domain: fileProviderDomain)
+            try await reconnectDomainWithRetry(domain: currentDomain)
         } catch {
             Log.error(error: error, domain: .fileProvider)
             throw error
@@ -405,16 +405,16 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
         return userDomains
     }
     
-    private func disconnectDomain(reason: String) async throws {
-        guard let domain = fileProviderDomain else {
-            Log.error("Failed to disconnect domain due to failed manager creation", domain: .fileManager)
+    private func disconnectCurrentDomain(reason: String) async throws {
+        guard let domain = currentDomain else {
+            Log.info("Current domain cannot be disconnected because it's not available", domain: .fileManager)
             return
         }
 
         try await disconnect(domain: domain, reason: reason)
     }
 
-    private func disconnectDomains(reason: String) async throws {
+    private func disconnectAllDomains(reason: String) async throws {
         // set the flag informing that the cache reset has started
         cacheReset = true
         let domains = try await getDomainsWithRetry()
@@ -482,6 +482,10 @@ extension DomainOperationsService {
             operation: { [weak self] in
                 guard let self else { return }
                 _ = try await self.fileProviderManagerFactory.type.remove(domain, mode: .preserveDownloadedUserData)
+                // if the current domain was removed, no need to keep the reference to it in memory
+                if let currentDomain, domain.identifier == currentDomain.identifier {
+                    self.currentDomain = nil
+                }
             }
         )
         Log.debug("Removed domain \(domain.displayName)", domain: .fileProvider)
@@ -556,7 +560,7 @@ extension DomainOperationsService {
         return domains
     }
     
-    private func identifyDomainWithRetry() async throws {
+    private func identifyCurrentDomainWithRetry() async throws {
         Log.trace()
         try await Self.performWithRetryOnFileProviderError(
             retryCounter: 5,
@@ -565,7 +569,7 @@ extension DomainOperationsService {
             errorBlock: { error, _ in DomainOperationErrors.identifyDomainFailed(error) },
             operation: { [weak self] in
                 guard let self else { return }
-                self.fileProviderDomain = try await self.domainForCurrentlyLoggedInUser()
+                self.currentDomain = try await self.domainForCurrentlyLoggedInUser()
             }
         )
         Log.trace("Identified domain")
@@ -669,7 +673,7 @@ extension DomainOperationsService {
 
 extension DomainOperationsService {
     public func globalProgress(for kind: Progress.FileOperationKind) -> Progress? {
-        guard let fileProviderDomain, let manager = NSFileProviderManager(for: fileProviderDomain) else { return nil }
+        guard let currentDomain, let manager = NSFileProviderManager(for: currentDomain) else { return nil }
         return manager.globalProgress(for: kind)
     }
 }

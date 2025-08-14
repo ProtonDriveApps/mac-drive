@@ -50,6 +50,26 @@ struct NodeDetailsView: View {
                         .padding()
                         .frame(minHeight: 44)
                     }
+
+                    vm.qaDetails.map { qaDetails in
+                        VStack(alignment: .leading) {
+                            Spacer()
+                            Divider()
+                            Text("QA section")
+                                .font(.body.bold())
+                                .foregroundColor(ColorProvider.TextNorm)
+                            Divider()
+                            Text("xAttr")
+                                .font(.body)
+                                .foregroundColor(ColorProvider.TextNorm)
+                            Text(qaDetails.extendedAttributes)
+                                .font(.body)
+                                .foregroundColor(ColorProvider.TextWeak)
+                                .multilineTextAlignment(.leading)
+                                .padding(.leading, 10)
+                        }
+                        .padding()
+                    }
                 }
             }
             .accessibilityIdentifier("NodeDetailsView.\(vm.node.decryptedName)")

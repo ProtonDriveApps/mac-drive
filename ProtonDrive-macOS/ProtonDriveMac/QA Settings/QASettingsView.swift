@@ -82,6 +82,44 @@ struct QASettingsView: View {
                                 TextField("", text: .constant(vm.userID))
                             }
                         }
+                        
+                        VStack {
+                            Button("Jail BE (must be on #31 and talk to Atlas)") {
+                                vm.jail()
+                            }
+                            .buttonStyle(.bordered)
+                            .frame(maxWidth: .infinity)
+                            
+                            HStack {
+                                Button("Refresh jail status") {
+                                    vm.verifyJail()
+                                }
+                                .buttonStyle(.bordered)
+                                .frame(maxWidth: .infinity)
+                                
+                                Text(vm.jailStatus)
+                                    .frame(maxWidth: .infinity)
+                            }
+                            
+                            HStack {
+                                
+                                Button("Turn on jails") {
+                                    Task {
+                                        await vm.allowAndEncourageJail()
+                                    }
+                                }
+                                .buttonStyle(.bordered)
+                                .frame(maxWidth: .infinity)
+                                
+                                Button("Turn off jails") {
+                                    Task {
+                                        await vm.disallowAndDiscourageJail()
+                                    }
+                                }
+                                .buttonStyle(.bordered)
+                                .frame(maxWidth: .infinity)
+                            }
+                        }
                     }
                     .frame(maxWidth: .infinity)
                     .padding(16)
@@ -110,6 +148,12 @@ struct QASettingsView: View {
                         
                         Button("Clear credentials and crash") {
                             vm.clearCredentials()
+                        }
+                        .buttonStyle(.bordered)
+                        .frame(maxWidth: .infinity)
+                        
+                        Button(vm.pauseResumeLoopEnabled ? "Disable pause/resume loop" : "Enable pause/resume loop") {
+                            vm.togglePauseResumeLoop()
                         }
                         .buttonStyle(.bordered)
                         .frame(maxWidth: .infinity)
@@ -168,21 +212,6 @@ struct QASettingsView: View {
                             .pickerStyle(SegmentedPickerStyle())
                             
                             Text("Backend feature flag value: \(vm.domainReconnectionFeatureFlagValue ? "true" : "false")")
-                        }
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Picker(selection: $vm.newTrayAppMenuEnabled) {
-                                ForEach(QASettingsViewModel.FeatureFlagOptions.allCases.map(\.rawValue), id: \.self) {
-                                    Text($0)
-                                }
-                            } label: {
-                                Text("New tray app")
-                            }
-                            .pickerStyle(SegmentedPickerStyle())
-
-                            Text(
-                                "Backend feature flag value: \(vm.newTrayAppMenuEnabledFeatureFlagValue ? "true" : "false")"
-                            )
                         }
                     }
                 } label: {

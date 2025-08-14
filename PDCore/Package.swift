@@ -19,12 +19,11 @@ let package = Package(
         .package(name: "PDUIComponents", path: "../PDUIComponents"),
         .package(name: "PDContacts", path: "../PDContacts"),
 
-        // exact version is defined by CommonDependencies
         .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "32.7.1"),
-        .package(url: "https://github.com/ProtonMail/apple-fusion.git", .suitable),
-        .package(url: "https://github.com/ProtonMail/TrustKit.git", .suitable),
-        .package(url: "https://github.com/ashleymills/Reachability.swift", .suitable),
-        .package(url: "https://github.com/weichsel/ZIPFoundation.git", .upToNextMajor(from: "0.9.0"))
+        .package(url: "https://github.com/ProtonMail/apple-fusion.git", exact: "2.1.5"),
+        .package(url: "https://github.com/ProtonMail/TrustKit.git", exact: "1.0.3"),
+        .package(url: "https://github.com/ashleymills/Reachability.swift", exact: "5.2.4"),
+        .package(url: "https://github.com/weichsel/ZIPFoundation.git", exact: "0.9.19")
     ],
     targets: [
         .target(
@@ -71,7 +70,3 @@ let package = Package(
         ),
     ]
 )
-
-extension Range where Bound == Version {
-    static let suitable = Self(uncheckedBounds: ("0.0.0", "99.0.0"))
-}

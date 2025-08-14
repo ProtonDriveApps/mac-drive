@@ -52,6 +52,7 @@ public struct LogDomain: Equatable, Hashable {
 
     public static let albums = LogDomain(name: "albums")
     public static let application = LogDomain(name: "application")
+    public static let applicationBootstrap = LogDomain(name: "applicationBootstrap")
     public static let networking = LogDomain(name: "networking")
     public static let uploader = LogDomain(name: "uploader")
     public static let downloader = LogDomain(name: "downloader")
@@ -88,8 +89,11 @@ public struct LogDomain: Equatable, Hashable {
     public static let userAction = LogDomain(name: "userAction")
     public static let ui = LogDomain(name: "ui")
     public static let photosTagMigration = LogDomain(name: "photosTagMigration")
+    public static let userSettings = LogDomain(name: "userSettings")
+    public static let exifBackfill = LogDomain(name: "exifBackfill")
 
     public static let iOSDomains: Set<LogDomain> = [
+        .applicationBootstrap,
         .application,
         .encryption,
         .events,
@@ -117,7 +121,9 @@ public struct LogDomain: Equatable, Hashable {
         .userAction,
         .ui,
         .restricted,
-        photosTagMigration
+        .photosTagMigration,
+        .userSettings,
+        .exifBackfill
     ]
 
     public static func macOSDomains(appending: Set<LogDomain>, subtracting: Set<LogDomain>) -> Set<LogDomain> {
@@ -180,9 +186,6 @@ public class Log {
         function: String = #function,
         line: Int = #line
     ) {
-        let filename = URL(fileURLWithPath: file).deletingPathExtension().lastPathComponent
-        let message = "\(filename).\(function):\(line) \(message)"
-
         logger.log(
             .debug,
             message: message,
@@ -205,9 +208,6 @@ public class Log {
         function: String = #function,
         line: Int = #line
     ) {
-        let filename = URL(fileURLWithPath: file).deletingPathExtension().lastPathComponent
-        let message = "\(filename).\(function):\(line) \(message)"
-
         logger.log(
             .info,
             message: message,
@@ -230,9 +230,6 @@ public class Log {
         function: String = #function,
         line: Int = #line
     ) {
-        let filename = URL(fileURLWithPath: file).deletingPathExtension().lastPathComponent
-        let message = "\(filename).\(function):\(line) \(message)"
-
         logger.log(
             .warning,
             message: message,
@@ -262,10 +259,6 @@ public class Log {
     ) {
         assert(message != nil || error != nil)
 
-        let originalMessage = message ?? ""
-        let filename = URL(fileURLWithPath: file).deletingPathExtension().lastPathComponent
-        let message = "\(filename).\(function):\(line) \(originalMessage)"
-
         var logContext = context ?? LogContext()
 
         if sendToSentryIfPossible {
@@ -277,7 +270,7 @@ public class Log {
 
         logger.log(
             .error,
-            message: message,
+            message: message ?? "",
             system: logSystem,
             domain: domain,
             context: logContext,
@@ -293,6 +286,7 @@ public class Log {
     ///   - shouldRedact: The received error will be converted to a DriveError to redact any potential privacy data before sending it to Sentry.
     ///   The original error will also be logged locally for debugging purposes.
     @available(*, deprecated, message: "Use error(_ message: String?, error: Error?, ...) instead")
+    @_disfavoredOverload
     public static func error<E: Error>(
         _ error: E,
         domain: LogDomain,
@@ -314,6 +308,7 @@ public class Log {
     }
 
     @available(*, deprecated, message: "Use error(_ message: String?, error: Error?, ...) instead")
+    @_disfavoredOverload
     public static func error(
         _ message: String,
         domain: LogDomain,
@@ -346,12 +341,9 @@ public class Log {
             return
         }
 
-        let filename = URL(fileURLWithPath: file).deletingPathExtension().lastPathComponent
-        let message = "\(filename).\(function):\(line) \(message())"
-
         logger.log(
             .trace,
-            message: message,
+            message: message(),
             system: logSystem,
             domain: domain,
             context: nil,
@@ -409,5 +401,10 @@ public extension String {
     /// Removes username from a filepath
     var removingUserName: String {
         replacing(#/\/Users\/.*\//#, with: "/Users/username/")
+    }
+    
+    var removingDotNetNoise: String {
+        replacing("PublicKeyToken=null", with: "")
+            .replacing(#/Version=\d+\.\d+\.\d+\.\d+/#, with: "")
     }
 }

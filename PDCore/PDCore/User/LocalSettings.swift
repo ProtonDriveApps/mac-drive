@@ -40,16 +40,16 @@ public class LocalSettings: NSObject {
     @SettingsStorage("isPhotosMediaTypeImageSupportedValue") private(set) var isPhotosMediaTypeImageSupportedValue: Bool?
     @SettingsStorage("isPhotosMediaTypeVideoSupportedValue") private(set) var isPhotosMediaTypeVideoSupportedValue: Bool?
     @SettingsStorage("isPhotoTagsAnalysisDisabledValue") private(set) var isPhotoTagsAnalysisDisabledValue: Bool?
+    @SettingsStorage("isEXIFUploadingDisabledValue") private(set) var isEXIFUploadingDisabledValue: Bool?
     @SettingsStorage("photosBackupNotOlderThanValue") private(set) var photosBackupNotOlderThanValue: Date?
     @SettingsStorage("pushNotificationIsEnabled") private(set) var pushNotificationIsEnabledValue: Bool?
     @SettingsStorage("defaultHomeTabIndex") private(set) var defaultHomeTabTagValue: Int?
     @SettingsStorage("didShowPhotosNotification") public var didShowPhotosNotification: Bool?
-    
+
     @SettingsStorage("photosUploadDisabled") public var photosUploadDisabledValue: Bool?
     @SettingsStorage("logsCompressionDisabledValue") public var logsCompressionDisabledValue: Bool?
     @SettingsStorage("domainReconnectionEnabledValue") public var domainReconnectionEnabledValue: Bool?
     @SettingsStorage("postMigrationJunkFilesCleanupValue") public var postMigrationJunkFilesCleanupValue: Bool?
-    @SettingsStorage("newTrayAppMenuEnabledValue") public var newTrayAppMenuEnabledValue: Bool?
     @SettingsStorage("oneDollarPlanUpsellEnabledValue") public var oneDollarPlanUpsellEnabledValue: Bool?
     @SettingsStorage("promotedNewFeaturesValue") var promotedNewFeaturesValue: [String]?
 
@@ -59,7 +59,7 @@ public class LocalSettings: NSObject {
     @SettingsStorage("keepScreenAwakeBannerHasDismissed") public var keepScreenAwakeBannerHasDismissed: Bool?
     @SettingsStorage("DriveDDKEnabled") public var driveDDKEnabledValue: Bool?
     @SettingsStorage("DriveMacSyncRecoveryDisabled") public var driveMacSyncRecoveryDisabledValue: Bool?
-    @SettingsStorage("DriveMacKeepDownloaded") public var driveMacKeepDownloadedValue: Bool?
+    @SettingsStorage("DriveMacKeepDownloadedDisabled") public var driveMacKeepDownloadedDisabledValue: Bool?
     @SettingsStorage("DriveAlbumsDisabled") public var driveAlbumsDisabledValue: Bool?
     @SettingsStorage("DriveCopyDisabled") public var driveCopyDisabledValue: Bool?
     @SettingsStorage("photoVolumeMigrationLastShownDate") public var photoVolumeMigrationLastShownDate: Date?
@@ -83,13 +83,13 @@ public class LocalSettings: NSObject {
     @SettingsStorage("DriveShareURLBookmarking") public var driveShareURLBookmarkingValue: Bool?
     @SettingsStorage("DriveShareURLBookmarksDisabled") public var driveShareURLBookmarksDisabledValue: Bool?
     // Photo tab for b2b user
-    @SettingsStorage("IsB2BUser") public var isB2BUser: Bool?
+    @SettingsStorage("IsB2BUserValue") public var isB2BUserValue: Bool?
     /// Remote feature flag - DriveDisablePhotosForB2B
     @SettingsStorage("DriveDisablePhotosForB2B") public var driveDisablePhotosForB2BValue: Bool?
-    
+
     // ProtonDoc
     @SettingsStorage("DriveDocsDisabled") private var driveDocsDisabledValue: Bool?
-    
+
     // Entitlements
     @SettingsStorage("DriveDynamicEntitlementConfiguration") private var driveDynamicEntitlementConfigurationValue: Bool?
     @SettingsStorage("DriveEntitlements") public var driveEntitlementsValue: Data?
@@ -116,6 +116,18 @@ public class LocalSettings: NSObject {
     @SettingsStorage("DocsCreateNewSheetOnMobileEnabledValue") private var docsCreateNewSheetOnMobileEnabledValue: Bool?
 
     @SettingsStorage("DriveiOSDebugMode") public var driveiOSDebugModeValue: Bool?
+    // drive/me/settings
+    @SettingsStorage("Layout") public var layout: Int?
+    @SettingsStorage("Sort") public var sort: Int?
+    @SettingsStorage("RevisionRetentionDays") public var revisionRetentionDays: Int?
+    @SettingsStorage("B2BPhotosEnabled") public var b2bPhotosEnabled: Bool?
+    @SettingsStorage("DocsCommentsNotificationsEnabled") public var docsCommentsNotificationsEnabled: Bool?
+    @SettingsStorage("DocsCommentsNotificationsIncludeDocumentName") public var docsCommentsNotificationsIncludeDocumentName: Bool?
+    @SettingsStorage("PhotoTags") public var photoTags: [Int]?
+    // Settings Flags
+    @SettingsStorage("didFetchDriveUserSettings") public var didFetchDriveUserSettings: Bool?
+    @SettingsStorage("didFetchProtonUserSettings") public var didFetchProtonUserSettings: Bool?
+    @SettingsStorage("didFetchB2BStatus") public var didFetchB2BStatus: Bool?
 
     public let suite: SettingsStorageSuite
 
@@ -140,6 +152,7 @@ public class LocalSettings: NSObject {
         self._isPhotosMediaTypeImageSupportedValue.configure(with: suite)
         self._isPhotosMediaTypeVideoSupportedValue.configure(with: suite)
         self._isPhotoTagsAnalysisDisabledValue.configure(with: suite)
+        self._isEXIFUploadingDisabledValue.configure(with: suite)
         self._photosBackupNotOlderThanValue.configure(with: suite)
         self._photosUploadDisabledValue.configure(with: suite)
         self._logsCompressionDisabledValue.configure(with: suite)
@@ -149,7 +162,6 @@ public class LocalSettings: NSObject {
         self._driveiOSDebugModeValue.configure(with: suite)
         self._domainReconnectionEnabledValue.configure(with: suite)
         self._postMigrationJunkFilesCleanupValue.configure(with: suite)
-        self._newTrayAppMenuEnabledValue.configure(with: suite)
         self._userId.configure(with: suite)
         self._pushNotificationIsEnabledValue.configure(with: suite)
         self._defaultHomeTabTagValue.configure(with: suite)
@@ -157,7 +169,7 @@ public class LocalSettings: NSObject {
         self._keepScreenAwakeBannerHasDismissed.configure(with: suite)
         self._driveDDKEnabledValue.configure(with: suite)
         self._driveMacSyncRecoveryDisabledValue.configure(with: suite)
-        self._driveMacKeepDownloadedValue.configure(with: suite)
+        self._driveMacKeepDownloadedDisabledValue.configure(with: suite)
         self._didFetchFeatureFlags.configure(with: suite)
         self._promotedNewFeaturesValue.configure(with: suite)
         self._driveAlbumsDisabledValue.configure(with: suite)
@@ -182,7 +194,7 @@ public class LocalSettings: NSObject {
         self._driveShareURLBookmarksDisabledValue.configure(with: suite)
         self._drivePublicShareEditModeDisabledValue.configure(with: suite)
         // Photo tab for b2b user
-        self._isB2BUser.configure(with: suite)
+        self._isB2BUserValue.configure(with: suite)
         self._driveDisablePhotosForB2BValue.configure(with: suite)
         // ProtonDoc
         self._driveDocsDisabledValue.configure(with: suite)
@@ -212,9 +224,22 @@ public class LocalSettings: NSObject {
         self._docsSheetsEnabledValue.configure(with: suite)
         self._docsSheetsDisabledValue.configure(with: suite)
         self._docsCreateNewSheetOnMobileEnabledValue.configure(with: suite)
+        // drive/me/settings
+        self._layout.configure(with: suite)
+        self._sort.configure(with: suite)
+        self._revisionRetentionDays.configure(with: suite)
+        self._b2bPhotosEnabled.configure(with: suite)
+        self._docsCommentsNotificationsEnabled.configure(with: suite)
+        self._docsCommentsNotificationsIncludeDocumentName.configure(with: suite)
+        self._photoTags.configure(with: suite)
+
+        // Settings Flags
+        self._didFetchDriveUserSettings.configure(with: suite)
+        self._didFetchProtonUserSettings.configure(with: suite)
+        self._didFetchB2BStatus.configure(with: suite)
         setDynamicVariables()
     }
-    
+
     /// KVO compliant dynamic variables need to be set inidividually after initialization / cleanup
     private func setDynamicVariables() {
         nodesLayoutPreference = LayoutPreference(cachedValue: layoutPreferenceCache)
@@ -224,6 +249,7 @@ public class LocalSettings: NSObject {
         isPhotosMediaTypeImageSupported = isPhotosMediaTypeImageSupportedValue ?? true
         isPhotosMediaTypeVideoSupported = isPhotosMediaTypeVideoSupportedValue ?? true
         isPhotoTagsAnalysisDisabled = isPhotoTagsAnalysisDisabledValue ?? false
+        isEXIFUploadingDisabled = isEXIFUploadingDisabledValue ?? false
         photosBackupNotOlderThan = photosBackupNotOlderThanValue ?? .distantPast
         photosUploadDisabled = photosUploadDisabledValue ?? false
         logsCompressionDisabled = logsCompressionDisabledValue ?? false
@@ -232,9 +258,9 @@ public class LocalSettings: NSObject {
         debugModeEnabled = debugModeEnabledValue ?? false
         domainReconnectionEnabled = domainReconnectionEnabledValue ?? false
         postMigrationJunkFilesCleanup = postMigrationJunkFilesCleanupValue ?? false
-        newTrayAppMenuEnabled = newTrayAppMenuEnabledValue ?? false
         oneDollarPlanUpsellEnabled = oneDollarPlanUpsellEnabledValue ?? false
         isOnboarded = isOnboardedValue ?? false
+        isB2BUser = isB2BUserValue ?? false
         pushNotificationIsEnabled = pushNotificationIsEnabledValue ?? false
         if let value = defaultHomeTabTagValue {
             defaultHomeTabTag = value
@@ -254,13 +280,22 @@ public class LocalSettings: NSObject {
         driveDocsDisabled = driveDocsDisabledValue ?? false
         driveDDKEnabled = driveDDKEnabledValue ?? false
         driveMacSyncRecoveryDisabled = driveMacSyncRecoveryDisabledValue ?? false
-        driveMacKeepDownloaded = driveMacKeepDownloadedValue ?? false
+        driveMacKeepDownloadedDisabled = driveMacKeepDownloadedDisabledValue ?? false
         didEnableComputers = didEnableComputersValue ?? false
         driveiOSComputers = driveiOSComputersValue ?? false
         driveiOSComputersDisabled = driveiOSComputersDisabledValue ?? false
         docsSheetsEnabled = docsSheetsEnabledValue ?? false
         docsSheetsDisabled = docsSheetsDisabledValue ?? false
         docsCreateNewSheetOnMobileEnabled = docsCreateNewSheetOnMobileEnabledValue ?? false
+
+        // drive/me/settings
+        self.driveSettingsLayout = LayoutPreference(forcedFromValue: layout)
+        self.driveSettingsSort = sort ?? 0
+        self.driveSettingsRevisionRetentionDays = revisionRetentionDays ?? 180
+        self.driveSettingsB2BPhotosEnabled = b2bPhotosEnabled ?? false
+        self.driveSettingsDocsCommentsNotificationsEnabled = docsCommentsNotificationsEnabled ?? false
+        self.driveSettingsDocsCommentsNotificationsIncludeDocumentName = docsCommentsNotificationsIncludeDocumentName ?? false
+        self.driveSettingsPhotoTags = photoTags ?? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     }
 
     /// `cleanUserSpecificSettings`
@@ -281,7 +316,6 @@ public class LocalSettings: NSObject {
         // self.isOnboardedValue needs no clean up - we only show it for first login ever
         // self.isUpsellShownValue needs no clean up - we only show it once
         // self.isPhotoUpsellShownValue needs no clean up - we only show it once
-        // self.defaultHomeTabTagValue needs no clean up - we keep the setting for forever
         self.isUploadingDisclaimerActiveValue = nil
         self.isNoticationPermissionsSkipped = nil
         self.isPhotosBackupEnabledValue = nil
@@ -290,19 +324,19 @@ public class LocalSettings: NSObject {
         self.isPhotosMediaTypeImageSupportedValue = nil
         self.isPhotosMediaTypeVideoSupportedValue = nil
         self.isPhotoTagsAnalysisDisabledValue = nil
+        self.isEXIFUploadingDisabledValue = nil
         self.photosUploadDisabledValue = nil
         self.logsCompressionDisabledValue = nil
         self.debugModeEnabledValue = nil
         self.domainReconnectionEnabledValue = nil
         self.postMigrationJunkFilesCleanupValue = nil
-        self.newTrayAppMenuEnabledValue = nil
         self.driveDDKEnabledValue = nil
         self.driveMacSyncRecoveryDisabledValue = nil
-        self.driveMacKeepDownloadedValue = nil
+        self.driveMacKeepDownloadedDisabledValue = nil
         self.pushNotificationIsEnabledValue = nil
         self.keepScreenAwakeBannerHasDismissed = nil
         self.didShowPhotosNotification = nil
-        self.isB2BUser = nil
+        self.isB2BUserValue = nil
         self.showPhotoUpsellInNextLaunch = nil
         self.driveDisablePhotosForB2BValue = nil
         self.driveSharingMigrationValue = nil
@@ -329,6 +363,8 @@ public class LocalSettings: NSObject {
         if cleanUserSpecificSettings {
             promotedNewFeaturesValue = nil
             quotaStateValue = nil
+            self.defaultHomeTabTagValue = 1
+            self.didFetchB2BStatus = nil
         }
         driveAlbumsDisabledValue = nil
         driveCopyDisabledValue = nil
@@ -337,15 +373,25 @@ public class LocalSettings: NSObject {
         drivePhotosTagsMigrationValue = nil
         drivePhotosTagsMigrationDisabledValue = nil
         tagsMigrationFinished = nil
+        self.layout = nil
+        self.sort = nil
+        self.revisionRetentionDays = nil
+        self.b2bPhotosEnabled = nil
+        self.docsCommentsNotificationsEnabled = nil
+        self.docsCommentsNotificationsIncludeDocumentName = nil
+        self.photoTags = nil
+
+        self.didFetchDriveUserSettings = nil
+        self.didFetchProtonUserSettings = nil
         setDynamicVariables()
     }
-    
+
     @objc public dynamic var nodesSortPreference: SortPreference = SortPreference.default {
         willSet {
             self.sortPreferenceCache = newValue.rawValue
         }
     }
-    
+
     @objc public dynamic var nodesLayoutPreference: LayoutPreference = LayoutPreference.default {
         willSet {
             self.layoutPreferenceCache = newValue.rawValue
@@ -363,25 +409,25 @@ public class LocalSettings: NSObject {
             isUploadingDisclaimerActiveValue = newValue
         }
     }
-    
+
     @objc public dynamic var isPhotosBackupEnabled: Bool = false {
         willSet {
             isPhotosBackupEnabledValue = newValue
         }
     }
-    
+
     @objc public dynamic var isPhotosBackupConnectionConstrained: Bool = true {
         willSet {
             isPhotosBackupConnectionConstrainedValue = newValue
         }
     }
-    
+
     @objc public dynamic var isPhotosMediaTypeImageSupported: Bool = true {
         willSet {
             isPhotosMediaTypeImageSupportedValue = newValue
         }
     }
-    
+
     @objc public dynamic var isPhotosMediaTypeVideoSupported: Bool = true {
         willSet {
             isPhotosMediaTypeVideoSupportedValue = newValue
@@ -394,66 +440,66 @@ public class LocalSettings: NSObject {
         }
     }
 
+    @objc public dynamic var isEXIFUploadingDisabled: Bool = false {
+        willSet {
+            isEXIFUploadingDisabledValue = newValue
+        }
+    }
+
     @objc public dynamic var photosBackupNotOlderThan: Date = .distantPast {
         willSet {
             photosBackupNotOlderThanValue = newValue
         }
     }
-    
+
     @objc public dynamic var photosUploadDisabled: Bool = false {
         willSet {
             photosUploadDisabledValue = newValue
         }
     }
-    
+
     @objc public dynamic var logsCompressionDisabled: Bool = false {
         willSet {
             logsCompressionDisabledValue = newValue
         }
     }
-    
+
     @objc public dynamic var domainReconnectionEnabled: Bool = false {
         willSet {
             domainReconnectionEnabledValue = newValue
         }
     }
-    
+
     @objc public dynamic var postMigrationJunkFilesCleanup: Bool = false {
         willSet {
             postMigrationJunkFilesCleanupValue = newValue
         }
     }
-    
-    @objc public dynamic var newTrayAppMenuEnabled: Bool = false {
-        willSet {
-            newTrayAppMenuEnabledValue = newValue
-        }
-    }
-    
+
     @objc public dynamic var oneDollarPlanUpsellEnabled: Bool = false {
         willSet {
             oneDollarPlanUpsellEnabledValue = newValue
         }
     }
-    
+
     @objc public dynamic var isOnboarded: Bool = false {
         willSet {
             isOnboardedValue = newValue ? true : nil
         }
     }
-    
+
     @objc public dynamic var pushNotificationIsEnabled: Bool = false {
         willSet {
             pushNotificationIsEnabledValue = newValue
         }
     }
-    
+
     @objc public dynamic var logCollectionEnabled: Bool = false {
         willSet {
             driveiOSLogCollection = newValue
         }
     }
-    
+
     @objc public dynamic var logCollectionDisabled: Bool = false {
         willSet {
             driveiOSLogCollectionDisabled = newValue
@@ -470,7 +516,7 @@ public class LocalSettings: NSObject {
             defaultHomeTabTagValue = newValue
         }
     }
-    
+
     @objc public dynamic var isUpsellShown: Bool {
         get { isUpsellShownValue == true }
         set { isUpsellShownValue = (newValue ? true : nil) }
@@ -485,7 +531,7 @@ public class LocalSettings: NSObject {
     public var promotedNewFeatures: [String] {
         promotedNewFeaturesValue ?? []
     }
-    
+
     public func append(promotedNewFeatures: [String]) {
         let features = promotedNewFeaturesValue ?? []
         promotedNewFeaturesValue = Array(Set(features.appending(promotedNewFeatures)))
@@ -495,27 +541,27 @@ public class LocalSettings: NSObject {
     @objc public dynamic var driveSharingMigration: Bool = false {
         willSet { driveSharingMigrationValue = newValue }
     }
-    
+
     @objc public dynamic var driveSharingInvitations: Bool = false {
         willSet { driveSharingInvitationsValue = newValue }
     }
-    
+
     @objc public dynamic var driveSharingExternalInvitations: Bool = false {
         willSet { driveSharingExternalInvitationsValue = newValue }
     }
-    
+
     @objc public dynamic var driveSharingDisabled: Bool = false {
         willSet { driveSharingDisabledValue = newValue }
     }
-    
+
     @objc public dynamic var driveSharingExternalInvitationsDisabled: Bool = false {
         willSet { driveSharingExternalInvitationsDisabledValue = newValue }
     }
-    
+
     @objc public dynamic var driveSharingEditingDisabled: Bool = false {
         willSet { driveSharingEditingDisabledValue = newValue }
     }
-    
+
     @objc public dynamic var drivePublicShareEditMode: Bool = false {
         willSet { drivePublicShareEditModeValue = newValue }
     }
@@ -536,39 +582,44 @@ public class LocalSettings: NSObject {
         willSet { drivePublicShareEditModeDisabledValue = newValue }
     }
 
+    @objc public dynamic var isB2BUser: Bool {
+        get { isB2BUserValue ?? false }
+        set { isB2BUserValue = newValue }
+    }
+
     public var isPhotoUpsellShown: Bool {
         get { isPhotoUpsellShownValue ?? false }
         set { isPhotoUpsellShownValue = (newValue ? true : nil) }
     }
-    
+
     @objc public dynamic var driveDisablePhotosForB2B: Bool = false {
         willSet { driveDisablePhotosForB2BValue = newValue }
     }
-    
+
     public var driveDocsDisabled: Bool = false {
         willSet { driveDocsDisabledValue = newValue }
     }
-    
+
     public var driveDDKEnabled: Bool {
         get { driveDDKEnabledValue ?? false }
         set { driveDDKEnabledValue = newValue }
     }
-    
+
     public var driveMacSyncRecoveryDisabled: Bool {
         get { driveMacSyncRecoveryDisabledValue ?? false }
         set { driveMacSyncRecoveryDisabledValue = newValue }
     }
 
-    public var driveMacKeepDownloaded: Bool {
-        get { driveMacKeepDownloadedValue ?? false }
-        set { driveMacKeepDownloadedValue = newValue }
+    public var driveMacKeepDownloadedDisabled: Bool {
+        get { driveMacKeepDownloadedDisabledValue ?? false }
+        set { driveMacKeepDownloadedDisabledValue = newValue }
     }
 
     public var ratingIOSDrive: Bool {
         get { ratingIOSDriveValue ?? false }
         set { ratingIOSDriveValue = newValue }
     }
-    
+
     public var driveRatingBooster: Bool {
         get { driveRatingBoosterValue ?? false }
         set { driveRatingBoosterValue = newValue }
@@ -639,6 +690,40 @@ public class LocalSettings: NSObject {
         get { docsCreateNewSheetOnMobileEnabledValue ?? false }
         set { docsCreateNewSheetOnMobileEnabledValue = newValue }
     }
+
+    @objc public dynamic var driveSettingsLayout: LayoutPreference {
+        get { LayoutPreference(forcedFromValue: layout) }
+        set { layout = newValue.rawValue }
+    }
+
+    @objc public dynamic var driveSettingsSort: Int {
+        get { sort ?? SortPreference.modifiedDescending.rawValue }
+        set { sort = newValue }
+    }
+
+    @objc public dynamic var driveSettingsRevisionRetentionDays: Int {
+        get { revisionRetentionDays ?? 180 }
+        set { revisionRetentionDays = newValue }
+    }
+    @objc public dynamic var driveSettingsB2BPhotosEnabled: Bool {
+        get { b2bPhotosEnabled ?? false }
+        set { b2bPhotosEnabled = newValue }
+    }
+
+    @objc public dynamic var driveSettingsDocsCommentsNotificationsEnabled: Bool {
+        get { docsCommentsNotificationsEnabled ?? false }
+        set { docsCommentsNotificationsEnabled = newValue }
+    }
+
+    @objc public dynamic var driveSettingsDocsCommentsNotificationsIncludeDocumentName: Bool {
+        get { docsCommentsNotificationsIncludeDocumentName ?? false }
+        set { docsCommentsNotificationsIncludeDocumentName = newValue }
+    }
+
+    @objc public dynamic var driveSettingsPhotoTags: [Int] {
+        get { photoTags ?? [] }
+        set { photoTags = newValue }
+    }
 }
 
 #if DEBUG
@@ -646,7 +731,7 @@ extension LocalSettings {
     public func clearDefaultHomeTab() {
         defaultHomeTabTagValue = nil
     }
-    
+
     public func clearPromotedNewFeatures() {
         promotedNewFeaturesValue = nil
     }

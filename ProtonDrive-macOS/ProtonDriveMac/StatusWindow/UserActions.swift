@@ -32,7 +32,7 @@ import PDCore
     // Account
     func userRequestedSignOut() async
     func refreshUserInfo()
-    func signInUsingTestCredentials(email: String, password: String)
+    func signInUsingTestCredentials(login: String, password: String)
 
     // Sync
     func pauseSyncing()
@@ -64,7 +64,7 @@ import PDCore
     // Debugging
 #if HAS_QA_FEATURES
     func showQASettings()
-    func toggleGlobalProgressStatusItem() async
+    func toggleGlobalProgressStatusItem()
 #endif
 }
 
@@ -161,9 +161,9 @@ class UserActions {
             }
         }
 
-        func signInUsingTestCredentials(email: String, password: String) {
+        func signInUsingTestCredentials(login: String, password: String) {
             assert(delegate != nil)
-            delegate?.signInUsingTestCredentials(email: email, password: password)
+            delegate?.signInUsingTestCredentials(login: login, password: password)
         }
 
         func refreshUserInfo() {
@@ -288,10 +288,7 @@ class UserActions {
 
         func openOnlineDriveFolder(email: String?, folder: String? = nil) {
             Log.trace()
-            var url = driveWebsiteURL
-            if let email {
-                url.append(queryItems: [URLQueryItem(name: "email", value: email)])
-            }
+            var url = driveWebsiteURL.appending(email: email)
             if let folder {
                 url.appendPathComponent(folder)
             }
@@ -303,14 +300,14 @@ class UserActions {
             open(url: SettingsViewModel.supportWebsiteURL)
         }
 
-        func manageAccount() {
+        func manageAccount(email: String?) {
             Log.trace()
-            open(url: manageAccountURL)
+            open(url: manageAccountURL.appending(email: email))
         }
 
-        func getMoreStorage() {
+        func getMoreStorage(email: String?) {
             Log.trace()
-            open(url: getMoreStorageURL)
+            open(url: getMoreStorageURL.appending(email: email))
         }
 
         func showTermsAndConditions() {
@@ -359,9 +356,9 @@ class UserActions {
             delegate?.showQASettings()
         }
 
-        @objc func toggleGlobalProgressStatusItem() async {
+        @MainActor @objc func toggleGlobalProgressStatusItem() {
             Log.trace()
-            await delegate?.toggleGlobalProgressStatusItem()
+            delegate?.toggleGlobalProgressStatusItem()
         }
     }
 
@@ -396,4 +393,13 @@ class UserActions {
     }
 
 #endif
+}
+
+extension URL {
+    fileprivate func appending(email: String?) -> URL {
+        if let email {
+            return self.appending(queryItems: [URLQueryItem(name: "email", value: email)])
+        }
+        return self
+    }
 }

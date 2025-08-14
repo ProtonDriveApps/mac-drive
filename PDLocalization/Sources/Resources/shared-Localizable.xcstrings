@@ -167,10 +167,22 @@
             "value" : "Yeni albüme ekle"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Додати до нового альбому"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "添加到新相册"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增至新相簿"
           }
         }
       }
@@ -339,6 +351,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Albümü sil"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити альбом"
           }
         },
         "zh-Hans" : {
@@ -515,6 +533,12 @@
             "value" : "Kaydetmeden sil"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити без збереження"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -687,6 +711,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Albümden ayrıl"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Покинути альбом"
           }
         },
         "zh-Hans" : {
@@ -869,10 +899,22 @@
             "value" : "Yeni paylaşılmış albüm"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Новий спільний альбом"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "新建共享相册"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新分享相簿"
           }
         }
       }
@@ -1041,6 +1083,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Albümden kaldır"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити з альбому"
           }
         },
         "zh-Hans" : {
@@ -1223,6 +1271,12 @@
             "value" : "Albümü yeniden adlandır"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перейменувати альбом"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1395,6 +1449,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fotoğrafları kaydet ve kaldır"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зберегти фото та видалити"
           }
         },
         "zh-Hans" : {
@@ -1577,10 +1637,22 @@
             "value" : "Bağlantı gönder"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надіслати посилання"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "发送链接"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "傳送連結"
           }
         }
       }
@@ -1616,7 +1688,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setze als Album-Titelbild"
+            "value" : "Als Albumcover festlegen"
           }
         },
         "el" : {
@@ -1749,6 +1821,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Albüm kapağı olarak ayarla"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Встановити як обкладинку альбому"
           }
         },
         "zh-Hans" : {
@@ -2117,10 +2195,22 @@
             "value" : "Değişiklikler kaydedildi"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зміни збережено"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "已保存编辑"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編輯已儲存"
           }
         }
       }
@@ -2608,6 +2698,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "您想對這些項目做什麼？%d"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -2698,6 +2800,12 @@
             "value" : "Sei sicuro di voler rimuovere gli elementi selezionati dal tuo album?"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本当に選択したアイテムをアルバムから削除しますか？"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2752,10 +2860,22 @@
             "value" : "Seçilmiş ögeleri albümünüzden kaldırmak istediğinize emin misiniz?"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дійсно хочете видалити вибраний елемент(-и) зі свого альбому?"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "您确定要从相册中移除所选项目吗？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您確定要將選取的項目從您的相簿中移除？"
           }
         }
       }
@@ -2923,6 +3043,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kaldır"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити"
           }
         },
         "zh-Hans" : {
@@ -3129,6 +3255,24 @@
             }
           }
         },
+        "fi" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Menetät pääsyn tähän kuvaan. Jos et ole jo tehnyt sitä, tallenna se kuviesi aikajanalle ennen, kuin poistat sen albumista."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Menetät pääsyn näihin %d kuvaan. Jos et ole jo tehnyt sitä, tallenna ne kuviesi aikajanalle ennen, kuin poistat ne albumista."
+                }
+              }
+            }
+          }
+        },
         "fr" : {
           "variations" : {
             "plural" : {
@@ -3190,6 +3334,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "Perderai l'accesso a queste %d foto. Se non l'hai già fatto, salvale nella sequenza temporale delle foto prima di rimuoverle dall'album."
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "これらの %d 枚の写真へのアクセスを失います。まだ保存していない場合は、アルバムから削除する前に写真タイムラインに保存してください。"
                 }
               }
             }
@@ -3436,6 +3592,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "您将失去对这 %d 张照片的访问权限。如果您尚未保存，请先将它们保存到照片时间轴，然后再从相册中移除。"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "您將會失去這些 %d 張相片的存取權。如果您尚未這麼做，請將其儲存到您的相片時間軸，再從相簿中移除。"
                 }
               }
             }
@@ -3980,10 +4148,22 @@
             "value" : "“%@” albümünü silmek istediğinize emin misiniz? Fotoğraflar silinmeyecek."
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Упевнені, що хочете видалити альбом «%@»? Фотографії не буде видалено."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "您确定要删除相册“%@”吗？照片不会被删除。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您確定要刪除相簿「%@」？相片將不會被刪除。"
           }
         }
       }
@@ -4001,7 +4181,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Suprimeix «%@»"
+            "value" : "Elimina «%@»"
           }
         },
         "cs" : {
@@ -4154,10 +4334,22 @@
             "value" : "\"%@\" albümünü sil"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити «%@»"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "删除 ”%@”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除「%@」"
           }
         }
       }
@@ -4322,10 +4514,22 @@
             "value" : "Bu albümdeki bazı fotoğraflar zaman akışınıza kaydedilmez. Bu albüm silindiğinde bu fotoğraflar kalıcı olarak silinecek.\n\nSilmeden önce bunları kaydetmek ister misiniz?"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Деякі фотографії в цьому альбомі не збережено у вашу хронологію. Видалення цього альбому назавжди видалить ці фото.\n\nБажаєте зберегти їх перед видаленням?"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "本相册中的某些照片不会保存到您的时间轴。删除此相册将永久删除这些照片。\n\n您想在删除前保存它们吗？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此相簿中的某些照片未儲存至您的時間軸。刪除此相簿將永久刪除這些照片。\n\n您想要在移除前儲存它們嗎？"
           }
         }
       }
@@ -4496,10 +4700,22 @@
             "value" : "Uzak değişiklikler algılanıyor"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Виявлення віддалених змін"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在检测远程更改"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在偵測遠端變更"
           }
         }
       }
@@ -5863,6 +6079,18 @@
               }
             }
           }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個資料夾"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -6030,6 +6258,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Albümler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Альбоми"
           }
         },
         "zh-Hans" : {
@@ -9374,6 +9608,36 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементи додано до альбому"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів додано до альбому"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елемент додано до альбому"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів додано до альбому"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
@@ -9590,6 +9854,24 @@
             }
           }
         },
+        "fi" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d kohde lisätty virtaasi"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d kohdetta lisätty virtaasi"
+                }
+              }
+            }
+          }
+        },
         "fr" : {
           "variations" : {
             "plural" : {
@@ -9651,6 +9933,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d elementi aggiunti al tuo stream"
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個のアイテムがストリームに追加されました"
                 }
               }
             }
@@ -9872,6 +10166,36 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементи додано до трансляції"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів додано до трансляції"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елемент додано до трансляції"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів додано до трансляції"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
@@ -9879,6 +10203,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 项已添加到您的照片流"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "新增 %d 個項目至您的影音串流"
                 }
               }
             }
@@ -10406,6 +10742,36 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементи вже існує"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів уже існує"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елемент уже існує"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів уже існує"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
@@ -10706,6 +11072,18 @@
             }
           }
         },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個のアイテムは完全にアップロードされていません"
+                }
+              }
+            }
+          }
+        },
         "ko" : {
           "variations" : {
             "plural" : {
@@ -10922,6 +11300,36 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементи не повністю вивантажено"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів не повністю вивантажено"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елемент не повністю вивантажено"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів не повністю вивантажено"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
@@ -10929,6 +11337,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 项未能完全上传"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 項目未完全上載"
                 }
               }
             }
@@ -11456,6 +11876,36 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося додати %d елементи"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося додати %d елементів"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося додати %d елемент"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося додано %d елементів"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
@@ -11463,6 +11913,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 个项目添加失败"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個項目新增失敗"
                 }
               }
             }
@@ -11990,6 +12452,36 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося видалити %d елементи"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося видалити %d елементів"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося видалити %d елемент"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося видалити %d елементів"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
@@ -11997,6 +12489,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 个项目删除失败"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個項目移除失敗"
                 }
               }
             }
@@ -13136,6 +13640,36 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементи видалено з альбому"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів видалено з альбому"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елемент видалено з альбому"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів видалено з альбому"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
@@ -13352,6 +13886,24 @@
             }
           }
         },
+        "fi" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d kohde poistettu virrasta"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d kohdetta poistettu virrasta"
+                }
+              }
+            }
+          }
+        },
         "fr" : {
           "variations" : {
             "plural" : {
@@ -13413,6 +13965,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d elementi rimossi dallo stream"
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個のアイテムがストリームから削除されました"
                 }
               }
             }
@@ -13634,6 +14198,36 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементи видалено з трансляції"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів видалено з трансляції"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елемент видалено з трансляції"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів видалено з трансляції"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
@@ -13641,6 +14235,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 项已从您的照片流中移除"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "已從照片串流移除 %d 個項目"
                 }
               }
             }
@@ -13813,10 +14419,22 @@
             "value" : "Yerel dosya ve klasörler listeleniyor"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перелік локальних файлів і тек"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "列出本地文件和文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "列出本機檔案和資料夾"
           }
         }
       }
@@ -14173,10 +14791,22 @@
             "value" : "\".\" geçerli bir ad değil"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«.» недопустима назва"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "\".\" 不是有效名称"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名稱不可為「.」"
           }
         }
       }
@@ -14902,6 +15532,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ad çok uzun."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Назва задовга"
           }
         },
         "zh-Hans" : {
@@ -15652,6 +16288,12 @@
             "state" : "translated",
             "value" : "无法连接到 iCloud"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法連接 iCloud"
+          }
         }
       }
     },
@@ -16390,6 +17032,12 @@
             "state" : "translated",
             "value" : "加载资源失败"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "載入資源失敗"
+          }
         }
       }
     },
@@ -16569,6 +17217,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法访问原始文件。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法存取原始檔案。"
           }
         }
       }
@@ -16750,6 +17404,12 @@
             "state" : "translated",
             "value" : "缺少权限"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "缺少權限"
+          }
         }
       }
     },
@@ -16929,6 +17589,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "名称验证失败"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名稱驗證失敗"
           }
         }
       }
@@ -17110,6 +17776,12 @@
             "state" : "translated",
             "value" : "Drive 存储已满"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drive 儲存空間已滿"
+          }
         }
       }
     },
@@ -17279,10 +17951,22 @@
             "value" : "Paylaşılan albüme ekle"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Додати до спільного альбому"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "添加到共享相册"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增至共享相簿"
           }
         }
       }
@@ -17453,10 +18137,22 @@
             "value" : "Şununla paylaş"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поділитися через"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "分享方式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享"
           }
         }
       }
@@ -17996,10 +18692,22 @@
             "value" : "Son eklenenler"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нещодавно додані"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "最近添加"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近新增"
           }
         }
       }
@@ -19111,6 +19819,12 @@
             "state" : "translated",
             "value" : "连拍"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連拍"
+          }
         }
       }
     },
@@ -19278,6 +19992,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beğenilenler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Улюблені"
           }
         },
         "zh-Hans" : {
@@ -19460,6 +20180,12 @@
             "value" : "Live Photo çekimleri"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Живі фото"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19640,10 +20366,22 @@
             "value" : "Haraketli fotoğraflar"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фото в русі"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "动态照片"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "動態照片"
           }
         }
       }
@@ -19812,6 +20550,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Albümlerim"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мої альбоми"
           }
         },
         "zh-Hans" : {
@@ -19994,10 +20738,22 @@
             "value" : "Manzaralar"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Панорами"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "全景图"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全景圖"
           }
         }
       }
@@ -20166,6 +20922,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Portreler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Портрети"
           }
         },
         "zh-Hans" : {
@@ -20343,6 +21105,12 @@
           }
         },
         "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAW"
+          }
+        },
+        "uk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "RAW"
@@ -20528,6 +21296,12 @@
             "value" : "Ekran görüntüleri"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Знімки екрана"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20706,6 +21480,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Özçekimler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Селфі"
           }
         },
         "zh-Hans" : {
@@ -21260,6 +22040,12 @@
             "value" : "Videolar"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відео"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21438,6 +22224,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Albümü yeniden adlandır"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перейменувати альбом"
           }
         },
         "zh-Hans" : {
@@ -21631,6 +22423,12 @@
             "state" : "translated",
             "value" : "恢复所有文件"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還原所有檔案"
+          }
         }
       }
     },
@@ -21810,6 +22608,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "恢复所有文件夹"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還原所有資料夾"
           }
         }
       }

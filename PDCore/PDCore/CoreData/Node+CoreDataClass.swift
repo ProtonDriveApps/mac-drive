@@ -114,7 +114,6 @@ extension Node.State {
         case .active: self = .active
         case .deleted: self = .deleted
         case .deleting: self = .deleting
-        case .errorState: self = .deleting
         }
     }
     

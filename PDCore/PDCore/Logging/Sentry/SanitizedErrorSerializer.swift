@@ -75,7 +75,7 @@ final class SanitizedErrorSerializer {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: result, options: .prettyPrinted)
             let jsonString = String(data: jsonData, encoding: .utf8)!
-            return jsonString.removingUserName
+            return jsonString.removingUserName.removingDotNetNoise
         } catch let encodingError {
             return "Encoding error: (\(encodingError)) while logging \"\(error.localizedDescription)\" error"
         }

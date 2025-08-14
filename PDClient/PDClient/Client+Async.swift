@@ -569,3 +569,27 @@ extension Client: DriveChecklistDataSource {
         return DriveChecklistStatusResponse(from: response)
     }
 }
+
+public protocol DriveUserSettingsRemoteResource {
+    func fetchUserSettings() async throws -> DriveUserSettingsResponse
+}
+
+extension Client: DriveUserSettingsRemoteResource {
+    public func fetchUserSettings() async throws -> DriveUserSettingsResponse {
+        let endpoint = GetDriveUserSettingsEndpoint(service: service, credential: try credential())
+        let response = try await request(endpoint)
+        return response
+    }
+}
+
+public protocol UpdateB2BUserSettingsDataSource {
+    func updateB2BUserSettings(to value: Bool) async throws
+}
+
+extension Client: UpdateB2BUserSettingsDataSource {
+    public func updateB2BUserSettings(to value: Bool) async throws {
+        let settings = DriveUserSettingsUpdateRequest(b2BPhotosEnabled: value)
+        let endpoint = try PutDriveUserSettingsEndpoint(service: service, credential: try credential(), settings: settings)
+        _ = try await request(endpoint)
+    }
+}

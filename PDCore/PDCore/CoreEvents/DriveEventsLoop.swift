@@ -192,7 +192,7 @@ class DriveEventsLoop: EventsLoop {
 
 }
 
-extension DriveEventsLoop.Response: EventPage {
+extension DriveEventsLoop.Response: PMEventsManager.EventPage {
     public var requiresClearCache: Bool {
         refresh == Refresh.true
     }

@@ -33,6 +33,7 @@ Temporary Items
 build/
 .build/
 DerivedData/
+derived_data
 
 ## Fastlane
 outputs
@@ -90,3 +91,6 @@ ProtonDrive-iOS/ProtonDrive-iOS.xcodeproj
 
 # Dynamic domain
 .dynamic_domain
+
+# xcode-build-server
+buildServer.json

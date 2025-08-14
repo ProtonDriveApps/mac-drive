@@ -19,7 +19,9 @@
 
 import AppKit
 import SwiftUI
+import PDClient
 import PDCore
+import ProtonCoreServices
 
 @MainActor
 final class QASettingsWindowCoordinator: NSObject, NSWindowDelegate {
@@ -33,6 +35,7 @@ final class QASettingsWindowCoordinator: NSObject, NSWindowDelegate {
     private let applicationEventObserver: ApplicationEventObserver
     private let metadataStorage: StorageManager?
     private let eventsStorage: EventStorageManager?
+    private let jailDependencies: (PMAPIService, Client)?
 
     private let userActions: UserActions
 
@@ -48,7 +51,8 @@ final class QASettingsWindowCoordinator: NSObject, NSWindowDelegate {
          userActions: UserActions,
          applicationEventObserver: ApplicationEventObserver,
          metadataStorage: StorageManager?,
-         eventsStorage: EventStorageManager?
+         eventsStorage: EventStorageManager?,
+         jailDependencies: (PMAPIService, Client)?
     ) {
         self.signoutManager = signoutManager
         self.sessionStore = sessionStore
@@ -61,6 +65,7 @@ final class QASettingsWindowCoordinator: NSObject, NSWindowDelegate {
         self.applicationEventObserver = applicationEventObserver
         self.metadataStorage = metadataStorage
         self.eventsStorage = eventsStorage
+        self.jailDependencies = jailDependencies
     }
 
     func start() {
@@ -82,7 +87,8 @@ final class QASettingsWindowCoordinator: NSObject, NSWindowDelegate {
                                      applicationEventObserver: applicationEventObserver,
                                      userActions: userActions,
                                      metadataStorage: metadataStorage,
-                                     eventsStorage: eventsStorage)
+                                     eventsStorage: eventsStorage,
+                                     jailDependencies: jailDependencies)
 
         let view = QASettingsView(vm: vm)
 

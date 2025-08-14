@@ -28,8 +28,11 @@ enum TestRunnerAction {
     case endTest(String)
     case pauseSyncing
     case resumeSyncing
+    case resetErrors
     case keepDownloaded(String)
     case keepOnlineOnly(String)
+    case startFullResync
+    case finishFullResync
     case dumpDiagnostics(String)
     case openMenu
     case takeScreenshot(String)
@@ -45,10 +48,10 @@ enum TestRunnerAction {
         case "stop":
             self = .stopApp
         case let message where message.hasPrefix("login/"):
-            // Format: "email:john@example.com/password:123"
-            if let emailStart = eventRawString.range(of: "login/email:")?.upperBound,
+            // Format: "login:john@example.com/password:123" or "login:john/password:123"
+            if let loginStart = eventRawString.range(of: "login/login:")?.upperBound,
                let passwordStart = eventRawString.range(of: "/password:")?.lowerBound {
-                let email = String(eventRawString[emailStart..<passwordStart])
+                let email = String(eventRawString[loginStart..<passwordStart])
                 let password = String(eventRawString[passwordStart...].dropFirst("/password:".count))
                 self = .logIn(email, password)
             } else {
@@ -60,16 +63,22 @@ enum TestRunnerAction {
             self = .beginTest(String(message.dropFirst(11)))
         case let message where message.hasPrefix("end_test/"):
             self = .endTest(String(message.dropFirst(9)))
-        case let message where message.hasPrefix("diagnostics/"):
-            self = .dumpDiagnostics(String(message.dropFirst(12)))
         case "pause":
             self = .pauseSyncing
         case "resume":
             self = .resumeSyncing
+        case "reset_errors":
+            self = .resetErrors
         case let message where message.hasPrefix("keep_downloaded/"):
             self = .keepDownloaded(String(message.dropFirst(16)))
         case let message where message.hasPrefix("keep_online_only/"):
             self = .keepOnlineOnly(String(message.dropFirst(17)))
+        case "full_resync_start":
+            self = .startFullResync
+        case "full_resync_finish":
+            self = .finishFullResync
+        case let message where message.hasPrefix("diagnostics/"):
+            self = .dumpDiagnostics(String(message.dropFirst(12)))
         case "open_menu":
             self = .openMenu
         case let message where message.hasPrefix("take_screenshot/"):
@@ -81,7 +90,8 @@ enum TestRunnerAction {
         }
     }
 
-    func run(_ userActions: UserActions, _ testRunner: TestRunner) async {
+    /// Optionally returns a string that will be sent back to the application which made the call
+    func run(_ userActions: UserActions, _ testRunner: TestRunner) async -> String? {
         switch self {
         case .startApp:
             // nothing to do
@@ -89,15 +99,16 @@ enum TestRunnerAction {
         case .stopApp:
             fatalError("App stopped by TestRunner")
 
-        case .logIn(let email, let password):
-            userActions.account.signInUsingTestCredentials(email: email, password: password)
+        case .logIn(let login, let password):
+            userActions.account.signInUsingTestCredentials(login: login, password: password)
         case .logOut:
             userActions.account.userRequestedSignOut()
 
         case .beginTest(let testRunId):
             testRunner.beginTest(testRunId: testRunId)
         case .endTest(let diagnostics):
-            await testRunner.dump(diagnostics: diagnostics)
+            // Disable dumping all data until it can be done more efficiently (DM-851)
+            // await testRunner.dump(diagnostics: diagnostics)
             testRunner.endTest()
         case .dumpDiagnostics(let diagnostics):
             await testRunner.dump(diagnostics: diagnostics)
@@ -107,19 +118,30 @@ enum TestRunnerAction {
         case .resumeSyncing:
             userActions.sync.resumeSyncing()
 
+        case .resetErrors:
+            userActions.sync.cleanUpErrors()
+
         case .keepDownloaded(let paths):
             userActions.fileProvider.keepDownloaded(paths: paths.components(separatedBy: ":"))
         case .keepOnlineOnly(let paths):
             userActions.fileProvider.keepOnlineOnly(paths: paths.components(separatedBy: ":"))
 
+        case .startFullResync:
+            userActions.sync.performFullResync()
+
+        case .finishFullResync:
+            userActions.sync.finishFullResync()
+
         case .openMenu:
             userActions.app.toggleStatusWindow(onlyOpen: true)
+
         case .takeScreenshot(let filename):
             testRunner.takeScreenshot(filename: filename)
 
         case .log(let message):
             Log.debug(message, domain: .testRunner)
         }
+        return nil
     }
 }
 
@@ -150,15 +172,42 @@ class TestRunner {
 
     @MainActor
     @objc func handleGetURLEvent(event: NSAppleEventDescriptor, reply: NSAppleEventDescriptor) {
-        if let urlString = event.paramDescriptor(forKeyword: keyDirectObject)?.stringValue,
-           let action = TestRunnerAction(eventURL: urlString) {
-            Log.trace("\(action)")
-            Task {
-                await action.run(userActions, self)
-            }
-        } else {
-            Log.warning("handleGetURLEvent unknown: \(event)", domain: .testRunner)
+        guard let urlString = event.paramDescriptor(forKeyword: keyDirectObject)?.stringValue else {
+            reportError("Missing urlString", reply: reply)
+            return
         }
+
+        guard let action = TestRunnerAction(eventURL: urlString) else {
+            reportError("Unrecognized action: \(urlString)", reply: reply)
+            return
+        }
+
+        Log.trace("\(action)")
+
+        /// This is necessary because this method is synchronous, and `reply` has to be modified before it exits -
+        /// but action.run() has to be asynchronous because otherwise we still wouldn't be able to wait until the action is completed.
+        let group = DispatchGroup()
+        group.enter()
+
+        var resultString: String?
+        Task.detached(priority: .userInitiated) {
+            resultString = await action.run(self.userActions, self)
+            group.leave()
+        }
+
+        group.wait()
+
+        if let resultString {
+            let responseDescriptor = NSAppleEventDescriptor(string: resultString)
+            reply.setParam(responseDescriptor, forKeyword: keyDirectObject)
+        }
+    }
+
+    /// If an error has occurred, the response will be prefixed with "Error: "
+    private func reportError(_ message: String, reply: NSAppleEventDescriptor) {
+        Log.warning("handleGetURLEvent error: \(message)", domain: .testRunner)
+        let errorDescriptor = NSAppleEventDescriptor(string: "Error: \(message)")
+        reply.setParam(errorDescriptor, forKeyword: keyDirectObject)
     }
 
     fileprivate func beginTest(testRunId: String) {
@@ -263,7 +312,7 @@ class TestRunner {
             $0[$1.name] = $1.value
         })
 
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: data, options: .prettyPrinted),
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: data, options: [.prettyPrinted, .sortedKeys]),
               let jsonString = String(data: jsonData, encoding: .utf8)
         else {
             Log.error("Could not encode state properties", domain: .testRunner)

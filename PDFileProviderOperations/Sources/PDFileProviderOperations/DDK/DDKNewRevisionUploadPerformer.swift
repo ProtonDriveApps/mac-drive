@@ -19,6 +19,7 @@ import FileProvider
 import PDCore
 import PDDesktopDevKit
 import PDFileProvider
+import ProtonDriveProtos
 
 protocol DDKNewRevisionUploadPerformerDelegate: AnyObject {
     var thumbnailProvider: ThumbnailProvider { get }
@@ -42,7 +43,6 @@ final class DDKNewRevisionUploadPerformer: NewRevisionUploadPerformer {
         self.updateProgress = updateProgress
     }
 
-    // swiftlint:disable:next function_parameter_count function_body_length
     func uploadNewRevision(
         item: NSFileProviderItem, file: File, tower: Tower, copy: URL,
         fileSize: Int, pendingFields: NSFileProviderItemFields, progress: Progress?
@@ -96,12 +96,12 @@ final class DDKNewRevisionUploadPerformer: NewRevisionUploadPerformer {
                 throw Errors.excludeFromSync
             }
 
-            let fileIdentity = try await performIfNotCancelled(progress: progress) {
-                try await DDKFileProviderOperations.nodeIdentity(of: file, tower: tower)
+            let (fileIdentity, addressId) = try await performIfNotCancelled(progress: progress) {
+                try await DDKFileProviderOperations.nodeIdentityAndContextShareAddressId(of: file, tower: tower)
             }
 
             let shareMetadata = try await performIfNotCancelled(progress: progress) {
-                try await DDKFileProviderOperations.shareMetadata(identity: fileIdentity, tower: tower)
+                try await DDKFileProviderOperations.shareMetadata(identity: fileIdentity, addressId: addressId, tower: tower)
             }
 
             let thumbnail = try performIfNotCancelled(progress: progress) {

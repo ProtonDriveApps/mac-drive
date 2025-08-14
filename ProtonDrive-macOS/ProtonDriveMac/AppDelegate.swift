@@ -160,11 +160,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func disconnectDomainsBeforeClosing(_ sender: NSApplication) {
         Task {
-            try? await coordinator?.domainOperationsService.disconnectDomainBeforeAppClosing()
+            try? await coordinator?.domainOperationsService.disconnectCurrentDomainBeforeAppClosing()
             if isTerminatingDueToAppCoordinatorError {
                 // crashing with fatalError because calling the reply(toApplicationShouldTerminate:) was somehow hanging the app (blocking the main thread)
                 // regardless of making sure it's been called only from the main thread (using DispatchQueue.main or MainActor.run)
-                fatalError("Terminate after domains disconnection")
+                fatalError(ExceptionMessagesExcludedFromSentryCrashReport.appCoordinatorErrorWhileStartingApp.rawValue)
             } else {
                 await MainActor.run {
                     sender.reply(toApplicationShouldTerminate: true)

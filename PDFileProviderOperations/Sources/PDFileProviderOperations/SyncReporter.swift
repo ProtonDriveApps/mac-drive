@@ -291,7 +291,7 @@ public class SyncReporter {
         context.performAndWait {
             filename = (try? node.decryptName()) ?? "Filename decryption failed"
             mimeType = node.mimeType
-            size = node.size
+            size = node.presentableNodeSize
         }
         if let error {
             handleError(

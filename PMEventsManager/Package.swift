@@ -13,8 +13,6 @@ let package = Package(
         .library(name: "PMEventsManager", targets: ["PMEventsManager"]),
     ],
     dependencies: [
-
-        // exact version is defined by PDClient
         .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "32.7.1"),
     ],
     targets: [
@@ -30,7 +28,3 @@ let package = Package(
         ),
     ]
 )
-
-extension Range where Bound == Version {
-    static let suitable = Self(uncheckedBounds: ("0.0.0", "99.0.0"))
-}

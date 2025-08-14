@@ -22,6 +22,7 @@ import ProtonCoreCryptoGoInterface
 import ProtonCoreDataModel
 import ProtonCoreLog
 import ProtonCoreUtilities
+import ProtonDriveProtos
 
 fileprivate extension Key {
     var isAllowedForEncryption: Bool {

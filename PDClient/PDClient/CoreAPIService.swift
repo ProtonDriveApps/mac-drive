@@ -23,4 +23,5 @@ public protocol CoreAPIService {
     func perform(request route: Request, completion: @escaping (_ task: URLSessionDataTask?, _ result: Result<JSONDictionary, ResponseError>) -> Void)
     func perform(request route: Request, callCompletionBlockUsing executor: CompletionBlockExecutor, completion: @escaping (_ task: URLSessionDataTask?, _ result: Result<JSONDictionary, ResponseError>) -> Void)
     func perform(request route: Request, dataTaskBlock: @escaping (URLSessionDataTask) -> Void, completion: @escaping (_ task: URLSessionDataTask?, _ result: Result<JSONDictionary, ResponseError>) -> Void)
+    func perform(request route: Request, callCompletionBlockUsing executor: CompletionBlockExecutor, dataTaskBlock: @escaping (URLSessionDataTask) -> Void, completion: @escaping (_ task: URLSessionDataTask?, _ result: Result<JSONDictionary, ResponseError>) -> Void)
 }

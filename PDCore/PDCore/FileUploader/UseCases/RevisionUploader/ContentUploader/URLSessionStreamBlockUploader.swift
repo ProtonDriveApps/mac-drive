@@ -169,7 +169,7 @@ extension URLSessionStreamBlockUploader: URLSessionDataDelegate {
         guard !self.isCancelled else { return }
 
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .decapitaliseFirstLetter
+        decoder.keyDecodingStrategy = .driveImplementationOfDecapitaliseFirstLetter
         if let error = try? decoder.decode(PDClient.ErrorResponse.self, from: data) {
             self.completeWithFailure(error.nsError())
 

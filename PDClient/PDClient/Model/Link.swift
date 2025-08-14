@@ -176,6 +176,14 @@ public enum LinkType: Int, Codable, CaseIterable, Equatable {
     case folder = 1
     case file = 2
     case album = 3
+
+    public var desc: String {
+        switch self {
+        case .folder: "Folder"
+        case .file: "File"
+        case .album: "Album"
+        }
+    }
 }
 
 public enum NodeState: Int, Codable, Equatable {
@@ -184,16 +192,13 @@ public enum NodeState: Int, Codable, Equatable {
     case deleted = 2
     case deleting = 3
     
-    @available(*, deprecated, message: "This covers BE bug, fixed by Slim-API MR/15034")
-    case errorState = 100 // error
-    
     public init?(rawValue: Int) {
         switch rawValue {
         case Self.draft.rawValue: self = .draft
         case Self.active.rawValue: self = .active
         case Self.deleted.rawValue: self = .deleted
         case Self.deleting.rawValue: self = .deleting
-        default: self = .errorState // BE returns enexpected value
+        default: return nil
         }
     }
 }

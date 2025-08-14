@@ -19,8 +19,11 @@
 
 import AppKit
 import Combine
+import PDClient
 import PDCore
 import FileProvider
+import ProtonCoreNetworking
+import ProtonCoreServices
 
 struct QASettingsConstants {
     static let shouldUpdateEvenOnDebugBuild = "shouldUpdateEvenOnDebugBuild"
@@ -29,7 +32,6 @@ struct QASettingsConstants {
     static let shouldObfuscateDumpsStorage = "shouldObfuscateDumpsStorage"
     static let disconnectDomainOnSignOut = "disconnectDomainOnSignOut"
     static let driveDDKEnabled = "driveDDKEnabled"
-    static let newTrayAppMenuEnabled = "newTrayAppMenuEnabled"
     static let globalProgressStatusMenuEnabled = "globalProgressStatusMenuEnabled"
 }
 
@@ -49,6 +51,8 @@ class QASettingsViewModel: ObservableObject {
     @Published var shouldDisconnectTemporarily: Bool = false
     @Published var dumperIsBusy: Bool = false
     @Published var dumperError: String = ""
+    @Published var jailStatus: String = "Unknown"
+    @Published var pauseResumeLoopEnabled: Bool = false
 
 #if HAS_BUILTIN_UPDATER
     @Published var shouldUpdateEvenOnDebugBuild: Bool = false {
@@ -122,14 +126,6 @@ class QASettingsViewModel: ObservableObject {
         didSet { driveDDKEnabledStorage = FeatureFlagOptions(rawValue: driveDDKEnabled)?.toBool }
     }
     @SettingsStorage(QASettingsConstants.driveDDKEnabled) var driveDDKEnabledStorage: Bool?
-    
-    var newTrayAppMenuEnabledFeatureFlagValue: Bool {
-        featureFlags?.isEnabled(flag: .newTrayAppMenuEnabled) ?? false
-    }
-    @Published var newTrayAppMenuEnabled: String = FeatureFlagOptions.useFF.rawValue {
-        didSet { newTrayAppMenuEnabledStorage = FeatureFlagOptions(rawValue: newTrayAppMenuEnabled)?.toBool }
-    }
-    @SettingsStorage(QASettingsConstants.newTrayAppMenuEnabled) var newTrayAppMenuEnabledStorage: Bool?
 
     let parentSessionUID: String
     let childSessionUID: String
@@ -143,6 +139,7 @@ class QASettingsViewModel: ObservableObject {
     private let mainKeyProvider: MainKeyProvider
     private let metadataStorage: StorageManager?
     private let eventsStorage: EventStorageManager?
+    private let jailDependencies: (PMAPIService, Client)?
 
     let applicationEventObserver: ApplicationEventObserver
     let userActions: UserActions
@@ -157,13 +154,13 @@ class QASettingsViewModel: ObservableObject {
          applicationEventObserver: ApplicationEventObserver,
          userActions: UserActions,
          metadataStorage: StorageManager?,
-         eventsStorage: EventStorageManager?
+         eventsStorage: EventStorageManager?,
+         jailDependencies: (PMAPIService, Client)?
     ) {
         let suite = Constants.appGroup
         self._requiresPostMigrationCleanup.configure(with: suite)
         self._disconnectDomainOnSignOutStorage.configure(with: suite)
         self._driveDDKEnabledStorage.configure(with: suite)
-        self._newTrayAppMenuEnabledStorage.configure(with: suite)
 
         self.dumper = dumperDependencies.map(Dumper.init)
         self.environment = Constants.appGroup.userDefaults.string(forKey: Constants.SettingsBundleKeys.host.rawValue) ?? ""
@@ -185,12 +182,12 @@ class QASettingsViewModel: ObservableObject {
         
         self.metadataStorage = metadataStorage
         self.eventsStorage = eventsStorage
+        self.jailDependencies = jailDependencies
 
         self.shouldObfuscateDumps = shouldObfuscateDumpsStorage ?? false
         self.enablePostMigrationCleanup = requiresPostMigrationCleanup ?? false
         self.disconnectDomainOnSignOut = FeatureFlagOptions(bool: disconnectDomainOnSignOutStorage).rawValue
         self.driveDDKEnabled = FeatureFlagOptions(bool: driveDDKEnabledStorage).rawValue
-        self.newTrayAppMenuEnabled = FeatureFlagOptions(bool: newTrayAppMenuEnabledStorage).rawValue
 
 #if HAS_BUILTIN_UPDATER
         self.shouldUpdateEvenOnDebugBuild = shouldUpdateEvenOnDebugBuildStorage ?? false
@@ -213,6 +210,111 @@ class QASettingsViewModel: ObservableObject {
             _ = await MainActor.run {
                 exit(0)
             }
+        }
+    }
+    
+    func jail() {
+        Task { [weak self] in
+            guard let execution = self?.getRequestExecution() else { return }
+            await self?.allowAndEncourageJail()
+            let wasThere429 = await withTaskGroup(of: Bool.self) { group in
+                var shouldContinue = true
+                for _ in 1...500 {
+                    group.addTask {
+                        guard shouldContinue else {
+                            return shouldContinue
+                        }
+                        do {
+                            _ = try await execution()
+                            return false
+                        } catch let error as ResponseError {
+                            let wasThere429 = error.httpCode == 429
+                            shouldContinue = !wasThere429
+                            return wasThere429
+                        } catch {
+                            return false
+                        }
+                    }
+                }
+                var results = [Bool]()
+                for await element in group {
+                    results.append(element)
+                }
+                return results
+            }.contains(true)
+            
+            if wasThere429 {
+                await MainActor.run { [weak self] in self?.jailStatus = "Jailed" }
+            } else {
+                await MainActor.run { [weak self] in self?.jailStatus = "Not jailed" }
+            }
+        }
+    }
+    
+    func verifyJail() {
+        self.jailStatus = "Checking"
+        Task {
+            guard let requestExecution = self.getRequestExecution() else {
+                await MainActor.run { self.jailStatus = "Unknown" }
+                return
+            }
+            do {
+                _ = try await requestExecution()
+                await MainActor.run { self.jailStatus = "Not jailed" }
+            } catch let error as ResponseError {
+                await MainActor.run { self.jailStatus = error.httpCode == 429 ? "Jailed" : "Not jailed" }
+            } catch {
+                await MainActor.run { self.jailStatus = "Not jailed" }
+            }
+        }
+    }
+    
+    func allowAndEncourageJail() async {
+        let host = jailDependencies!.0.dohInterface.getCurrentlyUsedHostUrl().replacingOccurrences(of: "/api", with: "")
+        let session = URLSession(configuration: .ephemeral)
+        let unjailURL = URL(string: host + "/internal-api/quark/raw::jail:unban")!
+        _ = try? await session.data(from: unjailURL)
+        let allowURL = URL(string: host + "/internal-api/system/env?JAILS_ENABLED=1&DOCS_JAIL_SERVICE_LEVEL=4&DRIVE_SERVICE_LEVEL=4")!
+        let request = try? URLRequest(url: allowURL, method: .post)
+        _ = try? await session.data(for: request!)
+    }
+    
+    func disallowAndDiscourageJail() async {
+        let host = jailDependencies!.0.dohInterface.getCurrentlyUsedHostUrl().replacingOccurrences(of: "/api", with: "")
+        let session = URLSession(configuration: .ephemeral)
+        let disallowURL = URL(string: host + "/internal-api/system/env?JAILS_ENABLED=0&DOCS_JAIL_SERVICE_LEVEL=1&DRIVE_SERVICE_LEVEL=1")!
+        let request = try? URLRequest(url: disallowURL, method: .post)
+        _ = try? await session.data(for: request!)
+    }
+    
+    private func getRequestExecution() -> (() async throws -> (URLSessionDataTask?, JSONDictionary))? {
+        struct RetryingControlledVolumesEndpoint: Endpoint {
+            public struct Response: Codable { public let code: Int }
+            
+            let request: URLRequest
+            let retryPolicy: ProtonRetryPolicy.RetryMode
+            
+            public init(service: PDClient.APIService, credential: ClientCredential, retryPolicy: ProtonRetryPolicy.RetryMode) {
+                var request = URLRequest(url: service.url(of: "/volumes"))
+                request.httpMethod = "GET"
+                var headers = service.baseHeaders
+                headers.merge(service.authHeaders(credential), uniquingKeysWith: { $1 })
+                headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+                self.request = request
+                self.retryPolicy = retryPolicy
+            }
+        }
+        guard let networking = jailDependencies?.0,
+              let service = jailDependencies?.1.service,
+              let credential = try? jailDependencies?.1.credential()
+        else { return nil }
+        
+        let nonRetryRequest = RetryingControlledVolumesEndpoint(
+            service: service, credential: credential, retryPolicy: .userInitiated
+        )
+        return {
+            try await networking.perform(request: nonRetryRequest,
+                                             callCompletionBlockUsing: .immediateExecutor)
         }
     }
     
@@ -243,6 +345,22 @@ class QASettingsViewModel: ObservableObject {
             } catch {
                 assertionFailure("Could not get domains, investigate! Error is \(error)")
             }
+        }
+    }
+    
+    private var timer: Timer?
+    
+    func togglePauseResumeLoop() {
+        pauseResumeLoopEnabled.toggle()
+        if pauseResumeLoopEnabled {
+            timer = Timer(timeInterval: 0.2, repeats: true, block: { [weak self] _ in
+                self?.userActions.sync.togglePausedStatus()
+            })
+            RunLoop.main.add(timer!, forMode: .common)
+            timer?.fire()
+        } else {
+            timer?.invalidate()
+            timer = nil
         }
     }
 

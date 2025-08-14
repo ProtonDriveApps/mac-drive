@@ -56,10 +56,10 @@ public class FolderCreator {
         let (parentFolder, signersKit) = try await moc.perform {
             let parent = parent.in(moc: self.moc)
 #if os(macOS)
-            let signersKit = try self.signersKitFactory.make(forSigner: .main)
+            let signersKit = try parent.getContextShareAddressBasedSignersKit(signersKitFactory: self.signersKitFactory,
+                                                                              fallbackSigner: .main)
 #else
-            let addressID = try parent.getContextShareAddressID()
-            let signersKit = try self.signersKitFactory.make(forAddressID: addressID)
+            let signersKit = try parent.getContextShareAddressBasedSignersKit(signersKitFactory: self.signersKitFactory)
 #endif
             let parentFolder = try parent.encrypting()
             return (parentFolder, signersKit)
@@ -126,7 +126,15 @@ private extension Folder {
     /// Create a new File from the `EncryptedImportedFile` model
     static func make(from createdFolder: CreatedFolder, id: String, moc: NSManagedObjectContext) -> Folder {
         // Create new Folder
-        let coreDataFolder = Folder.fetchOrCreate(id: id, volumeID: createdFolder.volumeID, in: moc)
+        let coreDataFolder: Folder
+        switch Folder.fetchOrCreateIndicatingResult(id: id, volumeID: createdFolder.volumeID, in: moc) {
+        case .created(let folder):
+            coreDataFolder = folder
+        case .fetched(let folder):
+            assertionFailure("New folder should not exist yet")
+            Log.warning("A folder node with the identifier of the newly created folder found", domain: .metadata, sendToSentryIfPossible: true)
+            coreDataFolder = folder
+        }
         coreDataFolder.setShareID(createdFolder.shareID)
 
         coreDataFolder.name = createdFolder.name

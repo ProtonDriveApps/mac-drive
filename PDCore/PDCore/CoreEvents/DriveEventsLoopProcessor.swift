@@ -29,11 +29,18 @@ final class DriveEventsLoopProcessor: DriveEventsLoopProcessorType {
     private let cloudSlot: CloudSlotProtocol
     private let conveyor: EventsConveyor
     private let storage: StorageManager
-    
-    internal init(cloudSlot: CloudSlotProtocol, conveyor: EventsConveyor, storage: StorageManager) {
+    private let externalInvitationConverter: ExternalInvitationConvertProtocol?
+
+    internal init(
+        cloudSlot: CloudSlotProtocol,
+        conveyor: EventsConveyor,
+        storage: StorageManager,
+        externalInvitationConverter: ExternalInvitationConvertProtocol?
+    ) {
         self.cloudSlot = cloudSlot
         self.conveyor = conveyor
         self.storage = storage
+        self.externalInvitationConverter = externalInvitationConverter
     }
 
     // Should be a dedicated background context to exclude deadlock by CloudSlot operations
@@ -65,6 +72,7 @@ final class DriveEventsLoopProcessor: DriveEventsLoopProcessorType {
         }
 
         while let (event, shareID, objectID) = conveyor.next() {
+            Log.debug("Start to handle event \(event.eventId)", domain: .events)
             guard let event = event as? Event else {
                 Log.info("Ignore event because it is not relevant for current metadata", domain: .events)
                 ignored(event: event, storage: storage)
@@ -78,42 +86,55 @@ final class DriveEventsLoopProcessor: DriveEventsLoopProcessorType {
             let nodeIdentifier = NodeIdentifier(nodeID, shareID, volumeID)
             let parentIdentifier = makeNodeIdentifier(volumeID: volumeID, shareID: shareID, nodeID: event.inLaneParentId)
 
+            var linkType: String = "Unknown"
+            switch event.link.type {
+            case .file:
+                if event.link.fileProperties?.activeRevision?.photo == nil {
+                    linkType = "File"
+                } else {
+                    linkType = "Photo"
+                }
+            default:
+                linkType = event.link.type.desc
+            }
+
             switch event.genericType {
             case .create:
                 // case 1. — node already exists in the DB
                 if let node = findNode(id: nodeIdentifier) {
                     let state = moc.performAndWait { node.state }
                     if event.link.state.rawValue == state?.rawValue {
-                        Log.info("Process .create event. Disregard due to node: \(nodeIdentifier) with the same state already in the metadataDB", domain: .events)
+                        // Fix for DM-387 & DM-398
+                        Log.info("Process .create event. Disregard due to \(linkType): \(nodeIdentifier.any()) with the same state already in the metadataDB", domain: .events)
                         conveyor.disregard(objectID)
                     } else {
-                        Log.info("Process .create event. Node: \(nodeIdentifier) already exists but state is different update metadata", domain: .events)
+                        Log.info("Process .create event. \(linkType): \(nodeIdentifier.any()) already exists but state is different update metadata", domain: .events)
                         updateMetadata(shareID, event)
                     }
                     
                 // case 2. — node doesn't yet exists in the DB, but its parent exists, so we can create the node
                 } else if nodeExists(id: parentIdentifier) {
-                    Log.info("Process .create event. Node: \(nodeIdentifier) doesn't exist but parent exists, create it", domain: .events)
+                    Log.info("Process .create event. \(linkType): \(nodeIdentifier.any()) doesn't exist but parent exists, create it", domain: .events)
                     updateMetadata(shareID, event)
                 
                 // case 3. — neither node nor parent exists, let's ignore
                 } else {
-                    Log.info("Process .create event. Ignore node: \(nodeIdentifier) because neither parent nor node exists", domain: .events)
+                    Log.info("Process .create event. Ignore \(linkType): \(nodeIdentifier.any()) because neither parent nor node exists", domain: .events)
                     ignored(event: event, storage: storage)
                 }
 
             case .updateMetadata where nodeExists(id: parentIdentifier) || nodeExists(id: nodeIdentifier), // need to know node (move from) or the new parent (move to)
                  .delete,
                  .updateContent where nodeExists(id: nodeIdentifier): // need to know node
-                Log.info("Process \(event.genericType). Update metadata for node: \(nodeIdentifier)", domain: .events)
+                Log.info("Process \(event.genericType). Update metadata for \(linkType): \(nodeIdentifier.any())", domain: .events)
                 updateMetadata(shareID, event)
 
             default: // ignore event
-                Log.info("Ignore \(event.genericType) event for node: \(nodeIdentifier), parent \(parentIdentifier) because it is not relevant for current metadata", domain: .events)
+                Log.info("Ignore \(event.genericType) event for \(linkType): \(nodeIdentifier.any()), parent \(parentIdentifier) because it is not relevant for current metadata", domain: .events)
                 ignored(event: event, storage: storage)
             }
 
-            Log.info("Done processing event for node: \(nodeIdentifier), now removing it", domain: .events)
+            Log.info("Done processing event for node: \(nodeIdentifier.any()), now removing it", domain: .events)
             conveyor.completeProcessing(of: objectID)
         }
     }
@@ -136,7 +157,7 @@ extension DriveEventsLoopProcessor {
         switch event.eventType {
         case .delete:
             guard let node = findNode(id: identifier) else {
-                Log.info("Processing delete event. Node: \(identifier) not found", domain: .events)
+                Log.info("Processing delete event. Node: \(identifier.any()) not found", domain: .events)
                 return []
             }
             moc.delete(node)
@@ -148,11 +169,12 @@ extension DriveEventsLoopProcessor {
             #if os(iOS)
             nodes.forEach { node in
                 guard let parent = node.parentNode else {
-                    Log.info("Processing \(event.eventType) event. Parent node not found for \(identifier)", domain: .events)
+                    Log.info("Processing \(event.eventType) event. Parent node not found for \(identifier.any())", domain: .events)
                     return
                 }
                 node.setIsInheritingOfflineAvailable(parent.isInheritingOfflineAvailable || parent.isMarkedOfflineAvailable)
             }
+            processEventData(event: event)
             #endif
 
             var affectedNodes = nodes.compactMap(\.parentLink).map(\.identifier)
@@ -162,7 +184,7 @@ extension DriveEventsLoopProcessor {
         case .updateContent:
             let identifier = NodeIdentifier(event.link.linkID, shareId, event.link.volumeID)
             guard let file = findFile(identifier: identifier) else {
-                Log.info("Processing .updateContent event. File: \(identifier) not found", domain: .events)
+                Log.info("Processing .updateContent event. File: \(identifier.any()) not found", domain: .events)
                 return []
             }
             if let revision = file.activeRevision, revision.id != event.link.fileProperties?.activeRevision?.ID {
@@ -184,17 +206,20 @@ extension DriveEventsLoopProcessor {
         storage.finishedFetchingTrash = false
     }
 
-    private func update(album: CoreDataAlbum, link: Link) {
-        guard let albumProperties = link.albumProperties else { return }
-
-        album.lastActivityTime = Date(timeIntervalSince1970: albumProperties.lastActivityTime)
-        album.photoCount = Int16(albumProperties.photoCount)
-        album.coverLinkID = albumProperties.coverLinkID
-
-        let listing = album.albumListing
-        listing?.lastActivityTime = Date(timeIntervalSince1970: albumProperties.lastActivityTime)
-        listing?.photoCount = Int16(albumProperties.photoCount)
-        listing?.coverLinkID = albumProperties.coverLinkID
+    private func processEventData(event: Event) {
+        guard let data = event.data else { return }
+        if let externalInvitationSignup = data.externalInvitationSignup,
+           let shareID = event.link.sharingDetails?.shareID {
+            Task {
+                do {
+                    try await externalInvitationConverter?.execute(
+                        parameters: .init(shareID: shareID, externalInvitationID: externalInvitationSignup)
+                    )
+                } catch {
+                    Log.error("Failed to convert external invitation to internal", error: error, domain: .sharing)
+                }
+            }
+        }
     }
 }
 

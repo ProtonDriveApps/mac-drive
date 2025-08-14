@@ -128,8 +128,6 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
             return "DrivePostMigrationJunkFilesCleanup"
         case .domainReconnectionEnabled:
             return "DriveDomainReconnectionEnabled"
-        case .newTrayAppMenuEnabled:
-            return "DriveNewTrayAppMenu"
         case .pushNotificationIsEnabled:
             return "PushNotifications"
         case .logCollectionEnabled:
@@ -144,8 +142,8 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
             return "DriveDDKEnabled"
         case .driveMacSyncRecoveryDisabled:
             return "DriveMacSyncRecoveryDisabled"
-        case .driveMacKeepDownloaded:
-            return "DriveMacKeepDownloaded"
+        case .driveMacKeepDownloadedDisabled:
+            return "DriveMacKeepDownloadedDisabled"
         // Sharing
         case .driveSharingMigration:
             return "DriveSharingMigration"

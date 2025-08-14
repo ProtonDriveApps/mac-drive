@@ -18,7 +18,7 @@
 import Foundation
 import CoreData
 import ProtonCoreUtilities
-import PDDesktopDevKit
+import ProtonDriveProtos
 import PDClient
 import PDCore
 import PDFileProvider
@@ -93,7 +93,7 @@ public class DDKMetadataUpdater {
         guard let responseData = response.responseBody.data(using: .utf8) else {
             throw ResponseParsingError.cannotCreateData
         }
-        let revisionResponse = try JSONDecoder.decapitalisingFirstLetter.decode(
+        let revisionResponse = try JSONDecoder.driveImplementationOfDecapitalisingFirstLetter.decode(
             PDClient.RevisionEndpoint.Response.self, from: responseData
         )
         cachedGetRevisionResponses.mutate { $0[response.operationID] = revisionResponse.revision }
@@ -224,14 +224,14 @@ public class DDKMetadataUpdater {
         let newFile: NewFile
         let didIdentifyConflict: FileUploadConflict
         do {
-            newFile = try JSONDecoder.decapitalisingFirstLetter.decode(
+            newFile = try JSONDecoder.driveImplementationOfDecapitalisingFirstLetter.decode(
                 PDClient.NewFileEndpoint.Response.self, from: responseData
             ).file
             didIdentifyConflict = .none
         } catch {
             // corresponds to a special error response from NewFileEndpoint call
             // that indicates the file draft already exists, and can be reused
-            let conflictResponse = try JSONDecoder.decapitalisingFirstLetter.decode(
+            let conflictResponse = try JSONDecoder.driveImplementationOfDecapitalisingFirstLetter.decode(
                 RevisionConflictResponse.self, from: responseData
             )
             // conflictDraftRevisionID is when the draft is reused, conflictRevisionID is when new revision will be uploaded
@@ -256,7 +256,7 @@ public class DDKMetadataUpdater {
         guard let responseData = response.responseBody.data(using: .utf8) else {
             throw ResponseParsingError.cannotCreateData
         }
-        return try JSONDecoder.decapitalisingFirstLetter.decode(PDClient.LinkEndpoint.Response.self, from: responseData).link
+        return try JSONDecoder.driveImplementationOfDecapitalisingFirstLetter.decode(PDClient.LinkEndpoint.Response.self, from: responseData).link
     }
 
     // MARK: Revision upload parsing
@@ -294,13 +294,13 @@ public class DDKMetadataUpdater {
         }
         let newRevision: NewRevision
         do {
-            newRevision = try JSONDecoder.decapitalisingFirstLetter.decode(
+            newRevision = try JSONDecoder.driveImplementationOfDecapitalisingFirstLetter.decode(
                 NewRevisionEndpoint.Response.self, from: responseData
             ).revision
         } catch {
             // corresponds to a special error response from NewRevisionEndpoint call
             // that indicates the revision draft already exists, and can be reused
-            let conflictResponse = try JSONDecoder.decapitalisingFirstLetter.decode(
+            let conflictResponse = try JSONDecoder.driveImplementationOfDecapitalisingFirstLetter.decode(
                 RevisionConflictResponse.self, from: responseData
             )
             guard let revisionID = conflictResponse.details.conflictDraftRevisionID else {
@@ -393,7 +393,7 @@ public class DDKMetadataUpdater {
     func updateMetadataAfterSuccessfulFileUpload(
         fileUploaderCreationRequest: FileUploaderCreationRequest,
         fileUploadRequest: FileUploadRequest,
-        fileUploadResponse _: PDDesktopDevKit.FileUploadResponse,
+        fileUploadResponse _: ProtonDriveProtos.FileUploadResponse,
         itemTemplate: NSFileProviderItem,
         parent: Folder,
         in moc: NSManagedObjectContext
@@ -589,7 +589,7 @@ public class DDKMetadataUpdater {
         item: NSFileProviderItem,
         fileUploaderCreationRequest: FileUploaderCreationRequest,
         revisionUploadRequest: RevisionUploadRequest,
-        revision: PDDesktopDevKit.Revision,
+        revision: ProtonDriveProtos.Revision,
         in moc: NSManagedObjectContext
     ) async -> Result<NodeItem, MetadataUpdateError> {
         do {

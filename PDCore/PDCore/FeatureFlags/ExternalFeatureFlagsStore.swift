@@ -30,7 +30,6 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .logsCompressionDisabled: logsCompressionDisabled = value
         case .domainReconnectionEnabled: domainReconnectionEnabled = value
         case .postMigrationJunkFilesCleanup: postMigrationJunkFilesCleanup = value
-        case .newTrayAppMenuEnabled: newTrayAppMenuEnabled = value
         case .pushNotificationIsEnabled: pushNotificationIsEnabled = value
         case .logCollectionEnabled: logCollectionEnabled = value
         case .logCollectionDisabled: logCollectionDisabled = value
@@ -38,7 +37,7 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .driveDisablePhotosForB2B: driveDisablePhotosForB2B = value
         case .driveDDKEnabled: driveDDKEnabled = value
         case .driveMacSyncRecoveryDisabled: driveMacSyncRecoveryDisabled = value
-        case .driveMacKeepDownloaded: driveMacKeepDownloaded = value
+        case .driveMacKeepDownloadedDisabled: driveMacKeepDownloadedDisabled = value
         // Sharing
         case .driveSharingMigration: driveSharingMigration = value
         case .driveSharingInvitations: driveSharingInvitations = value
@@ -85,7 +84,6 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .logsCompressionDisabled: return logsCompressionDisabled
         case .domainReconnectionEnabled: return domainReconnectionEnabled
         case .postMigrationJunkFilesCleanup: return postMigrationJunkFilesCleanup
-        case .newTrayAppMenuEnabled: return newTrayAppMenuEnabled
         case .pushNotificationIsEnabled: return pushNotificationIsEnabled
         case .logCollectionEnabled: return logCollectionEnabled
         case .logCollectionDisabled: return logCollectionDisabled
@@ -93,7 +91,7 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .driveDisablePhotosForB2B: return driveDisablePhotosForB2B
         case .driveDDKEnabled: return driveDDKEnabled
         case .driveMacSyncRecoveryDisabled: return driveMacSyncRecoveryDisabled
-        case .driveMacKeepDownloaded: return driveMacKeepDownloaded
+        case .driveMacKeepDownloadedDisabled: return driveMacKeepDownloadedDisabled
         // Sharing
         case .driveSharingMigration: return driveSharingMigration
         case .driveSharingInvitations: return driveSharingInvitations

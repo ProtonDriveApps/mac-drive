@@ -55,7 +55,7 @@ public class MyFilesFileUploader: FileUploader {
         do {
             let draft = try FileDraft.extract(from: file)
             let uploadID = draft.uploadID
-            Log.info("1️⃣ file upload will start, retry: \(retryCount), UUID: \(uploadID), FileID \(file.id)", domain: .uploader)
+            Log.info("1️⃣ file upload will start, retry: \(retryCount), UUID: \(uploadID), FileID \(file.id), State: \(draft.state.rawValue)", domain: .uploader)
             initializeMeasurement(of: draft.uri)
 
             let operation = fileUploadFactory.getOperations(for: draft) { [weak self] result in

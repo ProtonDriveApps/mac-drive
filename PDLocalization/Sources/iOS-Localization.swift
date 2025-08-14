@@ -1437,9 +1437,28 @@ public class Localization {
     /// "Save shared photo"
     public static var save_shared_photo: String { localized(key: "save_shared_photo", table: "iOS-Localizable") }
 
+    /// "Section title "
+    /// "ABOUT"
+    public static var setting_about: String { localized(key: "setting_about", table: "iOS-Localizable") }
+
     /// "Button title"
     /// "Manage account"
     public static var setting_account_manage_account: String { localized(key: "setting_account_manage_account", table: "iOS-Localizable") }
+
+    /// "Section title"
+    /// "Account Settings"
+    public static var setting_account_settings: String { localized(key: "setting_account_settings", table: "iOS-Localizable") }
+
+    /// "Title of acknowledgments page"
+    /// "Acknowledgments"
+    public static var setting_acknowledgments: String { localized(key: "setting_acknowledgments", table: "iOS-Localizable") }
+
+    /// "Section title"
+    /// "APP SETTINGS"
+    public static var setting_app_settings: String { localized(key: "setting_app_settings", table: "iOS-Localizable") }
+
+    /// "App Version: %@"
+    public static func setting_app_version(version: String) -> String { String(format: localized(key: "setting_app_version", table: "iOS-Localizable"), version) }
 
     /// "Biometry protection setting title"
     /// "Biometry"
@@ -1499,6 +1518,14 @@ public class Localization {
     /// "PIN"
     public static var setting_pin: String { localized(key: "setting_pin", table: "iOS-Localizable") }
 
+    /// "Title of privacy policy page"
+    /// "Privacy policy"
+    public static var setting_privacy_policy: String { localized(key: "setting_privacy_policy", table: "iOS-Localizable") }
+
+    /// "Title of security key page "
+    /// "Security keys"
+    public static var setting_security_key: String { localized(key: "setting_security_key", table: "iOS-Localizable") }
+
     /// "Storage setting section title"
     /// "Storage"
     public static var setting_storage: String { localized(key: "setting_storage", table: "iOS-Localizable") }
@@ -1543,6 +1570,10 @@ public class Localization {
 
     /// "Terms and Conditions"
     public static var setting_terms_and_condition: String { localized(key: "setting_terms_and_condition", table: "iOS-Localizable") }
+
+    /// "Title of terms of service page"
+    /// "Terms of service"
+    public static var setting_terms_of_service: String { localized(key: "setting_terms_of_service", table: "iOS-Localizable") }
 
     /// "Title of default home tab setting"
     /// "Default home tab"

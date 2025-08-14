@@ -21,7 +21,8 @@ extension ISO8601DateFormatter {
 
     public static let fileLogFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime, .withFractionalSeconds, .withTimeZone]
+        formatter.timeZone = TimeZone.autoupdatingCurrent
         return formatter
     }()
 

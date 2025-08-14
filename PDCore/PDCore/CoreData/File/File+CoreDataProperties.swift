@@ -98,3 +98,20 @@ public extension File {
         }
     }
 }
+
+public extension Node {
+    var presentableNodeSize: Int {
+        guard let file = self as? File, !file.isProtonFile else {
+            return size
+        }
+        if let activeRevision = file.activeRevision {
+            return activeRevision.presentableRevisionSize
+        } else if let mostRecentRevision = file.revisions.max(by: {
+            ($0.created?.timeIntervalSince1970 ?? 0) < ($1.created?.timeIntervalSince1970 ?? 0)
+        }) {
+            return mostRecentRevision.presentableRevisionSize
+        } else {
+            return file.size
+        }
+    }
+}

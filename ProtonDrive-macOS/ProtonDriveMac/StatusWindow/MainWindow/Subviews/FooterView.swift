@@ -48,7 +48,7 @@ struct FooterView: View {
             })
 
             if state.canGetMoreStorage {
-                Button(action: actions.links.getMoreStorage, label: {
+                Button(action: { actions.links.getMoreStorage(email: state.accountInfo?.email) }, label: {
                     Label(
                         title: { Text("Add storage") },
                         icon: { Image("bolt") }

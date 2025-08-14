@@ -27,3 +27,14 @@ public struct SettingsStorageKey {
         photosSkippableCacheKey
     ]
 }
+
+struct AppDefaultKey {
+    public let value: String
+
+    static let appleLanguages = AppDefaultKey(value: "AppleLanguages")
+
+    static var keysExcludedFromWiping = [
+        // To keep preferred language after clearing cache  
+        appleLanguages
+    ]
+}

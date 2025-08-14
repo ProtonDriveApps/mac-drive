@@ -111,11 +111,11 @@ class ThumbnailRevisionEncryptor: RevisionEncryptor {
         }
         let nodePassphrase = try file.decryptPassphrase()
 #if os(macOS)
-        // TODO: Conceptually it should we should use draft.revision.signatureAddress, in this case is the same because the creator of the file is the same as the creator of the revision, and both are created at the same time
-        let signersKit = try signersKitFactory.make(forSigner: .address(signatureEmail))
+//        // TODO: Conceptually it should we should use draft.revision.signatureAddress, in this case is the same because the creator of the file is the same as the creator of the revision, and both are created at the same time
+        let signersKit = try file.getContextShareAddressBasedSignersKit(signersKitFactory: signersKitFactory,
+                                                                        fallbackSigner: .address(signatureEmail))
 #else
-        let addressID = try file.getContextShareAddressID()
-        let signersKit = try signersKitFactory.make(forAddressID: addressID)
+        let signersKit = try file.getContextShareAddressBasedSignersKit(signersKitFactory: signersKitFactory)
 #endif
         return EncryptionMetadata(
             nodeKey: file.nodeKey,

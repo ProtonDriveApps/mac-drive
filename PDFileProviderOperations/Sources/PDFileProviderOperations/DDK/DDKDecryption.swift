@@ -18,6 +18,7 @@
 import Foundation
 import PDCore
 import PDDesktopDevKit
+import ProtonDriveProtos
 
 extension Node {
     func decryptNameWithDDK(protonDriveClient: ProtonDriveClient, volumeId: String) throws -> String {

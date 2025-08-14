@@ -25,7 +25,8 @@ class VolumeDBCloudSlot: CloudSlotProtocol {
     private let apiService: APIService
     private let client: PDClient.Client
     private let cloudSlot: CloudSlotProtocol
-    
+    weak var downloader: DownloaderProtocol?
+
     var moc: NSManagedObjectContext { storage.backgroundContext }
 
     init(
@@ -38,6 +39,10 @@ class VolumeDBCloudSlot: CloudSlotProtocol {
         self.apiService = apiService
         self.client = client
         self.cloudSlot = cloudSlot
+    }
+
+    func set(downloader: DownloaderProtocol) {
+        self.downloader = downloader
     }
 
     func scanShare(shareID: String, handler: @escaping (Result<Share, any Error>) -> Void) {
@@ -260,7 +265,7 @@ class VolumeDBCloudSlot: CloudSlotProtocol {
     }
 
     func trash(_ nodes: [TrashingNodeIdentifier]) async throws {
-        let trasher = NodeTrasher(client: client, storage: storage)
+        let trasher = NodeTrasher(client: client, storage: storage, downloader: downloader)
         try await trasher.trash(nodes)
     }
 

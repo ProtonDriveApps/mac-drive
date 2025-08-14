@@ -108,4 +108,7 @@ public enum Constants {
     public static var metadataModelUnderDevelopment: String? {
         return nil
     }
+
+    // MARK: - Build type features
+    public static var buildFeatures: BuildFeatures = .default
 }
