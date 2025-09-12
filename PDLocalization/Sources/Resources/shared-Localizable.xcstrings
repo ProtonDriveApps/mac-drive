@@ -467,6 +467,12 @@
             "value" : "保存せずに削除"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "წაშლა შენახვის გარეშე"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -645,6 +651,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "アルバムから離れる"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ალბომის დატოვება"
           }
         },
         "ko" : {
@@ -1358,7 +1370,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enregistrer les photos et retirer"
+            "value" : "Enregistrer les photos et supprimez-les"
           }
         },
         "hu" : {
@@ -1383,6 +1395,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "写真を保存して削除"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ფოტოების შენახვა და წაშლა"
           }
         },
         "ko" : {
@@ -2501,6 +2519,24 @@
             }
           }
         },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "რა გსურთ, რომ უყოთ ამ ერთეულს?,%d"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "რა გსურთ, რომ უყოთ ამ ერთეულებს?,%d"
+                }
+              }
+            }
+          }
+        },
         "ko" : {
           "variations" : {
             "plural" : {
@@ -2669,6 +2705,24 @@
             }
           }
         },
+        "sv" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Vad vill du göra med det här objektet?,%d"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Vad vill du göra med de här objekten?,%d"
+                }
+              }
+            }
+          }
+        },
         "tr" : {
           "variations" : {
             "plural" : {
@@ -2682,6 +2736,36 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "Bu ögelerle ne yapmak istersiniz?,%d"
+                }
+              }
+            }
+          }
+        },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Що ви хочете зробити з цими елементами?, %d"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Що ви хочете зробити з цими елементами?, %d"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Що ви хочете зробити з цим елементом?, %d"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Що ви хочете зробити з цими елементами?, %d"
                 }
               }
             }
@@ -2779,7 +2863,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Êtes-vous sûr de vouloir supprimer le ou les éléments sélectionnés de votre album ?"
+            "value" : "Êtes-vous sûr de vouloir supprimer le ou les éléments sélectionnés de votre disque ?"
           }
         },
         "hu" : {
@@ -2804,6 +2888,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本当に選択したアイテムをアルバムから削除しますか？"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "დარწმუნებული ხართ, რომ გსურთ მონიშნული ერთეულ(ებ)ის წაშლა თქვენი ალბომიდან?"
           }
         },
         "ko" : {
@@ -2852,6 +2942,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Skutočne chcete odstrániť z albumu vybrané položky?"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Är du säker på att du vill ta bort de valda objekten från ditt album?"
           }
         },
         "tr" : {
@@ -3351,6 +3447,24 @@
             }
           }
         },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ამ ფოტოზე წვდომას დაკარგავთ. თუ ჯერ არ შეგი­ნახავთ, შეინახეთ ის თქვენი ფოტოების ქრონიკაში, სანამ ალბომიდან წაშლით."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ამ %d ფოტოზე წვდომას დაკარგავთ. თუ ჯერ არ შეგი­ნახავთ, შეინახეთ ისინი თქვენი ფოტოების ქრონიკაში, სანამ ალბომიდან წაშლით."
+                }
+              }
+            }
+          }
+        },
         "ko" : {
           "variations" : {
             "plural" : {
@@ -3580,6 +3694,36 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "Bu %d fotoğrafa erişemeyeceksiniz. Henüz yapmadıysanız, albümden kaldırmadan önce fotoğrafı zaman akışınıza kaydedin."
+                }
+              }
+            }
+          }
+        },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Ви втратите доступ до цих %d фотографій. Якщо ви ще цього не зробили, збережіть їх у своїй хронології, перш ніж видаляти з альбому."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Ви втратите доступ до цих %d фотографій. Якщо ви ще цього не зробили, збережіть їх у своїй хронології, перш ніж видаляти з альбому."
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Ви втратите доступ до цієї фотографії. Якщо ви ще цього не зробили, збережіть її у своїй хронології, перш ніж видаляти з альбому."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Ви втратите доступ до цих %d фотографій. Якщо ви ще цього не зробили, збережіть їх у своїй хронології, перш ніж видаляти з альбому."
                 }
               }
             }
@@ -4446,6 +4590,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "このアルバムの一部の写真はあなたのタイムラインに保存されません。このアルバムを削除するとそれらの写真は完全に削除されます。\n\n削除する前に保存しますか？"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ამ ალბომის ზოგიერთი ფოტო არ არის შენახული თქვენს ქრონიკაში. ამ ალბომის წაშლით ეს ფოტოები სამუდამოდ წაიშლება.\\n\\nგსურთ მათი შენახვა წაშლამდე?"
           }
         },
         "ko" : {
@@ -9704,13 +9854,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d element afegit al vostre estríming"
+                  "value" : "%d element afegit a l'estríming"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d elements afegits al vostre estríming"
+                  "value" : "%d elements afegits a l'estríming"
                 }
               }
             }
@@ -9950,6 +10100,24 @@
             }
           }
         },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ერთეული დაემატა თქვენს ნაკადს"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ერთეული დაემატა თქვენს ნაკადს"
+                }
+              }
+            }
+          }
+        },
         "ko" : {
           "variations" : {
             "plural" : {
@@ -10143,6 +10311,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d položiek pridaných do vášho streamu"
+                }
+              }
+            }
+          }
+        },
+        "sv" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d objekt har lagts till i din ström"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d objekt har lagts till i din ström"
                 }
               }
             }
@@ -10503,6 +10689,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 個のアイテムはすでに存在しています"
+                }
+              }
+            }
+          }
+        },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ერთეული უკვე არსებობს"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ერთეული უკვე არსებობს"
                 }
               }
             }
@@ -11084,6 +11288,24 @@
             }
           }
         },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ერთეული სრულად არ ატვირთულა"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ერთეული სრულად არ ატვირთულა"
+                }
+              }
+            }
+          }
+        },
         "ko" : {
           "variations" : {
             "plural" : {
@@ -11277,6 +11499,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d položiek nie je úplne nahraných"
+                }
+              }
+            }
+          }
+        },
+        "sv" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d objekt har inte laddats upp helt"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d objekt har inte laddats upp helt"
                 }
               }
             }
@@ -11637,6 +11877,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d個のアイテムの追加に失敗しました"
+                }
+              }
+            }
+          }
+        },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ერთეულის დამატება ვერ მოხერხდა"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ერთეულის დამატება ვერ მოხერხდა"
                 }
               }
             }
@@ -12213,6 +12471,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d個のアイテムの削除に失敗しました"
+                }
+              }
+            }
+          }
+        },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ერთეულის წაშლა ვერ მოხერხდა"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ერთეულის წაშლა ვერ მოხერხდა"
                 }
               }
             }
@@ -13982,6 +14258,24 @@
             }
           }
         },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ერთეული წაიშალა ნაკადიდან"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ერთეული წაიშალა ნაკადიდან"
+                }
+              }
+            }
+          }
+        },
         "ko" : {
           "variations" : {
             "plural" : {
@@ -14175,6 +14469,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d položiek odstránených zo streamu"
+                }
+              }
+            }
+          }
+        },
+        "sv" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d objekt har tagits bort från strömmen"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d objekt har tagits bort från strömmen"
                 }
               }
             }

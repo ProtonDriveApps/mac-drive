@@ -8,6 +8,7 @@
 	<array>
 		<string>webcredentials:account.protonmail.com</string>
 		<string>webcredentials:account.proton.me</string>
+		<string>webcredentials:proton.me</string>
 	</array>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>

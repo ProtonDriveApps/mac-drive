@@ -48,6 +48,7 @@ public class Tower: NSObject {
     public let paymentsStorage: PaymentsSecureStorage
     public let offlineSaver: OfflineSaver?
     public let connectionStateResource: ConnectionStateResource
+    public let performanceMetricsController: PerformanceMetricsControllerProtocol?
 
     public var photoUploader: FileUploader?
 
@@ -62,6 +63,7 @@ public class Tower: NSObject {
     public let parallelEncryption: Bool
     public let entitlementsManager: EntitlementsManagerProtocol
     private var cancellables = Set<AnyCancellable>()
+    public let uploadedBytesCounterResource: BytesCounterResource
 
     // internal for Tower+Events.swift
     var externalInvitationConverter: ExternalInvitationConvertProtocol?
@@ -101,6 +103,7 @@ public class Tower: NSObject {
     }
     private let cleanUpStartController: CleanUpStartController
 
+    // swiftlint:disable:next function_body_length
     public init(storage: StorageManager,
                 syncStorage: SyncStorageManager? = nil,
                 eventStorage: EventStorageManager,
@@ -143,13 +146,20 @@ public class Tower: NSObject {
 
         #if os(macOS)
         self.cloudSlot = CloudSlot(client: client, storage: storage, sessionVault: sessionVault)
+        self.performanceMetricsController = nil
         #else
         let legacyCloudSlot = CloudSlot(client: client, storage: storage, sessionVault: sessionVault)
         self.cloudSlot = VolumeDBCloudSlot(storage: storage, apiService: api, client: client, cloudSlot: legacyCloudSlot)
+        self.performanceMetricsController = PerformanceMetricsController()
         #endif
 
         let endpointFactory = DriveEndpointFactory(service: api, credentialProvider: sessionVault)
-        let downloader = Downloader(cloudSlot: cloudSlot, storage: storage, endpointFactory: endpointFactory)
+        let downloader = Downloader(
+            cloudSlot: cloudSlot,
+            storage: storage,
+            endpointFactory: endpointFactory,
+            bytesCounterResource: ThreadSafeBytesCounterResource()
+        )
         self.downloader = downloader
         #if os(iOS)
         if let slot = cloudSlot as? VolumeDBCloudSlot {
@@ -168,7 +178,7 @@ public class Tower: NSObject {
         )
 
         // Thumbnails
-        self.thumbnailLoader = ThumbnailLoaderFactory().makeFileThumbnailLoader(storage: storage, cloudSlot: cloudSlot, client: client)
+        self.thumbnailLoader = ThumbnailLoaderFactory().makeFileThumbnailLoader(storage: storage, cloudSlot: cloudSlot, client: client, performanceMetricsController: performanceMetricsController)
 
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last!
         self.fileSystemSlot = FileSystemSlot(baseURL: documents, storage: self.storage, syncStorage: self.syncStorage)
@@ -182,9 +192,7 @@ public class Tower: NSObject {
         self.eventProcessingMode = eventProcessingMode
         volumeIdsController = VolumeIdsController()
         let eventsFactory = EventsFactory()
-        #if targetEnvironment(simulator)
-        eventsTimingController = DebugEventLoopsTimingController()
-        #elseif os(iOS)
+        #if os(iOS)
         eventsTimingController = eventsFactory.makeMultipleVolumesTimingController(volumeIdsController: volumeIdsController)
         #else
         eventsTimingController = eventsFactory.makeSingleVolumeTimingController(interval: eventLoopInterval)
@@ -198,10 +206,11 @@ public class Tower: NSObject {
         self.fileImporter = CoreDataFileImporter(moc: storage.backgroundContext, signersKitFactory: sessionVault, uploadClientUIDProvider: sessionVault)
         self.revisionImporter = CoreDataRevisionImporter(signersKitFactory: sessionVault, uploadClientUIDProvider: sessionVault)
 
+        uploadedBytesCounterResource = ThreadSafeBytesCounterResource()
         #if os(macOS)
         parallelEncryption = true
         self.fileUploader = FileUploader(
-            fileUploadFactory: DiscreteFileUploadOperationsProviderFactory(storage: storage, cloudSlot: cloudSlot, sessionVault: sessionVault, verifierFactory: uploadVerifierFactory, apiService: api, client: client, parallelEncryption: parallelEncryption).make(),
+            fileUploadFactory: DiscreteFileUploadOperationsProviderFactory(storage: storage, cloudSlot: cloudSlot, sessionVault: sessionVault, verifierFactory: uploadVerifierFactory, apiService: api, client: client, parallelEncryption: parallelEncryption, uploadedBytesCounterResource: uploadedBytesCounterResource).make(),
             filecleaner: cloudSlot,
             moc: storage.backgroundContext
         )
@@ -210,14 +219,14 @@ public class Tower: NSObject {
         parallelEncryption = false
         if Constants.runningInExtension {
             self.fileUploader = FileUploader(
-                fileUploadFactory: StreamFileUploadOperationsProviderFactory(storage: storage, cloudSlot: cloudSlot, sessionVault: sessionVault, verifierFactory: uploadVerifierFactory, apiService: api, client: client, parallelEncryption: parallelEncryption).make(),
+                fileUploadFactory: StreamFileUploadOperationsProviderFactory(storage: storage, cloudSlot: cloudSlot, sessionVault: sessionVault, verifierFactory: uploadVerifierFactory, apiService: api, client: client, parallelEncryption: parallelEncryption, uploadedBytesCounterResource: uploadedBytesCounterResource).make(),
                 filecleaner: cloudSlot,
                 moc: storage.backgroundContext
             )
             self.offlineSaver = nil
         } else {
             self.fileUploader = MyFilesFileUploader(
-                fileUploadFactory: iOSFileUploadOperationsProviderFactory(storage: storage, cloudSlot: cloudSlot, sessionVault: sessionVault, verifierFactory: uploadVerifierFactory, apiService: api, client: client, parallelEncryption: parallelEncryption).make(),
+                fileUploadFactory: iOSFileUploadOperationsProviderFactory(storage: storage, cloudSlot: cloudSlot, sessionVault: sessionVault, verifierFactory: uploadVerifierFactory, apiService: api, client: client, parallelEncryption: parallelEncryption, uploadedBytesCounterResource: uploadedBytesCounterResource).make(),
                 filecleaner: cloudSlot,
                 moc: storage.backgroundContext
             )
@@ -353,6 +362,7 @@ public class Tower: NSObject {
         photoUploader?.cancelAllOperations()
         fileUploader.didSignOut = true
         fileUploader.cancelAllOperations()
+        performanceMetricsController?.reset()
 
         if cacheCleanupStrategy.shouldCleanEvents {
             Self.discardEventsPolling(for: coreEventManager)

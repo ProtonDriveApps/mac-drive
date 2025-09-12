@@ -56,20 +56,22 @@ struct SyncStateView: View {
             Image("pause")
         case .offline:
             Image("cloud-slash")
-        case .syncing, .enumerating, .launching:
-            Image("syncing")
+        case .syncing,
+                .enumerating,
+                .launching,
+                .fullResyncInProgress:
+            SpinningImage("syncing", duration: 2)
         case .errored:
             Image("errored")
                 .resizable()
                 .tint(ColorProvider.SignalDanger)
         case .synced,
-             .signedOut,
-             .updateAvailable:
+                .signedOut,
+                .updateAvailable,
+                .fullResyncCompleted:
             Image("synced")
                 .renderingMode(.template)
                 .foregroundStyle(ColorProvider.SignalSuccess)
-        case .fullResync:
-            Image("syncing")
         }
     }
 }

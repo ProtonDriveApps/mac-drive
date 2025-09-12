@@ -127,10 +127,10 @@ enum TestRunnerAction {
             userActions.fileProvider.keepOnlineOnly(paths: paths.components(separatedBy: ":"))
 
         case .startFullResync:
-            userActions.sync.performFullResync()
+            userActions.resync.performFullResync()
 
         case .finishFullResync:
-            userActions.sync.finishFullResync()
+            userActions.resync.finishFullResync()
 
         case .openMenu:
             userActions.app.toggleStatusWindow(onlyOpen: true)
@@ -186,16 +186,15 @@ class TestRunner {
 
         /// This is necessary because this method is synchronous, and `reply` has to be modified before it exits -
         /// but action.run() has to be asynchronous because otherwise we still wouldn't be able to wait until the action is completed.
-        let group = DispatchGroup()
-        group.enter()
+        let semaphore = DispatchSemaphore(value: 0)
 
         var resultString: String?
-        Task.detached(priority: .userInitiated) {
+        Task.detached {
             resultString = await action.run(self.userActions, self)
-            group.leave()
+            semaphore.signal()
         }
 
-        group.wait()
+        semaphore.wait()
 
         if let resultString {
             let responseDescriptor = NSAppleEventDescriptor(string: resultString)

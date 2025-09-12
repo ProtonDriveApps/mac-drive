@@ -60,6 +60,7 @@ public class InitialServices {
     public init(userDefault: UserDefaults,
                 clientConfig: Configuration,
                 mainKeyProvider: MainKeyProvider,
+                autoLocker: Autolocker?,
                 sessionRelatedCommunicatorFactory: @escaping SessionRelatedCommunicatorFactory) {
         self.userDefault = userDefault
         self.mainKeyProvider = mainKeyProvider
@@ -68,7 +69,14 @@ public class InitialServices {
         self.localSettings = LocalSettings.shared
 
         let (sessionVault, networking, serviceDelegate, authenticator, communicator, featureFlagsRepository, pushNotificationService, connectionStateResource) =
-            Self.makeServices(userDefault: userDefault, clientConfig: clientConfig, and: mainKeyProvider, using: sessionRelatedCommunicatorFactory, localSettings: localSettings)
+            Self.makeServices(
+                userDefault: userDefault,
+                clientConfig: clientConfig,
+                and: mainKeyProvider,
+                using: sessionRelatedCommunicatorFactory,
+                localSettings: localSettings,
+                autoLocker: autoLocker
+            )
 
         self.sessionVault = sessionVault
         self.networkService = networking
@@ -101,7 +109,8 @@ public class InitialServices {
         clientConfig: Configuration,
         and mainKeyProvider: MainKeyProvider,
         using sessionRelatedCommunicatorFactory: SessionRelatedCommunicatorFactory,
-        localSettings: LocalSettings
+        localSettings: LocalSettings,
+        autoLocker: Autolocker?
     ) -> (SessionVault, PMAPIService, PMAPIClient, Authenticator, SessionRelatedCommunicatorBetweenMainAppAndExtensions, FeatureFlagsRepositoryProtocol, PushNotificationServiceProtocol?, ConnectionStateResource) {
         let sessionVault = SessionVault(mainKeyProvider: mainKeyProvider)
 #if os(iOS)
@@ -129,7 +138,8 @@ public class InitialServices {
             apiService: networking,
             authenticator: authenticator,
             generalReachability: try? Reachability(hostname: clientConfig.apiOrigin),
-            sessionRelatedCommunicator: sessionRelatedCommunicator
+            sessionRelatedCommunicator: sessionRelatedCommunicator,
+            autoLocker: autoLocker
         )
 
         TrustKitFactory.make(isHardfail: true, delegate: serviceDelegate)
@@ -146,6 +156,8 @@ public class InitialServices {
         // Override FF values for dynamic plans and easy device migration, after launch during services creation. Original override.
         let featureFlagsRepository = ProtonCoreFeatureFlags.FeatureFlagsRepository.shared
         featureFlagsRepository.setApiService(networking)
+        let userID = sessionVault.userInfo?.ID
+        featureFlagsRepository.setUserId(userID ?? "")
         featureFlagsRepository.setFlagOverride(CoreFeatureFlagType.dynamicPlan, true)
         featureFlagsRepository.resetFlagOverride(CoreFeatureFlagType.easyDeviceMigrationDisabled)
         Task {

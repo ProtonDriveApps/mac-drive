@@ -118,7 +118,7 @@ extension Tower: EventsSystemManager {
             return
         }
 
-        Log.info("Adding shared volumes loops \(volumeId)", domain: .events)
+        Log.info("Adding photo volume loop \(volumeId)", domain: .events)
         let factory = EventsFactory()
         let volumeConveyor = factory.makeVolumeConveyor(tower: self, volumeId: volumeId, referenceStorage: volumeEventsReferenceStorage)
         let loop = factory.makeEventsLoop(tower: self, conveyor: volumeConveyor, volumeId: volumeId)
@@ -143,7 +143,7 @@ extension Tower: EventsSystemManager {
     }
 
     public func removeSharedVolumesEventLoops(volumeIds: [String]) {
-        Log.info("Removing shared volumes loops", domain: .events)
+        Log.info("Removing shared volumes loops: \(volumeIds)", domain: .events)
         volumeIdsController.removeSharedVolumes(ids: volumeIds)
         coreEventManager.removeLoops(with: volumeIds)
     }

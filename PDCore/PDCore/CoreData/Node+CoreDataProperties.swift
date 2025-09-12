@@ -40,8 +40,8 @@ extension Node {
     @NSManaged public var permissionsMaskRaw: Int
     @NSManaged public var shareID: String
     @NSManaged public var volumeID: String
-    @NSManaged public var signatureEmail: String?
-    @NSManaged public var nameSignatureEmail: String?
+    @NSManaged public var signatureEmail: String? // Encrypted by `DriveStringCryptoTransformer`
+    @NSManaged public var nameSignatureEmail: String? // Encrypted by `DriveStringCryptoTransformer`
     @NSManaged public var size: Int
     @NSManaged public var directShares: Set<Share>
     @available(*, deprecated, message: "Don't use directly, use `parentNode: Node?` or `parentFolder: Folder?`")

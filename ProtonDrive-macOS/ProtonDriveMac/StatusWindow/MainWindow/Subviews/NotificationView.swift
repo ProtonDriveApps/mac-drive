@@ -64,6 +64,18 @@ struct NotificationView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .background(Color(ColorProvider.SignalInfo.withAlphaComponent(0.1)))
 
+        case .resyncFinished:
+            Button(action: action, label: {
+                Text(state.fullResyncState.description + " (click to dismiss)")
+                    .font(.callout)
+                    .foregroundStyle(Color(ColorProvider.SignalInfo))
+            })
+            .padding(.horizontal, 16)
+            .padding(.vertical, 4)
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .background(Color(ColorProvider.SignalInfo.withAlphaComponent(0.1)))
+
         case .none:
             EmptyView()
         }

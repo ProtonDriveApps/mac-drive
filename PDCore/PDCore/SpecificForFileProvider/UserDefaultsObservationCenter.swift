@@ -54,6 +54,7 @@ public final class UserDefaultsObservationCenter {
         }
     }
 
+    /// Observes changes to a keyPath until removed
     public func addObserver<Value>(_ observer: AnyObject, of key: KeyPath<UserDefaults, Value>, using handler: @escaping (Value?) -> Void) {
         let additionalLogging = self.additionalLogging
         let instanceIdentifier = self.instanceIdentifier

@@ -16,7 +16,21 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import Foundation
+import SwiftUI
 
 public class PDLoginMacOS {
+    public static let contentHorizontalPadding: CGFloat = 54
+    public static let contentWidth: CGFloat = 300
+    public static let frameWidth: CGFloat = 420
+    public static let frameHeight: CGFloat = 480
+    
     public static let bundle = Bundle.module
+    
+    static var logoImage: some View {
+        Image("login_logo", bundle: PDLoginMacOS.bundle)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 188, height: 36)
+            .padding(.top, 24)
+    }
 }

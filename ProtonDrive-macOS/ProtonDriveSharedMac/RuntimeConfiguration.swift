@@ -174,7 +174,7 @@ struct RuntimeConfiguration: PlistSaveable {
         var dictionary = self.loadFromPlist(url: try configFileURL()) ?? [:]
         dictionary["includeTracesInLogs"] = !self.includeTracesInLogs
         self.saveToPlist(url: try configFileURL(), data: dictionary)
-        fatalError("Toggled runtime config file")
+        fatalError(ExceptionMessagesExcludedFromSentryCrashReport.toggledRuntimeConfigFile.rawValue)
     }
 
     /// Call to create a sample config file when needed.

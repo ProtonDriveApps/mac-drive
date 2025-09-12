@@ -164,16 +164,18 @@ class LegacyDownloadFileOperation: SynchronousOperation, DownloadOperation {
     private let endpointFactory: EndpointFactory
     private var completion: Completion?
     private let storage: StorageManager
+    private let bytesCounterResource: BytesCounterResource
 
     var identifier: AnyVolumeIdentifier {
         fileIdentifier.any()
     }
 
-    init(_ file: File, cloudSlot: CloudSlotProtocol, endpointFactory: EndpointFactory, storage: StorageManager, completion: @escaping Completion) {
+    init(_ file: File, cloudSlot: CloudSlotProtocol, endpointFactory: EndpointFactory, storage: StorageManager, bytesCounterResource: BytesCounterResource, completion: @escaping Completion) {
         self.fileIdentifier = file.identifier
         self.cloudSlot = cloudSlot
         self.storage = storage
         self.endpointFactory = endpointFactory
+        self.bytesCounterResource = bytesCounterResource
         self.completion = completion
         self.progress = Progress(totalUnitCount: 0)
 
@@ -197,10 +199,12 @@ class LegacyDownloadFileOperation: SynchronousOperation, DownloadOperation {
             guard !self.isCancelled else { return }
             switch result {
             case .success(let intermediateUrl):
-
+                // TODO: refactoring needed due to performance - manipulating and reading from file storage shouldn't block context's thread
                 block.managedObjectContext?.performAndWait { [fileIdentifier] in
                     do {
                         _ = try block.store(cypherfileFrom: intermediateUrl)
+                        let fileSize = (try? intermediateUrl.getFileSize()) ?? 0
+                        self.bytesCounterResource.add(bytes: fileSize)
                         Log.info("DownloadFileOperation.createDownloaded created block, file: \(fileIdentifier)", domain: .downloader)
                     } catch let error {
                         Log

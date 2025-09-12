@@ -512,24 +512,11 @@ extension SessionVault {
     
     public func addressPassphrase(for addressKey: Key) throws -> String {
         guard let userInfo = self.userInfo else {
-            throw Errors.passphrasesVaultEmpty
+            throw Errors.userNotFound
         }
         let userPassphrase = try getUserPassphrase()
         let addressKeyPassphrase = try addressKey._passphrase(userKeys: userInfo.keys, mailboxPassphrase: userPassphrase)
         return addressKeyPassphrase
-    }
-    
-    private func userKeyAndPassphrase(for addressKey: Key) throws -> (Key, String) {
-        guard let passphrases = self.passphrases, let userInfo = self.userInfo else {
-            throw Errors.passphrasesVaultEmpty
-        }
-        let userKeysWithPassphrases = Set(passphrases.map(\.key)).intersection(Set(userInfo.keys.map(\.keyID)))
-        guard let userKey = self.userInfo?.keys.first(where: { userKeysWithPassphrases.contains($0.keyID) }),
-            let passphrase = passphrases[userKey.keyID] else
-        {
-            throw Errors.noRequiredPassphrase
-        }
-        return (userKey, passphrase)
     }
 
     public func updatePassphrases(for userKeys: [Key], mailboxPassphrase: String) throws {

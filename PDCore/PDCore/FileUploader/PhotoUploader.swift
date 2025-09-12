@@ -136,7 +136,7 @@ public final class PhotoUploader: MyFilesFileUploader {
                 file.handleExpiredRemoteRevisionDraftReference()
             }
             
-            if responseError.isRetryableIncludingInternetIssues {
+            if responseError.isRetryable {
                 handleRetryOnError(responseError, file: file, retryCount: retryCount, uploadID: uploadID, completion: completion)
             } else {
                 cancelOperation(id: uploadID)

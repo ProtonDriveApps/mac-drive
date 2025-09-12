@@ -66,6 +66,7 @@ public struct LogDomain: Equatable, Hashable {
     public static let fileManager = LogDomain(name: "fileManager")
     public static let fileProvider = LogDomain(name: "fileProvider")
     public static let syncing = LogDomain(name: "syncing")
+    public static let resyncing = LogDomain(name: "resyncing")
     public static let clientNetworking = LogDomain(name: "clientNetworking")
     public static let trustKit = LogDomain(name: "trustKit")
     public static let telemetry = LogDomain(name: "telemetry")
@@ -91,6 +92,8 @@ public struct LogDomain: Equatable, Hashable {
     public static let photosTagMigration = LogDomain(name: "photosTagMigration")
     public static let userSettings = LogDomain(name: "userSettings")
     public static let exifBackfill = LogDomain(name: "exifBackfill")
+    public static let coreLibrary = LogDomain(name: "coreLibrary")
+    public static let metrics = LogDomain(name: "metrics")
 
     public static let iOSDomains: Set<LogDomain> = [
         .applicationBootstrap,
@@ -123,7 +126,10 @@ public struct LogDomain: Equatable, Hashable {
         .restricted,
         .photosTagMigration,
         .userSettings,
-        .exifBackfill
+        .exifBackfill,
+        .coreLibrary,
+        .thumbnails,
+        .metrics
     ]
 
     public static func macOSDomains(appending: Set<LogDomain>, subtracting: Set<LogDomain>) -> Set<LogDomain> {
@@ -142,6 +148,7 @@ public struct LogDomain: Equatable, Hashable {
                 .sessionManagement,
                 .storage,
                 .syncing,
+                .resyncing,
                 .uploader,
                 .testRunner,
                 .logs

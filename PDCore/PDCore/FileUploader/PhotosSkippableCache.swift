@@ -25,6 +25,7 @@ public protocol PhotosSkippableCache {
     func recordFiles(identifier: Identifier, filesToUpload: Int)
     func isSkippable(_ identifier: Identifier) -> Bool
     func checkSkippableStatus(_ identifier: Identifier) -> SkippableStatus
+    func clean()
 }
 
 public final class ConcretePhotosSkippableCache: PhotosSkippableCache {
@@ -78,6 +79,10 @@ public final class ConcretePhotosSkippableCache: PhotosSkippableCache {
         }
         storage.batchMarkAsSkippable(data: result)
     }
+
+    public func clean() {
+        storage.clean()
+    }
 }
 
 extension PhotosSkippableCache {
@@ -127,6 +132,8 @@ public final class BlankPhotosSkippableCache: PhotosSkippableCache {
         .newAsset
     }
     public func batchMarkAsSkippable(_ data: [Identifier: Int]) {}
+
+    public func clean() {}
 }
 
 extension PhotoAssetMetadata.iOSPhotos {

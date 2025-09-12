@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Proton AG
+// Copyright (c) 2025 Proton AG
 //
 // This file is part of Proton Drive.
 //
@@ -16,15 +16,28 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import Foundation
-import ProtonCoreKeymaker
 
-public final class DriveKeymaker: Keymaker {
-    override public func setupCryptoTransformers(key: MainKey?) {
-        super.setupCryptoTransformers(key: key)
-        guard let key = key else {
-            ValueTransformer.setValueTransformer(nil, forName: .init(rawValue: "DriveStringCryptoTransformer"))
-            return
-        }
-        ValueTransformer.setValueTransformer(DriveStringCryptoTransformer(key: key), forName: .init(rawValue: "DriveStringCryptoTransformer"))
+public protocol BytesCounterResource {
+    func add(bytes: Int)
+    func getBytesCount() -> Int
+    func reset()
+}
+
+final class ThreadSafeBytesCounterResource: BytesCounterResource {
+    @ThreadSafe private var totalCount: Int = 0
+
+    func add(bytes: Int) {
+        Log.debug("Adding bytes: \(bytes)", domain: .downloader)
+        totalCount += bytes
+    }
+
+    func reset() {
+        Log.debug("Resetting", domain: .downloader)
+        totalCount = 0
+    }
+
+    func getBytesCount() -> Int {
+        Log.debug("Total bytes: \(totalCount)", domain: .downloader)
+        return totalCount
     }
 }

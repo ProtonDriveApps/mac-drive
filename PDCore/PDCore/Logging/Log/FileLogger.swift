@@ -97,10 +97,13 @@ public final class FileLogger: FileLoggerProtocol {
         return dateFormatter
     }()
 
+    private let logLineDateFormatter: ISO8601DateFormatter
+
     public init(process: FileLog, subdirectory: String? = nil, oneFilePerRun: Bool, compressedLogsDisabled: @escaping () -> Bool) {
         self.compressedLogsDisabled = compressedLogsDisabled
         self.subdirectory = subdirectory ?? ""
         self.oneFilePerRun = oneFilePerRun
+        self.logLineDateFormatter = .fileLogFormatter
     }
 
     deinit {
@@ -111,15 +114,16 @@ public final class FileLogger: FileLoggerProtocol {
     // swiftlint:disable:next function_parameter_count
     public func log(_ level: LogLevel, message: String, system: LogSystem, domain: LogDomain, context: LogContext?, sendToSentryIfPossible _: Bool, file: String, function: String, line: Int) {
         self.queue.async { [weak self] in
-            let lineSeparator = "\n"
+            guard let self = self else { return }
 
-            var message = message
+            let lineSeparator = "\n"
+            let dateTime = logLineDateFormatter.string(from: Date())
+            var message = dateTime + " | " + message
             if let contextString = context?.debugDescription, !contextString.isEmpty {
                 message += "; \(contextString)"
             }
             if let data = ("\(message)\(lineSeparator)").data(using: .utf8) {
                 do {
-                    guard let self = self else { return }
                     try self.getFileHandleAtTheEndOfFile()?.write(contentsOf: data)
                     try self.rotateLogFileIfNeeded()
                 } catch {

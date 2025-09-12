@@ -28,7 +28,7 @@ public class Share: NSManagedObject, GloballyUnique {
     @NSManaged public var volumeID: String
     @NSManaged public var type: ShareType
     @NSManaged public var state: ShareState
-    @NSManaged public var creator: String?
+    @NSManaged public var creator: String? // Encrypted by `DriveStringCryptoTransformer`
     @NSManaged public var locked: Bool
     @NSManaged public var createTime: Date?
     @NSManaged public var modifyTime: Date?

@@ -40,7 +40,7 @@ public class ExtendedAttributes: NSObject, Codable {
         case iOSPhotos = "iOS.photos"
     }
     
-    public struct Common: Codable {
+    public struct Common: Codable, Equatable {
         public let modificationTime: String?
         public let size: Int?
         public let blockSizes: [Int]?
@@ -54,7 +54,7 @@ public class ExtendedAttributes: NSObject, Codable {
         }
     }
     
-    public struct Digests: Codable {
+    public struct Digests: Codable, Equatable {
         public let sha1: String?
         
         enum CodingKeys: String, CodingKey {
@@ -62,7 +62,7 @@ public class ExtendedAttributes: NSObject, Codable {
         }
     }
 
-    public struct Location: Codable {
+    public struct Location: Codable, Equatable {
         public let latitude: Double
         public let longitude: Double
 
@@ -83,7 +83,7 @@ public class ExtendedAttributes: NSObject, Codable {
         }
     }
     
-    public struct Camera: Codable {
+    public struct Camera: Codable, Equatable {
         public let captureTime: String?
         public let device: String?
         public let orientation: Int?
@@ -104,7 +104,7 @@ public class ExtendedAttributes: NSObject, Codable {
         }
     }
 
-    public struct SubjectCoordinates: Codable {
+    public struct SubjectCoordinates: Codable, Equatable {
         public let top: Int
         public let left: Int
         public let bottom: Int
@@ -126,7 +126,7 @@ public class ExtendedAttributes: NSObject, Codable {
         }
     }
     
-    public struct Media: Codable {
+    public struct Media: Codable, Equatable {
         public let width: Int?
         public let height: Int?
         public let duration: Double?
@@ -138,7 +138,7 @@ public class ExtendedAttributes: NSObject, Codable {
         }
     }
     
-    public struct iOSPhotos: Codable {
+    public struct iOSPhotos: Codable, Equatable {
         public let iCloudID: String?
         public let modificationTime: String?
         

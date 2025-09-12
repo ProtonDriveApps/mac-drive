@@ -17,10 +17,13 @@
 
 import Foundation
 import ProtonCoreLogin
+import ProtonCoreServices
 
 enum LoginStep {
     case done(LoginData)
-    case backToStart
+    case backToStart(initialError: LoginError?)
     case twoFactorCodeNeeded
+    case securityKeyNeeded(AuthenticationOptions)
+    case securityKeyOrTwoFactorCodeNeeded(AuthenticationOptions)
     case mailboxPasswordNeeded
 }

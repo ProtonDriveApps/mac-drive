@@ -23,13 +23,15 @@ private struct ErrorWithLink: Error { let link: Link; let error: Error }
 
 public final class CancelToken {
     public var onCancel: () -> Void = { }
-    // TODO: consider thread-safety
+    @MainActor
     public var isCancelled: Bool = false
     public init() { }
     public func cancel() {
-        guard !isCancelled else { return }
-        isCancelled = true
-        onCancel()
+        Task { @MainActor in
+            guard !isCancelled else { return }
+            isCancelled = true
+            onCancel()
+        }
     }
 }
 
@@ -38,7 +40,7 @@ public protocol RefreshingNodesServiceProtocol {
         root: Folder,
         shouldIncludeDeletedItems: Bool,
         cancelToken: CancelToken?,
-        onNodeRefreshed: @MainActor @escaping (Int) -> Void
+        onNodesRefreshed: @MainActor @escaping (Int) -> Void
     ) async throws
     
     func refreshUsingDirtyNodesApproach(
@@ -54,7 +56,7 @@ public protocol RefreshingNodesServiceProtocol {
 
 public extension RefreshingNodesServiceProtocol {
     func refreshUsingEagerSyncApproach(root: Folder, shouldIncludeDeletedItems: Bool) async throws {
-        try await refreshUsingEagerSyncApproach(root: root, shouldIncludeDeletedItems: shouldIncludeDeletedItems, cancelToken: nil, onNodeRefreshed: { _ in })
+        try await refreshUsingEagerSyncApproach(root: root, shouldIncludeDeletedItems: shouldIncludeDeletedItems, cancelToken: nil, onNodesRefreshed: { _ in })
     }
     
     func refreshUsingDirtyNodesApproach(
@@ -105,7 +107,7 @@ public final class RefreshingNodesService: RefreshingNodesServiceProtocol {
         root: Folder,
         shouldIncludeDeletedItems: Bool,
         cancelToken: CancelToken?,
-        onNodeRefreshed: @MainActor @escaping (Int) -> Void
+        onNodesRefreshed: @MainActor @escaping (Int) -> Void
     ) async throws {
         
         var nodeCount = 0
@@ -113,7 +115,7 @@ public final class RefreshingNodesService: RefreshingNodesServiceProtocol {
             Log.debug("[Eager sync] Scanned node \(node.decryptedName)", domain: .syncing)
             nodeCount += 1
             Task { @MainActor [currentNodeCount = nodeCount] in
-                onNodeRefreshed(currentNodeCount)
+                onNodesRefreshed(currentNodeCount)
             }
         }
         

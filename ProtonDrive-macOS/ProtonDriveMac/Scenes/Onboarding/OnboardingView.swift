@@ -80,15 +80,15 @@ struct OnboardingView: View {
                 LoginButton(title: Localization.onboarding_start_button, isLoading: $controller.isLoading, action: controller.endAction)
                     .accessibilityIdentifier("OnboardingView.Button.openDriveFolder")
             }
-            .frame(width: 300)
+            .frame(width: PDLoginMacOS.contentWidth)
 
             Spacer()
 
         }
-        .padding(.horizontal, 54)
+        .padding(.horizontal, PDLoginMacOS.contentHorizontalPadding)
         .background(ColorProvider.BackgroundNorm)
-        .frame(width: 420)
-        .frame(idealHeight: 480, maxHeight: .infinity)
+        .frame(width: PDLoginMacOS.frameWidth)
+        .frame(idealHeight: PDLoginMacOS.frameHeight, maxHeight: .infinity)
         .edgesIgnoringSafeArea(.top)
     }
 }
@@ -96,6 +96,6 @@ struct OnboardingView: View {
 struct OnboardingView_Previews: PreviewProvider {
     static var previews: some View {
         OnboardingView(controller: OnboardingController())
-            .frame(width: 420, height: 480)
+            .frame(width: PDLoginMacOS.frameWidth, height: PDLoginMacOS.frameHeight)
     }
 }

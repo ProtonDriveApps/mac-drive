@@ -32,6 +32,7 @@ final class DownloadFileOperation: SynchronousOperation, DownloadOperation {
     private let storage: StorageManager
     private var completion: Completion?
     private weak var cloudSlot: CloudSlotProtocol!
+    private let bytesCounterResource: BytesCounterResource
     public var progress: Progress
     private lazy var internalQueue: OperationQueue = {
         let queue = OperationQueue(maxConcurrentOperation: Constants.maxConcurrentBlockDownloadsPerFile,
@@ -60,6 +61,7 @@ final class DownloadFileOperation: SynchronousOperation, DownloadOperation {
         linkExpiredTime: TimeInterval = 30 * 60 - 60, // Link in backend side expired in 30 mins, 1 min for buffer
         expiredBuffer: TimeInterval = 5 * 60, // Buffer before link expired
         chunkSize: Int = 5,
+        bytesCounterResource: BytesCounterResource,
         completion: @escaping Completion
     ) {
         self.fileIdentifier = file.identifier
@@ -68,6 +70,7 @@ final class DownloadFileOperation: SynchronousOperation, DownloadOperation {
         self.endpointFactory = endpointFactory
         self.linkExpiredTime = linkExpiredTime
         self.expiredBuffer = expiredBuffer
+        self.bytesCounterResource = bytesCounterResource
         self.completion = completion
         self.progress = Progress(totalUnitCount: 0)
            
@@ -351,9 +354,12 @@ final class DownloadFileOperation: SynchronousOperation, DownloadOperation {
                 guard !self.isCancelled else { return }
                 switch result {
                 case .success(let intermediateUrl):
+                    // TODO: refactoring needed due to performance - manipulating and reading from file storage shouldn't block context's thread
                     block.managedObjectContext?.performAndWait { [fileIdentifier] in
                         do {
                             _ = try block.store(cypherfileFrom: intermediateUrl)
+                            let fileSize = (try? intermediateUrl.getFileSize()) ?? 0
+                            self.bytesCounterResource.add(bytes: fileSize)
                             Log.info("Download and save \(block.index)th block for file: \(fileIdentifier)", domain: .downloader)
                         } catch let error {
                             Log

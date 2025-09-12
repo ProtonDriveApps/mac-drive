@@ -29,11 +29,7 @@ struct MailboxPasswordView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Image("login_logo", bundle: PDLoginMacOS.bundle)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 188, height: 36)
-                .padding(.top, 24)
+            PDLoginMacOS.logoImage
                 .padding(.bottom, 30)
 
             Text("Unlock your mailbox")
@@ -42,7 +38,7 @@ struct MailboxPasswordView: View {
                 .fontWeight(.semibold)
 
             VStack(spacing: 8) {
-                SecureLoginTextField(title: "Mailbox password", text: $vm.password, errorString: $vm.passwordValidationFailureMessage, unfocus: vm.isLoading, window: window, action: vm.unlock)
+                SecureLoginTextField(title: "Mailbox password", text: $vm.password, errorString: $vm.passwordValidationFailureMessage, isLoading: vm.isLoading, window: window, action: vm.unlock)
                     .accessibilityIdentifier("MailboxPasswordView.TextField.password")
 
                 VStack(spacing: 30) {
@@ -53,14 +49,14 @@ struct MailboxPasswordView: View {
                 }
             }
             .padding(.top, 24)
-            .frame(width: 300)
+            .frame(width: PDLoginMacOS.contentWidth)
 
             Spacer()
         }
-        .padding(.horizontal, 54)
+        .padding(.horizontal, PDLoginMacOS.contentHorizontalPadding)
         .background(ColorProvider.BackgroundNorm)
-        .frame(width: 420)
-        .frame(idealHeight: 480, maxHeight: .infinity)
+        .frame(width: PDLoginMacOS.frameWidth)
+        .frame(idealHeight: PDLoginMacOS.frameHeight, maxHeight: .infinity)
         .errorToast(errors: vm.errors)
     }
 }

@@ -188,6 +188,8 @@
 		D4E50F832B838485006E94F6 /* ActivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E50F812B838485006E94F6 /* ActivityService.swift */; };
 		D4EEDF0B284A0D2000DF99B3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB71532724274EDA00543720 /* Assets.xcassets */; };
 		D4F28D2A29E97AAE00065CD3 /* DriveCoreAlertListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F28D2929E97AAE00065CD3 /* DriveCoreAlertListener.swift */; };
+		D744EE462E059AA3008B005A /* SpinningImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D744EE452E059A9F008B005A /* SpinningImage.swift */; };
+		D744EE472E059AA3008B005A /* SpinningImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D744EE452E059A9F008B005A /* SpinningImage.swift */; };
 		D80188202C53AA8A00BCC068 /* ProtonDriveFileProviderMac.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = ABD1908D25A30FF7005D3E29 /* ProtonDriveFileProviderMac.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D80188242C53AA8E00BCC068 /* ProtonDriveFileProviderMac.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = ABD1908D25A30FF7005D3E29 /* ProtonDriveFileProviderMac.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D81296D22C6373400059E397 /* ProtonCoreQuarkCommands in Frameworks */ = {isa = PBXBuildFile; productRef = D81296D12C6373400059E397 /* ProtonCoreQuarkCommands */; };
@@ -463,6 +465,7 @@
 		D4D84DD52C315546007079B4 /* UserMessageHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMessageHandler.swift; sourceTree = "<group>"; };
 		D4E50F812B838485006E94F6 /* ActivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityService.swift; sourceTree = "<group>"; };
 		D4F28D2929E97AAE00065CD3 /* DriveCoreAlertListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveCoreAlertListener.swift; sourceTree = "<group>"; };
+		D744EE452E059A9F008B005A /* SpinningImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinningImage.swift; sourceTree = "<group>"; };
 		D8D6FB902B503E2400FB71AE /* Dumper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dumper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -607,6 +610,7 @@
 		A30308ED2CE74CC400087F2E /* Subviews */ = {
 			isa = PBXGroup;
 			children = (
+				D744EE452E059A9F008B005A /* SpinningImage.swift */,
 				A30308E72CE74CC400087F2E /* FooterView.swift */,
 				A30308E82CE74CC400087F2E /* HeaderView.swift */,
 				A30308E92CE74CC400087F2E /* ItemListView.swift */,
@@ -1268,6 +1272,7 @@
 				A3DFAA3F2CE7570D0050AE64 /* QAStateDebuggingView.swift in Sources */,
 				A3DFAA402CE7570D0050AE64 /* QASettingsWindowCoordinator.swift in Sources */,
 				D4989F872C18AADF003DFF5E /* ProtonFile.swift in Sources */,
+				D744EE462E059AA3008B005A /* SpinningImage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1348,6 +1353,7 @@
 				A3DFAA432CE7570D0050AE64 /* QAStateDebuggingView.swift in Sources */,
 				A3DFAA442CE7570D0050AE64 /* QASettingsWindowCoordinator.swift in Sources */,
 				D4989F862C18AADF003DFF5E /* ProtonFile.swift in Sources */,
+				D744EE472E059AA3008B005A /* SpinningImage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1706,7 +1712,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.7.0;
+				MARKETING_VERSION = 2.8.0;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = ch.protonmail.drive;
 				PRODUCT_MODULE_NAME = ProtonDriveMac;
@@ -1793,7 +1799,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.7.0;
+				MARKETING_VERSION = 2.8.0;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = ch.protonmail.drive;
 				PRODUCT_MODULE_NAME = ProtonDriveMac;
@@ -1864,7 +1870,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.7.0;
+				MARKETING_VERSION = 2.8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				OTHER_CODE_SIGN_FLAGS = "";

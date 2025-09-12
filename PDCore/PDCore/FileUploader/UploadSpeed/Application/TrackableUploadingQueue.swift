@@ -1,4 +1,4 @@
-// Copyright (c) 2024 Proton AG
+// Copyright (c) 2025 Proton AG
 //
 // This file is part of Proton Drive.
 //
@@ -15,24 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
-import PMEventsManager
+import Combine
 
-#if targetEnvironment(simulator)
-final class DebugEventLoopsTimingController: EventLoopsTimingController {
-    func getInterval() -> Double {
-        return 10
-    }
-
-    func getReadyLoops(possible: [LoopID]) -> [LoopID] {
-        return possible
-    }
-
-    func setExecutedLoops(loopIds: [LoopID]) {
-        // no-op
-    }
-
-    func updateHistoryForForcePolling(volumeIDs: [String]) {
-        
-    }
+public protocol TrackableUploadingQueue {
+    var hasOperations: AnyPublisher<Bool, Never> { get }
 }
-#endif

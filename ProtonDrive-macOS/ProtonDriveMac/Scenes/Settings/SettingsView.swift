@@ -272,7 +272,7 @@ private struct SettingsFullResyncSection: View {
             Spacer(minLength: 4)
             
             Button("Refresh") {
-                viewModel.actions.sync.performFullResync()
+                viewModel.actions.resync.performFullResync()
                 viewModel.actions.windows.closeSettingsAndShowMainWindow()
             }
             .buttonStyle(.bordered)

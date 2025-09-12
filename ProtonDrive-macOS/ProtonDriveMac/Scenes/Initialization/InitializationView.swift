@@ -90,10 +90,10 @@ struct InitializationView: View {
             
             Spacer()
         }
-        .padding(.horizontal, 54)
+        .padding(.horizontal, PDLoginMacOS.contentHorizontalPadding)
         .background(ColorProvider.BackgroundNorm)
-        .frame(width: 420)
-        .frame(idealHeight: 480, maxHeight: .infinity)
+        .frame(width: PDLoginMacOS.frameWidth)
+        .frame(idealHeight: PDLoginMacOS.frameHeight, maxHeight: .infinity)
         .edgesIgnoringSafeArea(.top)
     }
 }

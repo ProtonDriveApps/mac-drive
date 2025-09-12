@@ -43,6 +43,8 @@ public class MyFilesFileUploader: FileUploader {
                 Log.info("0️⃣⚠️ file upload could not start \(CanUploadError.isUploading), File: \(file.id), UUID: \(String(describing: file.uploadID))", domain: .uploader)
             } catch CanUploadError.processingOperationAlreadyExists {
                 Log.info("0️⃣⚠️ file upload could not start \(CanUploadError.processingOperationAlreadyExists), File: \(file.id), UUID: \(String(describing: file.uploadID))", domain: .uploader)
+            } catch CanUploadError.invalidFileData {
+                Log.error("0️⃣❌ nameSignatureEmail is nil, this should never happen.", error: nil, domain: .encryption)
             } catch {
                 Log.info("0️⃣❌ file upload could not start \(error), File: \(file.id), UUID: \(String(describing: file.uploadID))", domain: .uploader)
             }

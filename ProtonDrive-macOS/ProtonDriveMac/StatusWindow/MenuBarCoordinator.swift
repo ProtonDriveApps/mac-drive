@@ -108,13 +108,13 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
             "status-paused"
         case .offline:
             "status-offline"
-        case .syncing, .enumerating, .launching, .fullResync:
+        case .syncing, .enumerating, .launching, .fullResyncInProgress:
             "status-syncing"
         case .errored:
             "status-error"
         case .updateAvailable:
             "status-update-available"
-        case .synced:
+        case .synced, .fullResyncCompleted:
             "status-synced"
         }
     }
@@ -130,7 +130,8 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         if let statusButton = statusItem.button,
            let event = NSApp.currentEvent,
            event.type == .leftMouseUp,
-           !event.modifierFlags.contains(.option) {
+           !event.modifierFlags.contains(.option)
+        {
             userActions.app.toggleStatusWindow(from: statusButton)
         } else {
             showOldMenu()
@@ -166,8 +167,12 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         }
         
         if state.fullResyncState.isHappening {
-            menu.addItem(syncStatusMenuItem)
-            menu.addItem(cancelFullResyncMenuItem)
+            if case .completed = state.fullResyncState  {
+                menu.addItem(finishFullResyncMenuItem)
+            } else {
+                menu.addItem(syncStatusMenuItem)
+                menu.addItem(cancelFullResyncMenuItem)
+            }
             menu.addItem(NSMenuItem.separator())
             menu.addItem(openDriveMenuItem)
             menu.addItem(NSMenuItem.separator())
@@ -215,15 +220,18 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         menu.addItem(NSMenuItem.separator())
 
 #if HAS_QA_FEATURES
-        menu.addItem(qaSettingsMenuItem)
-
-        menu.addItem(globalProgressVisibilityMenuItem)
-
-        menu.addItem(showLogsMenuItem)
-
+        let submenu = NSMenu()
+        submenu.addItem(qaSettingsMenuItem)
+        submenu.addItem(globalProgressVisibilityMenuItem)
+        submenu.addItem(showLogsMenuItem)
+        submenu.addItem(performFullResyncMenuItem)
         if state.isLoggedIn {
-            menu.addItem(signoutMenuItem)
+            submenu.addItem(signoutMenuItem)
         }
+
+        let devOptionsMenuItem = NSMenuItem(title: "Developer options", action: nil, keyEquivalent: "d")
+        menu.addItem(devOptionsMenuItem)
+        menu.setSubmenu(submenu, for: devOptionsMenuItem)
 
         menu.addItem(NSMenuItem.separator())
 #endif
@@ -246,14 +254,14 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
 
         let presentedStatus: ApplicationSyncStatus
         if state.fullResyncState.isHappening {
-            presentedStatus = .fullResync
+            presentedStatus = .fullResyncInProgress
         // If syncing and not paused, show "syncing", otherwise show "synced".
         } else if state.isSyncing && !state.isPaused {
             presentedStatus = .syncing
         } else {
             presentedStatus = .synced
         }
-        let imageName = presentedStatus == .syncing || presentedStatus == .fullResync ? "syncing" : "synced"
+        let imageName = presentedStatus == .syncing || presentedStatus == .fullResyncInProgress ? "syncing" : "synced"
 
         syncStatusMenuItem.title = state.displayName(for: presentedStatus)
         syncStatusMenuItem.image = NSImage(named: imageName)
@@ -326,6 +334,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         menuItem.target = userActions.sync
         let accessibilityIdentifier = isPaused ? "MenuBarCoordinator.MenuItem.resumeSyncing" : "MenuBarCoordinator.MenuItem.pauseSyncing"
         menuItem.setAccessibilityIdentifier(accessibilityIdentifier)
+        menuItem.keyEquivalent = "p"
         return menuItem
     }
 
@@ -333,7 +342,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         let menuItem = NSMenuItem(
             title: "Open Drive Folder",
             action: #selector(openDriveFolder),
-            keyEquivalent: ""
+            keyEquivalent: "o"
         )
         menuItem.target = self
         return menuItem
@@ -346,15 +355,25 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
     private var cancelFullResyncMenuItem: NSMenuItem {
         let menuItem = NSMenuItem(
             title: "Cancel full resync",
-            action: #selector(cancelFullResync),
+            action: #selector(UserActions.ResyncActions.cancelFullResync),
+            keyEquivalent: ""
+        )
+        menuItem.target = userActions.resync
+        return menuItem
+    }
+    
+    private var finishFullResyncMenuItem: NSMenuItem {
+        let menuItem = NSMenuItem(
+            title: "Finish full resync",
+            action: #selector(finishFullResync),
             keyEquivalent: ""
         )
         menuItem.target = self
         return menuItem
     }
     
-    @objc private func cancelFullResync() {
-        userActions.sync.cancelFullResync()
+    @objc private func finishFullResync() {
+        userActions.resync.finishFullResync()
     }
 
 #if HAS_BUILTIN_UPDATER
@@ -372,7 +391,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         let menuItem = NSMenuItem(
             title: "Settings",
             action: #selector(UserActions.WindowActions.showSettings),
-            keyEquivalent: ""
+            keyEquivalent: ","
         )
         menuItem.target = userActions.windows
         menuItem.setAccessibilityIdentifier("MenuBarCoordinator.MenuItem.settings")
@@ -393,7 +412,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         let menuItem = NSMenuItem(
             title: "Show Logs",
             action: #selector(UserActions.WindowActions.showLogsWhenNotConnected),
-            keyEquivalent: ""
+            keyEquivalent: "l"
         )
         menuItem.target = userActions.windows
         return menuItem
@@ -403,7 +422,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         let menuItem = NSMenuItem(
             title: "Report an Issue...",
             action: #selector(UserActions.LinkActions.reportBug),
-            keyEquivalent: ""
+            keyEquivalent: "b"
         )
         menuItem.target = userActions.links
         return menuItem
@@ -414,7 +433,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         let menuItem = NSMenuItem(
             title: "QA Settings",
             action: #selector(UserActions.WindowActions.showQASettings),
-            keyEquivalent: ""
+            keyEquivalent: "a"
         )
         menuItem.target = userActions.windows
         return menuItem
@@ -426,16 +445,31 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         let menuItem = NSMenuItem(
             title: label,
             action: #selector(UserActions.DebuggingActions.toggleGlobalProgressStatusItem),
-            keyEquivalent: "")
+            keyEquivalent: "g")
         menuItem.target = userActions.debugging
         return menuItem
+    }
+
+    private var performFullResyncMenuItem: NSMenuItem {
+        let menuItem = NSMenuItem(
+            title: Localization.full_resync_state_description,
+            action: #selector(performFullResyncAndOpenWindow),
+            keyEquivalent: "r"
+        )
+        menuItem.target = self
+        return menuItem
+    }
+    
+    @objc private func performFullResyncAndOpenWindow() {
+        userActions.resync.performFullResync()
+        userActions.app.showStatusWindow()
     }
 
     private var signoutMenuItem: NSMenuItem {
         let menuItem = NSMenuItem(
             title: "Sign out",
             action: #selector(UserActions.AccountActions.userRequestedSignOut),
-            keyEquivalent: ""
+            keyEquivalent: "s"
         )
         menuItem.target = userActions.account
         return menuItem
@@ -446,7 +480,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         let menuItem = NSMenuItem(
             title: "Quit Proton Drive",
             action: #selector(UserActions.ApplicationActions.quitApp),
-            keyEquivalent: ""
+            keyEquivalent: "q"
         )
         menuItem.target = userActions.app
         return menuItem

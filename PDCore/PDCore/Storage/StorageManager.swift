@@ -21,7 +21,7 @@ import ProtonCoreUtilities
 
 // MARK: - Persistent Container Management
 
-public class StorageManager: NSObject, ManagedStorage, RecoverableStorage {
+public class StorageManager: NSObject, ManagedStorage, RecoverableStorage, RefreshableStorage {
     private static var managedObjectModel: NSManagedObjectModel = {
         return NSManagedObjectModel.makeModel()
     }()
@@ -402,5 +402,17 @@ public class StorageManager: NSObject, ManagedStorage, RecoverableStorage {
 
     public func moveToMainContext<T: NSManagedObject>(_ object: T) -> T {
         return mainContext.object(with: object.objectID) as! T
+    }
+
+    // MARK: - RefreshableStorage
+
+    public func resetMemoryState() async {
+        // Should turn all in memory objects to faults.
+        // It should not be needed once we start storing decrypted metadata in DB.
+        await contexts.value.forEach { weakReference in
+            await  weakReference.reference?.perform {
+                weakReference.reference?.refreshAllObjects()
+            }
+        }
     }
 }

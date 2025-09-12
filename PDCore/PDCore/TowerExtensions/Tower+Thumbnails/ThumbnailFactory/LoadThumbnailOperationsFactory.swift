@@ -25,13 +25,22 @@ final class LoadThumbnailOperationsFactory: ThumbnailOperationsFactory {
     let session = URLSession.forUploading()
     private let thumbnailRepository: NodeThumbnailRepository
     private let typeStrategy: ThumbnailTypeStrategy
+    private let performanceMetricsController: PerformanceMetricsControllerProtocol?
 
-    init(store: StorageManager, cloud: CloudSlotProtocol, client: PDClient.Client, thumbnailRepository: NodeThumbnailRepository, typeStrategy: ThumbnailTypeStrategy) {
+    init(
+        store: StorageManager,
+        cloud: CloudSlotProtocol,
+        client: PDClient.Client,
+        thumbnailRepository: NodeThumbnailRepository,
+        typeStrategy: ThumbnailTypeStrategy,
+        performanceMetricsController: PerformanceMetricsControllerProtocol?
+    ) {
         self.store = store
         self.cloud = cloud
         self.client = client
         self.thumbnailRepository = thumbnailRepository
         self.typeStrategy = typeStrategy
+        self.performanceMetricsController = performanceMetricsController
     }
 
     func makeThumbnailModel(forFileWithID id: Identifier) throws -> ThumbnailIdentifiableOperation {
@@ -39,11 +48,13 @@ final class LoadThumbnailOperationsFactory: ThumbnailOperationsFactory {
 
         switch thumbnail {
         case let .full(fullThumbnail):
+            performanceMetricsController?.fetchThumbnail(id: .init(id: id.id, volumeID: id.volumeID), dataSource: .local)
             let decryptor = makeThumbnailDecryptor(identifier: fullThumbnail.revisionId.nodeIdentifier)
             let operation = ThumbnailDecryptorOperation(model: fullThumbnail, decryptor: decryptor)
             return operation
 
         case let .inProgress(inProgressThumbnail):
+            performanceMetricsController?.fetchThumbnail(id: .init(id: id.id, volumeID: id.volumeID), dataSource: .remote)
             let downloader = URLSessionThumbnailDownloader(session: session)
             let decryptor = makeThumbnailDecryptor(identifier: inProgressThumbnail.revisionId.nodeIdentifier)
             let urlFetchInteractor = ThumbnailsListFactory().makeRemoteURLFetchInteractor(client: client, cloudSlot: cloud)
@@ -51,6 +62,7 @@ final class LoadThumbnailOperationsFactory: ThumbnailOperationsFactory {
             return operation
 
         case let .revisionId(incompleteThumbnail):
+            performanceMetricsController?.fetchThumbnail(id: .init(id: id.id, volumeID: id.volumeID), dataSource: .remote)
             let downloader = URLSessionThumbnailDownloader(session: session)
             let decryptor = makeThumbnailDecryptor(identifier: incompleteThumbnail.revisionId.nodeIdentifier)
             let urlFetchInteractor = ThumbnailsListFactory().makeRemoteURLFetchInteractor(client: client, cloudSlot: cloud)
@@ -58,6 +70,7 @@ final class LoadThumbnailOperationsFactory: ThumbnailOperationsFactory {
             return operation
 
         case let .thumbnailId(thumbnailWithId):
+            performanceMetricsController?.fetchThumbnail(id: .init(id: id.id, volumeID: id.volumeID), dataSource: .remote)
             let downloader = URLSessionThumbnailDownloader(session: session)
             let decryptionResource = makeThumbnailDecryptor(thumbnail: thumbnailWithId)
             let urlFetchInteractor = ThumbnailsListFactory().makeRemoteURLFetchInteractor(client: client, cloudSlot: cloud)

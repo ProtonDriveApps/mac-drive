@@ -22,6 +22,8 @@ import ProtonCoreUtilities
 
 public enum ExceptionMessagesExcludedFromSentryCrashReport: String, CaseIterable {
     case appCoordinatorErrorWhileStartingApp = "Terminate after domains disconnection"
+    case keychainAccessErrored = "Crashing because of keychain access error"
+    case toggledRuntimeConfigFile = "Toggled runtime config file"
 }
 
 public class SentryClient {
@@ -63,8 +65,13 @@ public class SentryClient {
             options.enableCrashHandler = !optOutFromCrashReports
             options.enableAutoPerformanceTracing = false
 
-            // was renamed from enableOutOfMemoryTracking
-            options.enableWatchdogTerminationTracking = false
+            #if os(iOS)
+                // was renamed from enableOutOfMemoryTracking
+                options.enableWatchdogTerminationTracking = true
+            #else
+                // was renamed from enableOutOfMemoryTracking
+                options.enableWatchdogTerminationTracking = false
+            #endif
             options.enableAutoBreadcrumbTracking = false
             options.debug = false
             options.beforeSend = { event in

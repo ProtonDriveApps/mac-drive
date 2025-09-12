@@ -19,31 +19,47 @@ import Foundation
 import PDCore
 
 protocol FullResyncServiceProtocol {
-    func start(onNodeRefreshed: @MainActor @escaping (Int) -> Void,
-               onFinish: @MainActor () async throws -> Void,
-               onCancel: @MainActor () -> Void,
-               onError: @MainActor (Error) -> Void) async
+    func start(onNodesRefreshed: @MainActor @escaping (Int) -> Void,
+               onDoneResyncing: @MainActor () async throws -> Void,
+               onCompleted: @MainActor () async throws -> Void,
+               onCancelled: @MainActor () -> Void,
+               onErrored: @MainActor (Error) -> Void) async
     func cancel()
-    func abort()
     var previousRunWasInterrupted: Bool { get }
 }
 
+/// Performs the resync, managing the event system and storage.
 final class FullResyncService: FullResyncServiceProtocol {
     
     typealias PersistentStoreInfos = (existing: PersistentStoreInfo, recovery: PersistentStoreInfo)
     
-    enum ResyncState {
+    enum FullResyncStage {
         case idle
         case eventsStopped
         case metadataRecoverySetup(metadata: (existing: PersistentStoreInfo, recovery: PersistentStoreInfo?))
         case eventRecoverySetup(metadata: PersistentStoreInfos, events: (existing: PersistentStoreInfo, recovery: PersistentStoreInfo?))
         case refreshFinished(metadata: PersistentStoreInfos, events: PersistentStoreInfos)
+        case enumeratingAfterResync
         case metadataReplacedWithRecovery(events: PersistentStoreInfos)
         case eventsReplacedWithRecovery
+
+        /// Can the resync be cancelled at this stage?
+        var isCancellable: Bool {
+            switch self {
+            case .metadataReplacedWithRecovery, .eventsReplacedWithRecovery, .enumeratingAfterResync, .idle:
+                false
+            case .eventsStopped, .metadataRecoverySetup, .eventRecoverySetup, .refreshFinished:
+                true
+            }
+        }
     }
-    
-    private var resyncState: ResyncState = .idle
-    
+
+    private var resyncStage: FullResyncStage = .idle {
+        didSet {
+            Log.trace("Resync did set resyncStage to \(resyncStage)")
+        }
+    }
+
     private let cloudSlot: CloudSlotProtocol
     private let metadataStorage: RecoverableStorage
     private let syncStorage: RecoverableStorage?
@@ -82,6 +98,7 @@ final class FullResyncService: FullResyncServiceProtocol {
          startEvents: @escaping () -> Void,
          pauseEvents: @escaping () -> Void,
          clearAndReinitializeEvents: @escaping () async throws -> Void) {
+        Log.trace()
         self.metadataStorage = metadataStorage
         self.syncStorage = syncStorage
         self.eventStorage = eventStorage
@@ -91,113 +108,128 @@ final class FullResyncService: FullResyncServiceProtocol {
         self.pauseEvents = pauseEvents
         self.clearAndReinitializeEvents = clearAndReinitializeEvents
     }
-    
-    func start(onNodeRefreshed: @MainActor @escaping (Int) -> Void,
-               onFinish: @MainActor () async throws -> Void,
-               onCancel: @MainActor () -> Void,
-               onError: @MainActor (Error) -> Void) async {
-        guard case .idle = resyncState else { return }
 
+    func start(onNodesRefreshed: @MainActor @escaping (Int) -> Void,
+               onDoneResyncing: @MainActor () async throws -> Void,
+               onCompleted: @MainActor () async throws -> Void,
+               onCancelled: @MainActor () -> Void,
+               onErrored: @MainActor (Error) -> Void
+    ) async {
+        guard case .idle = resyncStage else { return }
+
+        Log.trace()
         do {
             cancelToken = CancelToken()
             
             // 0. Clear the old recovery and backup ones
-            try performIfNotCancelled { cleanupLeftoversFromPreviousRecoveryAttempt() }
-            
+            try await performIfNotCancelled { _ = cleanupLeftoversFromPreviousRecoveryAttempt() }
+
             // 1. Stop event loops
-            try performIfNotCancelled { stopEvents() }
-            
+            try await performIfNotCancelled { stopEvents() }
+
             // 2. Backup all DBs
-            let metadata = try performIfNotCancelled { try setupMetadataRecovery() }
-            let events = try performIfNotCancelled { try setupEventRecovery(metadata: metadata) }
-            
+            let metadata = try await performIfNotCancelled { try setupMetadataRecovery() }
+            let events = try await performIfNotCancelled { try setupEventRecovery(metadata: metadata) }
+
             // 3. Bootstrap the new recovery DB
             let root = try await performIfNotCancelled { try await fetchRootFolder() }
             
             // 4. Perform the refresh
-            try await performIfNotCancelled { try await performRefresh(metadata, events, root, onNodeRefreshed) }
+            try await performIfNotCancelled { try await performRefresh(metadata, events, root, onNodesRefreshed) }
             
-            // Do not check the cancellation at this point — if we got to a refreshed state, just finish the operation
-            
+            // Do not check the cancellation token past this point — if we got to a refreshed state, just finish the operation
+
             // 5. Replace the old DBs with recovery DBs
             try metadataStorage.replaceExistingDBWithRecovery(existing: metadata.existing, recovery: metadata.recovery)
-            resyncState = .metadataReplacedWithRecovery(events: events)
+            resyncStage = .metadataReplacedWithRecovery(events: events)
             
             try eventStorage.replaceExistingDBWithRecovery(existing: events.existing, recovery: events.recovery)
-            resyncState = .eventsReplacedWithRecovery
+            resyncStage = .eventsReplacedWithRecovery
             
-            // 6. Start the event loop back
+            // 6. Enumerate
+            resyncStage = .enumeratingAfterResync
+
+            // 7. Restart the event loop
             try await clearAndReinitializeEvents()
             startEvents()
-            
-            resyncState = .idle
-            
-            try await onFinish()
+
+            // 8. Trigger enumeration and wait for it to complete
+
+            try await onDoneResyncing()
+
+            // 9. Mark resync operation as completed
+            resyncStage = .idle
+            try await onCompleted()
         } catch {
-            let wasCancelled = await handleError(error, resyncState)
-            resyncState = .idle
-            
+            let wasCancelled = await handleError(error, resyncStage)
+            resyncStage = .idle
+
             if wasCancelled {
-                await onCancel()
+                await onCancelled()
             } else {
-                Log.error("Full resync errored: \(error.localizedDescription)", domain: .application)
-                await onError(error)
+                Log.error("Full resync errored: \(error.localizedDescription)", domain: .resyncing)
+                await onErrored(error)
             }
         }
     }
     
     func cancel() {
         cancelToken?.cancel()
+
+        if resyncStage.isCancellable {
+            // Before a certain stage, we mark the resync as cancelled, and subsequent steps will be skipped due to a userCancelled error being thrown.
+            Log.trace("cancel")
+        } else {
+            // After the resync is no longer cancellable, we directly leave Resync mode.
+            Log.trace("abort")
+            resyncStage = .idle
+        }
     }
-    
-    func abort() {
-        resyncState = .idle
-    }
-    
+
     // MARK: - Private methods
     
-    private func performIfNotCancelled<T>(_ block: () throws -> T) throws -> T {
-        guard cancelToken?.isCancelled != true else {
-            throw CocoaError(.userCancelled)
-        }
-        return try block()
-    }
-    
     private func performIfNotCancelled<T>(_ block: () async throws -> T) async throws -> T {
-        guard cancelToken?.isCancelled != true else {
+        guard await cancelToken?.isCancelled != true else {
+            Log.trace("cancelled")
             throw CocoaError(.userCancelled)
         }
+        Log.trace()
         return try await block()
     }
     
     private func cleanupLeftoversFromPreviousRecoveryAttempt() -> Bool {
+        Log.trace()
         let metadataStorageExistedBefore = metadataStorage.cleanupLeftoversFromPreviousRecoveryAttempt()
         let eventStorageExistedBefore = eventStorage.cleanupLeftoversFromPreviousRecoveryAttempt()
         return metadataStorageExistedBefore || eventStorageExistedBefore
     }
     
     private func stopEvents() {
+        Log.trace()
         pauseEvents()
-        resyncState = .eventsStopped
+        resyncStage = .eventsStopped
     }
     
     private func setupMetadataRecovery() throws -> PersistentStoreInfos {
+        Log.trace()
         let existingMetadata = try metadataStorage.disconnectExistingDB()
-        resyncState = .metadataRecoverySetup(metadata: (existingMetadata, nil))
+        resyncStage = .metadataRecoverySetup(metadata: (existingMetadata, nil))
         let recoveryMetadata = try metadataStorage.createRecoveryDB(nextTo: existingMetadata)
-        resyncState = .metadataRecoverySetup(metadata: (existingMetadata, recoveryMetadata))
+        resyncStage = .metadataRecoverySetup(metadata: (existingMetadata, recoveryMetadata))
         return (existingMetadata, recoveryMetadata)
     }
     
     private func setupEventRecovery(metadata: PersistentStoreInfos) throws -> PersistentStoreInfos {
+        Log.trace()
         let existingEvents = try eventStorage.disconnectExistingDB()
-        resyncState = .eventRecoverySetup(metadata: metadata, events: (existingEvents, nil))
+        resyncStage = .eventRecoverySetup(metadata: metadata, events: (existingEvents, nil))
         let recoveryEvents = try eventStorage.createRecoveryDB(nextTo: metadata.existing)
-        resyncState = .eventRecoverySetup(metadata: metadata, events: (existingEvents, recoveryEvents))
+        resyncStage = .eventRecoverySetup(metadata: metadata, events: (existingEvents, recoveryEvents))
         return (existingEvents, recoveryEvents)
     }
     
     private func fetchRootFolder() async throws -> Folder {
+        Log.trace()
         let share = try await cloudSlot.scanRootsAsync(isPhotosEnabled: false)
         let root = await cloudSlot.moc.perform {
             share?.root as? Folder
@@ -212,16 +244,18 @@ final class FullResyncService: FullResyncServiceProtocol {
     private func performRefresh(_ metadata: FullResyncService.PersistentStoreInfos,
                                 _ events: FullResyncService.PersistentStoreInfos,
                                 _ root: Folder,
-                                _ onNodeRefreshed: @MainActor @escaping (Int) -> Void) async throws {
+                                _ onNodesRefreshed: @MainActor @escaping (Int) -> Void) async throws {
+        Log.trace()
         try await nodeRefresher.refreshUsingEagerSyncApproach(
-            root: root, shouldIncludeDeletedItems: true, cancelToken: cancelToken, onNodeRefreshed: onNodeRefreshed
+            root: root, shouldIncludeDeletedItems: true, cancelToken: cancelToken, onNodesRefreshed: onNodesRefreshed
         )
         cancelToken = nil
-        resyncState = .refreshFinished(metadata: metadata, events: events)
+        resyncStage = .refreshFinished(metadata: metadata, events: events)
     }
     
-    private func handleError(_ error: Error, _ resyncState: ResyncState) async -> Bool {
-        switch resyncState {
+    private func handleError(_ error: Error, _ resyncStage: FullResyncStage) async -> Bool {
+        Log.trace("\(resyncStage)")
+        switch resyncStage {
         case .idle:
             guard let cocoaError = error as? CocoaError, cocoaError.code == .userCancelled else { return false }
             return true
@@ -260,6 +294,8 @@ final class FullResyncService: FullResyncServiceProtocol {
                 // but to log and ignore, it's better than crashing the app.
                 Log.error("Events loop reinitialization failed", error: error, domain: .events)
             }
+            return await handleError(error, .idle)
+        case .enumeratingAfterResync:
             return await handleError(error, .idle)
         }
     }

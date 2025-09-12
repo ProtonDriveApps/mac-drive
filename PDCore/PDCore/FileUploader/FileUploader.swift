@@ -150,6 +150,10 @@ public class FileUploader: OperationProcessor<FileUploaderOperation>, ErrorContr
         guard isEnabled else {
             throw CanUploadError.uploaderNotEnabled
         }
+
+        guard file.nameSignatureEmail != nil else {
+            throw CanUploadError.invalidFileData
+        }
     }
     
     enum CanUploadError: Error, LocalizedError {
@@ -158,6 +162,7 @@ public class FileUploader: OperationProcessor<FileUploaderOperation>, ErrorContr
         case uploaderNotEnabled
         case processingOperationAlreadyExists
         case fileAlreadyUploaded
+        case invalidFileData
     }
 
     func pauseFileUpload(id: UUID) {

@@ -44,21 +44,40 @@ final class SettingsWindowCoordinator: NSObject, NSWindowDelegate {
         self.isFullResyncEnabled = isFullResyncEnabled
     }
 
+    fileprivate func showPopupInformingAboutSettingsWindowUnavailability() {
+        DispatchQueue.main.async {
+            let error = NSError(
+                domain: "me.proton.drive",
+                code: 0,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "Settings windows cannot be opened right now.\n\nPlease try again later."
+                ]
+            )
+            let alert = NSAlert(error: error)
+            alert.addButton(withTitle: "Ok")
+            _ = alert.runModal()
+        }
+    }
+    
     func start() {
         if window == nil {
-            configureWindow()
+            guard configureWindow() else {
+                showPopupInformingAboutSettingsWindowUnavailability()
+                return
+            }
             userActions.account.refreshUserInfo()
         }
 
         bringWindowToFront()
     }
 
-    private func configureWindow() {
+    private func configureWindow() -> Bool {
         let viewModel = SettingsViewModel(sessionVault: sessionVault,
                                           launchOnBootService: launchOnBootService,
                                           appUpdateService: appUpdateService,
                                           userActions: userActions,
                                           isFullResyncEnabled: isFullResyncEnabled())
+        guard let viewModel else { return false }
         let view = SettingsView(viewModel: viewModel)
         let window = NSWindow(contentViewController: NSHostingController(rootView: view))
         window.styleMask = [.titled, .closable, .resizable]
@@ -67,10 +86,12 @@ final class SettingsWindowCoordinator: NSObject, NSWindowDelegate {
         window.setAccessibilityIdentifier("SettingsCoordinator.window")
         window.delegate = self
         self.window = window
+        return true
     }
 
     private func bringWindowToFront() {
-        window!.makeKeyAndOrderFront(self)
+        guard let window else { return }
+        window.makeKeyAndOrderFront(self)
         NSRunningApplication.current.activate(options: [.activateIgnoringOtherApps])
     }
 

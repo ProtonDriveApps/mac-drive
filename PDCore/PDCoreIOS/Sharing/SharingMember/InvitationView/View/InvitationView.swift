@@ -270,7 +270,7 @@ extension InvitationView {
                             foregroundColor: ColorProvider.IconWeak,
                             iconSize: .init(width: 16, height: 16)
                         )
-                    )
+                    ).accessibilityIdentifier("InvitationView.settingsButton")
                 }
             )
         }

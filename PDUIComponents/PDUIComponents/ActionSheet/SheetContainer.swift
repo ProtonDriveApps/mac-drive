@@ -53,10 +53,8 @@ public struct SheetContainer<Content: View>: View {
                 .offset(y: verticalOffset)
                 .offset(y: isVisible ? 0 : geometry.size.height)
                 .gesture(
-                    DragGesture()
+                    DragGesture(minimumDistance: 1)
                         .onChanged { value in
-                            // Could be iOS bug, when offset is too small, e.g. 8 px
-                            // onEnded won't be fired so verticalOffset doesn't have chance to be reset
                             let horizontalOffset = value.translation.width
                             let verticalOffset = value.translation.height
                             guard abs(verticalOffset) > abs(horizontalOffset) else { return }

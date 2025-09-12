@@ -21,6 +21,7 @@ import SwiftUI
 import ProtonCoreAuthentication
 import ProtonCoreLogin
 import ProtonCoreNetworking
+import ProtonCoreServices
 import ProtonCoreUIFoundations
 
 protocol LoginCoordinatorDelegate: AnyObject {
@@ -84,13 +85,17 @@ final class LoginCoordinator: NSObject {
     private func loginStepResultReceived(_ result: LoginStep) async {
         switch result {
         case let .done(data):
-            await self.loginComplete(data)
-        case .backToStart:
-            presentAtPreviousScreensOriginAndSize(view: loginView())
+            await loginComplete(data)
+        case .backToStart(let initialError):
+            presentAtPreviousScreensOriginAndSize(view: loginView(with: initialError))
         case .twoFactorCodeNeeded:
-            presentAtPreviousScreensOriginAndSize(view: twoFAView)
+            presentAtPreviousScreensOriginAndSize(view: twoFAWithOneTimeCodeView)
         case .mailboxPasswordNeeded:
             presentAtPreviousScreensOriginAndSize(view: secondPasswordView)
+        case .securityKeyNeeded(let options):
+            presentAtPreviousScreensOriginAndSize(view: twoFAWithSecurityKeyViewModel(options: options))
+        case .securityKeyOrTwoFactorCodeNeeded(let options):
+            presentAtPreviousScreensOriginAndSize(view: choose2FAView(options: options))
         }
     }
 
@@ -121,8 +126,8 @@ final class LoginCoordinator: NSObject {
         return LoginView(vm: vm, initialError: initialError, window: windowController.window!)
     }
 
-    private var twoFAView: some View {
-        let vm = container.makeTwoFactorViewModel()
+    private var twoFAWithOneTimeCodeView: some View {
+        let vm = container.makeTwoFAWithOneTimeCodeViewModel()
         finishedSubscription = vm.$finished
             .sink { [unowned self] result in
                 guard let result = result else { return }
@@ -137,7 +142,7 @@ final class LoginCoordinator: NSObject {
             }
             .store(in: &cancellables)
 
-        return TwoFactorView(vm: vm, window: windowController.window!)
+        return TwoFAWithOneTimeCodeView(vm: vm, window: windowController.window!)
     }
 
     private var secondPasswordView: some View {
@@ -157,6 +162,47 @@ final class LoginCoordinator: NSObject {
             .store(in: &cancellables)
 
         return MailboxPasswordView(vm: vm, window: windowController.window!)
+    }
+    
+    private func twoFAWithSecurityKeyViewModel(options: AuthenticationOptions) -> some View {
+        let viewModel = container.makeTwoFAWithSecurityKeyViewModel(options: options, presentationAnchor: windowController.window!)
+        finishedSubscription = viewModel.$finished
+            .sink { [unowned self] result in
+                guard let result = result else { return }
+                Task { [weak self] in
+                    await self?.loginStepResultReceived(result)
+                }
+            }
+        
+        viewModel.$isLoading
+            .sink { [unowned self] loading in
+                self.windowButtonEnabled(!loading)
+            }
+            .store(in: &cancellables)
+
+        return TwoFAWithSecurityKeyView(viewModel: viewModel, window: windowController.window!)
+    }
+    
+    private func choose2FAView(options: AuthenticationOptions) -> some View {
+        let twoFAWithOneTimeCodeViewModel = container.makeTwoFAWithOneTimeCodeViewModel()
+        let twoFAWithSecurityKeyViewModel = container.makeTwoFAWithSecurityKeyViewModel(options: options, presentationAnchor: windowController.window!)
+        twoFAWithOneTimeCodeViewModel.$isLoading.merge(with: twoFAWithSecurityKeyViewModel.$isLoading)
+            .sink { [unowned self] loading in
+                self.windowButtonEnabled(!loading)
+            }
+            .store(in: &cancellables)
+        
+        finishedSubscription = twoFAWithOneTimeCodeViewModel.$finished.merge(with: twoFAWithSecurityKeyViewModel.$finished)
+            .sink { [unowned self] result in
+                guard let result = result else { return }
+                Task { [weak self] in
+                    await self?.loginStepResultReceived(result)
+                }
+            }
+        
+        return ChooseTwoFAView(twoFAWithOneTimeCodeViewModel: twoFAWithOneTimeCodeViewModel,
+                               twoFAWithSecurityKeyViewModel: twoFAWithSecurityKeyViewModel,
+                               window: windowController.window!)
     }
 
     private func presentAtPreviousScreensOriginAndSize<Content: View>(view: Content) {

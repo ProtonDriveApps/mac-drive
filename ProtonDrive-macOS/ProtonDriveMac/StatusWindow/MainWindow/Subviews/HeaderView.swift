@@ -77,11 +77,7 @@ struct HeaderView: View {
                             Button(Localization.setting_help_show_logs, action: actions.windows.showLogsInFinder)
                             Button(Localization.setting_help_report_issue, action: actions.links.reportBug)
                         }
-                        
-#if HAS_QA_FEATURES
-                        Button("QA Settings", action: actions.windows.showQASettings)
-#endif
-                        
+
                         Button(Localization.general_quit, action: actions.app.quitApp)
                     }
                     .font(.system(size: 15))

@@ -124,9 +124,13 @@ public extension StorageManager {
     }
 
     func getMainShares(in context: NSManagedObjectContext) -> [Share] {
+        return getShares(type: .main, in: context)
+    }
+
+    func getShares(type: Share.ShareType, in context: NSManagedObjectContext) -> [Share] {
         let request = NSFetchRequest<Share>()
         request.entity = Share.entity()
-        request.predicate = NSPredicate(format: "%K == %d", #keyPath(Share.type), Share.ShareType.main.rawValue)
+        request.predicate = NSPredicate(format: "%K == %d", #keyPath(Share.type), type.rawValue)
         return (try? context.fetch(request)) ?? []
     }
 
@@ -375,7 +379,9 @@ public extension StorageManager {
             let fetchRequest = NSFetchRequest<Revision>()
             fetchRequest.entity = Revision.entity()
             fetchRequest.sortDescriptors = [.init(key: #keyPath(Revision.id), ascending: true)]
-            fetchRequest.predicate = NSPredicate(format: "%K == %@", #keyPath(Revision.id), id.revision)
+            let idPredicate = NSPredicate(format: "%K == %@", #keyPath(Revision.id), id.revision)
+            let volumeIDPredicate = NSPredicate(format: "%K == %@", #keyPath(Revision.volumeID), id.volumeID)
+            fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [idPredicate, volumeIDPredicate])
             revision = try? moc.fetch(fetchRequest).first
         }
         return revision
@@ -670,7 +676,18 @@ public extension StorageManager {
         let fetchRequest = NSFetchRequest<Share>()
         fetchRequest.entity = Share.entity()
         fetchRequest.sortDescriptors = [.init(key: #keyPath(Share.id), ascending: true)]
-//        fetchRequest.predicate = NSPredicate(format: "true == %@", true)
+        return fetchRequest
+    }
+
+    private func requestSharesWithNonEncryptedProperties() -> NSFetchRequest<CoreDataShare> {
+        let fetchRequest = CoreDataShare.fetchRequest()
+        fetchRequest.sortDescriptors = [.init(key: #keyPath(Share.id), ascending: true)]
+        let attributesByName = CoreDataShare.entity().attributesByName
+        let filteredAttributes = attributesByName.filter {
+            $0.key != "creator"
+        }
+        fetchRequest.propertiesToFetch = Array(filteredAttributes.values)
+        fetchRequest.relationshipKeyPathsForPrefetching = [#keyPath(CoreDataShare.volume)]
         return fetchRequest
     }
 
@@ -938,6 +955,7 @@ extension StorageManager {
         return moc.performAndWait {
             guard let volumeId = try? getMyVolumeId(in: moc) else { return 0 }
             let fetchRequest = requestPrimaryPhotos(volumeId: volumeId)
+            fetchRequest.includesPropertyValues = false
             return (try? moc.count(for: fetchRequest)) ?? 0
         }
     }
@@ -1173,10 +1191,9 @@ extension StorageManager {
         return fetchRequest
     }
 
-    // We assume that we the only uploading photos are mine
+    /// Fetches only nonencrypted properties to avoid decryption issues
     public func requestUploadingPhotos() -> NSFetchRequest<Photo> {
-        let fetchRequest = NSFetchRequest<Photo>()
-        fetchRequest.entity = Photo.entity()
+        let fetchRequest = CoreDataPhoto.photoFetchRequest()
         fetchRequest.sortDescriptors = [.init(key: #keyPath(Photo.captureTime), ascending: false)]
         fetchRequest.predicate = NSPredicate(
             format: "%K == %d OR %K == %d OR %K == %d",
@@ -1184,11 +1201,16 @@ extension StorageManager {
             #keyPath(Photo.stateRaw), Photo.State.cloudImpediment.rawValue,
             #keyPath(Photo.stateRaw), Photo.State.interrupted.rawValue
         )
+        let attributesByName = CoreDataPhoto.entity().attributesByName
+        let transformableAttributes = ["signatureEmail", "nameSignatureEmail", "tags", "tempBase64Exif", "tempBase64Metadata"]
+        fetchRequest.propertiesToFetch = Array(attributesByName.filter {
+            !transformableAttributes.contains($0.key)
+        }.values)
         return fetchRequest
     }
 
     // Uploading photos are mine
-    private func requestMyPrimaryUploadingPhotos() -> NSFetchRequest<Photo> {
+    private func requestMyPrimaryUploadingPhotos(fetchPropertyValues: Bool = true) -> NSFetchRequest<Photo> {
         let fetchRequest = NSFetchRequest<Photo>(entityName: "Photo")
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: #keyPath(Photo.captureTime), ascending: false)]
         fetchRequest.predicate = NSPredicate(
@@ -1201,16 +1223,20 @@ extension StorageManager {
             #keyPath(Photo.children), #keyPath(Photo.stateRaw), Photo.State.cloudImpediment.rawValue,
             #keyPath(Photo.children), #keyPath(Photo.stateRaw), Photo.State.interrupted.rawValue
         )
+        if !fetchPropertyValues {
+            fetchRequest.includesPropertyValues = false
+        }
         return fetchRequest
     }
 
     // MARK: Photo Subscriptions
     public func subscriptionToPhotoShares(moc: NSManagedObjectContext) -> NSFetchedResultsController<Share> {
-        let request = requestShares()
+        let request = requestSharesWithNonEncryptedProperties()
         request.predicate = NSPredicate(format: "%K == %d", #keyPath(Share.type), Share.ShareType.photos.rawValue)
         return NSFetchedResultsController(fetchRequest: request, managedObjectContext: moc, sectionNameKeyPath: nil, cacheName: nil)
     }
 
+    /// Optimizes fetch to only size related attributes
     public func subscriptionToUploadingPhotos(moc: NSManagedObjectContext) -> NSFetchedResultsController<Photo> {
         return NSFetchedResultsController(
             fetchRequest: self.requestUploadingPhotos(),
@@ -1229,9 +1255,9 @@ extension StorageManager {
         )
     }
 
-    public func subscriptionToMyPrimaryUploadingPhotos(moc: NSManagedObjectContext) -> NSFetchedResultsController<Photo> {
+    public func subscriptionToMyPrimaryUploadingPhotosCount(moc: NSManagedObjectContext) -> NSFetchedResultsController<Photo> {
         return NSFetchedResultsController(
-            fetchRequest: requestMyPrimaryUploadingPhotos(),
+            fetchRequest: requestMyPrimaryUploadingPhotos(fetchPropertyValues: false),
             managedObjectContext: moc,
             sectionNameKeyPath: nil,
             cacheName: nil

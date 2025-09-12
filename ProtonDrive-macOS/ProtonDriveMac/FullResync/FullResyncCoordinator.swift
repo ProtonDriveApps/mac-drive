@@ -18,19 +18,22 @@
 import Foundation
 import PDCore
 
-@MainActor
 protocol FullResyncApplicationStateObserverProtocol  {
-    func performFullResync() async throws
-    func updateFullResyncItemsCount(_ count: Int)
-    func proceedToDomainReenumeration() async throws
-    func completeFullResync(hasFileProviderResponded: Bool)
-    func cancelFullResync() async throws
-    func finishFullResync()
-    func fullResyncErrored(message: String)
+    @MainActor func fullResyncStarted() async throws
+    @MainActor func fullResyncItemCountUpdated(_ count: Int)
+    @MainActor func fullResyncReenumerationStarted() async throws
+    @MainActor func fullResyncCompleted(hasFileProviderResponded: Bool)
+    @MainActor func fullResyncFinished()
+    @MainActor func fullResyncErrored(message: String)
+    @MainActor func fullResyncCancelled() async throws
+
+    var state: ApplicationState { get }
+    func waitUntilEnumerationHasBegunAndEnded() async throws
 }
 
 extension ApplicationEventObserver: FullResyncApplicationStateObserverProtocol {}
 
+/// Coordinates the flow of information between all the moving parts involved in a Resync: about a Resync between the domain, menu bar, and application state.
 final class FullResyncCoordinator {
     
     @SettingsStorage(UserDefaults.FileProvider.shouldReenumerateItemsKey.rawValue) var shouldReenumerateItems: Bool?
@@ -53,11 +56,13 @@ final class FullResyncCoordinator {
                   domainOperationsService: domainOperationsService,
                   menuBarCoordinator: menuBarCoordinator)
     }
-    
+
     init(applicationEventObserver: FullResyncApplicationStateObserverProtocol,
          fullResyncService: FullResyncServiceProtocol,
          domainOperationsService: DomainOperationsServiceProtocol,
          menuBarCoordinator: MenuBarCoordinator?) {
+        Log.trace()
+
         self.applicationEventObserver = applicationEventObserver
         self.fullResyncService = fullResyncService
         self.domainOperationsService = domainOperationsService
@@ -67,7 +72,7 @@ final class FullResyncCoordinator {
 
         _shouldReenumerateItems.configure(with: Constants.appGroup)
         _workingSetEnumerationInProgress.configure(with: Constants.appGroup)
-        
+
         workingSetEnumerationInProgress = nil
     }
     
@@ -77,29 +82,37 @@ final class FullResyncCoordinator {
 
     func performFullResync(onlyIfPreviouslyInterrupted: Bool = false) {
         if onlyIfPreviouslyInterrupted && !fullResyncService.previousRunWasInterrupted {
-            Log.debug("Not performing resync because it was not interrupted", domain: .application)
+            Log.debug("Not performing resync because it was not interrupted", domain: .resyncing)
             return
         }
+        
+        Log.trace()
         let startTime = Date.now
         fullResyncMonitor = FullResyncMonitor()
         performWithLogging { [weak self] in
-            try await self?.applicationEventObserver.performFullResync()
+            try await self?.applicationEventObserver.fullResyncStarted()
             await self?.fullResyncService.start(
-                onNodeRefreshed: { [weak self] refreshedNodesCount in
-                    self?.applicationEventObserver.updateFullResyncItemsCount(refreshedNodesCount)
+                onNodesRefreshed: { refreshedNodesCount in
+                    self?.applicationEventObserver.fullResyncItemCountUpdated(refreshedNodesCount)
                 },
-                onFinish: { [weak self] in
-                    self?.fullResyncMonitor?.reportFullResyncEnd(status: .completed)
+                onDoneResyncing: {
+                    performWithLogging {
+                        try await self?.applicationEventObserver.fullResyncReenumerationStarted()
+                    }
+
                     // the error is not caught here by design — it should be propagated to fullResyncService which handles it internally
-                    try await self?.onFullResyncFinished(startTime: startTime)
+                    try await self?.reenumerateAfterResyncing(startTime: startTime)
                 },
-                onCancel: { [weak self] in
+                onCompleted: {
+                    self?.fullResyncMonitor?.reportFullResyncEnd(status: .completed)
+                },
+                onCancelled: {
                     self?.fullResyncMonitor?.reportFullResyncEnd(status: .cancelled)
                     performWithLogging {
-                        try await self?.applicationEventObserver.cancelFullResync()
+                        try await self?.applicationEventObserver.fullResyncCancelled()
                     }
                 },
-                onError: { [weak self] error in
+                onErrored: { error in
                     self?.fullResyncMonitor?.reportFullResyncEnd(status: .failed)
                     self?.applicationEventObserver.fullResyncErrored(message: error.localizedDescription)
                 }
@@ -108,68 +121,66 @@ final class FullResyncCoordinator {
     }
 
     @MainActor
-    private func onFullResyncFinished(startTime: Date) async throws {
-        try await applicationEventObserver.proceedToDomainReenumeration()
+    private func reenumerateAfterResyncing(startTime: Date) async throws {
+        Log.trace()
+        performWithLogging { [weak self] in
+            try await self?.applicationEventObserver.fullResyncReenumerationStarted()
+        }
+
         shouldReenumerateItems = true
+
         // workingSetEnumerationInProgress is stored in shared user defaults
         // and used for communication with file provider extension, hence observation
+        // to detect when the file provider sets the value back to false.
         workingSetEnumerationInProgress = true
-        observationCenter.addObserver(self, of: \.workingSetEnumerationInProgress) { [weak self] value in
-            if value == false {
-                Task { [weak self] in
-                    // a delay to give some time for the file provider extension to pick up more changes through `fetchItem` calls
-                    // the number is arbitrary, because we don't know if the extension will make these calls at all nor how long they'll take
-                    try? await Task.sleep(for: .seconds(15))
-                    guard let self else { return }
-                    self.completeFullResync(hasFileProviderResponded: true, startTime: startTime)
-                }
-            }
-        }
+
         do {
             try await domainOperationsService.signalEnumerator()
-            Task { [weak self] in
-                try? await Task.sleep(for: .seconds(15))
-                // if the file provider has not responed within 15 seconds, we're gonna assume it won't response at all
-                guard let self else { return }
-                self.completeFullResync(hasFileProviderResponded: false, startTime: startTime)
-            }
+
+            try await applicationEventObserver.waitUntilEnumerationHasBegunAndEnded()
+
+            self.completeFullResync(hasFileProviderResponded: true, startTime: startTime)
         } catch {
-            Log.error("Signal enumerator failed \(error.localizedDescription)", domain: .application)
+            Log.error("Signal enumerator failed \(error.localizedDescription)", domain: .resyncing)
             self.completeFullResync(hasFileProviderResponded: false, startTime: startTime)
         }
     }
-    
+
     @MainActor
     private func completeFullResync(hasFileProviderResponded: Bool, startTime: Date) {
+        Log.trace(workingSetEnumerationInProgress?.description ?? "n/a")
         guard workingSetEnumerationInProgress != nil else { return }
         observationCenter.removeObserver(self)
         workingSetEnumerationInProgress = nil
         Log.info("Full resync completed in \(Date().timeIntervalSince(startTime)) seconds",
-                 domain: .application,
+                 domain: .resyncing,
                  sendToSentryIfPossible: true)
-        applicationEventObserver.completeFullResync(hasFileProviderResponded: hasFileProviderResponded)
+        applicationEventObserver.fullResyncCompleted(hasFileProviderResponded: hasFileProviderResponded)
         menuBarCoordinator?.showMenuProgramatically()
     }
-    
+
+    // MARK: - UserActionsDelegate
+
     func finishFullResync() {
+        Log.trace()
         performWithLogging { [weak self] in
-            await self?.applicationEventObserver.finishFullResync()
+            await self?.applicationEventObserver.fullResyncFinished()
         }
     }
 
     func retryFullResync() {
-        performFullResync()
+        Log.trace()
         fullResyncMonitor?.retryHappened()
+        performFullResync()
     }
     
     func cancelFullResync() {
+        Log.trace()
+
         fullResyncService.cancel()
-    }
-    
-    func abortFullResync() {
-        fullResyncService.abort()
+
         performWithLogging { [weak self] in
-            try await self?.applicationEventObserver.cancelFullResync()
+            try await self?.applicationEventObserver.fullResyncCancelled()
         }
     }
 }

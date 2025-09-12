@@ -47,7 +47,8 @@ enum ApplicationSyncStatus: Sendable, Equatable {
     // Source: FileProvider
     case synced
     // Source: User action
-    case fullResync
+    case fullResyncInProgress
+    case fullResyncCompleted
 
     var displayLabel: String {
         switch self {
@@ -60,7 +61,8 @@ enum ApplicationSyncStatus: Sendable, Equatable {
         case .updateAvailable: Localization.menu_status_update_available
         case .errored(let errorCount): Localization.menu_status_sync_items_failed(errorCount: errorCount)
         case .synced: Localization.menu_status_synced
-        case .fullResync: Localization.menu_status_full_resync
+        case .fullResyncInProgress: Localization.menu_status_full_resync
+        case .fullResyncCompleted: Localization.menu_status_full_resync
         }
     }
 }

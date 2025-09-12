@@ -35,12 +35,14 @@ class TreeParsingOperation<ReturnType>: SynchronousOperation, OperationWithProgr
                   storage: StorageManager,
                   enumeration: @escaping Enumeration,
                   endpointFactory: EndpointFactory,
+                  bytesCounterResource: BytesCounterResource,
                   completion: @escaping Completion) {
         self.node = node
         self.enumeration = enumeration
         self.cloudSlot = cloudSlot
         self.storage = storage
         self.endpointFactory = endpointFactory
+        self.bytesCounterResource = bytesCounterResource
         self.completion = completion
 
         super.init()
@@ -54,7 +56,8 @@ class TreeParsingOperation<ReturnType>: SynchronousOperation, OperationWithProgr
     fileprivate weak var cloudSlot: CloudSlotProtocol!
     fileprivate weak var storage: StorageManager!
     fileprivate let endpointFactory: EndpointFactory
-    
+    fileprivate let bytesCounterResource: BytesCounterResource
+
     lazy var progress: Progress = {
         let progress = Progress(totalUnitCount: 0)
         // TODO: configure progress with child progresses
@@ -125,7 +128,13 @@ class DownloadTreeOperation: TreeParsingOperation<Folder>, @unchecked Sendable {
                     file.activeRevision?.blocksAreValid() != true
                 }.map { file in
 #if os(iOS)
-                    DownloadFileOperation(file, cloudSlot: self.cloudSlot, endpointFactory: self.endpointFactory, storage: self.storage) { [weak self] in
+                    DownloadFileOperation(
+                        file,
+                        cloudSlot: self.cloudSlot,
+                        endpointFactory: self.endpointFactory,
+                        storage: self.storage,
+                        bytesCounterResource: self.bytesCounterResource
+                    ) { [weak self] in
                         // remember error or execute enumeration block
                         switch $0 {
                         case .success(let node):
@@ -136,7 +145,13 @@ class DownloadTreeOperation: TreeParsingOperation<Folder>, @unchecked Sendable {
                     }
 #else
                     /// Legacy for mac, can be removed after 2025 Feb, once macOS migrated to DDK
-                    LegacyDownloadFileOperation(file, cloudSlot: self.cloudSlot, endpointFactory: self.endpointFactory, storage: self.storage) { [weak self] in
+                    LegacyDownloadFileOperation(
+                        file,
+                        cloudSlot: self.cloudSlot,
+                        endpointFactory: self.endpointFactory,
+                        storage: self.storage,
+                        bytesCounterResource: self.bytesCounterResource
+                    ) { [weak self] in
                         // remember error or execute enumeration block
                         switch $0 {
                         case .success(let node):
@@ -172,13 +187,14 @@ class ScanTreesOperation: TreeParsingOperation<[Node]>, @unchecked Sendable {
          enumeration: @escaping TreeParsingOperation.Enumeration,
          endpointFactory: EndpointFactory,
          shouldIncludeDeletedItems: Bool = true,
+         bytesCounterResource: BytesCounterResource,
          completion: @escaping TreeParsingOperation<[Node]>.Completion) throws {
         guard let node = folders.first else {
             throw NSError(domain: "DownloadTreeOperation", code: -1, userInfo: [NSLocalizedDescriptionKey: "This operation must be called with at least a single node"])
         }
         self.nodes = folders
         self.shouldIncludeDeletedItems = shouldIncludeDeletedItems
-        super.init(node: node, cloudSlot: cloudSlot, storage: storage, enumeration: enumeration, endpointFactory: endpointFactory, completion: completion)
+        super.init(node: node, cloudSlot: cloudSlot, storage: storage, enumeration: enumeration, endpointFactory: endpointFactory, bytesCounterResource: bytesCounterResource, completion: completion)
         self.output = []
         internalQueue.maxConcurrentOperationCount = 6
     }

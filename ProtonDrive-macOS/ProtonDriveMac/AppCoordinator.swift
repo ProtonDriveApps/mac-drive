@@ -133,6 +133,7 @@ class AppCoordinator: NSObject, ObservableObject {
             userDefault: Constants.appGroup.userDefaults,
             clientConfig: Constants.userApiConfig,
             mainKeyProvider: keymaker,
+            autoLocker: nil,
             sessionRelatedCommunicatorFactory: { sessionStore, authenticator, _ in
                 SessionRelatedCommunicatorForMainApp(
                     userDefaultsConfiguration: .forFileProviderExtension(userDefaults: Constants.appGroup.userDefaults),
@@ -1209,10 +1210,6 @@ extension AppCoordinator: UserActionsDelegate {
     
     func cancelFullResync() {
         fullResyncCoordinator?.cancelFullResync()
-    }
-    
-    func abortFullResync() {
-        fullResyncCoordinator?.abortFullResync()
     }
 
     func showLogin() {

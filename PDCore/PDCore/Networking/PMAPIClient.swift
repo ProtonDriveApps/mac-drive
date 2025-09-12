@@ -24,6 +24,7 @@ import ProtonCoreFeatureFlags
 import ProtonCoreServices
 import ProtonCoreNetworking
 import ProtonCoreCryptoGoInterface
+import ProtonCoreKeymaker
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -51,6 +52,7 @@ public class PMAPIClient: NSObject, APIServiceDelegate {
     public weak var responseDelegateForLoginAndSignup: HumanVerifyResponseDelegate?
     public weak var paymentDelegateForLoginAndSignup: HumanVerifyPaymentDelegate?
     public weak var authSessionInvalidatedDelegateForLoginAndSignup: AuthSessionInvalidatedDelegate?
+    private weak var autoLocker: Autolocker?
 
     // To be observed by UI layer in order to communicate with the user
     @objc public internal(set) dynamic var currentActivity: NSUserActivity = Activity.none
@@ -63,12 +65,14 @@ public class PMAPIClient: NSObject, APIServiceDelegate {
          authenticator: AuthenticatorInterface,
          generalReachability: Reachability?,
          sessionRelatedCommunicator: SessionRelatedCommunicatorBetweenMainAppAndExtensions,
+         autoLocker: Autolocker?,
          settingsStorage: SettingsStorageSuite = .group(named: Constants.appGroup)) {
         self.appVersion = version
         self.sessionStore = sessionVault
         self.apiService = apiService
         self.authenticator = authenticator
         self.generalReachability = generalReachability
+        self.autoLocker = autoLocker
         self.sessionRelatedCommunicator = sessionRelatedCommunicator
         self.observationCenter = UserDefaultsObservationCenter(userDefaults: settingsStorage.userDefaults)
         super.init()
@@ -146,6 +150,10 @@ extension PMAPIClient: AuthDelegate {
     }
 
     public func onAuthenticatedSessionInvalidated(sessionUID: String) {
+        if let autoLocker, autoLocker.shouldAutolockNow() {
+            Log.debug("Ignore session invalidation because auto locker is enabled", domain: .networking)
+            return
+        }
         sessionStore.removeAuthenticatedCredential()
         apiService.setSessionUID(uid: "")
         Task {

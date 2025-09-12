@@ -109,6 +109,10 @@ public class Localization {
     /// "%d items processed"
     public static func full_resync_progress(itemsProcessed: Int) -> String { String(format: localized(key: "full_resync_progress", table: "Mac-Localizable"), itemsProcessed) }
 
+    /// "Shown in Settings view"
+    /// "Full resync"
+    public static var full_resync_state_description: String { localized(key: "full_resync_state_description", table: "Mac-Localizable") }
+
     /// "Shown in tray app"
     /// "Get more storage"
     public static var general_get_more_storage: String { localized(key: "general_get_more_storage", table: "Mac-Localizable") }
@@ -127,10 +131,6 @@ public class Localization {
     /// "Label text when performing full resync"
     /// "Performing full resync..."
     public static var menu_status_full_resync: String { localized(key: "menu_status_full_resync", table: "Mac-Localizable") }
-
-    /// "Label text when processing the changes from backend"
-    /// "Listing changes..."
-    public static var menu_status_listing_changes: String { localized(key: "menu_status_listing_changes", table: "Mac-Localizable") }
 
     /// "Label text when mac is offline"
     /// "You are offline"

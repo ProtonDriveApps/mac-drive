@@ -68,7 +68,8 @@ public class LocalSettings: NSObject {
     @SettingsStorage("DrivePhotosTagsMigration") public var drivePhotosTagsMigrationValue: Bool?
     @SettingsStorage("DrivePhotosTagsMigrationDisabled") public var drivePhotosTagsMigrationDisabledValue: Bool?
 
-    @SettingsStorage("tagsMigrationFinished") public var tagsMigrationFinished: Bool?
+    @SettingsStorage("tagsMigrationFinished") var tagsMigrationFinishedValue: Bool?
+    @SettingsStorage("isTagsMigrationSheetShownValue") private var isTagsMigrationSheetShownValue: Bool?
 
     // Sharing flags
     @SettingsStorage("DriveSharingMigration") public var driveSharingMigrationValue: Bool?
@@ -179,7 +180,8 @@ public class LocalSettings: NSObject {
         self._domainVersionValue.configure(with: suite)
         self._drivePhotosTagsMigrationValue.configure(with: suite)
         self._drivePhotosTagsMigrationDisabledValue.configure(with: suite)
-        self._tagsMigrationFinished.configure(with: suite)
+        self._tagsMigrationFinishedValue.configure(with: suite)
+        self._isTagsMigrationSheetShownValue.configure(with: suite)
 
         // Sharing
         self._driveSharingMigrationValue.configure(with: suite)
@@ -365,6 +367,7 @@ public class LocalSettings: NSObject {
             quotaStateValue = nil
             self.defaultHomeTabTagValue = 1
             self.didFetchB2BStatus = nil
+            isTagsMigrationSheetShownValue = nil
         }
         driveAlbumsDisabledValue = nil
         driveCopyDisabledValue = nil
@@ -372,7 +375,7 @@ public class LocalSettings: NSObject {
         driveChecklistStatusDataValue = nil
         drivePhotosTagsMigrationValue = nil
         drivePhotosTagsMigrationDisabledValue = nil
-        tagsMigrationFinished = nil
+        tagsMigrationFinishedValue = nil
         self.layout = nil
         self.sort = nil
         self.revisionRetentionDays = nil
@@ -674,6 +677,16 @@ public class LocalSettings: NSObject {
     public var drivePhotosTagsMigrationDisabled: Bool {
         get { drivePhotosTagsMigrationDisabledValue ?? false }
         set { drivePhotosTagsMigrationDisabledValue = newValue }
+    }
+
+    @objc public dynamic var tagsMigrationFinished: Bool {
+        get { tagsMigrationFinishedValue ?? false }
+        set { tagsMigrationFinishedValue = newValue }
+    }
+
+    public var isTagsMigrationSheetShown: Bool {
+        get { isTagsMigrationSheetShownValue ?? false }
+        set { isTagsMigrationSheetShownValue = newValue }
     }
 
     public var docsSheetsEnabled: Bool {

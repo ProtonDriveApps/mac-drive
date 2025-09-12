@@ -46,7 +46,7 @@ extension Thumbnail {
         }
     }
 
-    internal func decrypt(sessionKey: Data) throws -> Data {
+    internal func decrypt(sessionKey: Data, decryptionResource: DecryptionResource = Decryptor()) throws -> Data {
         do {
             guard let thumbnailDataPacket = encrypted else {
                 throw Error.blockDataNotDownloaded
@@ -57,34 +57,15 @@ extension Thumbnail {
                 throw Error.tamperedThumbnail
             }
 
-            let addressKeys = try revision.getAddressPublicKeysOfRevision()
-            let decrypted: VerifiedBinary
             do {
-                decrypted = try Decryptor.decryptAndVerifyThumbnail(
-                    thumbnailDataPacket,
-                    contentSessionKey: sessionKey,
-                    verificationKeys: addressKeys
-                )
+                let decryptedData = try decryptionResource.decryptBlock(thumbnailDataPacket, sessionKey: sessionKey)
+                
+                self.clearData = decryptedData
+                return decryptedData
             } catch let error where !(error is Decryptor.Errors) {
                 DriveIntegrityErrorMonitor.reportContentError(for: revision.file)
                 throw error
             }
-
-            switch decrypted {
-            case .verified(let thumbnail):
-                self.clearData = thumbnail
-                return thumbnail
-
-            case .unverified(let thumbnail, let error):
-                let hasSignatureEmail = !(revision.signatureAddress?.isEmpty ?? true)
-                if hasSignatureEmail {
-                    // Anonymous upload file thumbnail doesn't have signature
-                    Log.error(error: SignatureError(error, "Thumbnail Passphrase", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nVolumeID: \(revision.file.volumeID)"), domain: .encryption, sendToSentryIfPossible: revision.file.isSignatureVerifiable())
-                }
-                self.clearData = thumbnail
-                return thumbnail
-            }
-
         } catch {
             Log.error(error: DecryptionError(error, "Thumbnail", description: "RevisionID: \(revision.id) \nLinkID: \(revision.file.id) \nVolumeID: \(revision.file.volumeID)"), domain: .encryption)
             throw error

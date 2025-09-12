@@ -99,6 +99,13 @@ struct MainWindow: View {
 #else
                 EmptyView()
 #endif
+            case .resyncFinished:
+                NotificationView(
+                    state: state,
+                    action: { withAnimation { actions.resync.finishFullResync() } }
+                )
+                .frame(height: 42)
+
             case .none:
                 EmptyView()
             }
@@ -124,8 +131,19 @@ struct MainWindow: View {
 
     private func contentView() -> some View {
         VStack(spacing: 10) {
-            switch state.fullResyncState {
-            case .idle:
+            if state.fullResyncState.isHappening {
+                switch state.fullResyncState {
+                case .inProgress(let count):
+                    fullResyncInProgress(count)
+                case .enumerating:
+                    fullResyncEnumerating()
+                case .errored(let errorMessage):
+                    fullResyncErrored(errorMessage)
+                case .idle, .completed:
+                    // Won't be called because isHappening is true - added here to make switch exhaustive
+                    EmptyView()
+                }
+            } else {
                 if state.isLaunching {
                     statusIllustration(
                         imageName: "launching",
@@ -141,14 +159,7 @@ struct MainWindow: View {
                         .frame(maxHeight: .infinity)
                 }
 
-            case .inProgress(let count):
-                fullResyncInProgress(count)
-            case .completed(let hasFileProviderResponded):
-                fullResyncCompleted(hasFileProviderResponded: hasFileProviderResponded)
-            case .errored(let errorMessage):
-                fullResyncErrored(errorMessage)
             }
-            
         }
         .frame(maxHeight: .infinity)
     }
@@ -179,22 +190,19 @@ struct MainWindow: View {
             
             LoginButton(title: "Cancel",
                         isLoading: .constant(false),
-                        action: actions.sync.cancelFullResync)
+                        action: actions.resync.cancelFullResync)
                 .padding(.horizontal, 32)
                 .accessibility(identifier: "MainWindow.FullResyncButton.cancel")
         }
     }
-    
-    private func fullResyncCompleted(hasFileProviderResponded: Bool) -> some View {
+
+    private func fullResyncEnumerating() -> some View {
         VStack(spacing: 10) {
-
+            
             statusIllustration(imageName: "launching",
-                               title: "Resync completed",
-                               subtitle: "Some changes might take a while to show up in Finder but they have been synced.")
+                               title: "Resyncing in progress",
+                               subtitle: "This process may take a few minutes.")
 
-            LoginButton(title: "Continue",
-                        isLoading: .constant(false),
-                        action: actions.sync.finishFullResync)
                 .padding(.horizontal, 32)
                 .accessibility(identifier: "MainWindow.FullResyncButton.continue")
         }
@@ -209,13 +217,13 @@ struct MainWindow: View {
             
             LoginButton(title: "Retry",
                         isLoading: .constant(false),
-                        action: actions.sync.retryFullResync)
+                        action: actions.resync.retryFullResync)
                 .padding(.horizontal, 32)
                 .accessibility(identifier: "MainWindow.FullResyncButton.retry")
             
             LoginButton(title: "Cancel",
                         isLoading: .constant(false),
-                        action: actions.sync.abortFullResync)
+                        action: actions.resync.cancelFullResync)
                 .padding(.horizontal, 32)
                 .accessibility(identifier: "MainWindow.FullResyncButton.cancel")
         }

@@ -39,11 +39,12 @@ import PDCore
     func resumeSyncing()
     func togglePausedStatus()
     func cleanUpErrors()
+
+    // Resync
     func performFullResync(onlyIfPreviouslyInterrupted: Bool)
     func finishFullResync()
     func retryFullResync()
     func cancelFullResync()
-    func abortFullResync()
 
     // Windows
     func showLogin()
@@ -77,6 +78,7 @@ class UserActions {
     lazy var app = ApplicationActions(delegate: delegate)
     lazy var account = AccountActions(delegate: delegate)
     lazy var sync = SyncActions(delegate: delegate)
+    lazy var resync = ResyncActions(delegate: delegate)
     lazy var windows = WindowActions(delegate: delegate)
     lazy var links = LinkActions()
     lazy var fileProvider = FileProviderActions(delegate: delegate)
@@ -199,6 +201,14 @@ class UserActions {
             Log.trace()
             delegate?.cleanUpErrors()
         }
+    }
+
+    class ResyncActions {
+        private weak var delegate: UserActionsDelegate?
+
+        init(delegate: UserActionsDelegate?) {
+            self.delegate = delegate
+        }
 
         func performFullResync(onlyIfPreviouslyInterrupted: Bool = false) {
             Log.trace()
@@ -215,14 +225,9 @@ class UserActions {
             delegate?.retryFullResync()
         }
         
-        func cancelFullResync() {
+        @objc func cancelFullResync() {
             Log.trace()
             delegate?.cancelFullResync()
-        }
-        
-        func abortFullResync() {
-            Log.trace()
-            delegate?.abortFullResync()
         }
     }
 

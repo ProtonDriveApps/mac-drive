@@ -27,34 +27,54 @@ class ApplicationState: ObservableObject {
     enum NotificationState: CustomStringConvertible {
         case error(Int)
         case update
+        case resyncFinished
         case none
 
         var description: String {
             switch self {
             case .error(let count): "Errors (\(count)"
             case .update: "Update"
+            case .resyncFinished: "Resync finished"
             case .none: "None"
             }
         }
     }
     
-    enum FullResyncState: CustomStringConvertible {
+    enum FullResyncState: CustomStringConvertible, Equatable {
         case idle
         case inProgress(Int)
-        case completed(hasFileProviderResponded: Bool)
+        case enumerating
+        case completed(hasFileProviderResponded: Bool?)
         case errored(String)
         
         var isHappening: Bool {
-            guard case .idle = self else { return true }
-            return false
+            switch self {
+            case .idle, .completed: false
+            case .inProgress, .enumerating, .errored: true
+            }
         }
-        
+
+        /// Displayed in SyncStateView
         var description: String {
             switch self {
-            case .idle: return "Idle"
-            case .inProgress(let count): return Localization.full_resync_progress(itemsProcessed: count)
-            case .completed(let hasFileProviderResponded): return "Completed: \(hasFileProviderResponded ? "file provider responded" : "no file provider response")"
-            case .errored(let message): return "Errored: \(message)"
+            case .idle: 
+                "Idle"
+            case .inProgress: 
+                "Full resync in progress: downloading data..."
+            case .enumerating:
+                "Full resync in progress: refreshing directories..."
+            case .completed(let hasFileProviderResponded):
+#if HAS_QA_FEATURES
+                if let hasFileProviderResponded {
+                    hasFileProviderResponded ? "Full resync completed" : "Full resync completed (File provider has not responded)"
+                } else {
+                    "Full resync completed"
+                }
+#else
+                "Full resync completed"
+#endif
+            case .errored(let message):
+                "Full resync error: \(message)"
             }
         }
     }
@@ -109,7 +129,11 @@ class ApplicationState: ObservableObject {
     @Published var isEnumerating = false
     @Published var isPaused = false
     @Published var isResuming = false
-    @Published var fullResyncState: FullResyncState = .idle
+    @Published var fullResyncState: FullResyncState = .idle {
+        didSet {
+            Log.trace("Resync did set fullResyncState to \(fullResyncState)")
+        }
+    }
 
     @Published var lastSyncTime: TimeInterval?
     @Published var formattedTimeSinceLastSync: String = ApplicationSyncStatus.synced.displayLabel
@@ -121,7 +145,7 @@ class ApplicationState: ObservableObject {
     @Published var deleteCount = 0
 
     @Published var globalSyncStateDescription: String?
-    private var fullResyncStateDescription: String = "Full resync"
+//    private var fullResyncStateDescription: String = "Full resync"
 
     // MARK: Computed
 
@@ -130,7 +154,7 @@ class ApplicationState: ObservableObject {
             return .launching
         }
         if fullResyncState.isHappening {
-            return .fullResync
+            return .fullResyncInProgress
         }
         if accountInfo == nil {
             return .signedOut
@@ -141,7 +165,7 @@ class ApplicationState: ObservableObject {
         if isOffline {
             return .offline
         }
-        if isSyncing {
+        if isSyncing && !fullResyncState.isHappening {
             return .syncing
         }
         if totalFilesLeftToSync > 0 {
@@ -165,17 +189,23 @@ class ApplicationState: ObservableObject {
         switch status {
         case .synced:
             return formattedTimeSinceLastSync
-        case .syncing:
+        case .syncing where globalSyncStateDescription?.isEmpty == false:
             return globalSyncStateDescription ?? self.overallStatus.displayLabel
-        case .fullResync:
-            return fullResyncStateDescription
+        case .fullResyncInProgress, .fullResyncCompleted:
+            return fullResyncState.description
         default:
             return status.displayLabel
         }
     }
 
     var notificationState: NotificationState {
-        guard !fullResyncState.isHappening else { return .none }
+        if case .completed = fullResyncState {
+            return .resyncFinished
+        }
+        if fullResyncState.isHappening {
+            return .none
+        }
+
         if isUpdateAvailable {
             return .update
         } else {
@@ -263,8 +293,7 @@ extension ApplicationState: CustomDebugStringConvertible {
             Property("userInfo.usedSpace", userInfo?.usedSpace.description ?? "n/a"),
             Property("userInfo.maxSpace", userInfo?.maxSpace.description ?? "n/a"),
             Property("canGetMoreStorage", canGetMoreStorage.description),
-            Property("fullResyncState", fullResyncState.description),
-            Property("fullResyncStateDescription", fullResyncStateDescription),
+            Property("fullResyncState.description", fullResyncState.description),
             Property("deleteCount", deleteCount.description),
             Property("globalSyncStateDescription", globalSyncStateDescription ?? self.overallStatus.displayLabel),
         ]

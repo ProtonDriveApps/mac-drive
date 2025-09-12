@@ -68,7 +68,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ouvrir le menu d'action pour %@"
+            "value" : "Ouvrir le menu d'options pour %@"
           }
         },
         "hu" : {
@@ -2411,6 +2411,12 @@
             "value" : "あなたや他のメンバーによって追加された写真がここに表示されます"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ფოტოები, რომლებსაც თქვენ ან სხვა წევრები დაამატებთ, აქ გამოჩნდება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2589,6 +2595,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "新しいアルバムへの招待"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ალბომის ახალი მოწვევა"
           }
         },
         "ko" : {
@@ -2771,6 +2783,12 @@
             "value" : "アルバムへの招待"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ალბომის მოწვევები"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2949,6 +2967,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "私の共有アルバム"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ჩემი გაზიარებული ალბომი"
           }
         },
         "ko" : {
@@ -3315,6 +3339,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "あなたと共有された 10 個以上のアルバム"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10-ზე მეტი ალბომი გაგიზიარეს"
           }
         },
         "ko" : {
@@ -3689,6 +3719,24 @@
             }
           }
         },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ალბომი გაგიზიარეს"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ალბომი გაგიზიარეს"
+                }
+              }
+            }
+          }
+        },
         "ko" : {
           "variations" : {
             "plural" : {
@@ -3979,6 +4027,144 @@
         }
       }
     },
+    "all_logs_button" : {
+      "comment" : "Button to export all logs ",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Усе журналы"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tots els registres"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Všechny logy"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle logs"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Protokolle"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Όλα τα αρχεία καταγραφής"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All logs"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todos los registros"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todos los registros"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tous les journaux"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Összes napló"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tutti i log"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのログ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "전체 로그"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle logger"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle logboeken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wszystkie logi"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todos os registros"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toate jurnalele"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alla loggar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tüm günlük kayıtları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Усі журнали"
+          }
+        }
+      }
+    },
     "authentication_welcome_text" : {
       "comment" : "Text shown on the welcome page when user is not logged in ",
       "extractionState" : "manual",
@@ -4161,6 +4347,282 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "雲端儲存的便利性與加密技術的安全性。引頸期盼終於等到讓您可完全信賴的雲端儲存。"
+          }
+        }
+      }
+    },
+    "auto_lock_timeout_after_launch" : {
+      "comment" : "Enable auto lock when app is launched ",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пасля запуску"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Després del llançament"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Po spuštění"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Efter opstart"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach dem Start"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Μετά την εκκίνηση"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After launch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al iniciar"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Después de iniciar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Au démarrage"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indítás után"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dopo l'avvio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "起動後"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "실행 후"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etter oppstart"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na het opstarten"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Po uruchomieniu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Depois de iniciar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "După lansare"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Efter start"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Başlatıldıktan sonra"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Після запуску"
+          }
+        }
+      }
+    },
+    "auto_lock_timeout_always" : {
+      "comment" : "Always enable auto lock",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заўсёды"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sempre"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vždy"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altid"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dauerhaft"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πάντα"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siempre"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siempre"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toujours"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mindig"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sempre"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "常に"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "항상"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alltid"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altijd"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zawsze"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sempre"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permanent"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alltid"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Her zaman"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завжди"
           }
         }
       }
@@ -5374,6 +5836,12 @@
             "value" : "[account.proton.me](https:\/\/account.proton.me\/u\/0\/settings\/recovery)にサインインし、設定-->回復に移動します。"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "შედით [account.proton.me](https:\/\/account.proton.me\/u\/0\/settings\/recovery)-ზე, შემდეგ გადადით პარამეტრები --> აღდგენა."
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5553,6 +6021,12 @@
             "value" : "回復手段を設定"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "აღდგენის მეთოდის დაყენება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5593,6 +6067,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Setați o metodă de recuperare"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройте метод восстановления"
           }
         },
         "sk" : {
@@ -5726,6 +6206,12 @@
             "value" : "ファイル、フォルダー、またはアルバムを直接またはリンクで共有するには選択してください。"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "აირჩიეთ ფაილი, საქაღალდე ან ალბომი პირდაპირ ან ბმულით გასაზიარებლად."
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5766,6 +6252,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Selectați un fișier, folder sau un album de partajat direct sau cu o legătură web."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите файл, папку или альбом, чтобы поделиться им напрямую или с помощью ссылки."
           }
         },
         "sk" : {
@@ -5897,6 +6389,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "アイテムを共有"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ერთეულის გაზიარება"
           }
         },
         "ko" : {
@@ -6078,6 +6576,12 @@
             "value" : "すべてのファイルは暗号化されます。"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ყველა თქვენი ფაილი დაშიფრული იქნება."
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6257,6 +6761,12 @@
             "value" : "ファイルをアップロードするか、写真のバックアップを有効にしてください"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ფაილის ატვირთვა ან ფოტოების სარეზერვო ასლის ჩართვა"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6297,6 +6807,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Încărcați un fișier sau activați conservarea fotografiilor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузите файл ИЛИ включите резервное копирование фото"
           }
         },
         "sk" : {
@@ -6403,7 +6919,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Informations de l'ordinateur"
+            "value" : "Les informations du pc"
           }
         },
         "hu" : {
@@ -6428,6 +6944,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "コンピュータの詳細"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "კომპიუტერის დეტალები"
           }
         },
         "ko" : {
@@ -6582,7 +7104,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Créé"
+            "value" : "Conçu"
           }
         },
         "hu" : {
@@ -6767,7 +7289,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Créé par"
+            "value" : "Conçu par"
           }
         },
         "hu" : {
@@ -6792,6 +7314,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "作成者"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "შემქმნელი"
           }
         },
         "ko" : {
@@ -6946,7 +7474,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nom de l'ordinateur"
+            "value" : "Nom du pc"
           }
         },
         "hu" : {
@@ -6971,6 +7499,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "コンピュータ名"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "კომპიუტერის სახელი"
           }
         },
         "ko" : {
@@ -7680,7 +8214,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Informations"
+            "value" : "Les informations"
           }
         },
         "hu" : {
@@ -7865,7 +8399,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retirer l'ordinateur"
+            "value" : "Supprimez le pc"
           }
         },
         "hu" : {
@@ -7890,6 +8424,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "コンピュータを削除"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "კომპიუტერის წაშლა"
           }
         },
         "ko" : {
@@ -8229,7 +8769,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annuler"
+            "value" : "Annulation"
           }
         },
         "hu" : {
@@ -8414,7 +8954,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retirer l'ordinateur"
+            "value" : "Supprimez le pc"
           }
         },
         "hu" : {
@@ -8439,6 +8979,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "コンピュータを削除"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "კომპიუტერის წაშლა"
           }
         },
         "ko" : {
@@ -8593,7 +9139,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Êtes-vous sûr de vouloir retirer l'ordinateur ?"
+            "value" : "Êtes-vous sûr de vouloir supprimer le pc ?"
           }
         },
         "hu" : {
@@ -8618,6 +9164,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本当にコンピュータを削除しますか？"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "დარწმუნებული ხართ, რომ გსურთ კომპიუტერის წაშლა?"
           }
         },
         "ko" : {
@@ -10446,7 +10998,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Créer une feuille de calcul"
+            "value" : "Veuillez créer un tableur"
           }
         },
         "hu" : {
@@ -10471,6 +11023,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "スプレッドシートを作成"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ცხრილის შექმნა"
           }
         },
         "ko" : {
@@ -10513,6 +11071,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Creare foaie de calcul"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Создать таблицу"
           }
         },
         "sk" : {
@@ -10806,7 +11370,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Création de la nouvelle feuille de calcul"
+            "value" : "Création du nouveau tableur"
           }
         },
         "hu" : {
@@ -10831,6 +11395,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "新しいスプレッドシートを作成中"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ახალი ცხრილის შექმნა"
           }
         },
         "ko" : {
@@ -10873,6 +11443,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Se creează o foaie de calcul"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Создание новой таблицы"
           }
         },
         "sk" : {
@@ -12839,7 +13415,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Modifier le nom de l'ordinateur"
+            "value" : "Modifier le nom du pc"
           }
         },
         "hu" : {
@@ -12864,6 +13440,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "コンピュータ名を変更"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "კომპიუტერის სახელის შეცვლა"
           }
         },
         "ko" : {
@@ -15648,6 +16230,12 @@
             "value" : "アルバムを作成"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ალბომის შექმნა"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15826,6 +16414,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "作成または参加したアルバムがここに表示されます。"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ალბომები, რომლებსაც შექმნით ან შეუერთდებით, აქ გამოჩნდება."
           }
         },
         "ko" : {
@@ -16008,6 +16602,12 @@
             "value" : "アルバムがありません"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ალბომების გარეშე"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16188,6 +16788,12 @@
             "value" : "写真のバーストがここに表示されます"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "თქვენი ფოტოსერიები აქ გამოჩნდება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16366,6 +16972,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "バーストなし"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "სერიების გარეშე"
           }
         },
         "ko" : {
@@ -16918,6 +17530,12 @@
             "value" : "お気に入りの写真がここに表示されます"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "თქვენი რჩეული ფოტოები აქ გამოჩნდება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17096,6 +17714,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "お気に入りがありません"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "რჩეულების გარეშე"
           }
         },
         "ko" : {
@@ -17650,6 +18274,12 @@
             "value" : "Liveフォトがここに表示されます"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "თქვენი Live Photos აქ გამოჩნდება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17828,6 +18458,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Liveフォトがありません"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live Photos-ის გარეშე"
           }
         },
         "ko" : {
@@ -18010,6 +18646,12 @@
             "value" : "作成したアルバムがここに表示されます"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ალბომები, რომლებსაც შექმნით, აქ გამოჩნდება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18190,6 +18832,12 @@
             "value" : "パノラマ写真がここに表示されます"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "თქვენი პანორამული ფოტოები აქ გამოჩნდება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18368,6 +19016,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "パノラマ写真がありません"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "პანორამების გარეშე"
           }
         },
         "ko" : {
@@ -18736,6 +19390,12 @@
             "value" : "ポートレート写真がここに表示されます"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "თქვენი პორტრეტული ფოტოები აქ გამოჩნდება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18914,6 +19574,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ポートレートはありません"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "პორტრეტების გარეშე"
           }
         },
         "ko" : {
@@ -19096,6 +19762,12 @@
             "value" : "RAW写真がここに表示されます"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "თქვენი RAW ფოტოები აქ გამოჩნდება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19274,6 +19946,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "RAWがありません"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAW-ს გარეშე"
           }
         },
         "ko" : {
@@ -19456,6 +20134,12 @@
             "value" : "スクリーンショットがここに表示されます"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "თქვენი ეკრანის ანაბეჭდები აქ გამოჩნდება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19634,6 +20318,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "スクリーンショットがありません"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ეკრანის ანაბეჭდების გარეშე"
           }
         },
         "ko" : {
@@ -19816,6 +20506,12 @@
             "value" : "セルフィーがここに表示されます"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "თქვენი სელფები აქ გამოჩნდება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19994,6 +20690,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "セルフィーがありません"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "სელფების გარეშე"
           }
         },
         "ko" : {
@@ -20176,6 +20878,12 @@
             "value" : "共有したアルバムがここに表示されます"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ალბომები, რომლებიც გააზიარეთ, აქ გამოჩნდება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20354,6 +21062,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "共有アルバムはありません"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "გაზიარებული ალბომების გარეშე"
           }
         },
         "ko" : {
@@ -20536,6 +21250,12 @@
             "value" : "あなたと共有されたアルバムがここに表示されます"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ალბომები, რომლებიც გაგიზიარეს, აქ გამოჩნდება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20714,6 +21434,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "共有されたアルバムはありません"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ჩემთვის გაზიარებული ალბომები არაა"
           }
         },
         "ko" : {
@@ -20896,6 +21622,12 @@
             "value" : "ビデオがここに表示されます"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "თქვენი ვიდეოები აქ გამოჩნდება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21074,6 +21806,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "動画がありません"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ვიდეოების გარეშე"
           }
         },
         "ko" : {
@@ -21443,6 +22181,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 枚の写真がストリームにコピーされ、お気に入りとマークされました。"
+                }
+              }
+            }
+          }
+        },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ერთი ფოტო გადაკოპირდა ნაკადში და იქ რჩეულად მოინიშნა."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ფოტო გადაკოპირდა ნაკადში და იქ რჩეულად მოინიშნა."
                 }
               }
             }
@@ -22024,6 +22780,24 @@
             }
           }
         },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ერთი ფოტო რჩეულად მოინიშნა."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ფოტო რჩეულად მოინიშნა."
+                }
+              }
+            }
+          }
+        },
         "ko" : {
           "variations" : {
             "plural" : {
@@ -22600,6 +23374,24 @@
             }
           }
         },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ერთი ფოტო უკვე თქვენს ნაკადშია. გთხოვთ, იქ მონიშნოთ რჩეულად."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ფოტო უკვე თქვენს ნაკადშია. გთხოვთ, იქ მონიშნოთ რჩეულად."
+                }
+              }
+            }
+          }
+        },
         "ko" : {
           "variations" : {
             "plural" : {
@@ -22793,6 +23585,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d fotografií sa už nachádza vo vašom streame. Označte ich tam ako obľúbené."
+                }
+              }
+            }
+          }
+        },
+        "sv" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "En bild finns redan i din stream. Markera det som favorit där."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d foton finns redan i ditt flöde. Markera dem som favoriter där."
                 }
               }
             }
@@ -23153,6 +23963,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 枚の写真がお気に入りとしてマークされていません。"
+                }
+              }
+            }
+          }
+        },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ერთ ფოტოს რჩეულის ნიშანი მოეხსნა."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ფოტოს რჩეულის ნიშანი მოეხსნა."
                 }
               }
             }
@@ -38813,6 +39641,12 @@
             "value" : "すべて保存"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ყველას შენახვა"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41444,6 +42278,12 @@
             "value" : "表示"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ნახვა"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -43148,6 +43988,12 @@
             "value" : "保存して終了"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "შენახვა და გასვლა"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -43328,6 +44174,12 @@
             "value" : "これらの写真は、お客様と再共有されない限り、二度とアクセスできなくなります。写真を保持したい場合は、まずお客様のデバイスに保存してください。"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ამ ფოტოებზე წვდომა აღარ გექნებათ, თუ ხელახლა არ გაგიზიარებენ. თუ რომელიმე ფოტოს შენახვა გსურთ, ჯერ თქვენს მოწყობილობაზე შეინახეთ."
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -43380,6 +44232,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nebudete mať prístup k týmto fotografiám znova, pokiaľ vám nebudú opätovne zdieľané. Ak si chcete nejaké fotografie ponechať, najprv si ich uložte do svojho zariadenia."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du kommer inte att ha tillgång till dessa foton igen om de inte delas med dig på nytt. Om du vill behålla några foton, spara dem först på din enhet."
           }
         },
         "tr" : {
@@ -43500,6 +44358,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@から退出"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@-დან გასვლა"
           }
         },
         "ko" : {
@@ -44888,6 +45752,17 @@
         }
       }
     },
+    "menu_text_home" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        }
+      }
+    },
     "menu_text_logout" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -45722,6 +46597,12 @@
             "value" : "3 GBストレージボーナスを獲得する"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "მიიღეთ თქვენი 3 გბ საცავის ბონუსი"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -45764,10 +46645,22 @@
             "value" : "Obțineți bonusul de stocare de 3 GiB"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Получите бонус в 3 ГБ хранилища"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Získajte bonusové 3 GB úložiska"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Få din lagringsbonus på 3 GB"
           }
         },
         "tr" : {
@@ -46724,6 +47617,29 @@
         }
       }
     },
+    "name_document_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Document name"
+          }
+        }
+      }
+    },
+    "name_document_title" : {
+      "comment" : "Title view",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name your scan"
+          }
+        }
+      }
+    },
     "new_document_title" : {
       "comment" : "#@timestamp: String@#\nName for newly created document, timestamp is dynamic",
       "extractionState" : "manual",
@@ -47004,6 +47920,12 @@
             "value" : "新しいアルバム機能で思い出を整理しましょう。ビデオ、お気に入りなどでフィルタリングできます。すべて信頼できるエンドツーエンド暗号化を使用しています。"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "მოაწესრიგეთ თქვენი მოგონებები ჩვენი ალბომების ახალი ფუნქციით. გაფილტრეთ ვიდეოების, რჩეულებისა და სხვათა მიხედვით — ყველაფერი იმ ბოლომდე დაშიფვრით, რომელსაც ენდობით."
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -47182,6 +48104,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "写真アルバムが登場！"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ფოტოალბომები უკვე აქაა!"
           }
         },
         "ko" : {
@@ -56538,6 +57466,12 @@
             "value" : "写真は移行中は使用できません。移行が完了するまでお待ちください。"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "მიგრაციისას ფოტოები ხელმიუწვდომელია. გთხოვთ, დაელოდოთ მიგრაციის დასრულებას."
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -56904,6 +57838,12 @@
             "value" : "移行後に、フィルターや写真アルバムなどの新機能を使用できます。"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "მიგრაციის შემდეგ, შეგიძლიათ გამოიყენოთ ახალი ფუნქციები, როგორებიცაა ფილტრები და ფოტოალბომი."
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -57082,6 +58022,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "写真ライブラリの更新が必要です"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "საჭიროა ფოტო ბიბლიოთეკის განახლება"
           }
         },
         "ko" : {
@@ -57264,6 +58210,12 @@
             "value" : "写真ライブラリが大きい場合、時間がかかることがあります。その際は、アプリを閉じていただいて構いません。バックグラウンドで処理を行います。"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "თუ დიდი ფოტო ბიბლიოთეკა გაქვთ, ამას შეიძლება დრო დასჭირდეს. შეგიძლიათ, დახუროთ აპი. ჩვენ მას ფონურ რეჟიმში დავამუშავებთ."
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -57444,6 +58396,12 @@
             "value" : "アルバムとフィルタを設定中"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ალბომებისა და ფილტრების გამართვა"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -57622,6 +58580,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "この簡単な更新では、フィルターやアルバムなどの新機能のために写真が準備されます。"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ეს სწრაფი განახლება მოამზადებს თქვენს ფოტოებს ახალი ფუნქციებისთვის, როგორებიცაა ფილტრები და ალბომები"
           }
         },
         "ko" : {
@@ -58359,6 +59323,12 @@
             "value" : "簡単なバックアップ"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ძალდაუტანებელი სარეზერვო ასლები"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -58723,6 +59693,12 @@
             "value" : "思い出を守る"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "დაიცავით თქვენი მოგონებები"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -58763,6 +59739,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Protejați-vă amintirile"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Защитите ваши воспоминания"
           }
         },
         "sk" : {
@@ -62774,7 +63756,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiffré de bout en bout"
+            "value" : "Chiffré dans son intégralité"
           }
         },
         "hu" : {
@@ -62799,6 +63781,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "エンドツーエンド暗号化"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ბოლომდე დაშიფრული"
           }
         },
         "ko" : {
@@ -62978,6 +63966,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "何か問題が発生しました。後でもう一度お試しください."
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "რაღაც შეცდომაა... გთხოვთ, მოგვიანებით სცადოთ."
           }
         },
         "ko" : {
@@ -68899,6 +69893,352 @@
         }
       }
     },
+    "report_bug_account_field_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увядзіце імя карыстальніка Proton або электронную пошту"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduïu el vostre nom d'usuari o correu del Proton"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadejte své uživatelské jméno nebo e-mail Proton"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indtast dit Proton-brugernavn eller e-mail"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gib deinen Proton-Benutzernamen oder deine E-Mail-Adresse ein"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εισάγετε το όνομα χρήστη ή την ηλεκτρονική διεύθυνση Proton σας."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your Proton username or email"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce tu nombre de usuario o correo electrónico de Proton"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingrese su nombre de usuario o correo electrónico de Proton"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Syötä Proton-käyttäjätunnuksesi tai -sähköpostiosoitteesi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez votre identifiant Proton ou votre adresse e-mail"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adja meg Proton felhasználónevét vagy e-mail címét"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masukkan nama pengguna atau email Proton Anda"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inserisci il tuo nome utente Proton o email"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton ユーザー名またはメールアドレスを入力してください"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "შეიყვანეთ თქვენი Proton-ის მომხმარებლის სახელი ან ელფოსტა"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton 아이디 또는 이메일 입력하기"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skriv inn ditt Proton-brukernavn eller e-post"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vul uw Proton-gebruikersnaam of e-mailadres in"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wpisz nazwę użytkownika lub adres e-mail Proton"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insira seu nome de usuário ou e-mail da Proton"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduceți numele de utilizator Proton sau adresa de e-mail"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите ваше имя пользователя Proton или адрес электронной почты"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadajte svoje užívateľské meno alebo email Proton"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ange ditt Proton-användarnamn eller e-post"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton kullanıcı adınızı ya da e-posta adresinizi yazın"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введіть ваше ім'я користувача Proton або е-пошту"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入您的 Proton 使用者名稱或電子郵件"
+          }
+        }
+      }
+    },
+    "report_bug_account_field_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Імя карыстальніка Proton Account або адрас электроннай пошты"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom d'usuari del compte del Proton o correu"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uživatelské jméno nebo e-mail Proton účtu"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brugernavn eller e-mail til Proton-konto"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Account Benutzername oder E-Mail-Adresse"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Όνομα χρήστη ή ηλεκτρονική διεύθυνση λογαριασμού Proton"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Account user name or email"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre de usuario o correo electrónico de la cuenta de Proton"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre de usuario o correo electrónico de la cuenta de Proton"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Account käyttäjänimi tai sähköpostiosoite"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Identifiant Proton Account ou adresse e-mail"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Account felhasználónév vagy e-mail"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nama pengguna atau email Akun Proton"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome utente o email Proton account"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Account ユーザー名またはメールアドレス"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton ანგარიშის მომხმარებლის სახელი ან ელფოსტა"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Account의 아이디 또는 이메일"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brukernavn eller e-post for Proton-konto"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Account gebruikersnaam of e-mailadres"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nazwa użytkownika lub adres e-mail konta Proton"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome de usuário ou e-mail da Proton Account"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nume de utilizator Proton sau adresă de e-mail"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Имя пользователя или адрес электронной почты учётной записи Proton"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Užívateľské meno alebo email Proton účtu"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton-kontots användarnamn eller e-postadress"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Account kullanıcı adı veya e-posta adresi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ім'я користувача облікового запису Proton або електронна пошта"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Account 使用者名稱或電子郵件"
+          }
+        }
+      }
+    },
     "report_bug_attachment_field_add_from_files" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -68992,6 +70332,12 @@
             "value" : "ファイルから追加"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ფაილებიდან დამატება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -69032,6 +70378,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adăugare din fișiere"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить из файлов"
           }
         },
         "sk" : {
@@ -69165,6 +70517,12 @@
             "value" : "ギャラリーから追加"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "გალერეიდან დამატება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -69205,6 +70563,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adăugare din galerie"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить из галереи"
           }
         },
         "sk" : {
@@ -69338,6 +70702,12 @@
             "value" : "Proton Drive のログを含める"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proton Drive-ის ჟურნალების ჩართვა"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -69378,6 +70748,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Includere jurnale din Proton Drive"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить журналы из Proton Drive"
           }
         },
         "sk" : {
@@ -69509,6 +70885,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "添付ファイル"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "დანართები"
           }
         },
         "ko" : {
@@ -69691,6 +71073,12 @@
             "value" : "合計アップロード: %.1f MB \/ 50 MB • %d \/ 10 ファイル"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "სულ ატვირთვა: %.1f მბ 50 მბ-დან • %d 10 ფაილიდან"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -69731,6 +71119,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Încărcare totală: %.1f MiB din 50 MiB • %d din 10 fișiere"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Всего загружено: %.1f МБ из 50 МБ • %d из 10 файлов"
           }
         },
         "sk" : {
@@ -69864,6 +71258,12 @@
             "value" : "問題を報告"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "პრობლემის შეტყობინება"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -69946,6 +71346,525 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "回報問題"
+          }
+        }
+      }
+    },
+    "report_bug_email_field_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Паведаміце нам, як мы можам звязацца з вамі"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feu-nos saber on us podem contactar"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prosím, uveďte, kde vás můžeme kontaktovat"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lad os vide, hvor vi kan kontakte dig"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lass uns wissen, wie wir dich erreichen können"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πείτε μας πού μπορούμε να επικοινωνήσουμε μαζί σας."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let us know where we can reach you"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dinos cómo podemos contactarte"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indíquenos dónde podemos contactarle"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerro meille, mistä tavoitamme sinut."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veuillez indiquer où nous pouvons vous joindre"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tudassa velünk, hol érhetjük el."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beri tahu kami di mana kami dapat menghubungi Anda"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Facci sapere dove possiamo raggiungerti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ご連絡先をお知らせください"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "შეგვატყობინეთ, სად შეგვიძლია დაგიკავშირდეთ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연락 가능한 이메일 주소를 알려주세요"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gi oss beskjed hvor vi kan nå deg"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laat ons weten waar wij u kunnen bereiken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wpisz dane kontaktowe"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nos informe por onde podemos te contatar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unde vă putem contacta"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сообщите нам, как с вами связаться"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prosím, uveďte, kde vás môžeme kontaktovať"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Låt oss veta var vi kan nå dig"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Size nereden ulaşabileceğimizi bize bildirin"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повідомте нам, де з вами можна зв'язатися"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讓我們知道可以透過何處聯絡您"
+          }
+        }
+      }
+    },
+    "report_bug_email_field_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кантактны адрас электроннай пошты"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adreça de correu electrònic de contacte"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontaktní e-mailová adresa"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-mailadresse til kontakt"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontakt-E-Mail-Adresse"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ηλεκτρονική διεύθυνση επικοινωνίας"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contact email address"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dirección de correo electrónico de contacto"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dirección de correo de contacto"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yhteyssähköpostiosoite"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresse e-mail de contact"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elérhetőségi e-mail cím"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alamat email kontak"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indirizzo email di contatto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お問い合わせメールアドレス"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "საკონტაქტო ელფოსტის მისამართი"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연락처 이메일 주소"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontakt-e-postadresse"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contact e-mailadres"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adres e-mail do kontaktu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Endereço de e-mail de contato"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresă de e-mail de contact"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Контактный адрес электронной почты"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontaktná emailová adresa"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-postadress för kontakt"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kişinin e-posta adresi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Контактна адреса електронної пошти"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聯絡電郵位址"
+          }
+        }
+      }
+    },
+    "report_bug_email_field_warning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Калі ласка, увядзіце сапраўдны адрас электроннай пошты"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduïu una adreça de correu vàlida"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadejte prosím platnou e-mailovou adresu"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Angiv en gyldig e-mailadresse"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte gib eine gültige E-Mail-Adresse ein."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Παρακαλούμε εισάγετε έγκυρη ηλεκτρονική διεύθυνση"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please provide valid email address"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce una dirección de correo electrónico válida"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proporcione una dirección de correo válida"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Syötä kelvollinen sähköpostiosoite"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veuillez indiquer une adresse e-mail valide"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adjon meg egy érvényes e-mail címet"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Harap berikan alamat email yang valid"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per favore fornisci un indirizzo email valido"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有効なメールアドレスを入力してください"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "გთხოვთ, მიუთითოთ მოქმედი ელფოსტის მისამართი"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "유효한 이메일 주소를 입력해주세요"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vennligst angi gyldig e-postadresse"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voer een geldig e-mailadres in"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wpisz prawidłowy adres e-mail"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insira um endereço de e-mail válido"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduceți o adresă de e-mail validă"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Укажите действительный адрес электронной почты"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadajte platnú emailovú adresu, prosím"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ange giltig e-postadress"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lütfen geçerli bir e-posta adresi yazın"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Будь ласка, надайте дійсну адресу електронної пошти"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請提供有效的電郵位址"
           }
         }
       }
@@ -70043,6 +71962,12 @@
             "value" : "問題について、エラーメッセージ等も含めてご記入下さい。"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "გთხოვთ, აღწეროთ თქვენი პრობლემა და დაურთოთ შეცდომის შეტყობინებები..."
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -70083,6 +72008,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Descrieți problema incluzând și mesajele de eroare care apar..."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пожалуйста, опишите вашу проблему и приложите все сообщения об ошибках..."
           }
         },
         "sk" : {
@@ -70214,6 +72145,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "どのような問題ですか？"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "რა მოხდა?"
           }
         },
         "ko" : {
@@ -70395,6 +72332,12 @@
             "value" : "最低10文字"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "მინიმუმ 10 სიმბოლო"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -70435,6 +72378,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Minim 10 caractere"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Минимум 10 символов"
           }
         },
         "sk" : {
@@ -70753,6 +72702,12 @@
             "value" : "レポートの送信に失敗しました。"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "შეტყობინების გაგზავნა ვერ მოხერხდა."
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -70793,6 +72748,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trimiterea raportului a eșuat."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось отправить отчёт."
           }
         },
         "sk" : {
@@ -70924,6 +72885,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "レポートは正常に送信されました!"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "შეტყობინება წარმატებით გაიგზავნა!"
           }
         },
         "ko" : {
@@ -71105,6 +73072,12 @@
             "value" : "以下についての問題を報告したい:"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "მინდა შევატყობინო პრობლემა:"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -71282,6 +73255,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "アルバム"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ალბომები"
           }
         },
         "ko" : {
@@ -71463,6 +73442,12 @@
             "value" : "復号"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "გაშიფვრა"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -71640,6 +73625,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "暗号化"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "დაშიფვრა"
           }
         },
         "ko" : {
@@ -71821,6 +73812,12 @@
             "value" : "ファイルアプリ"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ფაილების აპი"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -71863,10 +73860,22 @@
             "value" : "Aplicația de fișiere"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложение \"Файлы\""
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aplikácia Súbory"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filer-appen"
           }
         },
         "tr" : {
@@ -71988,6 +73997,12 @@
             "value" : "オフラインで利用可能"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ხელმისაწვდომია ხაზგარეშე"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -72028,6 +74043,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disponibil deconectat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступно оффлайн"
           }
         },
         "sk" : {
@@ -72392,6 +74413,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fotografii"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фото"
           }
         },
         "sk" : {
@@ -75723,6 +77750,12 @@
             "value" : "共有された写真を保存"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "გაზიარებული ფოტოს შენახვა"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -75809,6 +77842,18 @@
         }
       }
     },
+    "scan_document_button" : {
+      "comment" : "Button title to scan document",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan document"
+          }
+        }
+      }
+    },
     "setting_about" : {
       "comment" : "Section title ",
       "extractionState" : "manual",
@@ -75885,10 +77930,28 @@
             "value" : "NÉVJEGY"
           }
         },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TENTANG"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "INFORMAZIONI"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概要"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "შესახებ"
           }
         },
         "ko" : {
@@ -75933,6 +77996,12 @@
             "value" : "DESPRE"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "О ПРОГРАММЕ"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -75949,6 +78018,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "HAKKINDA"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ПРО ЗАСТОСУНОК"
           }
         },
         "zh-Hans" : {
@@ -76227,10 +78302,28 @@
             "value" : "Fiók beállítások"
           }
         },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pengaturan Akun"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impostazioni dell'account"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アカウント設定"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ანგარიშის პარამეტრები"
           }
         },
         "ko" : {
@@ -76275,6 +78368,12 @@
             "value" : "Setări cont"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки учётной записи"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -76291,6 +78390,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hesap ayarları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Налаштування облікового запису"
           }
         },
         "zh-Hans" : {
@@ -76383,10 +78488,28 @@
             "value" : "Közreműködők"
           }
         },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ucapan Terima Kasih"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Riconoscimenti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "謝辞"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "მადლობები"
           }
         },
         "ko" : {
@@ -76431,16 +78554,34 @@
             "value" : "Mulțumiri"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Благодарности"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Poďakovanie"
           }
         },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erkännanden"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Teşekkürler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подяки"
           }
         },
         "zh-Hans" : {
@@ -76533,10 +78674,28 @@
             "value" : "ALKALMAZÁS BEÁLLÍTÁSOK"
           }
         },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PENGATURAN APLIKASI"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "IMPOSTAZIONI DELL'ACCOUNT"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリ設定"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "აპის პარამეტრები"
           }
         },
         "ko" : {
@@ -76581,6 +78740,12 @@
             "value" : "SETĂRI APLICAȚIE"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "НАСТРОЙКИ ПРИЛОЖЕНИЯ"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -76597,6 +78762,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "UYGULAMA AYARLARI"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "НАЛАШТУВАННЯ ЗАСТОСУНКУ"
           }
         },
         "zh-Hans" : {
@@ -76689,10 +78860,28 @@
             "value" : "Alkalmazásverzió: %@"
           }
         },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versi Aplikasi: %@"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Versione app: %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリバージョン: %@"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "აპის ვერსია: %@"
           }
         },
         "ko" : {
@@ -76753,6 +78942,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uygulama sürümü: %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Версія застосунку: %@"
           }
         },
         "zh-Hans" : {
@@ -76956,187 +79151,127 @@
       }
     },
     "setting_clear_local_cache" : {
-      "comment" : "Setting option to clear local cache",
+      "comment" : "Setting option to clear local cache (content)",
       "extractionState" : "manual",
       "localizations" : {
         "be" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ачысціць лакальны кэш"
+            "value" : "Ачысціць кэш кантэнту"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Neteja la memòria cau local"
+            "value" : "Netegeu la memòria cau"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vyčistit lokální mezipaměť"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ryd lokal cache"
+            "value" : "Vyčistit mezipaměť obsahu"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lokalen Zwischenspeicher leeren"
+            "value" : "Inhaltscache leeren"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Καθαρισμός τοπικής προσωρινής μνήμης"
+            "value" : "Καθαρισμός προσωρινής μνήμης αποθήκευσης περιεχομένου"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Clear local cache"
+            "value" : "Clear content cache"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limpiar el caché local"
+            "value" : "Borrar la caché de contenido"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limpiar el caché local"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tyhjennä paikallinen välimuisti"
+            "value" : "Borrar la caché de contenido"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vider le cache local"
+            "value" : "Vider le cache"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gyorsítótár ürítése"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hapus cache lokal"
+            "value" : "Tartalom gyorsítótár ürítése"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cancella la cache locale"
+            "value" : "Svuota la cache dei contenuti."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ローカルキャッシュをクリアする"
-          }
-        },
-        "ka" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ლოკალური კეშის გასუფთავება"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "로컬 캐시 내용 삭제"
+            "value" : "コンテンツキャッシュをクリア"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tøm lokal hurtigbuffer"
+            "value" : "Tøm innholdsbufferen"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lokale cache legen"
+            "value" : "Cache inhoud wissen"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wyczyść pamięć podręczną"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limpar a memória local"
+            "value" : "Wyczyść pamięć podręczną zawartości"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limpar o cache local"
+            "value" : "Limpar cache de conteúdo"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Golire buffer local"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Очистка локального кеша"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vyčistiť lokálnu medzipamäť"
+            "value" : "Golire buffer conținut"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rensa lokal cache"
+            "value" : "Rensa innehållscache"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Yerel ön belleği temizle"
+            "value" : "İçerik ön belleğini temizle"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Очистити локальний кеш"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除本地缓存"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除本機快取"
+            "value" : "Очистити кеш вмісту"
           }
         }
       }
@@ -77232,6 +79367,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ログキャッシュをクリアする"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ჟურნალების ქეშის გასუფთავება"
           }
         },
         "ko" : {
@@ -77387,13 +79528,19 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mode de débogage"
+            "value" : "Mode d'élimination du bug"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hibakeresési mód"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode Debug"
           }
         },
         "it" : {
@@ -77406,6 +79553,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "デバッグモード"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "გამართვის რეჟიმი"
           }
         },
         "ko" : {
@@ -77448,6 +79601,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mod depanare"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Режим отладки"
           }
         },
         "sk" : {
@@ -77555,13 +79714,19 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instructions"
+            "value" : "Mode d'emploi"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Utasítások"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instruksi"
           }
         },
         "it" : {
@@ -77574,6 +79739,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "説明"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ინსტრუქციები"
           }
         },
         "ko" : {
@@ -77616,6 +79787,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Instrucțiuni"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Инструкции"
           }
         },
         "sk" : {
@@ -77722,13 +79899,19 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1. Appuyez sur le bouton bug jaune pour marquer le moment actuel – cela nous aide à savoir quand le problème s'est produit\n\n2. Appuyez et maintenez le bouton bug pour ouvrir l'écran de rapport de bug et partager plus d'informations"
+            "value" : "1. Veuillez appuyer sur le bouton de bug jaune pour marquer le moment actuel – cela nous aide à identifier à quel moment le problème s'est produit.\n\n2. Veuillez appuyer sur le bouton de bug et maintenez-le pour ouvrir l'écran de signalement de bug et partager plus d'informations."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "1. Érintse meg a sárga hiba gombot az aktuális pillanat megjelöléséhez – ez segít azonosítani, hogy mikor történt a probléma.\n\n2. Nyomja meg és tartsa lenyomva a hiba gombot a hibajelentés képernyő megnyitásához és további részletek megosztásához."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Ketuk tombol bug kuning untuk menandai momen saat ini — ini membantu kami mengidentifikasi kapan masalah terjadi.\n\n2. Tekan dan tahan tombol bug untuk membuka layar laporan bug dan membagikan detail selengkapnya."
           }
         },
         "it" : {
@@ -77741,6 +79924,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "1. 黄色のバグボタンをタップして現在の時刻をマークすると、問題がいつ発生したかを特定できます。\n\n2. バグボタンを長押ししてバグ報告画面を開き、さらに詳細を共有します。"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. შეეხეთ ყვითელ ხარვეზის ღილაკს მიმდინარე მომენტის აღსანიშნავად — ეს დაგვეხმარება პრობლემის წარმოშობის დროის დადგენაში.\n\n2. ხანგრძლივად დააჭირეთ ხარვეზის ღილაკს ხარვეზის შეტყობინების ეკრანის გასახსნელად და მეტი დეტალის გასაზიარებლად."
           }
         },
         "ko" : {
@@ -77785,10 +79974,22 @@
             "value" : "1. Atingeți butonul galben de eroare pentru a marca momentul curent — aceasta ne ajută să identificăm când a apărut problema.\n\n2. Apăsați și mențineți butonul de eroare pentru a deschide ecranul raportului de eroare și furnizați mai multe detalii."
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Нажмите жёлтую кнопку с жуком, чтобы отметить текущий момент, — это поможет нам определить, когда возникла проблема.\\n\\n2. Нажмите и удерживайте кнопку с жуком, чтобы открыть экран отчёта об ошибке и поделиться более подробной информацией."
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "1. Ťuknite na žlté tlačidlo chyby na označenie aktuálneho okamihu — čo nám pomôže identifikovať, kedy nastal problém.\\n\\n2. Stlačte a podržte tlačidlo chyby na otvorenie obrazovky hlásenia chýb a zdieľajte ďalšie podrobnosti."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Tryck på den gula buggknappen för att markera det aktuella ögonblicket — detta hjälper oss att identifiera när problemet uppstod.\n\n2. Tryck och håll ned buggknappen för att öppna skärmen för buggrapportering och dela mer information."
           }
         },
         "tr" : {
@@ -77956,7 +80157,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exportare jurnale"
+            "value" : "Exportare jurnal"
           }
         },
         "ru" : {
@@ -79027,6 +81228,12 @@
             "value" : "言語"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ენა"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -79109,6 +81316,144 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "慣用語言"
+          }
+        }
+      }
+    },
+    "setting_latest_logs" : {
+      "comment" : "Title of latest logs view",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Апошнія журналы"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Últims registres"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poslední logy"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seneste logs"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neueste Protokolle"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τελευταία αρχεία καταγραφής"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Latest logs"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Últimos registros"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Últimos registros"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Derniers journaux"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legutóbbi naplók"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ultimi log"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最新のログ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최근 로그"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siste logger"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laatste logboeken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Najnowsze logi"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Últimos registros"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ultimele jurnale"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Senaste loggar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son günlük kayıtları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Останні журнали"
           }
         }
       }
@@ -79561,10 +81906,28 @@
             "value" : "Adatvédelmi irányelvek"
           }
         },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kebijakan privasi"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Informativa sulla privacy"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プライバシーポリシー"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "კონფიდენციალურობის პოლიტიკა"
           }
         },
         "ko" : {
@@ -79609,6 +81972,12 @@
             "value" : "Politica de confidențialitate"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Политика конфиденциальности"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -79625,6 +81994,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gizlilik ilkesi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Політика приватності"
           }
         },
         "zh-Hans" : {
@@ -79717,10 +82092,28 @@
             "value" : "Hitelesítési kulcsok"
           }
         },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunci keamanan"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chiavi di sicurezza"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "セキュリティキー"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "უსაფრთხოების გასაღებები"
           }
         },
         "ko" : {
@@ -79765,6 +82158,12 @@
             "value" : "Chei de securitate"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ключи безопасности"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -79783,6 +82182,12 @@
             "value" : "Güvenlik anahtarları"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ключі безпеки"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -79793,6 +82198,144 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安全金鑰"
+          }
+        }
+      }
+    },
+    "setting_see_latest_logs" : {
+      "comment" : "Title of see latest logs row",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Праглядзець апошнія журналы"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra els últims registres"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazit poslední logy"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se seneste logs"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neueste Protokolle ansehen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Δείτε τα τελευταία αρχεία καταγραφής"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "See latest logs"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver los últimos registros"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver los últimos registros"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consulter les derniers journaux"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legújabb naplók megtekintése"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vedi gli ultimi log"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最新のログを表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최신 로그 보기"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se siste logger"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekijk nieuwste logboeken"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobacz najnowsze logi"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver registros mais recentes"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accesați ultimele jurnale"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se senaste loggar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son günlük kayıtlarını görüntüle"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переглянути останні журнали"
           }
         }
       }
@@ -82102,10 +84645,28 @@
             "value" : "Szolgáltatási feltételek"
           }
         },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ketentuan layanan"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Termini di servizio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "利用規約"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "მომსახურების პირობები"
           }
         },
         "ko" : {
@@ -82150,6 +84711,12 @@
             "value" : "Termenii serviciului"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Условия предоставления услуг"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -82168,6 +84735,12 @@
             "value" : "Hizmet şartları"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Умови надання послуг"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -82178,6 +84751,144 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "服務條款"
+          }
+        }
+      }
+    },
+    "setting_use_cellular_to_backup" : {
+      "comment" : "Option to enable photo backups using mobile data.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выкарыстоўваць мабільныя даныя для рэзервовага капіявання фатаграфій"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilitzeu dades mòbils per fer còpies de seguretat de les fotos"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Použít mobilní data k zálohování fotografií"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brug mobildata til at sikkerhedskopiere fotos"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mobile Daten verwenden, um Fotos zu sichern"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Χρήση δεδομένων κινητής τηλεφωνίας για δημιουργία αντιγράφων ασφαλείας φωτογραφιών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use mobile data to backup photos"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar datos móviles para hacer copias de seguridad de las fotos"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar datos móviles para hacer copias de seguridad de las fotos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser les données mobiles pour sauvegarder les photos"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mobilinternet használata a fotók biztonsági mentéséhez"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa la rete mobile per effettuare il backup delle foto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モバイルデータを使用して写真をバックアップする"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사진 백업을 위해 모바일 데이터 사용"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bruk mobildata for å ta sikkerhetskopi av bilder"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mobiele data gebruiken om foto's te back-uppen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Użyj danych komórkowych do tworzenia kopii zapasowej zdjęć"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar dados móveis para backup de fotos"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folosire date mobile pentru a conserva fotografiile"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Använd mobildata för att säkerhetskopiera foton"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotoğrafları yedeklemek için mobil veri kullanılsın"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Використовувати мобільні дані для резервного копіювання фото"
           }
         }
       }
@@ -98970,13 +101681,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Partager avec %d personne"
+                  "value" : "Diffuser avec %d personne"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Partager avec %d personnes"
+                  "value" : "Envoyer à d'autres %d personnes"
                 }
               }
             }
@@ -100630,6 +103341,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ほかのデバイスでサインイン"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "სხვა მოწყობილობაზე შესვლა"
           }
         },
         "ko" : {
@@ -107313,6 +110030,12 @@
             "value" : "無料でストレージをアップグレードするには、最初の30日間に次の手順を完了してください。"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "შეასრულეთ ეს ნაბიჯები პირველი 30 დღის განმავლობაში უფასო საცავის გასაზრდელად."
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -107492,6 +110215,12 @@
             "value" : "3 GBストレージボーナスを獲得する"
           }
         },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "მიიღეთ თქვენი 3 გბ საცავის ბონუსი"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -107534,10 +110263,22 @@
             "value" : "Obțineți bonusul de stocare de 3 GiB"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Получите бонус в 3 ГБ хранилища"
+          }
+        },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Získajte bonusové 3 GB úložiska"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Få din lagringsbonus på 3 GB"
           }
         },
         "tr" : {
@@ -108310,6 +111051,702 @@
         }
       }
     },
+    "tags_migration_banner_text" : {
+      "comment" : "Information banner text",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ідзе абнаўленне фотатэкі. Каб паскорыць працэс, праграма будзе трымаць ваш экран актыўным на працягу гэтага працэсу."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "S'està actualitzant la biblioteca de fotos. Per agilitzar el procés, l'aplicació mantindrà la pantalla activa."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Probíhá aktualizace knihovny fotografií. Pro urychlení bude aplikace udržovat vaší obrazovku aktivní během tohoto procesu."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opdatering af fotobibliotek er i gang. For at fremskynde processen, holder app'en din skærm vågen undervejs."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Fotobibliotheksaktualisierung läuft. Um das zu beschleunigen, hält die App deinen Bildschirm währenddessen aktiv."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η ενημέρωση της βιβλιοθήκης φωτογραφιών είναι σε εξέλιξη. Για επιτάχυνση, η εφαρμογή θα κρατήσει την οθόνη σας ανοιχτή κατά τη διάρκεια της διαδικασίας."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo library update in progress. To speed things up, the app will keep your screen awake during the process."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualización de la biblioteca de fotos en curso. Para acelerar el proceso, la aplicación mantendrá la pantalla activa durante el mismo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualización de la biblioteca de fotos en curso. Para acelerar el proceso, la aplicación mantendrá la pantalla activa durante el mismo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mise à jour de la photothèque. Pour accélérer le processus, l'écran restera actif."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fényképtár frissítése folyamatban. A gyorsítás érdekében az alkalmazás ébren tartja a képernyőt a folyamat alatt."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiornamento della libreria foto in corso. Per velocizzare il processo, l’app manterrà lo schermo acceso."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真ライブラリの更新が進行中です。処理を高速化するため、アプリは処理中に画面をオンにしたままにします。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사진 보관함 업데이트가 진행 중입니다. 빠른 처리를 위해, 앱이 이 과정 동안 화면을 계속 켜진 상태로 유지합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oppdatering av bildebibliotek pågår. For å få fart på tingene vil appen holde skjermen din våken under prosessen."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De fotobibliotheek wordt bijgewerkt. Om dit te versnellen, houdt de app uw scherm actief tijdens het proces."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trwa aktualizacja biblioteki zdjęć. Aplikacja pozostawi ekran włączony, aby zapewnić szybszą aktualizację."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualização da biblioteca de fotos em andamento. Para agilizar, o aplicativo manterá sua tela ativa durante o processo."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Galeria foto este în curs de actualizare. Pentru a accelera procesul, aplicația va menține ecranul activ pe durata acesteia."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uppdatering av fotobiblioteket pågår. För att snabba upp processen kommer appen att hålla skärmen aktiv under processen."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotoğraf kitaplığı güncellemesi sürüyor. Uygulama işlemi hızlandırmak için, işlem sırasında ekranınızı açık tutacak."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Триває оновлення бібліотеки фотографій. Щоб пришвидшити процес, програма не дозволятиме екрану вимикатись."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相片庫正在更新。為了加快更新速度，應用程式會在過程中保持螢幕處於啟動狀態。"
+          }
+        }
+      }
+    },
+    "tags_migration_e2e" : {
+      "comment" : "Description of migration popup",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Апрацоўка адбываецца на вашай прыладзе, захоўваючы фатаграфіі ў бяспецы пры дапамозе скразнога шыфравання."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El processament es fa al vostre dispositiu, tot mantenint les fotos segures amb xifratge d'extrem a extrem."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zpracování probíhá na vašem zařízení, udržující vaše fotografie zabezpečené pomocí koncového šifrování."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Behandlingen sker på din enhed, hvilket sikrer billeder med end-to-end-kryptering."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Verarbeitung findet auf deinem Gerät statt, wobei Fotos mit Ende-zu-Ende-Verschlüsselung gesichert bleiben."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η επεξεργασία πραγματοποιείται στη συσκευή σας, διατηρώντας τις φωτογραφίες ασφαλείς με κρυπτογράφηση από άκρο σε άκρο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Processing happens on your device, keeping photos secure with end-to-end encryption."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El procesamiento ocurre en tu dispositivo, manteniendo las fotos seguras con cifrado de extremo a extremo."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El procesamiento ocurre en su dispositivo, manteniendo las fotos seguras con cifrado de extremo a extremo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le traitement est en cours sur votre appareil, gardant vos photos sécurisées avec le chiffrement de bout en bout."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A feldolgozás az eszközén történik, biztonságban tartva a fényképeket végpontok közti titkosítással."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’elaborazione avviene sul tuo dispositivo, mantenendo le foto sicure grazie alla crittografia end-to-end."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "処理はお客様のデバイス上で行われ、エンドツーエンド暗号化により写真が安全に保たれます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "처리는 귀하의 기기에서 이루어지며, 종단간 암호화를 통해 사진을 안전하게 보관합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Behandlingen skjer på enheten din, og bildene holdes sikre med ende-til-ende-kryptering."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwerking vindt plaats op uw apparaat, waardoor foto's veilig blijven dankzij end-to-end versleuteling."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przetwarzanie odbywa się na urządzeniu, dzięki czemu zdjęcia są zabezpieczone szyfrowaniem end-to-end."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O processamento acontece no seu dispositivo, mantendo as fotos seguras com criptografia de ponta a ponta."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Procesarea are loc pe dispozitiv, păstrând fotografiile în siguranță cu criptare bilaterală."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bearbetning sker på din enhet, vilket håller foton säkra med end-to-end-kryptering."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İşlem aygıtınızda yapılır ve fotoğraflarınız uçtan uca şifrelemeyle güvende kalır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обробка виконується на вашому пристрої, забезпечуючи безпеку фотографій завдяки наскрізному шифруванню."
+          }
+        }
+      }
+    },
+    "tags_migration_headline" : {
+      "comment" : "Headline of tags migration popup",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Больш спосабаў фільтраваць вашыя фота"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Més maneres de filtrar les vostres fotos"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Více způsobů jak filtrovat vaše fotografie"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flere måder at filtrere dine fotos på"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mehr Möglichkeiten, deine Fotos zu filtern"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Περισσότεροι τρόποι για να φιλτράρετε τις φωτογραφίες σας"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More ways to filter your photos"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más formas de filtrar tus fotos"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más formas de filtrar sus fotos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plus de façon pour filtrer vos photos"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Több módja van a fotók szűrésének"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altri modi per filtrare le tue foto."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真をフィルターするその他の方法"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사진을 필터링하는 더 많은 방법"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flere måter å filtrere bildene dine på"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meer manieren om uw foto's te filteren"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Więcej sposobów filtrowania zdjęć"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mais formas de filtrar suas fotos"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mai multe modalități de a vă filtra fotografiile"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fler sätt att filtrera dina foton"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotoğraflarınızı süzmenin diğer yolları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Більше способів фільтрувати ваші фотографії"
+          }
+        }
+      }
+    },
+    "tags_migration_keep_awake" : {
+      "comment" : "Description of migration popup",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Гэта можа заняць некаторы час, але вы можаце працягваць карыстацца праграмай, пакуль мы яе наладжваем."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Això pot trigar una estona, però podeu seguir utilitzant l'aplicació mentre la configurem."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To může chvíli trvat, ale během nastavování můžete aplikaci nadále používat."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dette kan tage lidt tid, men du kan fortsat bruge appen, mens vi gør den klar."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das kann einen Moment dauern, aber du kannst die App weiterhin nutzen, während wir sie einrichten."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτό μπορεί να πάρει λίγο χρόνο, αλλά μπορείτε να συνεχίσετε να χρησιμοποιείτε την εφαρμογή όσο τη ρυθμίζουμε."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This may take a while, but you can keep using the app while we set it up."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto puede tardar un poco, pero puedes seguir usando la aplicación mientras lo configuramos."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto puede tardar un poco pero puede seguir usando la aplicación mientras lo configuramos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cela peut prendre un moment, mais vous pouvez continuer à utiliser l'application pendant que nous la configurons."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ez eltarthat egy darabig, de továbbra is használhatja az alkalmazást, amíg a beállítás lezajlik."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potrebbe richiedere un po’ di tempo, ma puoi continuare a usare l’app mentre lo configuriamo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定にはしばらく時間がかかる場合がありますが、その間も引き続きアプリをご利用いただけます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다소 시간이 걸릴 수 있지만, 저희가 설정하는 동안 귀하께서는 앱을 계속 사용하실 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dette kan ta litt tid, men du kan fortsette å bruke appen mens vi setter det opp."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dit kan even duren, maar u kunt de app blijven gebruiken terwijl we deze instellen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proces może potrwać chwilę, ale możesz dalej korzystać z aplikacji."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isso pode demorar um pouco, mas você pode continuar usando o aplicativo enquanto o configuramos."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acest lucru ar putea dura puțin, dar puteți continua să utilizați aplicația în timp ce se configurează."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detta kan ta ett tag, men du kan fortsätta använda appen medan vi ställer in den."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu işlem biraz zaman alabilir. Uygulama kurulurken kullanmayı sürdürebilirsiniz."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Це може зайняти деякий час, але ви можете продовжувати користуватися програмою, поки ми її налаштовуємо."
+          }
+        }
+      }
+    },
+    "tags_migration_new_filter" : {
+      "comment" : "Description of migration popup",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мы абнаўляем вашу бібліятэку, каб дапамагчы вам хутка сартаваць фатаграфіі, напрыклад, паводле \"Здымкаў экрана\"."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "S'està actualitzant la vostra biblioteca per ajudar-vos a ordenar ràpidament les fotos, com ara per captures de pantalla."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualizujeme vaší knihovnu abychom vám pomohli rychleji třídit fotografie, například podle snímků obrazovky."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vi opdaterer dit bibliotek, så du nemt kan sortere fotos, f.eks. efter skærmbilleder."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wir aktualisieren deine Bibliothek, um dir zu helfen, Fotos schnell zu sortieren, zum Beispiel nach Screenshots."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ανανεώνουμε τη βιβλιοθήκη σας για να σας βοηθήσουμε να ταξινομείτε γρήγορα τις φωτογραφίες, όπως για παράδειγμα με βάση Στιγμιότυπων Οθόνης."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We’re updating your library to help you quickly sort photos, like by Screenshots."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estamos actualizando tu biblioteca para ayudarte a ordenar fotos rápidamente, como por Capturas de pantalla."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estamos actualizando su biblioteca para ayudarle a ordenar fotos rápidamente, como por capturas de pantalla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nous mettons à jour votre bibliothèque pour vous aider à trier rapidement vos photos, comme les captures d'écran."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frissítjük könyvtárát, hogy gyorsan rendezhesse fényképeit, például a képernyőképek alapján."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stiamo aggiornando la tua libreria per aiutarti a ordinare rapidamente le foto, ad esempio per Screenshot."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お客様のライブラリを更新しており、スクリーンショットなどで写真を素早く並べ替えられるようになります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저희가 귀하의 라이브러리를 업데이트하여 스크린샷과 같이 사진을 빠르게 정렬할 수 있도록 돕고 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vi oppdaterer biblioteket ditt for å hjelpe deg med å sortere bilder raskt, for eksempel etter skjermbilder."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We zijn uw bibliotheek aan het updaten om u te helpen snel foto's te sorteren, zoals op schermafbeeldingen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualizujemy bibliotekę, aby ułatwić Ci szybkie sortowanie zdjęć, np. według zrzutów ekranu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estamos atualizando sua biblioteca para ajudar você a organizar rapidamente as fotos, como por Capturas de tela."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se actualizează biblioteca pentru a vă ajuta să sortați rapid fotografiile, de exemplu, după capturi de ecran."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vi uppdaterar ditt bibliotek för att hjälpa dig att snabbt sortera foton, till exempel efter skärmdumpar."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotoğrafları ekran görüntüleri gibi hızlıca gruplamanıza yardımcı olmak için kitaplığı güncelliyoruz."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ми оновлюємо вашу бібліотеку, щоб допомогти вам швидко сортувати фотографії, наприклад, за знімками екрана."
+          }
+        }
+      }
+    },
     "take_new_photo_button" : {
       "comment" : "Button for creating new photo",
       "extractionState" : "manual",
@@ -108678,6 +112115,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "發生錯誤，請稍後再試"
+          }
+        }
+      }
+    },
+    "text_pull_to_refresh" : {
+      "comment" : "Label text is shown when pull down",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pull to refresh"
           }
         }
       }

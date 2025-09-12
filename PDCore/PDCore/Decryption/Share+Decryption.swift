@@ -130,8 +130,18 @@ extension Share {
 
     internal func getAddressKeys() throws -> [KeyPair] {
         if let addressID = addressID {
+            if addressID.isEmpty {
+                Log.error("Share's addressID is empty", error: nil, domain: .metadata)
+            }
             if let addressKeys = SessionVault.current.getAddress(withId: addressID)?.activeKeys {
-                return addressKeys.compactMap(KeyPair.init)
+                if addressKeys.isEmpty {
+                    Log.error("Address by addressID contains empty active keys", error: nil, domain: .sessionManagement)
+                }
+                let keys = addressKeys.compactMap(KeyPair.init)
+                if !addressKeys.isEmpty && keys.isEmpty {
+                    Log.error("Unable to map address (fetched by addressID) keys to valid key pairs", error: nil, domain: .sessionManagement)
+                }
+                return keys
             }
         }
 
@@ -139,10 +149,20 @@ extension Share {
             throw Errors.noCreator
         }
 
+        if creator.isEmpty {
+            Log.error("Creator of a share is empty", error: nil, domain: .metadata)
+        }
+
         guard let addressKeys = SessionVault.current.getAddress(for: creator)?.activeKeys else {
             throw SessionVault.Errors.noRequiredAddressKey
         }
+        if addressKeys.isEmpty {
+            Log.error("Address by creator contains empty active keys", error: nil, domain: .sessionManagement)
+        }
         let keys = addressKeys.compactMap(KeyPair.init)
+        if !addressKeys.isEmpty && keys.isEmpty {
+            Log.error("Unable to map address (fetched by creator) keys to valid key pairs", error: nil, domain: .sessionManagement)
+        }
         return keys
     }
 

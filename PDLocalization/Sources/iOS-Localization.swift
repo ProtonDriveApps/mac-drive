@@ -113,9 +113,21 @@ public class Localization {
     /// "%d album shared with you"
     public static func albums_pending_invitations_specific_title(count: Int) -> String { String(format: localized(key: "albums_pending_invitations_specific_title", table: "iOS-Localizable"), count) }
 
+    /// "Button to export all logs "
+    /// "All logs"
+    public static var all_logs_button: String { localized(key: "all_logs_button", table: "iOS-Localizable") }
+
     /// "Text shown on the welcome page when user is not logged in "
     /// "The convenience of cloud storage and the security of encryption technology. Finally a cloud storage solution you can trust."
     public static var authentication_welcome_text: String { localized(key: "authentication_welcome_text", table: "iOS-Localizable") }
+
+    /// "Enable auto lock when app is launched "
+    /// "After launch"
+    public static var auto_lock_timeout_after_launch: String { localized(key: "auto_lock_timeout_after_launch", table: "iOS-Localizable") }
+
+    /// "Always enable auto lock"
+    /// "Always"
+    public static var auto_lock_timeout_always: String { localized(key: "auto_lock_timeout_always", table: "iOS-Localizable") }
 
     /// "Text to indicate downloading"
     /// "Downloading files..."
@@ -861,6 +873,9 @@ public class Localization {
     /// "Report a problem"
     public static var menu_text_feedback: String { localized(key: "menu_text_feedback", table: "iOS-Localizable") }
 
+    /// "Home"
+    public static var menu_text_home: String { localized(key: "menu_text_home", table: "iOS-Localizable") }
+
     /// "Sign out"
     public static var menu_text_logout: String { localized(key: "menu_text_logout", table: "iOS-Localizable") }
 
@@ -894,6 +909,13 @@ public class Localization {
     /// "Button in the move settings to indicate moving the selected file here."
     /// "Move here"
     public static var move_action_move_here: String { localized(key: "move_action_move_here", table: "iOS-Localizable") }
+
+    /// "Document name"
+    public static var name_document_placeholder: String { localized(key: "name_document_placeholder", table: "iOS-Localizable") }
+
+    /// "Title view"
+    /// "Name your scan"
+    public static var name_document_title: String { localized(key: "name_document_title", table: "iOS-Localizable") }
 
     /// "Name for newly created document, timestamp is dynamic"
     /// "Untitled document %@"
@@ -1313,6 +1335,12 @@ public class Localization {
     /// "Last updated: %@"
     public static func refresh_last_update(time: String) -> String { String(format: localized(key: "refresh_last_update", table: "iOS-Localizable"), time) }
 
+    /// "Enter your Proton username or email"
+    public static var report_bug_account_field_placeholder: String { localized(key: "report_bug_account_field_placeholder", table: "iOS-Localizable") }
+
+    /// "Proton Account user name or email"
+    public static var report_bug_account_field_title: String { localized(key: "report_bug_account_field_title", table: "iOS-Localizable") }
+
     /// "Add from files"
     public static var report_bug_attachment_field_add_from_files: String { localized(key: "report_bug_attachment_field_add_from_files", table: "iOS-Localizable") }
 
@@ -1331,6 +1359,15 @@ public class Localization {
 
     /// "Report a problem"
     public static var report_bug_button: String { localized(key: "report_bug_button", table: "iOS-Localizable") }
+
+    /// "Let us know where we can reach you"
+    public static var report_bug_email_field_placeholder: String { localized(key: "report_bug_email_field_placeholder", table: "iOS-Localizable") }
+
+    /// "Contact email address"
+    public static var report_bug_email_field_title: String { localized(key: "report_bug_email_field_title", table: "iOS-Localizable") }
+
+    /// "Please provide valid email address"
+    public static var report_bug_email_field_warning: String { localized(key: "report_bug_email_field_warning", table: "iOS-Localizable") }
 
     /// "Please describe your issue and include any error messages..."
     public static var report_bug_message_field_placeholder: String { localized(key: "report_bug_message_field_placeholder", table: "iOS-Localizable") }
@@ -1437,6 +1474,10 @@ public class Localization {
     /// "Save shared photo"
     public static var save_shared_photo: String { localized(key: "save_shared_photo", table: "iOS-Localizable") }
 
+    /// "Button title to scan document"
+    /// "Scan document"
+    public static var scan_document_button: String { localized(key: "scan_document_button", table: "iOS-Localizable") }
+
     /// "Section title "
     /// "ABOUT"
     public static var setting_about: String { localized(key: "setting_about", table: "iOS-Localizable") }
@@ -1464,8 +1505,8 @@ public class Localization {
     /// "Biometry"
     public static var setting_biometry: String { localized(key: "setting_biometry", table: "iOS-Localizable") }
 
-    /// "Setting option to clear local cache"
-    /// "Clear local cache"
+    /// "Setting option to clear local cache (content)"
+    /// "Clear content cache"
     public static var setting_clear_local_cache: String { localized(key: "setting_clear_local_cache", table: "iOS-Localizable") }
 
     /// "Clear logs cache"
@@ -1510,6 +1551,10 @@ public class Localization {
     /// "Language"
     public static var setting_language: String { localized(key: "setting_language", table: "iOS-Localizable") }
 
+    /// "Title of latest logs view"
+    /// "Latest logs"
+    public static var setting_latest_logs: String { localized(key: "setting_latest_logs", table: "iOS-Localizable") }
+
     /// "Setting option to photo backup"
     /// "Photos backup"
     public static var setting_photo_backup: String { localized(key: "setting_photo_backup", table: "iOS-Localizable") }
@@ -1525,6 +1570,10 @@ public class Localization {
     /// "Title of security key page "
     /// "Security keys"
     public static var setting_security_key: String { localized(key: "setting_security_key", table: "iOS-Localizable") }
+
+    /// "Title of see latest logs row"
+    /// "See latest logs"
+    public static var setting_see_latest_logs: String { localized(key: "setting_see_latest_logs", table: "iOS-Localizable") }
 
     /// "Storage setting section title"
     /// "Storage"
@@ -1574,6 +1623,10 @@ public class Localization {
     /// "Title of terms of service page"
     /// "Terms of service"
     public static var setting_terms_of_service: String { localized(key: "setting_terms_of_service", table: "iOS-Localizable") }
+
+    /// "Option to enable photo backups using mobile data."
+    /// "Use mobile data to backup photos"
+    public static var setting_use_cellular_to_backup: String { localized(key: "setting_use_cellular_to_backup", table: "iOS-Localizable") }
 
     /// "Title of default home tab setting"
     /// "Default home tab"
@@ -2077,6 +2130,26 @@ public class Localization {
     /// "Shared with me"
     public static var tab_bar_title_shared_with_me: String { localized(key: "tab_bar_title_shared_with_me", table: "iOS-Localizable") }
 
+    /// "Information banner text"
+    /// "Photo library update in progress. To speed things up, the app will keep your screen awake during the process."
+    public static var tags_migration_banner_text: String { localized(key: "tags_migration_banner_text", table: "iOS-Localizable") }
+
+    /// "Description of migration popup"
+    /// "Processing happens on your device, keeping photos secure with end-to-end encryption."
+    public static var tags_migration_e2e: String { localized(key: "tags_migration_e2e", table: "iOS-Localizable") }
+
+    /// "Headline of tags migration popup"
+    /// "More ways to filter your photos"
+    public static var tags_migration_headline: String { localized(key: "tags_migration_headline", table: "iOS-Localizable") }
+
+    /// "Description of migration popup"
+    /// "This may take a while, but you can keep using the app while we set it up."
+    public static var tags_migration_keep_awake: String { localized(key: "tags_migration_keep_awake", table: "iOS-Localizable") }
+
+    /// "Description of migration popup"
+    /// "We’re updating your library to help you quickly sort photos, like by Screenshots."
+    public static var tags_migration_new_filter: String { localized(key: "tags_migration_new_filter", table: "iOS-Localizable") }
+
     /// "Button for creating new photo"
     /// "Take new photo"
     public static var take_new_photo_button: String { localized(key: "take_new_photo_button", table: "iOS-Localizable") }
@@ -2084,6 +2157,10 @@ public class Localization {
     /// "label text"
     /// "Something gone wrong, please try again later"
     public static var technical_error_placeholder: String { localized(key: "technical_error_placeholder", table: "iOS-Localizable") }
+
+    /// "Label text is shown when pull down"
+    /// "Pull to refresh"
+    public static var text_pull_to_refresh: String { localized(key: "text_pull_to_refresh", table: "iOS-Localizable") }
 
     /// "Button title for deleting item. e.g. Delete file, Delete item, Delete folder..etc"
     /// "Delete %@"

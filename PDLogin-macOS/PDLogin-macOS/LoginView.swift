@@ -34,24 +34,20 @@ struct LoginView: View {
 
         VStack(spacing: 60) {
 
-            Image("login_logo", bundle: PDLoginMacOS.bundle)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 188, height: 36)
-                .padding(.top, 24)
+            PDLoginMacOS.logoImage
 
             VStack(spacing: 0) {
-                LoginTextField(title: vm.usernameFieldLabel, text: $vm.username, errorString: $vm.usernameValidationFailureMessage, textContentType: .username, unfocus: vm.isLoading, window: window)
+                LoginTextField(title: vm.usernameFieldLabel, text: $vm.username, errorString: $vm.usernameValidationFailureMessage, textContentType: .username, isLoading: vm.isLoading, window: window)
                     .accessibility(identifier: "LoginView.TextField.username")
 
-                SecureLoginTextField(title: "Password", text: $vm.password, errorString: $vm.passwordValidationFailureMessage, unfocus: vm.isLoading, window: window, action: vm.logIn)
+                SecureLoginTextField(title: "Password", text: $vm.password, errorString: $vm.passwordValidationFailureMessage, isLoading: vm.isLoading, window: window, action: vm.logIn)
                     .accessibility(identifier: "LoginView.TextField.password")
 
                 LoginButton(title: vm.loginButtonTitle, isLoading: $vm.isLoading, action: vm.logIn)
                     .padding(.top, 8)
                     .accessibility(identifier: "LoginView.LoginButton.signIn")
             }
-            .frame(width: 300)
+            .frame(width: PDLoginMacOS.contentWidth)
 
             HStack {
                 LinkButton(title: "Create account", action: vm.createOrUpgradeAccount)
@@ -60,11 +56,11 @@ struct LoginView: View {
             }
             .padding(. horizontal, 4)
         }
-        .padding(.horizontal, 54)
+        .padding(.horizontal, PDLoginMacOS.contentHorizontalPadding)
         .padding(.bottom, 52)
         .background(ColorProvider.BackgroundNorm)
-        .frame(width: 420)
-        .frame(idealHeight: 480, maxHeight: .infinity)
+        .frame(width: PDLoginMacOS.frameWidth)
+        .frame(idealHeight: PDLoginMacOS.frameHeight, maxHeight: .infinity)
         .errorToast(errors: vm.errors)
         .onAppear {
             if let initialError {

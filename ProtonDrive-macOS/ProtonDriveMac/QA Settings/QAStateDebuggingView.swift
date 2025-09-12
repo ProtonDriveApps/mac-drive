@@ -27,13 +27,28 @@ struct QAStateDebuggingView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            Text("Current state: \(state)").multilineTextAlignment(.leading)
+            Text("Current state:")
+
+            ScrollView {
+                Text("\(state)").multilineTextAlignment(.leading)
+            }
 
             Text("History: (\(observer.syncItemHistory.count) actions)")
 
-            List {
-                ForEach(observer.syncItemHistory.reversed(), id: \.self.id) { a in
-                    Text("\(a.diff)")
+            ScrollViewReader { proxy in
+                List {
+                    ForEach(observer.syncItemHistory.reversed(), id: \.self.id) { item in
+                        VStack(alignment: .leading) {
+                            Text("\(item.diff)")
+                            Text("\(item.date)")
+                                .font(.footnote)
+                        }
+                    }
+                }
+                .onChange(of: observer.syncItemHistory) { _ in
+                    withAnimation {
+                        proxy.scrollTo(0, anchor: .top)
+                    }
                 }
             }
             .frame(maxHeight: .infinity)

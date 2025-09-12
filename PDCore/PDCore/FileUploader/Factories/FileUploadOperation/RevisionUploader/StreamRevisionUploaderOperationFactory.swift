@@ -29,6 +29,7 @@ class StreamRevisionUploaderOperationFactory: FileUploadOperationFactory {
     let verifierFactory: UploadVerifierFactory
     let moc: NSManagedObjectContext
     let parallelEncryption: Bool
+    let uploadedBytesCounterResource: BytesCounterResource
 
     init(
         storage: StorageManager,
@@ -39,7 +40,8 @@ class StreamRevisionUploaderOperationFactory: FileUploadOperationFactory {
         signersKitFactory: SignersKitFactoryProtocol,
         verifierFactory: UploadVerifierFactory,
         moc: NSManagedObjectContext,
-        parallelEncryption: Bool
+        parallelEncryption: Bool,
+        uploadedBytesCounterResource: BytesCounterResource
     ) {
         self.storage = storage
         self.client = client
@@ -50,6 +52,7 @@ class StreamRevisionUploaderOperationFactory: FileUploadOperationFactory {
         self.verifierFactory = verifierFactory
         self.moc = moc
         self.parallelEncryption = parallelEncryption
+        self.uploadedBytesCounterResource = uploadedBytesCounterResource
     }
 
     func make(from draft: FileDraft, completion: @escaping OnUploadCompletion) -> any UploadOperation {
@@ -123,7 +126,8 @@ class StreamRevisionUploaderOperationFactory: FileUploadOperationFactory {
             fullUploadableBlock: fullUploadableBlock,
             progressTracker: blockProgress,
             service: api,
-            credentialProvider: credentialProvider
+            credentialProvider: credentialProvider,
+            uploadedBytesCounterResource: uploadedBytesCounterResource
         )
         let session = URLSession.forUploading(delegate: uploader)
         uploader.session = session

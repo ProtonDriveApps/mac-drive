@@ -75,20 +75,18 @@ final class LoginViewModel: ObservableObject {
                     switch status {
                     case let .finished(data):
                         self?.finished = .done(data)
-                    case .askAny2FA, .askTOTP:
-                        self?.finished = .twoFactorCodeNeeded
-                        self?.isLoading = false
                     case .askSecondPassword:
                         self?.finished = .mailboxPasswordNeeded
-                        self?.isLoading = false
                     case .chooseInternalUsernameAndCreateInternalAddress:
                         fatalError("Account has a username but no address")
                     case .ssoChallenge:
                         fatalError("receiving an SSO Challenge here is an invalid state")
-                    case .askFIDO2:
-                        assertionFailure("FIDO2 not implemented")
-                        self?.errors.send(LoginError.invalidState)
-                        self?.isLoading = false
+                    case .askTOTP:
+                        self?.finished = .twoFactorCodeNeeded
+                    case .askFIDO2(let options):
+                        self?.finished = .securityKeyNeeded(options)
+                    case .askAny2FA(let options):
+                        self?.finished = .securityKeyOrTwoFactorCodeNeeded(options)
                     }
                 }
             }

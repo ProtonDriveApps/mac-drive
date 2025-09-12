@@ -23,7 +23,7 @@ import PDUIComponents
 struct LoginTextField: View {
     private let title: String
     private let textContentType: NSTextContentType?
-    private let unfocus: Bool
+    private let isLoading: Bool
     private let window: NSWindow
     private let action: () -> Void
 
@@ -31,19 +31,20 @@ struct LoginTextField: View {
     @Binding private var errorString: String?
 
     init(title: String, text: Binding<String>, errorString: Binding<String?>,
-         textContentType: NSTextContentType? = nil, unfocus: Bool, window: NSWindow, action: @escaping () -> Void = {}) {
+         textContentType: NSTextContentType? = nil, isLoading: Bool, window: NSWindow, action: @escaping () -> Void = {}) {
         self.title = title
         self._text = text
         self._errorString = errorString
-        self.unfocus = unfocus
+        self.isLoading = isLoading
         self.textContentType = textContentType
         self.window = window
         self.action = action
     }
 
     var body: some View {
-        CommonLoginTextField(title: title, text: $text, errorString: $errorString, unfocus: unfocus, window: window, action: action, content:
+        CommonLoginTextField(title: title, text: $text, errorString: $errorString, isLoading: isLoading, window: window, action: action, content:
             TextField("", text: $text)
+                .disabled(isLoading)
                 .textContentType(textContentType)
         )
     }
@@ -51,7 +52,7 @@ struct LoginTextField: View {
 
 struct SecureLoginTextField: View {
     private let title: String
-    private let unfocus: Bool
+    private let isLoading: Bool
     private let window: NSWindow
     private let action: () -> Void
 
@@ -59,19 +60,20 @@ struct SecureLoginTextField: View {
     @Binding private var errorString: String?
     @State private var isSecure: Bool = true
 
-    init(title: String, text: Binding<String>, errorString: Binding<String?>, unfocus: Bool, window: NSWindow, action: @escaping () -> Void = {}) {
+    init(title: String, text: Binding<String>, errorString: Binding<String?>, isLoading: Bool, window: NSWindow, action: @escaping () -> Void = {}) {
         self.title = title
         self._text = text
         self._errorString = errorString
-        self.unfocus = unfocus
+        self.isLoading = isLoading
         self.window = window
         self.action = action
     }
 
     var body: some View {
-        CommonLoginTextField(title: title, text: $text, errorString: $errorString, unfocus: unfocus, window: window, action: action, content:
+        CommonLoginTextField(title: title, text: $text, errorString: $errorString, isLoading: isLoading, window: window, action: action, content:
             HStack {
                 textField
+                    .disabled(isLoading)
 
                 Button(action: {
                     isSecure.toggle()
@@ -81,7 +83,7 @@ struct SecureLoginTextField: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 16)
                 })
-                    .buttonStyle(.plain)
+                .buttonStyle(.plain)
             }
         )
     }
@@ -103,7 +105,7 @@ struct SecureLoginTextField: View {
 
 private struct CommonLoginTextField<Content>: View where Content: View {
     private let title: String
-    private let unfocus: Bool
+    private let isLoading: Bool
     private let window: NSWindow
     private let content: Content
     private let action: () -> Void
@@ -111,9 +113,9 @@ private struct CommonLoginTextField<Content>: View where Content: View {
     @Binding private var text: String
     @Binding private var errorString: String?
 
-    init(title: String, text: Binding<String>, errorString: Binding<String?>, unfocus: Bool, window: NSWindow, action: @escaping () -> Void, content: Content) {
+    init(title: String, text: Binding<String>, errorString: Binding<String?>, isLoading: Bool, window: NSWindow, action: @escaping () -> Void, content: Content) {
         self.title = title
-        self.unfocus = unfocus
+        self.isLoading = isLoading
         self.window = window
         self.action = action
         self._text = text
@@ -138,7 +140,7 @@ private struct CommonLoginTextField<Content>: View where Content: View {
                     RoundedRectangle(cornerRadius: 8)
                         .foregroundColor(ColorProvider.BackgroundNorm)
                 )
-                .configureLoginTextFieldBorder(errorString: $errorString, unfocus: unfocus, window: window, action: action)
+                .configureLoginTextFieldBorder(errorString: $errorString, unfocus: isLoading, window: window, action: action)
                 .onChange(of: text) { _ in
                     errorString = nil
                 }

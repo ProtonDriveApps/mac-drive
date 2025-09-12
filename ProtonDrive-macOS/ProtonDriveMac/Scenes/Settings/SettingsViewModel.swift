@@ -74,11 +74,11 @@ final class SettingsViewModel: SettingsViewModelProtocol {
 
     let actions: UserActions
 
-    init(sessionVault: SessionVault,
-         launchOnBootService: LaunchOnBootServiceProtocol,
-         appUpdateService: AppUpdateServiceProtocol?,
-         userActions: UserActions,
-         isFullResyncEnabled: Bool) {
+    init?(sessionVault: SessionVault,
+          launchOnBootService: LaunchOnBootServiceProtocol,
+          appUpdateService: AppUpdateServiceProtocol?,
+          userActions: UserActions,
+          isFullResyncEnabled: Bool) {
         self.launchOnBootService = launchOnBootService
         self.appUpdateService = appUpdateService
         self.actions = userActions
@@ -86,7 +86,8 @@ final class SettingsViewModel: SettingsViewModelProtocol {
         guard let accountInfo = sessionVault.getAccountInfo(),
               let userInfo = sessionVault.getUserInfo()
         else {
-            fatalError("Can't show account settings because account or user info missing")
+            Log.error("Can't show account settings because account or user info missing", domain: .userSettings)
+            return nil
         }
 
         self.userInfo = userInfo

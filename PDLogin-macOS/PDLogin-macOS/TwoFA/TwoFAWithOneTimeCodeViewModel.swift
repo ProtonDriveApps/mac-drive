@@ -19,7 +19,7 @@ import Foundation
 import ProtonCoreLogin
 import PDUIComponents
 
-final class TwoFactorViewModel: ObservableObject {
+final class TwoFAWithOneTimeCodeViewModel: ObservableObject {
     enum Mode {
         case twoFactorCode
         case recoveryCode
@@ -48,7 +48,7 @@ final class TwoFactorViewModel: ObservableObject {
     }
 
     var subtitle: String {
-        mode == .twoFactorCode ? "Enter the code from your authenticator app" : "Enter the recovery code"
+        mode == .twoFactorCode ? "Enter the code from your authenticator app." : "Enter the recovery code."
     }
 
     var changeModeTitle: String {
@@ -74,31 +74,42 @@ final class TwoFactorViewModel: ObservableObject {
 
         login.provide2FACode(code) { [weak self] result in
             DispatchQueue.main.async { [weak self] in
-                switch result {
-                case let .failure(error):
+                
+                func showError(_ error: Error) {
                     self?.errors.send(error)
                     self?.isLoading = false
+                }
+                
+                switch result {
+                case let .failure(error):
+                    switch error {
+                    case .invalidCredentials, .invalidAccessToken:
+                        self?.backToStart(error)
+                        self?.isLoading = false
+                    default:
+                        showError(error)
+                    }
                 case let .success(status):
                     switch status {
                     case let .finished(data):
                         self?.finished = .done(data)
                     case .askSecondPassword:
                         self?.finished = .mailboxPasswordNeeded
-                        self?.isLoading = false
                     case .chooseInternalUsernameAndCreateInternalAddress:
-                        fatalError("Account has a username but no address")
+                        assertionFailure("Account has a username but no address")
+                        showError(LoginError.invalidState)
                     case .askTOTP, .askAny2FA:
-                        fatalError("Asking for 2FA code password after successful 2FA code is an invalid state")
+                        assertionFailure("Asking for 2FA code password after successful 2FA code is an invalid state")
+                        showError(LoginError.invalidState)
                     case .ssoChallenge:
-                        fatalError("receiving an SSO Challenge after successful 2FA code is an invalid state")
+                        assertionFailure("receiving an SSO Challenge after successful 2FA code is an invalid state")
+                        showError(LoginError.invalidState)
                     case .askFIDO2:
-                        assertionFailure("FIDO2 not implemented")
-                        self?.errors.send(LoginError.invalidState)
-                        self?.isLoading = false
+                        assertionFailure("Asking for FIDO after successful 2FA code is an invalid state")
+                        showError(LoginError.invalidState)
                     @unknown default:
                         assertionFailure("Not implemented")
-                        self?.errors.send(LoginError.invalidState)
-                        self?.isLoading = false
+                        showError(LoginError.invalidState)
                     }
                 }
             }
@@ -109,8 +120,8 @@ final class TwoFactorViewModel: ObservableObject {
         mode = mode.toggle
     }
 
-    func backToStart() {
-        finished = .backToStart
+    func backToStart(_ initialError: LoginError?) {
+        finished = .backToStart(initialError: initialError)
     }
 
     // MARK: - Validation

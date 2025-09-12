@@ -84,7 +84,7 @@ final class MailboxPasswordViewModel: ObservableObject {
     }
 
     func backToStart() {
-        finished = .backToStart
+        finished = .backToStart(initialError: nil)
     }
 
     // MARK: - Validation

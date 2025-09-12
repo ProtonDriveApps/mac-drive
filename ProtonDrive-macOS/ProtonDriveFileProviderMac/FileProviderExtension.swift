@@ -87,6 +87,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         userDefault: Constants.appGroup.userDefaults,
         clientConfig: Constants.userApiConfig,
         mainKeyProvider: keymaker,
+        autoLocker: nil,
         sessionRelatedCommunicatorFactory: { sessionStore, authenticator, onSessionReceived in
             SessionRelatedCommunicatorForExtension(
                 userDefaultsConfiguration: .forFileProviderExtension(userDefaults: Constants.appGroup.userDefaults),

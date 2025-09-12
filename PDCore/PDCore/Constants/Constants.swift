@@ -111,4 +111,12 @@ public enum Constants {
 
     // MARK: - Build type features
     public static var buildFeatures: BuildFeatures = .default
+
+    static var isUnitTest: Bool {
+        #if DEBUG
+        return ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        #else
+        return false
+        #endif
+    }
 }

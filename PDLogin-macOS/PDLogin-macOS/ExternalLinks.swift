@@ -24,4 +24,5 @@ public class ExternalLinks {
     public static let support = URL(string: "https://proton.me/support/contact")!
     public static let commonLoginProblems = URL(string: "https://proton.me/support/common-login-problems")!
     public static let forgottenUsername = URL(string: "https://account.proton.me/forgot-username")!
+    public static let twoFactorAuthentication = URL(string: "https://proton.me/support/two-factor-authentication-2fa")!
 }

@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
+import AuthenticationServices
 import Foundation
 import TrustKit
 import ProtonCoreAPIClient
@@ -27,7 +28,7 @@ import ProtonCoreServices
 import ProtonCoreEnvironment
 
 final class Container {
-    private let login: Login
+    let login: Login
     private let authManager: AuthHelper
     private let api: PMAPIService
     private let humanVerifier: HumanCheckHelper
@@ -65,8 +66,16 @@ final class Container {
         return MailboxPasswordViewModel(login: login)
     }
 
-    func makeTwoFactorViewModel() -> TwoFactorViewModel {
-        return TwoFactorViewModel(login: login)
+    func makeTwoFAWithOneTimeCodeViewModel() -> TwoFAWithOneTimeCodeViewModel {
+        return TwoFAWithOneTimeCodeViewModel(login: login)
+    }
+    
+    func makeTwoFAWithSecurityKeyViewModel(
+        options: AuthenticationOptions, presentationAnchor: ASPresentationAnchor
+    ) -> TwoFAWithSecurityKeyViewModel {
+        return TwoFAWithSecurityKeyViewModel(
+            login: login, authenticationOptions: options, presentationAnchor: presentationAnchor
+        )
     }
 }
 

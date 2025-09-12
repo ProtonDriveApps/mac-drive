@@ -45,7 +45,7 @@ class ApplicationEventObserver: ObservableObject {
     static var updateCounter = 0
 
 #else
-    private var state: ApplicationState
+    private(set) var state: ApplicationState
 #endif
 
     private let deleteAlerter: DeleteAlerter
@@ -70,6 +70,8 @@ class ApplicationEventObserver: ObservableObject {
 
     /// Fires every `ElapsedTimeService.timeInterval` seconds, only the dropdown Menu or Status Window are opened.
     private var elapsedTimeService: ElapsedTimeService?
+
+    private let resyncUpdateSubject = PassthroughSubject<Int, Never>()
 
     /// Always-on
     private var globalCancellables = Set<AnyCancellable>()
@@ -161,6 +163,30 @@ class ApplicationEventObserver: ObservableObject {
         state.isResuming = false
     }
 
+    func waitUntilEnumerationHasBegunAndEnded() async throws {
+        try await Task.sleep(for: .seconds(10))
+
+        try await waitUntilCompleted { [weak self] in self?.state.isEnumerating ?? false }
+
+        func waitUntilCompleted(_ isCompleted: @escaping () -> Bool) async throws {
+            var pendingDuration: TimeInterval = 0
+
+            while true {
+                if !isCompleted() {
+                    pendingDuration += 1
+                    if pendingDuration >= 10 {
+                        // Value has been false for 10 seconds
+                        break
+                    }
+                } else {
+                    pendingDuration = 0
+                }
+
+                try await Task.sleep(for: .seconds(1))
+            }
+        }
+    }
+
     @MainActor
     public func togglePausedStatus() async throws {
         Log.trace()
@@ -181,40 +207,47 @@ class ApplicationEventObserver: ObservableObject {
         Log.trace()
         try await syncObserver?.fetchItems()
     }
-    
+
     @MainActor
-    public func performFullResync() async throws {
+    public func fullResyncStarted() async throws {
         try await syncObserver?.updateSyncState(paused: state.isPaused, offline: state.isOffline, fullResyncInProgress: true)
         state.fullResyncState = .inProgress(0)
     }
     
     @MainActor
-    public func updateFullResyncItemsCount(_ count: Int) {
+    public func fullResyncItemCountUpdated(_ count: Int) {
+        Log.trace()
+        resyncUpdateSubject.send(count)
+    }
+
+    private func throttledFullResyncItemCountUpdated(_ count: Int) {
+        Log.trace()
         state.fullResyncState = .inProgress(count)
+    }
+    
+    @MainActor
+    public func fullResyncReenumerationStarted() async throws {
+        try await syncObserver?.updateSyncState(paused: state.isPaused, offline: state.isOffline, fullResyncInProgress: false)
+        state.fullResyncState = .enumerating
+    }
+    
+    @MainActor
+    public func fullResyncCompleted(hasFileProviderResponded: Bool) {
+        state.fullResyncState = .completed(hasFileProviderResponded: hasFileProviderResponded)
+    }
+    
+    @MainActor
+    public func fullResyncFinished()  {
+        state.fullResyncState = .idle
     }
     
     @MainActor
     public func fullResyncErrored(message: String) {
         state.fullResyncState = .errored(message)
     }
-    
+
     @MainActor
-    public func proceedToDomainReenumeration() async throws {
-        try await syncObserver?.updateSyncState(paused: state.isPaused, offline: state.isOffline, fullResyncInProgress: false)
-    }
-    
-    @MainActor
-    public func completeFullResync(hasFileProviderResponded: Bool) {
-        state.fullResyncState = .completed(hasFileProviderResponded: hasFileProviderResponded)
-    }
-    
-    @MainActor
-    public func finishFullResync()  {
-        state.fullResyncState = .idle
-    }
-    
-    @MainActor
-    public func cancelFullResync() async throws {
+    public func fullResyncCancelled() async throws {
         state.fullResyncState = .idle
         try await syncObserver?.updateSyncState(paused: state.isPaused, offline: state.isOffline, fullResyncInProgress: false)
     }
@@ -232,6 +265,13 @@ class ApplicationEventObserver: ObservableObject {
         self.subscribeToUpdateAvailability()
 #endif
 
+        self.resyncUpdateSubject
+            .throttle(for: .seconds(1), scheduler: RunLoop.main, latest: true)
+            .sink { [weak self] in
+                self?.throttledFullResyncItemCountUpdated($0)
+            }
+            .store(in: &globalCancellables)
+
         var previousState = state.properties
 
 #if HAS_QA_FEATURES
@@ -243,7 +283,7 @@ class ApplicationEventObserver: ObservableObject {
                 )
                 previousState = Array(self.state.properties)
                 Self.updateCounter += 1
-                Log.trace("Received state.objectWillChange (\(Self.updateCounter), Diff: \(diff)")
+                Log.trace("Received state.objectWillChange (\(Self.updateCounter), Diff: \(diff))")
                 if !diff.isEmpty {
                     self.syncItemHistory.append(SyncHistoryItem(id: self.syncItemHistory.count + 1, state: self.state, diff: diff))
                 }
@@ -446,7 +486,7 @@ extension ApplicationEventObserver {
 
 #if HAS_QA_FEATURES
 /// Displayed in QAStateDebuggingView
-struct SyncHistoryItem: CustomStringConvertible {
+struct SyncHistoryItem: CustomStringConvertible, Equatable {
     var description: String {
         diff.map { $0.description }.joined(separator: "\n")
     }
@@ -454,6 +494,6 @@ struct SyncHistoryItem: CustomStringConvertible {
     let id: Int
     let state: ApplicationState
     let diff: [ApplicationState.Property]
-    let date = Date.now
+    let date = Date.now.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute(.twoDigits).second(.twoDigits))
 }
 #endif
