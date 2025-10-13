@@ -1061,7 +1061,7 @@ extension StorageManager {
             guard fetchedPhotos.count < size else { return }
 
             // Non uploaded main photos
-            let states: [Photo.State] = [.interrupted, .uploading, .cloudImpediment]
+            let states: [Photo.State] = [.uploading, .cloudImpediment, .interrupted]
             for state in states {
                 // Calculate the remaining number of photos to fetch
                 let remainingSize = size - fetchedPhotos.count
@@ -1122,15 +1122,19 @@ extension StorageManager {
     private func requestChildPhotosWithUploadedParent(volumeId: String, size: Int) -> NSFetchRequest<Photo> {
         let fetchRequest = NSFetchRequest<Photo>(entityName: "Photo")
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: #keyPath(Photo.captureTime), ascending: false)]
-        fetchRequest.predicate = NSPredicate(
-            format: "%K != nil AND %K.%K == %d AND (%K == %d OR %K == %d OR %K == %d) AND %K == %@",
-            #keyPath(Photo.parent),
-            #keyPath(Photo.parent), #keyPath(Photo.stateRaw), Photo.State.active.rawValue,
+        let hasParent = NSPredicate(format: "%K != nil", #keyPath(Photo.parent))
+        let parentIsUploaded = NSPredicate(
+            format: "%K.%K == %d",
+            #keyPath(Photo.parent), #keyPath(Photo.stateRaw), Photo.State.active.rawValue
+        )
+        let selfIsUploadingState = NSPredicate(
+            format: "%K == %d OR %K == %d OR %K == %d",
             #keyPath(Photo.stateRaw), Photo.State.uploading.rawValue,
             #keyPath(Photo.stateRaw), Photo.State.cloudImpediment.rawValue,
-            #keyPath(Photo.stateRaw), Photo.State.interrupted.rawValue,
-            #keyPath(Photo.volumeID), volumeId
+            #keyPath(Photo.stateRaw), Photo.State.interrupted.rawValue
         )
+        let volumeIsMatched = NSPredicate(format: "%K == %@", #keyPath(Photo.volumeID), volumeId)
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [hasParent, parentIsUploaded, selfIsUploadingState, volumeIsMatched])
         fetchRequest.fetchLimit = size
         return fetchRequest
     }

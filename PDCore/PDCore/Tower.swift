@@ -64,6 +64,7 @@ public class Tower: NSObject {
     public let entitlementsManager: EntitlementsManagerProtocol
     private var cancellables = Set<AnyCancellable>()
     public let uploadedBytesCounterResource: BytesCounterResource
+    public let clientConfiguration: PDClient.APIService.Configuration
 
     // internal for Tower+Events.swift
     var externalInvitationConverter: ExternalInvitationConvertProtocol?
@@ -133,6 +134,7 @@ public class Tower: NSObject {
         self.generalSettings = GeneralSettings(mainKeyProvider: mainKeyProvider, network: network, localSettings: localSettings)
         self.sessionVault = sessionVault
         self.sessionCommunicator = sessionCommunicator
+        clientConfiguration = clientConfig
         self.api = APIServiceFactory().makeService(configuration: clientConfig)
 
         self.networking = network
@@ -354,7 +356,7 @@ public class Tower: NSObject {
         sessionVault.signOut()
         sessionCommunicator.clearStateOnSignOut()
     }
-    #endif
+    #endif // os(iOS)
 
     @MainActor
     public func destroyCache(strategy cacheCleanupStrategy: CacheCleanupStrategy) async {

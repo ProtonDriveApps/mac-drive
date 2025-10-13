@@ -33,7 +33,7 @@ public class MyFilesFileUploader: FileUploader {
             guard let self, !self.didSignOut else { return }
 
             let file = file.in(moc: self.moc)
-            Log.info("0️⃣ file pload will start. File: \(file.id), UUID: \(String(describing: file.uploadID))", domain: .uploader)
+            Log.info("0️⃣ file upload will start. File: \(file.id), UUID: \(String(describing: file.uploadID))", domain: .uploader)
 
             do {
                 try self.canUploadWithError(file)
@@ -131,6 +131,8 @@ public class MyFilesFileUploader: FileUploader {
         
         let uploadID = fileDraft.uploadID
         let file = fileDraft.file
+        let shareType = DriveObservabilityUploadShareType.from(fileDraft: fileDraft)
+        let initiator = DriveObservabilityInitiator.from(fileDraft: fileDraft)
 
         if let responseError = error as? ResponseError {
 
@@ -159,8 +161,8 @@ public class MyFilesFileUploader: FileUploader {
         }
         uploadSuccessRateMonitor.incrementFailure(
             identifier: fileDraft.file.identifier,
-            shareType: .from(fileDraft: fileDraft),
-            initiator: .from(fileDraft: fileDraft)
+            shareType: shareType,
+            initiator: initiator
         )
     }
 

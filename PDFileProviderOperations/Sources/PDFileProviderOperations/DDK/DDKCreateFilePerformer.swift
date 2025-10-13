@@ -151,7 +151,6 @@ final class DDKCreateFilePerformer: CreateFilePerformer {
                 fileUploadRequest: fileUploadRequest,
                 fileUploadResponse: fileUploadResponse,
                 itemTemplate: itemTemplate,
-                parent: parent,
                 in: moc
             ).get()
             

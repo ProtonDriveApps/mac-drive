@@ -21,7 +21,7 @@ let package = Package(
         .package(name: "PDDesktopDevKit", path: "../PDDesktopDevKit"),
         .package(name: "PDUploadVerifier", path: "../PDUploadVerifier"),
 
-        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "32.7.1"),
+        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "33.2.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.

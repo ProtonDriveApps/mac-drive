@@ -50,7 +50,7 @@ public class CoreDataPhotoImporter: PhotoImporter {
         coreDataPhoto.name = encryptedName
         coreDataPhoto.nodeHash = hash
         coreDataPhoto.mimeType = asset.mimeType.value
-        coreDataPhoto.size = try asset.url.getFileSize()
+        coreDataPhoto.size = asset.dataSize
         coreDataPhoto.nodeKey = nodeKeyPack.key
         coreDataPhoto.nodePassphrase = nodeKeyPack.passphrase
         coreDataPhoto.nodePassphraseSignature = nodeKeyPack.signature
@@ -69,6 +69,7 @@ public class CoreDataPhotoImporter: PhotoImporter {
         // Temporary values
         let metadata = TemporalMetadata(metadata: asset.metadata).base64Encoded()
         coreDataPhoto.tempBase64Metadata = metadata
+        coreDataPhoto.localIdentifier = asset.localIdentifier
 
         // Start Photo with the .interrupted state
         coreDataPhoto.state = .interrupted
@@ -88,8 +89,8 @@ public class CoreDataPhotoImporter: PhotoImporter {
         coreDataPhotoRevision.volumeID = folder.volumeID
         coreDataPhotoRevision.exif = encryptedExif.base64EncodedString()
         coreDataPhotoRevision.uploadState = .created
-        coreDataPhotoRevision.uploadSize = try asset.url.getFileSize()
-        coreDataPhotoRevision.normalizedUploadableResourceURL = asset.url
+        coreDataPhotoRevision.uploadSize = asset.dataSize
+        coreDataPhotoRevision.uploadResourceTypeValue = asset.resourceType
         coreDataPhotoRevision.signatureAddress = signersKit.address.email
 
         // Relationships

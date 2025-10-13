@@ -9,10 +9,7 @@
 /* Begin PBXBuildFile section */
 		3E2C94FB2D093C520041B402 /* ProtonCoreUnitTestingToolkit in Frameworks */ = {isa = PBXBuildFile; productRef = 3E2C94FA2D093C520041B402 /* ProtonCoreUnitTestingToolkit */; };
 		3E2C94FD2D093C5F0041B402 /* ProtonCoreUITestingToolkit in Frameworks */ = {isa = PBXBuildFile; productRef = 3E2C94FC2D093C5F0041B402 /* ProtonCoreUITestingToolkit */; };
-		6605216A2D5F4A6A00D3D751 /* ProtonCoreKeymaker in Frameworks */ = {isa = PBXBuildFile; productRef = 660521692D5F4A6A00D3D751 /* ProtonCoreKeymaker */; };
-		6605216C2D5F4A7100D3D751 /* ProtonCoreKeymaker in Frameworks */ = {isa = PBXBuildFile; productRef = 6605216B2D5F4A7100D3D751 /* ProtonCoreKeymaker */; };
 		6616F5352B7E6CEB0001C751 /* DriveStressTestsLib in Frameworks */ = {isa = PBXBuildFile; productRef = 6616F5342B7E6CEB0001C751 /* DriveStressTestsLib */; };
-		66176D642D63624600A629DC /* ProtonCoreQuarkCommands in Frameworks */ = {isa = PBXBuildFile; productRef = 66176D632D63624600A629DC /* ProtonCoreQuarkCommands */; };
 		66176D682D636C8B00A629DC /* ProtonCoreUnitTestingToolkit in Frameworks */ = {isa = PBXBuildFile; productRef = 66176D672D636C8B00A629DC /* ProtonCoreUnitTestingToolkit */; };
 		66196E672BA468A800363D89 /* DomainOperationsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66196E662BA468A800363D89 /* DomainOperationsService.swift */; };
 		66196E682BA468A800363D89 /* DomainOperationsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66196E662BA468A800363D89 /* DomainOperationsService.swift */; };
@@ -27,17 +24,11 @@
 		662365932AFA3D98008E62C6 /* ReleaseNotes.html in Resources */ = {isa = PBXBuildFile; fileRef = 662365912AFA3D98008E62C6 /* ReleaseNotes.html */; };
 		665542352D6386BF00CA678C /* FullResyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 665542332D6386AD00CA678C /* FullResyncService.swift */; };
 		665542362D6386BF00CA678C /* FullResyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 665542332D6386AD00CA678C /* FullResyncService.swift */; };
-		6657E2932D5F4C8E00ECBA5B /* ProtonCoreAuthentication in Frameworks */ = {isa = PBXBuildFile; productRef = 6657E2922D5F4C8E00ECBA5B /* ProtonCoreAuthentication */; };
-		6657E2952D5F4CC000ECBA5B /* ProtonCoreKeymaker in Frameworks */ = {isa = PBXBuildFile; productRef = 6657E2942D5F4CC000ECBA5B /* ProtonCoreKeymaker */; };
-		6657E2972D5F4CC000ECBA5B /* ProtonCoreNetworking in Frameworks */ = {isa = PBXBuildFile; productRef = 6657E2962D5F4CC000ECBA5B /* ProtonCoreNetworking */; };
-		6657E2992D5F4CC000ECBA5B /* ProtonCoreServices in Frameworks */ = {isa = PBXBuildFile; productRef = 6657E2982D5F4CC000ECBA5B /* ProtonCoreServices */; };
-		6657E29B2D5F4CE500ECBA5B /* ProtonCoreEnvironment in Frameworks */ = {isa = PBXBuildFile; productRef = 6657E29A2D5F4CE500ECBA5B /* ProtonCoreEnvironment */; };
 		666D1DDA2D8426FE0048A02F /* FullResyncMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 666D1DD82D8426F60048A02F /* FullResyncMetrics.swift */; };
 		666D1DDB2D8426FE0048A02F /* FullResyncMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 666D1DD82D8426F60048A02F /* FullResyncMetrics.swift */; };
 		667AECD82AE10D8700E2EAC1 /* AppUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 667AECD72AE10D8700E2EAC1 /* AppUpdateService.swift */; };
 		667B32062C69F4E500D15C95 /* PDCore in Frameworks */ = {isa = PBXBuildFile; productRef = 667B32052C69F4E500D15C95 /* PDCore */; };
 		667B32082C69F4E500D15C95 /* PDUploadVerifier in Frameworks */ = {isa = PBXBuildFile; productRef = 667B32072C69F4E500D15C95 /* PDUploadVerifier */; };
-		667B320E2C69F54100D15C95 /* ProtonCoreCryptoPatchedGoImplementation in Frameworks */ = {isa = PBXBuildFile; productRef = 667B320D2C69F54100D15C95 /* ProtonCoreCryptoPatchedGoImplementation */; };
 		66835C472C7F097300B158CB /* GroupContainerMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66835C462C7F097300B158CB /* GroupContainerMigrator.swift */; };
 		66835C482C7F097800B158CB /* GroupContainerMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66835C462C7F097300B158CB /* GroupContainerMigrator.swift */; };
 		66835C4B2C7F0A2100B158CB /* RecoveryAttempter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66835C4A2C7F0A2100B158CB /* RecoveryAttempter.swift */; };
@@ -70,12 +61,34 @@
 		66C25E742BFC9AB8004D7F8D /* InitializationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C25E712BFC9AB8004D7F8D /* InitializationView.swift */; };
 		66C25E762BFC9AB8004D7F8D /* InitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C25E722BFC9AB8004D7F8D /* InitializationCoordinator.swift */; };
 		66C25E772BFC9AB8004D7F8D /* InitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C25E722BFC9AB8004D7F8D /* InitializationCoordinator.swift */; };
+		66E09DFE2E7DA3C30082A1B0 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 66E09DFD2E7DA3C30082A1B0 /* Yams */; };
+		66E09E002E7DA42D0082A1B0 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 66E09DFF2E7DA42D0082A1B0 /* Yams */; };
+		66E09E022E7DA4490082A1B0 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 66E09E012E7DA4490082A1B0 /* Yams */; };
+		66E09E292E7DB0A40082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation in Frameworks */ = {isa = PBXBuildFile; productRef = 66E09E282E7DB0A40082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation */; };
+		66E09E2B2E7DB0CA0082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation in Frameworks */ = {isa = PBXBuildFile; productRef = 66E09E2A2E7DB0CA0082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation */; };
+		66E09E2D2E7DB0D00082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation in Frameworks */ = {isa = PBXBuildFile; productRef = 66E09E2C2E7DB0D00082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation */; };
+		66E09E2F2E7DB2F60082A1B0 /* ProtonCoreQuarkCommands in Frameworks */ = {isa = PBXBuildFile; productRef = 66E09E2E2E7DB2F60082A1B0 /* ProtonCoreQuarkCommands */; };
+		66E09E312E7DB2FC0082A1B0 /* ProtonCoreQuarkCommands in Frameworks */ = {isa = PBXBuildFile; productRef = 66E09E302E7DB2FC0082A1B0 /* ProtonCoreQuarkCommands */; };
+		66E09E332E7DB3030082A1B0 /* ProtonCoreQuarkCommands in Frameworks */ = {isa = PBXBuildFile; productRef = 66E09E322E7DB3030082A1B0 /* ProtonCoreQuarkCommands */; };
 		66E62A752D7B1865008222AC /* FullResyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E62A732D7B185F008222AC /* FullResyncCoordinator.swift */; };
 		66E62A762D7B1865008222AC /* FullResyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E62A732D7B185F008222AC /* FullResyncCoordinator.swift */; };
-		66E9C1822CB6D299003F373E /* ProtonCoreCryptoPatchedGoImplementation in Frameworks */ = {isa = PBXBuildFile; productRef = 66E9C1812CB6D299003F373E /* ProtonCoreCryptoPatchedGoImplementation */; };
-		66EA24BE2E45E331006AB716 /* proton_drive_sdk.dylib in Copy proton_drive_sdk.dylib */ = {isa = PBXBuildFile; fileRef = 66EA24BD2E45E292006AB716 /* proton_drive_sdk.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		66EA24C02E45E363006AB716 /* proton_drive_sdk.dylib in Copy proton_drive_sdk.dylib */ = {isa = PBXBuildFile; fileRef = 66EA24BD2E45E292006AB716 /* proton_drive_sdk.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		66FAB3332AD55EF000ADAB83 /* LaunchOnBootService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66FAB3322AD55EF000ADAB83 /* LaunchOnBootService.swift */; };
+		721D5AFC2E819C8000740E68 /* DBMeasurementCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9662E8146500013826F /* DBMeasurementCollector.swift */; };
+		721D72862E8A7C3000E45B33 /* FetchedResultObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D7ED9B2CEF757A00A2FAB1 /* FetchedResultObserver.swift */; };
+		72ADD1892E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72ADD1882E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift */; };
+		72ADD18A2E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72ADD1882E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift */; };
+		72ADD18B2E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72ADD1882E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift */; };
+		72ADD1902E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72ADD18E2E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift */; };
+		72ADD1912E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72ADD18E2E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift */; };
+		72FFB96A2E8146760013826F /* MeasurementEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9692E8146730013826F /* MeasurementEvent.swift */; };
+		72FFB96B2E8146760013826F /* MeasurementEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9692E8146730013826F /* MeasurementEvent.swift */; };
+		72FFB9862E8179820013826F /* Metrics.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9842E8179820013826F /* Metrics.xcdatamodeld */; };
+		72FFB9872E8179820013826F /* Metrics.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9842E8179820013826F /* Metrics.xcdatamodeld */; };
+		72FFB9882E8179820013826F /* Metrics.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9842E8179820013826F /* Metrics.xcdatamodeld */; };
+		72FFB98A2E8179D60013826F /* DBPerformanceMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9892E8179D10013826F /* DBPerformanceMeasurement.swift */; };
+		72FFB98B2E8179D60013826F /* DBPerformanceMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9892E8179D10013826F /* DBPerformanceMeasurement.swift */; };
+		72FFB98C2E8179D60013826F /* DBPerformanceMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9892E8179D10013826F /* DBPerformanceMeasurement.swift */; };
+		72FFB98D2E817CAD0013826F /* MeasurementEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9692E8146730013826F /* MeasurementEvent.swift */; };
 		76A2BBDA2AE25F26005B77A2 /* NotificationName+Window.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2BBD92AE25F26005B77A2 /* NotificationName+Window.swift */; };
 		76CEAF432A6CF67A000586F4 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CEAF422A6CF67A000586F4 /* OnboardingView.swift */; };
 		76CEAF452A6CF695000586F4 /* OnboardingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CEAF442A6CF695000586F4 /* OnboardingCoordinator.swift */; };
@@ -138,7 +151,6 @@
 		A351697F2D1045A200651795 /* Log+Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35169772D1042F800651795 /* Log+Configuration.swift */; };
 		A35169812D1045A600651795 /* RuntimeConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35169752D10423300651795 /* RuntimeConfiguration.swift */; };
 		A35169832D1045A700651795 /* RuntimeConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35169752D10423300651795 /* RuntimeConfiguration.swift */; };
-		A369BE102CC1064E009FA502 /* ProtonCoreCryptoPatchedGoImplementation in Frameworks */ = {isa = PBXBuildFile; productRef = A369BE0F2CC1064E009FA502 /* ProtonCoreCryptoPatchedGoImplementation */; };
 		A38EB9302CE9E4F100C33962 /* ApplicationEventObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38EB92E2CE9E4F100C33962 /* ApplicationEventObserver.swift */; };
 		A38EB9312CE9E4F100C33962 /* ApplicationSyncStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38EB92F2CE9E4F100C33962 /* ApplicationSyncStatus.swift */; };
 		A38EB9342CE9E4F100C33962 /* ApplicationEventObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38EB92E2CE9E4F100C33962 /* ApplicationEventObserver.swift */; };
@@ -147,8 +159,8 @@
 		A3A160EE2D07E29600EF80AA /* MetadataMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A160EB2D07E29600EF80AA /* MetadataMonitor.swift */; };
 		A3A4B3F22D49CB8A00C00FED /* TestRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D773452D3AA84400769A8D /* TestRunner.swift */; };
 		A3D773462D3AA84400769A8D /* TestRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D773452D3AA84400769A8D /* TestRunner.swift */; };
-		A3D7ED9D2CEF758100A2FAB1 /* SyncDBFetchedResultObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D7ED9B2CEF757A00A2FAB1 /* SyncDBFetchedResultObserver.swift */; };
-		A3D7ED9E2CEF758100A2FAB1 /* SyncDBFetchedResultObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D7ED9B2CEF757A00A2FAB1 /* SyncDBFetchedResultObserver.swift */; };
+		A3D7ED9D2CEF758100A2FAB1 /* FetchedResultObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D7ED9B2CEF757A00A2FAB1 /* FetchedResultObserver.swift */; };
+		A3D7ED9E2CEF758100A2FAB1 /* FetchedResultObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D7ED9B2CEF757A00A2FAB1 /* FetchedResultObserver.swift */; };
 		A3DFAA3F2CE7570D0050AE64 /* QAStateDebuggingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3DFAA3E2CE7570D0050AE64 /* QAStateDebuggingView.swift */; };
 		A3DFAA402CE7570D0050AE64 /* QASettingsWindowCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3DFAA3D2CE7570D0050AE64 /* QASettingsWindowCoordinator.swift */; };
 		A3DFAA432CE7570D0050AE64 /* QAStateDebuggingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3DFAA3E2CE7570D0050AE64 /* QAStateDebuggingView.swift */; };
@@ -192,8 +204,6 @@
 		D744EE472E059AA3008B005A /* SpinningImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D744EE452E059A9F008B005A /* SpinningImage.swift */; };
 		D80188202C53AA8A00BCC068 /* ProtonDriveFileProviderMac.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = ABD1908D25A30FF7005D3E29 /* ProtonDriveFileProviderMac.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D80188242C53AA8E00BCC068 /* ProtonDriveFileProviderMac.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = ABD1908D25A30FF7005D3E29 /* ProtonDriveFileProviderMac.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		D81296D22C6373400059E397 /* ProtonCoreQuarkCommands in Frameworks */ = {isa = PBXBuildFile; productRef = D81296D12C6373400059E397 /* ProtonCoreQuarkCommands */; };
-		D81296D62C6373730059E397 /* ProtonCoreQuarkCommands in Frameworks */ = {isa = PBXBuildFile; productRef = D81296D52C6373730059E397 /* ProtonCoreQuarkCommands */; };
 		D8262F312C40364B00867704 /* PDLocalization in Frameworks */ = {isa = PBXBuildFile; productRef = D8262F302C40364B00867704 /* PDLocalization */; };
 		D8262F332C40365400867704 /* PDLocalization in Frameworks */ = {isa = PBXBuildFile; productRef = D8262F322C40365400867704 /* PDLocalization */; };
 		D83C41992C53A166002EF29C /* PDCore in Frameworks */ = {isa = PBXBuildFile; productRef = D83C41982C53A166002EF29C /* PDCore */; };
@@ -288,7 +298,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				66EA24BE2E45E331006AB716 /* proton_drive_sdk.dylib in Copy proton_drive_sdk.dylib */,
 			);
 			name = "Copy proton_drive_sdk.dylib";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -311,17 +320,6 @@
 			files = (
 				669777012AF15BE700929E9A /* ProtonDriveMacLauncher.app in CopyFiles */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		66EA24BF2E45E347006AB716 /* Copy proton_drive_sdk.dylib */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				66EA24C02E45E363006AB716 /* proton_drive_sdk.dylib in Copy proton_drive_sdk.dylib */,
-			);
-			name = "Copy proton_drive_sdk.dylib";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D80188232C53AA8A00BCC068 /* Embed Foundation Extensions */ = {
@@ -356,6 +354,7 @@
 		6623658B2AF94737008E62C6 /* ReleaseNotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesView.swift; sourceTree = "<group>"; };
 		6623658E2AF94892008E62C6 /* ReleaseNotesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesViewModel.swift; sourceTree = "<group>"; };
 		662365912AFA3D98008E62C6 /* ReleaseNotes.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = ReleaseNotes.html; sourceTree = "<group>"; };
+		662C653D2E797ED000D9DB3D /* GSS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GSS.framework; path = System/Library/Frameworks/GSS.framework; sourceTree = SDKROOT; };
 		663D194A2B05043C00DC9DC1 /* PDUploadVerifier.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDUploadVerifier.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		663D194D2B05044C00DC9DC1 /* PDUploadVerifier.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = PDUploadVerifier.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		665542332D6386AD00CA678C /* FullResyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullResyncService.swift; sourceTree = "<group>"; };
@@ -371,9 +370,14 @@
 		66C25E712BFC9AB8004D7F8D /* InitializationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InitializationView.swift; sourceTree = "<group>"; };
 		66C25E722BFC9AB8004D7F8D /* InitializationCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InitializationCoordinator.swift; sourceTree = "<group>"; };
 		66E62A732D7B185F008222AC /* FullResyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullResyncCoordinator.swift; sourceTree = "<group>"; };
-		66EA24BD2E45E292006AB716 /* proton_drive_sdk.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; path = proton_drive_sdk.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		66F061982B850C5600A6B067 /* stress-tests */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = "stress-tests"; sourceTree = "<group>"; };
 		66FAB3322AD55EF000ADAB83 /* LaunchOnBootService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LaunchOnBootService.swift; sourceTree = "<group>"; };
+		72ADD1882E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBPerformanceMeasurementRepository.swift; sourceTree = "<group>"; };
+		72ADD18E2E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBPerformanceMetricsReporter.swift; sourceTree = "<group>"; };
+		72FFB9662E8146500013826F /* DBMeasurementCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBMeasurementCollector.swift; sourceTree = "<group>"; };
+		72FFB9692E8146730013826F /* MeasurementEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementEvent.swift; sourceTree = "<group>"; };
+		72FFB9852E8179820013826F /* Metrics.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Metrics.xcdatamodel; sourceTree = "<group>"; };
+		72FFB9892E8179D10013826F /* DBPerformanceMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBPerformanceMeasurement.swift; sourceTree = "<group>"; };
 		763AA3F129374F9F00AEE68E /* Config-Release-Store.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Config-Release-Store.xcconfig"; sourceTree = "<group>"; };
 		763AA3F22937503A00AEE68E /* ProtonDrive-Config-Release-Store.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "ProtonDrive-Config-Release-Store.xcconfig"; sourceTree = "<group>"; };
 		763AA3F329376D3700AEE68E /* ProtonDriveFileProvider-Config-Release-Store.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "ProtonDriveFileProvider-Config-Release-Store.xcconfig"; sourceTree = "<group>"; };
@@ -412,7 +416,7 @@
 		A38EB92F2CE9E4F100C33962 /* ApplicationSyncStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSyncStatus.swift; sourceTree = "<group>"; };
 		A3A160EB2D07E29600EF80AA /* MetadataMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataMonitor.swift; sourceTree = "<group>"; };
 		A3D773452D3AA84400769A8D /* TestRunner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestRunner.swift; sourceTree = "<group>"; };
-		A3D7ED9B2CEF757A00A2FAB1 /* SyncDBFetchedResultObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncDBFetchedResultObserver.swift; sourceTree = "<group>"; };
+		A3D7ED9B2CEF757A00A2FAB1 /* FetchedResultObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchedResultObserver.swift; sourceTree = "<group>"; };
 		A3DFAA3D2CE7570D0050AE64 /* QASettingsWindowCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QASettingsWindowCoordinator.swift; sourceTree = "<group>"; };
 		A3DFAA3E2CE7570D0050AE64 /* QAStateDebuggingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QAStateDebuggingView.swift; sourceTree = "<group>"; };
 		A3DFAA452CE757240050AE64 /* SettingsWindowCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowCoordinator.swift; sourceTree = "<group>"; };
@@ -481,14 +485,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				667B320E2C69F54100D15C95 /* ProtonCoreCryptoPatchedGoImplementation in Frameworks */,
 				D85AB84D2C539DB100FFDC10 /* PDLogin-macOS in Frameworks */,
 				D85AB8492C539DA200FFDC10 /* PDCore in Frameworks */,
 				D85AB8472C539D9C00FFDC10 /* PDClient in Frameworks */,
 				D8262F312C40364B00867704 /* PDLocalization in Frameworks */,
 				D85AB84B2C539DA900FFDC10 /* PDFileProvider in Frameworks */,
+				66E09E2D2E7DB0D00082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation in Frameworks */,
 				D85AB8512C539DC000FFDC10 /* PDUploadVerifier in Frameworks */,
-				6605216C2D5F4A7100D3D751 /* ProtonCoreKeymaker in Frameworks */,
 				D85AB84F2C539DB800FFDC10 /* PDUIComponents in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -497,6 +500,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66E09E2B2E7DB0CA0082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation in Frameworks */,
 				D85AB8572C539DD500FFDC10 /* PDFileProvider in Frameworks */,
 				D85AB8592C539DDB00FFDC10 /* PDLogin-macOS in Frameworks */,
 				D8262F332C40365400867704 /* PDLocalization in Frameworks */,
@@ -504,9 +508,7 @@
 				D83C419E2C53A233002EF29C /* Sparkle in Frameworks */,
 				D85AB85B2C539DE100FFDC10 /* PDUIComponents in Frameworks */,
 				667B32082C69F4E500D15C95 /* PDUploadVerifier in Frameworks */,
-				6605216A2D5F4A6A00D3D751 /* ProtonCoreKeymaker in Frameworks */,
 				D85AB8532C539DC900FFDC10 /* PDClient in Frameworks */,
-				66E9C1822CB6D299003F373E /* ProtonCoreCryptoPatchedGoImplementation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -514,8 +516,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A369BE102CC1064E009FA502 /* ProtonCoreCryptoPatchedGoImplementation in Frameworks */,
 				66B71BA62CDA524B00DC0057 /* PDDesktopDevKit in Frameworks */,
+				66E09E292E7DB0A40082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation in Frameworks */,
 				D83C41992C53A166002EF29C /* PDCore in Frameworks */,
 				D85AB8372C539D5600FFDC10 /* PDFileProvider in Frameworks */,
 				D85AB8392C539D5A00FFDC10 /* PDUploadVerifier in Frameworks */,
@@ -571,6 +573,51 @@
 				665542332D6386AD00CA678C /* FullResyncService.swift */,
 			);
 			path = FullResync;
+			sourceTree = "<group>";
+		};
+		72ADD18F2E8FBE0700A7ABB3 /* Reporting */ = {
+			isa = PBXGroup;
+			children = (
+				72ADD18E2E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift */,
+			);
+			path = Reporting;
+			sourceTree = "<group>";
+		};
+		72FFB9602E8140430013826F /* Metrics */ = {
+			isa = PBXGroup;
+			children = (
+				72FFB9832E8179690013826F /* DB */,
+				72FFB9692E8146730013826F /* MeasurementEvent.swift */,
+				72FFB9722E814AED0013826F /* Storage */,
+				72FFB9642E8146420013826F /* Collection */,
+			);
+			path = Metrics;
+			sourceTree = "<group>";
+		};
+		72FFB9642E8146420013826F /* Collection */ = {
+			isa = PBXGroup;
+			children = (
+				72FFB9662E8146500013826F /* DBMeasurementCollector.swift */,
+			);
+			path = Collection;
+			sourceTree = "<group>";
+		};
+		72FFB9722E814AED0013826F /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				72ADD1882E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift */,
+				A3D7ED9B2CEF757A00A2FAB1 /* FetchedResultObserver.swift */,
+			);
+			path = Storage;
+			sourceTree = "<group>";
+		};
+		72FFB9832E8179690013826F /* DB */ = {
+			isa = PBXGroup;
+			children = (
+				72FFB9892E8179D10013826F /* DBPerformanceMeasurement.swift */,
+				72FFB9842E8179820013826F /* Metrics.xcdatamodeld */,
+			);
+			path = DB;
 			sourceTree = "<group>";
 		};
 		769ED01429A6100A000C1170 /* Mocked */ = {
@@ -653,7 +700,6 @@
 			isa = PBXGroup;
 			children = (
 				D48A113A2D536B25001618CE /* DeleteAlerter.swift */,
-				A3D7ED9B2CEF757A00A2FAB1 /* SyncDBFetchedResultObserver.swift */,
 				A30308FB2CE74CC400087F2E /* SyncDBObserver.swift */,
 				A30308FD2CE74CC400087F2E /* SyncStateDelegate.swift */,
 			);
@@ -674,6 +720,7 @@
 		A35169732D1041F200651795 /* ProtonDriveSharedMac */ = {
 			isa = PBXGroup;
 			children = (
+				72FFB9602E8140430013826F /* Metrics */,
 				A35169722D1041F200651795 /* Constants.swift */,
 				A35169772D1042F800651795 /* Log+Configuration.swift */,
 				A3ED69F92D53488D00FC2A7C /* Log+TestRunner.swift */,
@@ -693,7 +740,6 @@
 		AB48E8D12428BB590016E4E2 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				66EA24BD2E45E292006AB716 /* proton_drive_sdk.dylib */,
 				663D194D2B05044C00DC9DC1 /* PDUploadVerifier.framework */,
 				663D194A2B05043C00DC9DC1 /* PDUploadVerifier.framework */,
 				31CDDF532A9E04D800FB8285 /* PDUploadVerifier.framework */,
@@ -711,6 +757,7 @@
 				AB3531312430C63200F7DF85 /* PDFileSystemEvents.framework */,
 				AB22ED1F242AB5F400A97350 /* PDClient.framework */,
 				AB48E8D22428BB590016E4E2 /* PDCore.framework */,
+				662C653D2E797ED000D9DB3D /* GSS.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -745,6 +792,7 @@
 		AB71532224274ED900543720 /* ProtonDriveMac */ = {
 			isa = PBXGroup;
 			children = (
+				72ADD18F2E8FBE0700A7ABB3 /* Reporting */,
 				A3D773452D3AA84400769A8D /* TestRunner.swift */,
 				D4CC491828705C7F00C6E83F /* main.m */,
 				D4E50F812B838485006E94F6 /* ActivityService.swift */,
@@ -952,8 +1000,7 @@
 				D85AB84C2C539DB100FFDC10 /* PDLogin-macOS */,
 				D85AB84E2C539DB800FFDC10 /* PDUIComponents */,
 				D85AB8502C539DC000FFDC10 /* PDUploadVerifier */,
-				667B320D2C69F54100D15C95 /* ProtonCoreCryptoPatchedGoImplementation */,
-				6605216B2D5F4A7100D3D751 /* ProtonCoreKeymaker */,
+				66E09E2C2E7DB0D00082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation */,
 			);
 			productName = ProtonDrive;
 			productReference = 6697770A2AF15BE700929E9A /* Proton Drive.app */;
@@ -967,7 +1014,6 @@
 				ABD8F159260110A500EAACD8 /* Linter */,
 				AB71531D24274ED900543720 /* Frameworks */,
 				AB71531E24274ED900543720 /* Resources */,
-				66EA24BF2E45E347006AB716 /* Copy proton_drive_sdk.dylib */,
 				6690C80C2AD49E3A0005FC8F /* CopyFiles */,
 				D80188232C53AA8A00BCC068 /* Embed Foundation Extensions */,
 			);
@@ -987,8 +1033,7 @@
 				D83C419D2C53A233002EF29C /* Sparkle */,
 				667B32052C69F4E500D15C95 /* PDCore */,
 				667B32072C69F4E500D15C95 /* PDUploadVerifier */,
-				66E9C1812CB6D299003F373E /* ProtonCoreCryptoPatchedGoImplementation */,
-				660521692D5F4A6A00D3D751 /* ProtonCoreKeymaker */,
+				66E09E2A2E7DB0CA0082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation */,
 			);
 			productName = ProtonDrive;
 			productReference = AB71532024274ED900543720 /* Proton Drive.app */;
@@ -1013,9 +1058,9 @@
 				D85AB8382C539D5A00FFDC10 /* PDUploadVerifier */,
 				D83C41982C53A166002EF29C /* PDCore */,
 				661DC23E2CB94C3C00DECBDE /* CryptoSwift */,
-				A369BE0F2CC1064E009FA502 /* ProtonCoreCryptoPatchedGoImplementation */,
 				66B71BA52CDA524B00DC0057 /* PDDesktopDevKit */,
 				669D80EF2D157698000C365E /* PDFileProviderOperations */,
+				66E09E282E7DB0A40082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation */,
 			);
 			productName = FileProvider;
 			productReference = ABD1908D25A30FF7005D3E29 /* ProtonDriveFileProviderMac.appex */;
@@ -1068,13 +1113,14 @@
 			);
 			mainGroup = AB71531724274ED900543720;
 			packageReferences = (
-				D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */,
 				D83C419C2C53A233002EF29C /* XCRemoteSwiftPackageReference "Sparkle" */,
 				D8AB30D62C6217B5006A5F7C /* XCRemoteSwiftPackageReference "OHHTTPStubs" */,
 				D8AB30D92C621957006A5F7C /* XCRemoteSwiftPackageReference "TrustKit" */,
 				D8AB30E32C621ABF006A5F7C /* XCRemoteSwiftPackageReference "apple-fusion" */,
 				3E9137BE2CC77C0400651BC1 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
 				661DC23D2CB94C3C00DECBDE /* XCRemoteSwiftPackageReference "CryptoSwift" */,
+				66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams" */,
+				66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */,
 			);
 			productRefGroup = AB71532124274ED900543720 /* Products */;
 			projectDirPath = "";
@@ -1213,6 +1259,7 @@
 				A3ED69FB2D53488D00FC2A7C /* Log+TestRunner.swift in Sources */,
 				A30FD4382CEF2FAC0050E2ED /* ReportableSyncItem+Descriptions.swift in Sources */,
 				669776DC2AF15BE700929E9A /* AppDelegate.swift in Sources */,
+				72FFB98C2E8179D60013826F /* DBPerformanceMeasurement.swift in Sources */,
 				669776DD2AF15BE700929E9A /* PostLoginServicesBuilder.swift in Sources */,
 				669776E12AF15BE700929E9A /* OnboardingCoordinator.swift in Sources */,
 				66835C4C2C7F0A2100B158CB /* RecoveryAttempter.swift in Sources */,
@@ -1233,7 +1280,7 @@
 				A3DFAA462CE757240050AE64 /* SettingsWindowCoordinator.swift in Sources */,
 				66C25E772BFC9AB8004D7F8D /* InitializationCoordinator.swift in Sources */,
 				66835C482C7F097800B158CB /* GroupContainerMigrator.swift in Sources */,
-				A3D7ED9E2CEF758100A2FAB1 /* SyncDBFetchedResultObserver.swift in Sources */,
+				A3D7ED9E2CEF758100A2FAB1 /* FetchedResultObserver.swift in Sources */,
 				D4E50F832B838485006E94F6 /* ActivityService.swift in Sources */,
 				669776EB2AF15BE700929E9A /* QASettingsViewModel.swift in Sources */,
 				669776EC2AF15BE700929E9A /* SettingsView.swift in Sources */,
@@ -1243,12 +1290,14 @@
 				A30FD4332CEF2CEB0050E2ED /* SpinningProgressView.swift in Sources */,
 				A30309162CE74CC400087F2E /* ItemRowView.swift in Sources */,
 				D48A113D2D536B2A001618CE /* DeleteAlerter.swift in Sources */,
+				72ADD1892E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift in Sources */,
 				A35169792D10458A00651795 /* Constants.swift in Sources */,
 				A30309172CE74CC400087F2E /* MainWindow.swift in Sources */,
 				A30309182CE74CC400087F2E /* ApplicationState.swift in Sources */,
 				A30309192CE74CC400087F2E /* MainWindowCoordinator.swift in Sources */,
 				A303091A2CE74CC400087F2E /* SyncErrorWindow.swift in Sources */,
 				A318BBBF2D242F970006212A /* SubscriptionService.swift in Sources */,
+				72ADD1912E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift in Sources */,
 				A303091C2CE74CC400087F2E /* SyncStateView.swift in Sources */,
 				A303091D2CE74CC400087F2E /* HeaderView.swift in Sources */,
 				A303091E2CE74CC400087F2E /* ItemListView.swift in Sources */,
@@ -1262,6 +1311,7 @@
 				A30309262CE74CC400087F2E /* ElapsedTimeService.swift in Sources */,
 				665542352D6386BF00CA678C /* FullResyncService.swift in Sources */,
 				A30309282CE74CC400087F2E /* GlobalProgressObserver.swift in Sources */,
+				72FFB9872E8179820013826F /* Metrics.xcdatamodeld in Sources */,
 				A351697D2D1045A100651795 /* Log+Configuration.swift in Sources */,
 				A30309292CE74CC400087F2E /* SyncStateDelegate.swift in Sources */,
 				A303092A2CE74CC400087F2E /* SyncErrorWindowCoordinator.swift in Sources */,
@@ -1272,6 +1322,7 @@
 				A3DFAA3F2CE7570D0050AE64 /* QAStateDebuggingView.swift in Sources */,
 				A3DFAA402CE7570D0050AE64 /* QASettingsWindowCoordinator.swift in Sources */,
 				D4989F872C18AADF003DFF5E /* ProtonFile.swift in Sources */,
+				72FFB96A2E8146760013826F /* MeasurementEvent.swift in Sources */,
 				D744EE462E059AA3008B005A /* SpinningImage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1294,6 +1345,7 @@
 				A3ED69FA2D53488D00FC2A7C /* Log+TestRunner.swift in Sources */,
 				A30FD4372CEF2FAC0050E2ED /* ReportableSyncItem+Descriptions.swift in Sources */,
 				AB71532424274ED900543720 /* AppDelegate.swift in Sources */,
+				72FFB98A2E8179D60013826F /* DBPerformanceMeasurement.swift in Sources */,
 				D458EEE5286DA94200C325C1 /* PostLoginServicesBuilder.swift in Sources */,
 				66835C4B2C7F0A2100B158CB /* RecoveryAttempter.swift in Sources */,
 				D44B81ED2C71CE170074AD58 /* MemoryWarningObserver.swift in Sources */,
@@ -1313,7 +1365,7 @@
 				A3DFAA482CE757240050AE64 /* SettingsWindowCoordinator.swift in Sources */,
 				66C25E762BFC9AB8004D7F8D /* InitializationCoordinator.swift in Sources */,
 				66835C472C7F097300B158CB /* GroupContainerMigrator.swift in Sources */,
-				A3D7ED9D2CEF758100A2FAB1 /* SyncDBFetchedResultObserver.swift in Sources */,
+				A3D7ED9D2CEF758100A2FAB1 /* FetchedResultObserver.swift in Sources */,
 				D4E50F822B838485006E94F6 /* ActivityService.swift in Sources */,
 				D44C32602A30D2CD00D2BA77 /* QASettingsViewModel.swift in Sources */,
 				D4CA67CA290FAD5100F4AEBF /* SettingsView.swift in Sources */,
@@ -1324,12 +1376,14 @@
 				A303092D2CE74CC400087F2E /* ItemRowView.swift in Sources */,
 				A35169742D1041F200651795 /* Constants.swift in Sources */,
 				D48A113C2D536B2A001618CE /* DeleteAlerter.swift in Sources */,
+				72ADD18A2E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift in Sources */,
 				A303092E2CE74CC400087F2E /* MainWindow.swift in Sources */,
 				A35169782D1042F800651795 /* Log+Configuration.swift in Sources */,
 				A303092F2CE74CC400087F2E /* ApplicationState.swift in Sources */,
 				A30309302CE74CC400087F2E /* MainWindowCoordinator.swift in Sources */,
 				A30309312CE74CC400087F2E /* SyncErrorWindow.swift in Sources */,
 				A318BBBE2D242F970006212A /* SubscriptionService.swift in Sources */,
+				72ADD1902E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift in Sources */,
 				A30309332CE74CC400087F2E /* SyncStateView.swift in Sources */,
 				A30309342CE74CC400087F2E /* HeaderView.swift in Sources */,
 				A30309352CE74CC400087F2E /* ItemListView.swift in Sources */,
@@ -1343,6 +1397,7 @@
 				A303093C2CE74CC400087F2E /* NotificationView.swift in Sources */,
 				665542362D6386BF00CA678C /* FullResyncService.swift in Sources */,
 				A303093D2CE74CC400087F2E /* ElapsedTimeService.swift in Sources */,
+				72FFB9862E8179820013826F /* Metrics.xcdatamodeld in Sources */,
 				A303093F2CE74CC400087F2E /* GlobalProgressObserver.swift in Sources */,
 				A30309402CE74CC400087F2E /* SyncStateDelegate.swift in Sources */,
 				A30309412CE74CC400087F2E /* SyncErrorWindowCoordinator.swift in Sources */,
@@ -1353,6 +1408,7 @@
 				A3DFAA432CE7570D0050AE64 /* QAStateDebuggingView.swift in Sources */,
 				A3DFAA442CE7570D0050AE64 /* QASettingsWindowCoordinator.swift in Sources */,
 				D4989F862C18AADF003DFF5E /* ProtonFile.swift in Sources */,
+				72FFB96B2E8146760013826F /* MeasurementEvent.swift in Sources */,
 				D744EE472E059AA3008B005A /* SpinningImage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1362,10 +1418,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				A35169832D1045A700651795 /* RuntimeConfiguration.swift in Sources */,
+				721D72862E8A7C3000E45B33 /* FetchedResultObserver.swift in Sources */,
+				72FFB98D2E817CAD0013826F /* MeasurementEvent.swift in Sources */,
 				A351697F2D1045A200651795 /* Log+Configuration.swift in Sources */,
 				A3ED69FD2D53488D00FC2A7C /* Log+TestRunner.swift in Sources */,
+				72FFB9882E8179820013826F /* Metrics.xcdatamodeld in Sources */,
+				721D5AFC2E819C8000740E68 /* DBMeasurementCollector.swift in Sources */,
+				72FFB98B2E8179D60013826F /* DBPerformanceMeasurement.swift in Sources */,
 				ABD1909025A30FF7005D3E29 /* FileProviderExtension.swift in Sources */,
 				A351697B2D10458C00651795 /* Constants.swift in Sources */,
+				72ADD18B2E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1712,7 +1774,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.8.0;
+				MARKETING_VERSION = 2.9.0;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = ch.protonmail.drive;
 				PRODUCT_MODULE_NAME = ProtonDriveMac;
@@ -1799,7 +1861,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.8.0;
+				MARKETING_VERSION = 2.9.0;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = ch.protonmail.drive;
 				PRODUCT_MODULE_NAME = ProtonDriveMac;
@@ -1870,7 +1932,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.8.0;
+				MARKETING_VERSION = 2.9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				OTHER_CODE_SIGN_FLAGS = "";
@@ -2581,20 +2643,28 @@
 				minimumVersion = 1.8.3;
 			};
 		};
+		66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jpsim/Yams.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+		66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ProtonMail/protoncore_ios.git";
+			requirement = {
+				kind = exactVersion;
+				version = 33.2.0;
+			};
+		};
 		D83C419C2C53A233002EF29C /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sparkle-project/Sparkle.git";
 			requirement = {
 				kind = exactVersion;
 				version = 2.6.4;
-			};
-		};
-		D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ProtonMail/protoncore_ios.git";
-			requirement = {
-				kind = exactVersion;
-				version = 32.7.1;
 			};
 		};
 		D8AB30D62C6217B5006A5F7C /* XCRemoteSwiftPackageReference "OHHTTPStubs" */ = {
@@ -2635,24 +2705,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = ProtonCoreUITestingToolkit;
 		};
-		660521692D5F4A6A00D3D751 /* ProtonCoreKeymaker */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
-			productName = ProtonCoreKeymaker;
-		};
-		6605216B2D5F4A7100D3D751 /* ProtonCoreKeymaker */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
-			productName = ProtonCoreKeymaker;
-		};
 		6616F5342B7E6CEB0001C751 /* DriveStressTestsLib */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = DriveStressTestsLib;
-		};
-		66176D632D63624600A629DC /* ProtonCoreQuarkCommands */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
-			productName = ProtonCoreQuarkCommands;
 		};
 		66176D672D636C8B00A629DC /* ProtonCoreUnitTestingToolkit */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2663,31 +2718,6 @@
 			package = 661DC23D2CB94C3C00DECBDE /* XCRemoteSwiftPackageReference "CryptoSwift" */;
 			productName = CryptoSwift;
 		};
-		6657E2922D5F4C8E00ECBA5B /* ProtonCoreAuthentication */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
-			productName = ProtonCoreAuthentication;
-		};
-		6657E2942D5F4CC000ECBA5B /* ProtonCoreKeymaker */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
-			productName = ProtonCoreKeymaker;
-		};
-		6657E2962D5F4CC000ECBA5B /* ProtonCoreNetworking */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
-			productName = ProtonCoreNetworking;
-		};
-		6657E2982D5F4CC000ECBA5B /* ProtonCoreServices */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
-			productName = ProtonCoreServices;
-		};
-		6657E29A2D5F4CE500ECBA5B /* ProtonCoreEnvironment */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
-			productName = ProtonCoreEnvironment;
-		};
 		667B32052C69F4E500D15C95 /* PDCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PDCore;
@@ -2695,11 +2725,6 @@
 		667B32072C69F4E500D15C95 /* PDUploadVerifier */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PDUploadVerifier;
-		};
-		667B320D2C69F54100D15C95 /* ProtonCoreCryptoPatchedGoImplementation */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
-			productName = ProtonCoreCryptoPatchedGoImplementation;
 		};
 		669D80EF2D157698000C365E /* PDFileProviderOperations */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2709,24 +2734,49 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = PDDesktopDevKit;
 		};
-		66E9C1812CB6D299003F373E /* ProtonCoreCryptoPatchedGoImplementation */ = {
+		66E09DFD2E7DA3C30082A1B0 /* Yams */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
-			productName = ProtonCoreCryptoPatchedGoImplementation;
+			package = 66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
 		};
-		A369BE0F2CC1064E009FA502 /* ProtonCoreCryptoPatchedGoImplementation */ = {
+		66E09DFF2E7DA42D0082A1B0 /* Yams */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
-			productName = ProtonCoreCryptoPatchedGoImplementation;
+			package = 66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
 		};
-		D81296D12C6373400059E397 /* ProtonCoreQuarkCommands */ = {
+		66E09E012E7DA4490082A1B0 /* Yams */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
+			package = 66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
+		};
+		66E09E282E7DB0A40082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
+			productName = ProtonCoreCryptoMultiversionPatchedGoImplementation;
+		};
+		66E09E2A2E7DB0CA0082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
+			productName = ProtonCoreCryptoMultiversionPatchedGoImplementation;
+		};
+		66E09E2C2E7DB0D00082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
+			productName = ProtonCoreCryptoMultiversionPatchedGoImplementation;
+		};
+		66E09E2E2E7DB2F60082A1B0 /* ProtonCoreQuarkCommands */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
 			productName = ProtonCoreQuarkCommands;
 		};
-		D81296D52C6373730059E397 /* ProtonCoreQuarkCommands */ = {
+		66E09E302E7DB2FC0082A1B0 /* ProtonCoreQuarkCommands */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D85AB8622C539FCB00FFDC10 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
+			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
+			productName = ProtonCoreQuarkCommands;
+		};
+		66E09E322E7DB3030082A1B0 /* ProtonCoreQuarkCommands */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
 			productName = ProtonCoreQuarkCommands;
 		};
 		D8262F302C40364B00867704 /* PDLocalization */ = {
@@ -2832,6 +2882,19 @@
 			productName = PDCore;
 		};
 /* End XCSwiftPackageProductDependency section */
+
+/* Begin XCVersionGroup section */
+		72FFB9842E8179820013826F /* Metrics.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				72FFB9852E8179820013826F /* Metrics.xcdatamodel */,
+			);
+			currentVersion = 72FFB9852E8179820013826F /* Metrics.xcdatamodel */;
+			path = Metrics.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = AB71531824274ED900543720 /* Project object */;
 }

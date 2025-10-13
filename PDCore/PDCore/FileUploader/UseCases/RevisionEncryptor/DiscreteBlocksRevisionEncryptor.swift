@@ -60,11 +60,12 @@ final class DiscreteBlocksRevisionEncryptor: RevisionEncryptor {
                 self.progress.complete()
                 completion(.success)
             } catch BlockGenerationError.cancelled {
+                Log.info("STAGE: 1.2 Encrypt blocks 📦📦 cancelled ⚠️", domain: .uploader)
                 onCancelBlocksCleanUp()
                 // why wasn't the completion block called before?
                 completion(.failure(BlockGenerationError.cancelled))
             } catch {
-                Log.info("STAGE: 1.2 Encrypt blocks 📦📦 finished ❌", domain: .uploader)
+                Log.error("STAGE: 1.2 Encrypt blocks 📦📦 finished ❌", error: error, domain: .uploader)
                 let userError = mapToUserError(error: error)
                 completion(.failure(userError))
             }

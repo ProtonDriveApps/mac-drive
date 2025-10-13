@@ -68,7 +68,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ouvrir le menu d'options pour %@"
+            "value" : "Ouvrir le menu d'action pour %@"
           }
         },
         "hu" : {
@@ -959,19 +959,19 @@
               "few" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Sigur doriți să mutați aceste %d fișiere în gunoi?"
+                  "value" : "Mutați aceste %d fișiere în gunoi?"
                 }
               },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Sigur doriți să mutați acest fișier în gunoi?"
+                  "value" : "Mutați acest fișier în gunoi?"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Sigur doriți să mutați aceste %d de fișiere în gunoi?"
+                  "value" : "Mutați aceste %d de fișiere în gunoi?"
                 }
               }
             }
@@ -1553,19 +1553,19 @@
               "few" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Sigur doriți să mutați aceste %d foldere în gunoi?"
+                  "value" : "Mutați aceste %d foldere în gunoi?"
                 }
               },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Sigur doriți să mutați acest folder în gunoi?"
+                  "value" : "Mutați acest folder în gunoi?"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Sigur doriți să mutați aceste %d de foldere în gunoi?"
+                  "value" : "Mutați aceste %d de foldere în gunoi?"
                 }
               }
             }
@@ -2147,19 +2147,19 @@
               "few" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Sigur doriți să mutați aceste %d articole în gunoi?"
+                  "value" : "Mutați aceste %d articole în gunoi?"
                 }
               },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Sigur doriți să mutați acest articol în gunoi?"
+                  "value" : "Mutați acest articol în gunoi?"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Sigur doriți să mutați aceste %d de articole în gunoi?"
+                  "value" : "Mutați aceste %d de articole în gunoi?"
                 }
               }
             }
@@ -4085,6 +4085,12 @@
             "value" : "Todos los registros"
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaikki lokit"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4143,6 +4149,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Toate jurnalele"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Všetky záznamy"
           }
         },
         "sv" : {
@@ -4409,6 +4421,12 @@
             "value" : "Después de iniciar"
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käynnistyksen jälkeen"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4467,6 +4485,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "După lansare"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Po spustení"
           }
         },
         "sv" : {
@@ -4547,6 +4571,12 @@
             "value" : "Siempre"
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aina"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4605,6 +4635,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permanent"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vždy"
           }
         },
         "sv" : {
@@ -7104,7 +7140,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conçu"
+            "value" : "Créé"
           }
         },
         "hu" : {
@@ -7289,7 +7325,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conçu par"
+            "value" : "Créé par"
           }
         },
         "hu" : {
@@ -8399,7 +8435,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Supprimez le pc"
+            "value" : "Retirer l'ordinateur"
           }
         },
         "hu" : {
@@ -8477,7 +8513,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Удалить компьютер"
+            "value" : "Удалить Компьютер"
           }
         },
         "sk" : {
@@ -8769,7 +8805,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annulation"
+            "value" : "Annuler"
           }
         },
         "hu" : {
@@ -8954,7 +8990,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Supprimez le pc"
+            "value" : "Retirer l'ordinateur"
           }
         },
         "hu" : {
@@ -9139,7 +9175,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Êtes-vous sûr de vouloir supprimer le pc ?"
+            "value" : "Êtes-vous sûr de vouloir retirer l'ordinateur ?"
           }
         },
         "hu" : {
@@ -9211,7 +9247,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sigur doriți să eliminați legătura calculatorul?"
+            "value" : "Eliminați legătura cu calculatorul?"
           }
         },
         "ru" : {
@@ -9876,7 +9912,7 @@
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Luo dokumentti"
+            "value" : "Luo asiakirja"
           }
         },
         "fr" : {
@@ -10062,7 +10098,7 @@
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uuden dokumentin luonti epäonnistui. Yritä uudelleen."
+            "value" : "Uuden asiakirjan luonti epäonnistui. Yritä uudelleen."
           }
         },
         "fr" : {
@@ -10248,7 +10284,7 @@
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dokumentin nimi"
+            "value" : "Asiakirjan nimi"
           }
         },
         "fr" : {
@@ -10332,7 +10368,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Название документа"
+            "value" : "Имя документа"
           }
         },
         "sk" : {
@@ -10434,7 +10470,7 @@
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Luo dokumentti"
+            "value" : "Luo asiakirja"
           }
         },
         "fr" : {
@@ -10998,7 +11034,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Veuillez créer un tableur"
+            "value" : "Créer une feuille de calcul"
           }
         },
         "hu" : {
@@ -11076,7 +11112,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Создать таблицу"
+            "value" : "Создать электронную таблицу"
           }
         },
         "sk" : {
@@ -11178,7 +11214,7 @@
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Luodaan uutta dokumenttia"
+            "value" : "Luodaan uutta asiakirjaa"
           }
         },
         "fr" : {
@@ -11370,7 +11406,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Création du nouveau tableur"
+            "value" : "Création de la nouvelle feuille de calcul"
           }
         },
         "hu" : {
@@ -11448,7 +11484,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Создание новой таблицы"
+            "value" : "Создание новой электронной таблицы"
           }
         },
         "sk" : {
@@ -12750,7 +12786,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Настройка конфиденциальности"
+            "value" : "Настройки конфиденциальности"
           }
         },
         "sk" : {
@@ -16521,7 +16557,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cap àlbum"
+            "value" : "Sense àlbums"
           }
         },
         "cs" : {
@@ -16851,7 +16887,7 @@
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dina bildserier kommer att visas här"
+            "value" : "Dina fotoserier kommer visas här"
           }
         },
         "tr" : {
@@ -17037,7 +17073,7 @@
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ingen bildserie"
+            "value" : "Inga serier"
           }
         },
         "tr" : {
@@ -17635,7 +17671,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cap favorit"
+            "value" : "No hi ha favorits"
           }
         },
         "cs" : {
@@ -18751,7 +18787,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les vostres fotos panoràmiques apareixeran aquí."
+            "value" : "Les fotos panoràmiques apareixeran aquí."
           }
         },
         "cs" : {
@@ -18937,7 +18973,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cap panoràmica"
+            "value" : "Sense panoràmiques"
           }
         },
         "cs" : {
@@ -20983,7 +21019,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cap àlbum compartit."
+            "value" : "Sense àlbums compartits"
           }
         },
         "cs" : {
@@ -21355,7 +21391,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cap àlbum compartit amb mi."
+            "value" : "No hi ha àlbums compartits amb mi"
           }
         },
         "cs" : {
@@ -23002,13 +23038,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "En bild har markerats som favorit."
+                  "value" : "Ett foto markerades som favorit."
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d bilder har markerats som favoriter."
+                  "value" : "%d foton markerades som favorit."
                 }
               }
             }
@@ -27280,13 +27316,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Arquivo"
+                  "value" : "%d arquivo"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Arquivos"
+                  "value" : "%d arquivos"
                 }
               }
             }
@@ -43334,13 +43370,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Item"
+                  "value" : "%d item"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Itens"
+                  "value" : "%d itens"
                 }
               }
             }
@@ -45755,10 +45791,142 @@
     "menu_text_home" : {
       "extractionState" : "manual",
       "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Галоўная"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inici"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domů"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hjem"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Startseite"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αρχική"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Home"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicio"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicio"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koti"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accueil"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ホーム"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "홈"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hjem"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strona główna"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Início"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Început"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domov"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hem"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giriş"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "首页"
           }
         }
       }
@@ -47620,10 +47788,142 @@
     "name_document_placeholder" : {
       "extractionState" : "manual",
       "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Назва дакументу"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom del document"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Název dokumentu"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dokumentnavn"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dokumentname"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Όνομα εγγράφου"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Document name"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre del documento"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre del documento"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dokumentin nimi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom du document"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome documento"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文書の名"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "문서 이름"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dokumentnavn"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Documentnaam"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nazwa dokumentu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome do documento"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nume document"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Názov dokumentu"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dokumentnamn"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Belge adı"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件名称"
           }
         }
       }
@@ -47632,10 +47932,142 @@
       "comment" : "Title view",
       "extractionState" : "manual",
       "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дайце назву свайму скану"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poseu-li un nom al document escanejat"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pojmenujte svůj sken"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Navngiv din scanning"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deinen Scan benennen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ονομάστε τη σάρωση σας"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Name your scan"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombra tu escaneo"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre su escaneo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nimeä skannauksesi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nommer votre scan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dai un nome alla tua scansione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スキャンに名前を付ける"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스캔 이름 지정"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gi skanningen din et navn"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geef uw scan een naam"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nazwij skan"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dê um nome à sua digitalização"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denumiți scanarea"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pomenujte svoj sken"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Namnge din skanning"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taramanıza bir ad verin"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "命名文档"
           }
         }
       }
@@ -47701,7 +48133,7 @@
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nimetön dokumentti %@"
+            "value" : "Nimetön asiakirja %@"
           }
         },
         "fr" : {
@@ -56400,7 +56832,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sigur doriți să dezactivați această funcție? Puteți să o reactivați mai târziu în setări."
+            "value" : "Dezactivați această funcție? Puteți să o reactivați mai târziu în setări."
           }
         },
         "ru" : {
@@ -56770,7 +57202,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sigur doriți să activați această funcție? Conservarea fotografiilor va fi activată și afișată din nou."
+            "value" : "Activați această funcție? Conservarea fotografiilor va fi activată și afișată din nou."
           }
         },
         "ru" : {
@@ -57529,7 +57961,7 @@
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Foton är inte tillgängliga under migreringen. Vänligen vänta tills migreringen är klar."
+            "value" : "Foton är inte tillgängliga under migrering. Vänta tills migrering är klar."
           }
         },
         "tr" : {
@@ -57757,7 +58189,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Després de la migració, podeu utilitzar funcions noves com ara filtres i àlbums de fotos."
+            "value" : "Després de la migració, podeu utilitzar noves funcions com filtres i àlbum de fotos."
           }
         },
         "cs" : {
@@ -58501,7 +58933,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aquesta actualització ràpida prepara les vostres fotos per a noves característiques, com ara filtres i àlbums"
+            "value" : "Aquesta actualització ràpida prepara les fotos per a noves característiques com filtres i àlbums"
           }
         },
         "cs" : {
@@ -63756,7 +64188,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chiffré dans son intégralité"
+            "value" : "Chiffré de bout en bout"
           }
         },
         "hu" : {
@@ -63846,7 +64278,7 @@
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "End-to-end krypterad"
+            "value" : "End-to-end-krypterad"
           }
         },
         "tr" : {
@@ -69582,7 +70014,7 @@
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dokumenttieditorin avaaminen epäonnistui"
+            "value" : "Asiakirjaeditorin avaus epäonnistui"
           }
         },
         "fr" : {
@@ -69905,7 +70337,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introduïu el vostre nom d'usuari o correu del Proton"
+            "value" : "Introduïu el nom d'usuari o correu electrònic del Proton"
           }
         },
         "cs" : {
@@ -70072,13 +70504,13 @@
         "be" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Імя карыстальніка Proton Account або адрас электроннай пошты"
+            "value" : "Імя карыстальніка ўліковага запісу Proton або адрас электроннай пошты"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nom d'usuari del compte del Proton o correu"
+            "value" : "Nom d'usuari del Proton o correu electrònic"
           }
         },
         "cs" : {
@@ -71702,13 +72134,13 @@
         "be" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Калі ласка, увядзіце сапраўдны адрас электроннай пошты"
+            "value" : "Увядзіце сапраўдны адрас электроннай пошты"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introduïu una adreça de correu vàlida"
+            "value" : "Proporcioneu una adreça de correu electrònic vàlida."
           }
         },
         "cs" : {
@@ -76457,7 +76889,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sigur doriți să omiteți fotografiile care nu s-au conservat? Acestea nu vor fi conservate."
+            "value" : "Omiteți fotografiile care nu s-au conservat? Acestea nu vor fi conservate."
           }
         },
         "ru" : {
@@ -77846,10 +78278,142 @@
       "comment" : "Button title to scan document",
       "extractionState" : "manual",
       "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сканіраваць дакумент"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escanegeu el document"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skenovat dokument"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan dokument"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dokument scannen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σαρώστε το έγγραφο"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Scan document"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escanear documento"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escanear documento"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skannaa dokumentti"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Numériser un document"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scansiona documenti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ドキュメントをスキャン"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "문서 스캔"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skann dokument"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Document scannen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeskanuj dokument"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Digitalizar documento"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scanare document"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skenovať dokument"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skanna dokument"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Belge tara"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "扫描文件"
           }
         }
       }
@@ -77861,7 +78425,7 @@
         "be" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ПРА ПРАГРАМУ"
+            "value" : "АБ ПРАГРАМЕ"
           }
         },
         "ca" : {
@@ -79157,19 +79721,25 @@
         "be" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ачысціць кэш кантэнту"
+            "value" : "Ачысціць кэш змесціва"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Netegeu la memòria cau"
+            "value" : "Neteja la memòria cau del contingut"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vyčistit mezipaměť obsahu"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ryd indholdscache"
           }
         },
         "de" : {
@@ -79202,6 +79772,12 @@
             "value" : "Borrar la caché de contenido"
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tyhjennä sisältövälimuisti"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -79224,6 +79800,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "コンテンツキャッシュをクリア"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "콘텐츠 캐시 삭제"
           }
         },
         "nb" : {
@@ -79254,6 +79836,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Golire buffer conținut"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyčistiť vyrovnávaciu pamäť obsahu"
           }
         },
         "sv" : {
@@ -79528,7 +80116,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mode d'élimination du bug"
+            "value" : "Mode de débogage"
           }
         },
         "hu" : {
@@ -81378,6 +81966,12 @@
             "value" : "Últimos registros"
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uusimmat lokit"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -81436,6 +82030,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ultimele jurnale"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Posledné záznamy"
           }
         },
         "sv" : {
@@ -82260,6 +82860,12 @@
             "value" : "Ver los últimos registros"
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Katso uusimmat lokitiedot"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -82318,6 +82924,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Accesați ultimele jurnale"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pozrieť najnovšie záznamy"
           }
         },
         "sv" : {
@@ -84813,6 +85425,12 @@
             "value" : "Usar datos móviles para hacer copias de seguridad de las fotos"
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varmuuskopioi kuvat mobiiliverkon välityksellä"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -84871,6 +85489,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Folosire date mobile pentru a conserva fotografiile"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Použiť mobilné dáta na zálohovanie fotografií"
           }
         },
         "sv" : {
@@ -91534,7 +92158,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Urmează să ștergeți „%@”. Sigur doriți să continuați?"
+            "value" : "Ștergeți „%@”?"
           }
         },
         "ru" : {
@@ -93203,7 +93827,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Urmează să renunțați la „%@”. O veți mai putea accesa doar dacă proprietarul o vă va mai partaja din nou. Sigur doriți să continuați?"
+            "value" : "Veți părăsi „%@”. Îl veți mai putea accesa doar dacă proprietarul îl va mai partaja. Continuați?"
           }
         },
         "ru" : {
@@ -101687,7 +102311,7 @@
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Envoyer à d'autres %d personnes"
+                  "value" : "Partager avec %d personnes"
                 }
               }
             }
@@ -111058,7 +111682,7 @@
         "be" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ідзе абнаўленне фотатэкі. Каб паскорыць працэс, праграма будзе трымаць ваш экран актыўным на працягу гэтага працэсу."
+            "value" : "Адбываецца абнаўленне фотатэкі. Праграма будзе трымаць ваш экран у актыўным стане, каб паскорыць працэс."
           }
         },
         "ca" : {
@@ -111107,6 +111731,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Actualización de la biblioteca de fotos en curso. Para acelerar el proceso, la aplicación mantendrá la pantalla activa durante el mismo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kuvakirjaston päivitys käynnissä. Prosessin nopeuttamiseksi sovellus pitää näytön päällä prosessin ajan."
           }
         },
         "fr" : {
@@ -111169,6 +111799,12 @@
             "value" : "Galeria foto este în curs de actualizare. Pentru a accelera procesul, aplicația va menține ecranul activ pe durata acesteia."
           }
         },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualizácia knižnice fotografií prebieha. Aby sa proces urýchlil, aplikácia počas neho udrží obrazovku aktívnu."
+          }
+        },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
@@ -111202,7 +111838,7 @@
         "be" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Апрацоўка адбываецца на вашай прыладзе, захоўваючы фатаграфіі ў бяспецы пры дапамозе скразнога шыфравання."
+            "value" : "Адбываецца апрацоўка на вашай прыладзе, якая забяспечвае бяспеку фатаграфій з дапамогай скразнога шыфравання."
           }
         },
         "ca" : {
@@ -111253,6 +111889,12 @@
             "value" : "El procesamiento ocurre en su dispositivo, manteniendo las fotos seguras con cifrado de extremo a extremo."
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käsittely tapahtuu laitteellasi, pitäen valokuvat turvassa päästä–päähän -salauksella."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -111280,7 +111922,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "처리는 귀하의 기기에서 이루어지며, 종단간 암호화를 통해 사진을 안전하게 보관합니다."
+            "value" : "처리는 사용자의 기기에서 이루어지며, 종단간 암호화를 통해 사진을 안전하게 보관합니다."
           }
         },
         "nb" : {
@@ -111313,6 +111955,12 @@
             "value" : "Procesarea are loc pe dispozitiv, păstrând fotografiile în siguranță cu criptare bilaterală."
           }
         },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spracovanie prebieha na vašom zariadení, pričom fotografie sú chránené pomocou komplexného šifrovania."
+          }
+        },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
@@ -111340,7 +111988,7 @@
         "be" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Больш спосабаў фільтраваць вашыя фота"
+            "value" : "Больш спосабаў фільтраваць вашы фатаграфіі"
           }
         },
         "ca" : {
@@ -111389,6 +112037,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Más formas de filtrar sus fotos"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enemmän tapoja suodattaa kuviasi"
           }
         },
         "fr" : {
@@ -111451,6 +112105,12 @@
             "value" : "Mai multe modalități de a vă filtra fotografiile"
           }
         },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viac spôsobov filtrovania vašich fotografií"
+          }
+        },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
@@ -111478,7 +112138,7 @@
         "be" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Гэта можа заняць некаторы час, але вы можаце працягваць карыстацца праграмай, пакуль мы яе наладжваем."
+            "value" : "Працэс наладжвання можа заняць некаторы час, але вы можаце працягваць карыстацца праграмай."
           }
         },
         "ca" : {
@@ -111527,6 +112187,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Esto puede tardar un poco pero puede seguir usando la aplicación mientras lo configuramos."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tämä saattaa kestää hetken, mutta voit jatkaa sovelluksen käyttöä samalla kun määritämme sen."
           }
         },
         "fr" : {
@@ -111589,6 +112255,12 @@
             "value" : "Acest lucru ar putea dura puțin, dar puteți continua să utilizați aplicația în timp ce se configurează."
           }
         },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Môže to chvíľu trvať, ale aplikáciu môžete naďalej používať, kým ju nastavujeme."
+          }
+        },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
@@ -111616,7 +112288,7 @@
         "be" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Мы абнаўляем вашу бібліятэку, каб дапамагчы вам хутка сартаваць фатаграфіі, напрыклад, паводле \"Здымкаў экрана\"."
+            "value" : "Мы абнаўляем вашу бібліятэку, каб дапамагчы вам хутка сартаваць фатаграфіі, напрыклад, па здымках экрана"
           }
         },
         "ca" : {
@@ -111667,6 +112339,12 @@
             "value" : "Estamos actualizando su biblioteca para ayudarle a ordenar fotos rápidamente, como por capturas de pantalla."
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Päivitämme kirjastoasi auttaaksemme sinua lajittelemaan kuvia nopeasti, esimerkiksi kuvankaappausten perusteella."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -111694,7 +112372,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "저희가 귀하의 라이브러리를 업데이트하여 스크린샷과 같이 사진을 빠르게 정렬할 수 있도록 돕고 있습니다."
+            "value" : "스크린샷과 같은 사진을 빠르게 정렬할 수 있도록 사용자의 라이브러리를 업데이트하는 중입니다."
           }
         },
         "nb" : {
@@ -111725,6 +112403,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Se actualizează biblioteca pentru a vă ajuta să sortați rapid fotografiile, de exemplu, după capturi de ecran."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualizujeme vašu knižnicu, aby ste mohli rýchlo triediť fotografie, napríklad podľa snímok obrazovky."
           }
         },
         "sv" : {
@@ -112123,10 +112807,136 @@
       "comment" : "Label text is shown when pull down",
       "extractionState" : "manual",
       "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пацягніце, каб абнавіць"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrossegueu per actualitzar"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potáhnutím obnovit"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Træk ned for at opfriske"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zum Aktualisieren ziehen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σύρετε για ανανέωση"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pull to refresh"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desliza para actualizar"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deslice para actualizar"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vedä päivittääksesi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faites glisser vers le bas pour actualiser"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scorri per aggiornare"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下にスワイプして再読み込み"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "당겨서 새로고침"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dra for å oppdatere"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trekken om te vernieuwen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pociągnij, aby odświeżyć"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deslizar para baixo para atualizar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trageți pentru împrospătare"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potiahnutím obnovíte"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dra för att uppdatera"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yenilemek için aşağı çekin"
           }
         }
       }

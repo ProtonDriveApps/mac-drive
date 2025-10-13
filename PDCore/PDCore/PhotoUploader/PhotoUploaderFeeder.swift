@@ -22,6 +22,8 @@ public final class PhotoUploaderFeeder {
     private var cancellables = Set<AnyCancellable>()
     private let queue = DispatchQueue(label: "PhotoUploaderFeeder", qos: .background)
     private let notificationCenter: NotificationCenter
+    private let processor: PhotoFeederPreprocessorProtocol
+    private let feedSubject: PassthroughSubject<Void, Never>
 
     private let uploader: PhotoUploader
     private let uploadingPhotosRepository: UploadingPrimaryPhotosRepository
@@ -34,12 +36,16 @@ public final class PhotoUploaderFeeder {
         notificationCenter: NotificationCenter,
         isBackupAvailable: AnyPublisher<Bool, Never>,
         newPhotoAvailable: AnyPublisher<[Photo], Never>,
-        shouldFeedPublisher: AnyPublisher<Bool, Never>
+        shouldFeedPublisher: AnyPublisher<Bool, Never>,
+        processor: PhotoFeederPreprocessorProtocol,
+        feedSubject: PassthroughSubject<Void, Never>
     ) {
         self.uploader = uploader
         self.uploadingPhotosRepository = uploadingPhotosRepository
         self.notificationCenter = notificationCenter
         self.shouldFeedPublisher = shouldFeedPublisher
+        self.processor = processor
+        self.feedSubject = feedSubject
 
         isBackupAvailable
             .removeDuplicates()
@@ -53,6 +59,7 @@ public final class PhotoUploaderFeeder {
                     self.subscribeToQueuedUploads()
                     self.processPendingPhotos()
                 } else {
+                    self.processor.suspend()
                     self.uploadPendingPhotosSubscription?.cancel()
                     self.uploadPendingPhotosSubscription = nil
                     self.uploader.onUploadsDisabled()
@@ -74,6 +81,7 @@ public final class PhotoUploaderFeeder {
     }
 
     func subscribeToQueuedUploads() {
+        /// Fire when a photo is uploaded or a photo is imported
         let continueUploadPublisher = notificationCenter.getPublisher(for: .uploadPendingPhotos, publishing: Void.self).eraseToAnyPublisher()
         let feedingPublisher = shouldFeedPublisher.filter { $0 }.map { _ in Void() }
             .handleEvents(receiveOutput: {
@@ -90,14 +98,6 @@ public final class PhotoUploaderFeeder {
     }
 
     private func processPendingPhotos() {
-        let processingPhotos = uploader.getExecutableOperationsCount()
-
-        if  processingPhotos < Constants.processingPhotoUploadsBatchSize / 2 {
-            let photos = self.uploadingPhotosRepository.getPhotos()
-            Log.info("📸☁️✅ Photo upload scheduled willAdd: \(photos.count) Total: \(photos.count + processingPhotos)", domain: .uploader)
-            self.uploader.upload(files: photos)
-        } else {
-            Log.info("📸☁️⚠️ Photo upload  currently \(processingPhotos) photos in queue", domain: .uploader)
-        }
+        feedSubject.send()
     }
 }

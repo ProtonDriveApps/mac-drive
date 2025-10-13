@@ -64,6 +64,7 @@ class DefaultFileDraftCreator: FileDraftCreator {
             } else if error is NSManagedObject.NoMOCError {
                 completion(.failure(error))
             } else {
+                Log.error("Create file draft failed", error: error, domain: .uploader)
                 let userError = PhotosFailureUserError.encryptionFailed
                 completion(.failure(userError))
             }

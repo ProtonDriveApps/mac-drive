@@ -31,6 +31,13 @@ final class CGImageThumbnailProvider: ThumbnailProvider {
             return next?.getThumbnail(from: url, ofSize: size)
         }
 
+        if Constants.runningInExtension,
+           let fileSize = try? url.getFileSize(),
+           fileSize > 22 * 1024 * 1024 {
+            // Image larger than 22 MB is easy to exceed memory limitation
+            return next?.getThumbnail(from: url, ofSize: size)
+        }
+
         let options: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceCreateThumbnailWithTransform: true,

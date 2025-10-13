@@ -14,7 +14,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "PDCore", path: "../PDCore"),
-        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "32.7.1"),
+        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "33.2.0"),
     ],
     targets: [
         .target(

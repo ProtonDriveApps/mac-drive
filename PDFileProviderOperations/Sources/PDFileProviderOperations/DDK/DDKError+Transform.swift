@@ -29,7 +29,7 @@ extension Swift.Error {
         } else if let metadataError = self as? DDKMetadataUpdater.MetadataUpdateError {
             return metadataError.toFileProviderCompatibleError()
         } else if let errors = self as? Errors {
-            return PDFileProvider.Errors.mapToFileProviderError(errors) ?? NSFileProviderError.create(.cannotSynchronize, from: self)
+            return PDFileProvider.Errors.mapToFileProviderError(errors)
         } else if let fileProviderError = self as? NSFileProviderError {
             return fileProviderError
         // we limit the check to .userCancelled because it's the only CocoaError that we currently know the file provider is happy to receive

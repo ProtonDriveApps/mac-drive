@@ -146,7 +146,8 @@ class ExternalFeatureFlagsRepository: FeatureFlagsRepository {
         case .logCollectionDisabled: return .logCollectionDisabled
         case .oneDollarPlanUpsellEnabled: return .oneDollarPlanUpsellEnabled
         case .driveDisablePhotosForB2B: return .driveDisablePhotosForB2B
-        case .driveDDKEnabled: return .driveDDKEnabled
+        case .driveDDKIntelEnabled: return .driveDDKIntelEnabled
+        case .driveDDKDisabled: return .driveDDKDisabled
         case .driveMacSyncRecoveryDisabled: return .driveMacSyncRecoveryDisabled
         case .driveMacKeepDownloadedDisabled: return .driveMacKeepDownloadedDisabled
         // Sharing
@@ -184,6 +185,8 @@ class ExternalFeatureFlagsRepository: FeatureFlagsRepository {
         case .docsSheetsDisabled: return .docsSheetsDisabled
         case .docsCreateNewSheetOnMobileEnabled: return .docsCreateNewSheetOnMobileEnabled
         case .driveiOSDebugMode: return .driveiOSDebugMode
+        // Payments
+        case .driveiOSPaymentsV2: return .driveiOSPaymentsV2
         }
     }
 }

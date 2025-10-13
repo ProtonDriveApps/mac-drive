@@ -42,10 +42,26 @@ struct FeatureFlagsRepositoryFactory {
             .eraseToAnyPublisher()
         resource.forceUpdate(on: didBecomeActivePublisher)
         #endif
-        
+
+        #if DEBUG && os(iOS)
+        let overrides = getFeatureFlagsOverrides()
+        return ExternalFeatureFlagsOverrideResource(wrappedResource: resource, overrides: overrides)
+        #else
         return resource
+        #endif
     }
-    
+
+    #if DEBUG
+    private func getFeatureFlagsOverrides() -> [ExternalFeatureFlagOverride] {
+        if DebugConstants.commandLineContains(flags: [.uiTests]) {
+            let commandLine = DebugConstants.getValueOf(flag: .featureFlagsOverrides) ?? ""
+            return ExternalFeatureFlagOverrideCommandLineSerializer().deserialize(from: commandLine)
+        } else {
+            return []
+        }
+    }
+    #endif
+
     private func makeLegacyResource(
         configuration: APIService.Configuration,
         networking: CoreAPIService

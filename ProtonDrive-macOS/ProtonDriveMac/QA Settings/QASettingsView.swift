@@ -198,7 +198,7 @@ struct QASettingsView: View {
                                 exit(0)
                             }
 
-                            Text("Backend feature flag value: \(vm.driveDDKEnabledFeatureFlagValue ? "true" : "false")")
+                            Text("Unleash FFs — DriveDDKDisabled: \(vm.driveDDKDisabledFeatureFlagValue ? "true" : "false"), DriveDDKIntelEnabled: \(vm.driveDDKIntelEnabledFeatureFlagValue ? "true" : "false") (used on Intel)")
                         }
                         
                         VStack(alignment: .leading, spacing: 2) {

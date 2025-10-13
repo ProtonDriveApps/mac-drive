@@ -21,6 +21,8 @@ import SwiftUI
 import PDCore
 import PDFileProvider
 
+typealias SyncDBFetchedResultObserver = FetchedResultObserver<SyncItem>
+
 /// Monitors changes made to the Sync DB by the File Provider and propagates them to `ApplicationState`.
 final class SyncDBObserver: ObservableObject {
 
@@ -96,7 +98,7 @@ final class SyncDBObserver: ObservableObject {
 
         syncDBFetchedResultObserver = SyncDBFetchedResultObserver(fetchRequest: fetchRequest, context: context)
 
-        syncDBFetchedResultObserver?.syncItemPublisher
+        syncDBFetchedResultObserver?.itemPublisher
             .receive(on: RunLoop.main)
             .sink { [unowned self] items in
                 Log.trace("syncDBObserver?.syncItemPublisher received \(items.count) item(s).")

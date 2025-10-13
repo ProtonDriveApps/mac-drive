@@ -94,6 +94,7 @@ public struct LogDomain: Equatable, Hashable {
     public static let exifBackfill = LogDomain(name: "exifBackfill")
     public static let coreLibrary = LogDomain(name: "coreLibrary")
     public static let metrics = LogDomain(name: "metrics")
+    public static let subscriptions = LogDomain(name: "subscriptions")
 
     public static let iOSDomains: Set<LogDomain> = [
         .applicationBootstrap,
@@ -129,7 +130,8 @@ public struct LogDomain: Equatable, Hashable {
         .exifBackfill,
         .coreLibrary,
         .thumbnails,
-        .metrics
+        .metrics,
+        .subscriptions
     ]
 
     public static func macOSDomains(appending: Set<LogDomain>, subtracting: Set<LogDomain>) -> Set<LogDomain> {
@@ -277,7 +279,7 @@ public class Log {
 
         logger.log(
             .error,
-            message: message ?? "",
+            message: message ?? error?.localizedDescription ?? "",
             system: logSystem,
             domain: domain,
             context: logContext,

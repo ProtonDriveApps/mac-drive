@@ -23,30 +23,38 @@ import UserNotifications
 import ProtonCoreFeatureFlags
 import ProtonCoreServices
 import ProtonCoreCryptoGoInterface
-import ProtonCoreCryptoPatchedGoImplementation
+import ProtonCoreCryptoMultiversionPatchedGoImplementation
 import ProtonCoreLog
 import PMEventsManager
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     @SettingsStorage("firstLaunchHappened") private var firstLaunchHappened: Bool?
+    @SettingsStorage(UserDefaults.FileProvider.extensionPathKey.rawValue) var fileProviderExtensionPath: String?
+
     private var coordinator: AppCoordinator?
     private var isTerminatingDueToAppCoordinatorError = false
     private let memoryWarningObserver: MemoryWarningObserver
+    private let observationCenter: PDCore.UserDefaultsObservationCenter
 
     override init() {
         Log.trace()
 
-        inject(cryptoImplementation: ProtonCoreCryptoPatchedGoImplementation.CryptoGoMethodsImplementation.instance)
+        inject(cryptoImplementation: ProtonCoreCryptoMultiversionPatchedGoImplementation.CryptoGoMethodsImplementation.instance)
         
         // this must be done before the first access to the user defaults
         GroupContainerMigrator.instance.checkIfMigrationIsNessesary()
         GroupContainerMigrator.instance.migrateUserDefaults()
         
         self._firstLaunchHappened.configure(with: Constants.appGroup)
+        self._fileProviderExtensionPath.configure(with: Constants.appGroup)
+
         PDFileManager.configure(with: Constants.appGroup)
         self.memoryWarningObserver = MemoryWarningObserver(memoryDiagnosticResource: DeviceMemoryDiagnosticsResource())
+        self.observationCenter = UserDefaultsObservationCenter(userDefaults: Constants.appGroup.userDefaults, additionalLogging: true)
 
         super.init()
+
+        setUpExtensionLaunchObserver()
 
 #if !HAS_QA_FEATURES
         let executablePath = Bundle.main.executablePath ?? ""
@@ -110,7 +118,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func configureCoreLogger() {
-        PMLog.setExternalLoggerHost(Constants.userApiConfig.environment.doh.defaultHost)
+        let hostSubstring = Constants.userApiConfig.environment.doh.getCurrentlyUsedHostUrl()
+            .trimmingPrefix("http://").trimmingPrefix("https://")
+        PMLog.setExternalLoggerHost(String(hostSubstring))
     }
 
     private func setUpLogger() {
@@ -129,6 +139,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         NotificationCenter.default.addObserver(forName: .NSApplicationProtectedDataWillBecomeUnavailable, object: nil, queue: nil) { _ in
             Log.info("Notification.Name.NSApplicationProtectedDataWillBecomeUnavailable", domain: .application)
+        }
+    }
+
+    private func setUpExtensionLaunchObserver() {
+        observationCenter.addObserver(self, of: \.fileProviderExtensionPath) { [weak self] extensionPath in
+            guard let extensionPath = extensionPath ?? nil else {
+                Log.warning("Application received FileProviderExtension launch notification without extensionPath", domain: .application)
+                return
+            }
+
+            guard extensionPath.hasPrefix(Bundle.main.bundlePath) else {
+                self?.presentIncorrectExtensionPathAlert(incorrectAppPath: extensionPath)
+                return
+            }
+
+            Log.trace("Handled FileProviderExtension launch notification, extensionPath: \(extensionPath)", domain: .application)
         }
     }
 
@@ -296,6 +322,41 @@ extension AppDelegate {
         switch response {
         case .alertSecondButtonReturn:
             UserActions(delegate: nil).links.showSupportWebsite()
+        default:
+            break
+        }
+    }
+
+    private func presentIncorrectExtensionPathAlert(incorrectAppPath: String) {
+        let alert = NSAlert()
+
+        alert.messageText = "FileProvider has launched from outside the current Drive app."
+        alert.informativeText = "Please ensure you do not have two Proton Drive apps installed. \n" +
+        "If this is the case, remove the one outside the /Applications folder. \n\n" +
+        "If the issue persists, please contact Customer Support. "
+
+        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: "Contact Support")
+
+        // best-effort attempt to get the path that contains the old/wrong Drive app
+        // this should cover 99% of cases - if the app's been renamed, we'll
+        // still show the error but users will have to figure out where the app is themselves.
+        let defaultAppName = "Proton Drive.app"
+        let appPathComponents = incorrectAppPath.split(separator: defaultAppName)
+
+        if appPathComponents.first != nil {
+            alert.addButton(withTitle: "Show me the wrong app")
+        }
+
+        let response = alert.runModal()
+
+        switch response {
+        case .alertSecondButtonReturn:
+            UserActions(delegate: nil).links.showSupportWebsite()
+        case .alertThirdButtonReturn:
+            if let pathContainingApp = appPathComponents.first.map({ String($0) }) {
+                NSWorkspace.shared.selectFile(pathContainingApp + defaultAppName, inFileViewerRootedAtPath: pathContainingApp)
+            }
         default:
             break
         }

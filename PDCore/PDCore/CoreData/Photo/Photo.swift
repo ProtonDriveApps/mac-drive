@@ -32,6 +32,7 @@ public class Photo: File {
     @NSManaged public var albums: Set<CoreDataAlbum>
     @NSManaged public var photoListings: Set<CoreDataPhotoListing> // A photo can be listed in multiple albums
 
+    @NSManaged public var localIdentifier: String?
     // MainKey encrypted properties
     @NSManaged public var tempBase64Metadata: String? // Encrypted by `DriveStringCryptoTransformer`
     @NSManaged public var tempBase64Exif: String? // Encrypted by `DriveStringCryptoTransformer`

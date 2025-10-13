@@ -63,32 +63,23 @@ class SubscriptionService {
 
         switch payments.planService {
         case .left(let planService):
-            planService.updateServicePlans {
-                if planService.isIAPAvailable {
-                    planService.updateCurrentSubscription {
-                        Log.debug(planService.currentSubscription.debugDescription, domain: .application)
-                        let planNames = planService.currentSubscription?.planDetails?
-                            .filter { $0.isAPrimaryPlan }
-                            .compactMap { $0.name } ?? []
-                        let currentPlanIsNonUpgradeable = Constants.nonUpgradeablePlanNames.contains(planNames.first ?? "")
-                        state.setCanGetMoreStorage(!currentPlanIsNonUpgradeable)
-                    } failure: { error in
-                        Log.debug(error.localizedDescription, domain: .application)
-                    }
-                }
+            planService.updateCurrentSubscription {
+                Log.debug(planService.currentSubscription.debugDescription, domain: .application)
+                let planNames = planService.currentSubscription?.planDetails?
+                    .filter { $0.isAPrimaryPlan }
+                    .compactMap { $0.name } ?? []
+                let currentPlanIsNonUpgradeable = Constants.nonUpgradeablePlanNames.contains(planNames.first ?? "")
+                state.setCanGetMoreStorage(!currentPlanIsNonUpgradeable)
             } failure: { error in
                 Log.error("SubscriptionService.fetchSubscription", error: error, domain: .application)
             }
         case .right(let planDataSource):
             Task {
                 do {
-                    try await planDataSource.fetchAvailablePlans()
-                    if planDataSource.isIAPAvailable {
-                        try await planDataSource.fetchCurrentPlan()
-                        let planName = planDataSource.currentPlan?.subscriptions.first?.name ?? InAppPurchasePlan.freePlanName
-                        let currentPlanIsNonUpgradeable = Constants.nonUpgradeablePlanNames.contains(planName)
-                        state.setCanGetMoreStorage(!currentPlanIsNonUpgradeable)
-                    }
+                    try await planDataSource.fetchCurrentPlan()
+                    let planName = planDataSource.currentPlan?.subscriptions.first?.name ?? InAppPurchasePlan.freePlanName
+                    let currentPlanIsNonUpgradeable = Constants.nonUpgradeablePlanNames.contains(planName)
+                    state.setCanGetMoreStorage(!currentPlanIsNonUpgradeable)
                 } catch {
                     Log.error(error: error, domain: .application)
                 }

@@ -15,60 +15,64 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
-public enum ExternalFeatureFlag: CaseIterable {
-    case photosUploadDisabled
-    case logsCompressionDisabled
-    case domainReconnectionEnabled
-    case postMigrationJunkFilesCleanup
-    case pushNotificationIsEnabled
-    case logCollectionEnabled
-    case logCollectionDisabled
-    case driveiOSDebugMode
-    case oneDollarPlanUpsellEnabled
-    case driveDisablePhotosForB2B
-    case driveDDKEnabled
-    case driveMacSyncRecoveryDisabled
-    case driveMacKeepDownloadedDisabled
+public enum ExternalFeatureFlag: String, CaseIterable, Codable {
+    case photosUploadDisabled = "DrivePhotosUploadDisabled"
+    case logsCompressionDisabled = "DriveLogsCompressionDisabled"
+    case domainReconnectionEnabled = "DriveDomainReconnectionEnabled"
+    case postMigrationJunkFilesCleanup = "DrivePostMigrationJunkFilesCleanup"
+    case pushNotificationIsEnabled = "PushNotifications"
+    case logCollectionEnabled = "DriveiOSLogCollection"
+    case logCollectionDisabled = "DriveiOSLogCollectionDisabled"
+    case driveiOSDebugMode = "DriveiOSDebugMode"
+    case oneDollarPlanUpsellEnabled = "DriveOneDollarPlanUpsell"
+    case driveDisablePhotosForB2B = "DriveDisablePhotosForB2B"
+    case driveDDKIntelEnabled = "DriveDDKIntelEnabled"
+    case driveDDKDisabled = "DriveDDKDisabled"
+    case driveMacSyncRecoveryDisabled = "DriveMacSyncRecoveryDisabled"
+    case driveMacKeepDownloadedDisabled = "DriveMacKeepDownloadedDisabled"
 
-    // Sharing 
-    case driveSharingMigration
-    case driveSharingInvitations
-    case driveSharingExternalInvitations
-    case driveSharingDisabled
-    case driveSharingExternalInvitationsDisabled
-    case driveSharingEditingDisabled
-    case drivePublicShareEditMode
-    case drivePublicShareEditModeDisabled
-    case acceptRejectInvitation
-    case driveShareURLBookmarking
-    case driveShareURLBookmarksDisabled
+    // Sharing
+    case driveSharingMigration = "DriveSharingMigration"
+    case driveSharingInvitations = "DriveSharingInvitations"
+    case driveSharingExternalInvitations = "DriveSharingExternalInvitations"
+    case driveSharingDisabled = "DriveSharingDisabled"
+    case driveSharingExternalInvitationsDisabled = "DriveSharingExternalInvitationsDisabled"
+    case driveSharingEditingDisabled = "DriveSharingEditingDisabled"
+    case drivePublicShareEditMode = "DrivePublicShareEditMode"
+    case drivePublicShareEditModeDisabled = "DrivePublicShareEditModeDisabled"
+    case acceptRejectInvitation = "DriveMobileSharingInvitationsAcceptReject"
+    case driveShareURLBookmarking = "DriveShareURLBookmarking"
+    case driveShareURLBookmarksDisabled = "DriveShareURLBookmarksDisabled"
 
     // ProtonDoc
-    case driveDocsDisabled
-    
+    case driveDocsDisabled = "DriveDocsDisabled"
+
     // Rating booster
     // Legacy feature flags we used before migrating to Unleash
-    case ratingIOSDrive
-    case driveRatingBooster
+    case ratingIOSDrive = "RatingIOSDrive"
+    case driveRatingBooster = "DriveRatingBooster"
 
     // Entitlement
-    case driveDynamicEntitlementConfiguration
+    case driveDynamicEntitlementConfiguration = "DriveDynamicEntitlementConfiguration"
 
     // Refactor
-    case driveiOSRefreshableBlockDownloadLink
+    case driveiOSRefreshableBlockDownloadLink = "DriveiOSRefreshableBlockDownloadLink"
 
     // Computers
-    case driveiOSComputers
-    case driveiOSComputersDisabled
+    case driveiOSComputers = "DriveiOSComputers"
+    case driveiOSComputersDisabled = "DriveiOSComputersDisabled"
 
     // Albums
-    case driveAlbumsDisabled
-    case driveCopyDisabled
-    case drivePhotosTagsMigration
-    case drivePhotosTagsMigrationDisabled
+    case driveAlbumsDisabled = "DriveAlbumsDisabled"
+    case driveCopyDisabled = "DriveCopyDisabled"
+    case drivePhotosTagsMigration = "DrivePhotosTagsMigration"
+    case drivePhotosTagsMigrationDisabled = "DrivePhotosTagsMigrationDisabled"
 
     // Sheets
-    case docsSheetsEnabled
-    case docsSheetsDisabled
-    case docsCreateNewSheetOnMobileEnabled
+    case docsSheetsEnabled = "DocsSheetsEnabled"
+    case docsSheetsDisabled = "DocsSheetsDisabled"
+    case docsCreateNewSheetOnMobileEnabled = "DocsCreateNewSheetOnMobileEnabled"
+
+    // Payments
+    case driveiOSPaymentsV2 = "DriveiOSPaymentsV2"
 }

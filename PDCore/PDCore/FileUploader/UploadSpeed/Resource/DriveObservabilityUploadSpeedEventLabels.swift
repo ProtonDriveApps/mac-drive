@@ -19,17 +19,12 @@ import Foundation
 import ProtonCoreObservability
 
 // See drive_upload_speed_histogram_v1.schema.json
-struct DriveObservabilityUploadSpeedEventLabels: Encodable, Equatable {
+public struct DriveObservabilityUploadSpeedEventLabels: Encodable, Equatable {
     let context: Context
-    let pipeline: Pipeline
+    let pipeline: DriveObservabilityPipeline
 
-    enum Context: String, Encodable, Equatable {
+    public enum Context: String, Encodable, Equatable {
         case foreground
         case background
-    }
-
-    enum Pipeline: String, Encodable, Equatable {
-        case `default`
-        case legacy
     }
 }

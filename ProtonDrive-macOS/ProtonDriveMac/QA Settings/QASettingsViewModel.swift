@@ -31,7 +31,7 @@ struct QASettingsConstants {
     static let updateChannel = "updateChannel"
     static let shouldObfuscateDumpsStorage = "shouldObfuscateDumpsStorage"
     static let disconnectDomainOnSignOut = "disconnectDomainOnSignOut"
-    static let driveDDKEnabled = "driveDDKEnabled"
+    static let driveDDKEnabledInQASettings = "driveDDKEnabledInQASettings"
     static let globalProgressStatusMenuEnabled = "globalProgressStatusMenuEnabled"
 }
 
@@ -119,13 +119,16 @@ class QASettingsViewModel: ObservableObject {
     }
     @SettingsStorage(QASettingsConstants.disconnectDomainOnSignOut) var disconnectDomainOnSignOutStorage: Bool?
 
-    var driveDDKEnabledFeatureFlagValue: Bool {
-        featureFlags?.isEnabled(flag: .driveDDKEnabled) ?? false
+    var driveDDKIntelEnabledFeatureFlagValue: Bool {
+        featureFlags?.isEnabled(flag: .driveDDKIntelEnabled) ?? false
+    }
+    var driveDDKDisabledFeatureFlagValue: Bool {
+        featureFlags?.isEnabled(flag: .driveDDKDisabled) ?? false
     }
     @Published var driveDDKEnabled: String = FeatureFlagOptions.useFF.rawValue {
         didSet { driveDDKEnabledStorage = FeatureFlagOptions(rawValue: driveDDKEnabled)?.toBool }
     }
-    @SettingsStorage(QASettingsConstants.driveDDKEnabled) var driveDDKEnabledStorage: Bool?
+    @SettingsStorage(QASettingsConstants.driveDDKEnabledInQASettings) var driveDDKEnabledStorage: Bool?
 
     let parentSessionUID: String
     let childSessionUID: String

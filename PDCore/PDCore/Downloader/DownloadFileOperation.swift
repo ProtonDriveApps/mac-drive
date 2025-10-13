@@ -211,7 +211,10 @@ final class DownloadFileOperation: SynchronousOperation, DownloadOperation {
     }
     
     private func finishOperationForEmpty(revision: Revision) async throws {
-        Log.info("Revision for \(fileIdentifier) is an empty file, creating empty file locally, revision: \(revision.identifier)", domain: .downloader)
+        let revisionIdentifier = storage.backgroundContext.performAndWait {
+            revision.identifier
+        }
+        Log.info("Revision for \(fileIdentifier) is an empty file, creating empty file locally, revision: \(revisionIdentifier)", domain: .downloader)
         try await self.createEmptyFile(in: revision) // will call completion
         self.state = .finished
     }

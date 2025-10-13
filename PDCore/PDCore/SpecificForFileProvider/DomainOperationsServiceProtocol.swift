@@ -61,7 +61,7 @@ public enum DomainOperationErrors: Error {
     case signalEnumeratorFailed(_ error: Error)
     case getUserVisibleURLFailed(error: Error)
     case evictItemFailed(error: Error)
-    
+
     case postMigrationStepFailed(_ error: Error)
     
     public var underlyingError: Error {

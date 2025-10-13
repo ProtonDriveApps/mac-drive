@@ -1370,7 +1370,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enregistrer les photos et supprimez-les"
+            "value" : "Enregistrer les photos et retirez-les"
           }
         },
         "hu" : {
@@ -2929,7 +2929,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sigur doriți să ștergeți articolele selectate din album?"
+            "value" : "Ștergeți articolele selectate din album?"
           }
         },
         "ru" : {
@@ -4139,7 +4139,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Segur que voleu suprimir l'àlbum «%@»? No se suprimiran les fotos."
+            "value" : "Segur que voleu suprimir l'àlbum «%@»? Les fotos no s'eliminaran."
           }
         },
         "cs" : {
@@ -4265,7 +4265,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sigur doriți să ștergeți albumul „%@”? Fotografiile nu vor fi șterse."
+            "value" : "Ștergeți albumul „%@”? Fotografiile nu vor fi șterse."
           }
         },
         "ru" : {
@@ -5462,13 +5462,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Arquivo"
+                  "value" : "%d arquivo"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Arquivos"
+                  "value" : "%d arquivos"
                 }
               }
             }
@@ -13190,13 +13190,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Item"
+                  "value" : "%d item"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Itens"
+                  "value" : "%d itens"
                 }
               }
             }
@@ -15639,7 +15639,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Название не может быть пустым"
+            "value" : "Имя не может быть пустым"
           }
         },
         "sk" : {

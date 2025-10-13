@@ -29,7 +29,8 @@ public enum FeatureAvailabilityFlag: CaseIterable {
     case driveiOSDebugMode
     case oneDollarPlanUpsellEnabled
     case driveDisablePhotosForB2B
-    case driveDDKEnabled
+    case driveDDKIntelEnabled
+    case driveDDKDisabled
     case driveMacSyncRecoveryDisabled
     case driveMacKeepDownloadedDisabled
 
@@ -73,4 +74,7 @@ public enum FeatureAvailabilityFlag: CaseIterable {
     case docsSheetsEnabled
     case docsSheetsDisabled
     case docsCreateNewSheetOnMobileEnabled
+
+    // Payments
+    case driveiOSPaymentsV2
 }

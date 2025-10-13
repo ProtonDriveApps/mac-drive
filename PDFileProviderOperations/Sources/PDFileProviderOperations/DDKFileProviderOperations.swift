@@ -16,6 +16,7 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import FileProvider
+import Combine
 import PDClient
 import PDCore
 import PDDesktopDevKit
@@ -47,6 +48,9 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
         tower.sessionVault.isDDKSessionAvailable
     }
 
+    private let downloadCollector: ProgressPerformanceCollector
+    private let uploadCollector: ProgressPerformanceCollector
+
     public required init(
         tower: Tower,
         sessionCommunicatorUserDefaults: UserDefaults,
@@ -55,6 +59,8 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
         manager: NSFileProviderManager,
         thumbnailProvider: ThumbnailProvider = ThumbnailProviderFactory.defaultThumbnailProvider,
         ddkMetadataUpdater: DDKMetadataUpdater? = nil,
+        downloadCollector: ProgressPerformanceCollector,
+        uploadCollector: ProgressPerformanceCollector,
         progresses: FileOperationProgresses,
         enableRegressionTestHelpers: Bool,
         ignoreSslCertificateErrors: Bool
@@ -91,6 +97,10 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
             ddkSessionCommunicator: ddkSessionCommunicator,
             ignoreSslCertificateErrors: ignoreSslCertificateErrors
         )
+
+        self.uploadCollector = uploadCollector
+        self.downloadCollector = downloadCollector
+
         onChildSessionObtained = { [weak self] credential, kind in
             guard kind == .ddk, let self else { return }
             let errorMessage = await self.protonDriveClientProvider.renewProtonApiSession(credential: credential)
@@ -156,7 +166,9 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
             manager: manager,
             itemActionsOutlet: itemActionsOutlet,
             progresses: progresses,
-            enableRegressionTestHelpers: enableRegressionTestHelpers
+            enableRegressionTestHelpers: enableRegressionTestHelpers,
+            downloadCollector: downloadCollector,
+            uploadCollector: uploadCollector
         )
 
         let retainedFileProviderOperations = RetainCycleBox(value: fileProviderOperations)
@@ -204,12 +216,34 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
 
     // MARK: - Progress
 
-    private func didCompleteFileOperation(progress: Progress?) {
+    private func didStartFileUploadOperation(progress: Progress) {
+        progresses.add(progress)
+        uploadCollector.startObserving(progress: progress, using: .legacy)
+    }
+
+    private func didCompleteFileUploadOperation(progress: Progress?) {
+        guard let progress else { return }
+        uploadCollector.finishObserving(progress: progress, using: .legacy)
+        didCompleteFileOperation(progress: progress)
+    }
+
+    private func didStartFileDownloadOperation(progress: Progress) {
+        downloadCollector.startObserving(progress: progress, using: .legacy)
+        progresses.add(progress)
+    }
+
+    private func didCompleteFileDownloadOperation(progress: Progress?) {
+        guard let progress else { return }
+
+        downloadCollector.finishObserving(progress: progress, using: .legacy)
+        didCompleteFileOperation(progress: progress)
+    }
+
+    private func didCompleteFileOperation(progress: Progress) {
         Log.trace()
-        if let progress {
-            progresses.remove(progress)
-            progress.clearOneTimeCancellationHandler()
-        }
+
+        progresses.remove(progress)
+        progress.clearOneTimeCancellationHandler()
     }
 
     // MARK: - Download file
@@ -301,7 +335,7 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
 
                 try abortIfCancelled(progress: progress)
 
-                didCompleteFileOperation(progress: progress)
+                didCompleteFileDownloadOperation(progress: progress)
 
                 syncReporter.didCompleteFileOperation(
                     itemIdentifier: itemIdentifier,
@@ -314,7 +348,7 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
             } catch {
                 Log.error("fetchContents failed", error: error, domain: .fileProvider)
 
-                didCompleteFileOperation(progress: progress)
+                didCompleteFileDownloadOperation(progress: progress)
 
                 syncReporter.didCompleteFileOperation(
                     itemIdentifier: itemIdentifier,
@@ -328,17 +362,17 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
                 completionBlockWrapper(nil, nil, fileProviderCompatibleError)
             }
         }
-        progresses.add(progress)
+        didStartFileDownloadOperation(progress: progress)
         return progress
     }
 
     private func fileDownloadRequest(itemIdentifier: NSFileProviderItemIdentifier, tower: Tower) async throws -> (FileDownloadRequest, NodeItem, URL) {
 
         guard let nodeIdentifier = NodeIdentifier(itemIdentifier) else {
-            throw Errors.nodeIdentifierNotFound
+            throw Errors.nodeIdentifierNotFound(identifier: itemIdentifier)
         }
         guard let child = await tower.node(itemIdentifier: itemIdentifier) as? File else {
-            throw Errors.nodeNotFound
+            throw Errors.nodeNotFound(identifier: itemIdentifier)
         }
         guard let volumeID = Self.volumeID(tower) else {
             throw Errors.rootNotFound
@@ -413,7 +447,9 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
                 tower: tower, syncReporter: syncReporter,
                 itemProvider: itemProvider, manager: manager, itemActionsOutlet: itemActionsOutlet,
                 progresses: progresses,
-                enableRegressionTestHelpers: enableRegressionTestHelpers
+                enableRegressionTestHelpers: enableRegressionTestHelpers,
+                downloadCollector: downloadCollector,
+                uploadCollector: uploadCollector
             )
             let retainedFileProviderOperations = RetainCycleBox(value: fileProviderOperations)
             return fileProviderOperations.createItem(basedOn: itemTemplate, fields: fields, contents: url,
@@ -433,7 +469,7 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
         }
 
         guard !options.contains(.mayAlreadyExist) else {
-            // inspired by the Apple's sample code from
+            // inspired by Apple's sample code from
             // https://developer.apple.com/documentation/fileprovider/synchronizing-files-using-file-provider-extensions
             completionHandler(nil, [], false, nil)
             return Progress()
@@ -464,7 +500,7 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
                         throw Errors.excludeFromSync
                     }
                     guard let parent = await self.tower.parentFolder(of: itemTemplate) else {
-                        throw Errors.parentNotFound
+                        throw Errors.parentNotFound(identifier: itemTemplate.parentItemIdentifier)
                     }
                     return parent
                 }
@@ -485,7 +521,7 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
 
                 try abortIfCancelled(progress: progress)
 
-                didCompleteFileOperation(progress: progress)
+                didCompleteFileUploadOperation(progress: progress)
                 syncReporter.didCompleteFileOperation(
                     item: item,
                     possibleError: nil,
@@ -502,7 +538,7 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
                 logContext["parent"] = itemTemplate.parentItemIdentifier.rawValue
                 Log.error("createItem failed - \(error.localizedDescription.upTo("\n"))", error: error, domain: .fileProvider, context: logContext)
 
-                didCompleteFileOperation(progress: progress)
+                didCompleteFileUploadOperation(progress: progress)
                 syncReporter.didCompleteFileOperation(
                     item: itemTemplate,
                     possibleError: error,
@@ -519,14 +555,14 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
                 completionBlockWrapper(nil, fields, false, fileProviderCompatibleError)
             }
         }
-        progresses.add(progress)
+        didStartFileUploadOperation(progress: progress)
         return progress
     }
 
     static func nodeIdentityAndContextShareAddressId(of node: Node, tower: Tower) async throws -> (NodeIdentity, String?) {
         let (nodeIdentifier, volumeID, addressId): (PDCore.NodeIdentifier, String, String?) = try await tower.storage.backgroundContext.perform {
             guard let volumeID = Self.volumeID(tower) else {
-                throw Errors.nodeIdentifierNotFound
+                throw Errors.nodeIdentifierNotFound(identifier: NSFileProviderItemIdentifier(node.identifierWithinManagedObjectContext))
             }
             do {
                 let addressId = try node.getContextShareAddressID()
@@ -620,7 +656,9 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
             manager: manager,
             itemActionsOutlet: itemActionsOutlet,
             progresses: progresses,
-            enableRegressionTestHelpers: enableRegressionTestHelpers
+            enableRegressionTestHelpers: enableRegressionTestHelpers,
+            downloadCollector: downloadCollector,
+            uploadCollector: uploadCollector
         )
         let retainedFileProviderOperations = RetainCycleBox(value: fileProviderOperations)
 
@@ -663,7 +701,10 @@ public final class DDKFileProviderOperations: FileProviderOperationsProtocol {
             manager: manager,
             itemActionsOutlet: itemActionsOutlet,
             progresses: progresses,
-            enableRegressionTestHelpers: enableRegressionTestHelpers)
+            enableRegressionTestHelpers: enableRegressionTestHelpers,
+            downloadCollector: downloadCollector,
+            uploadCollector: uploadCollector
+        )
         let retainedFileProviderOperations = RetainCycleBox(value: fileProviderOperations)
 
         return fileProviderOperations.deleteItem(

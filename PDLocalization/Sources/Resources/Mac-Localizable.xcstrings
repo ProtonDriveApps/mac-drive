@@ -254,7 +254,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%d Éléments traités"
+            "value" : "%d éléments traités"
           }
         },
         "hu" : {
@@ -380,7 +380,7 @@
         "be" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Поўная рэсінхранізацыя"
+            "value" : "Поўная паўторная сінхранізацыя"
           }
         },
         "ca" : {
@@ -425,6 +425,12 @@
             "value" : "Resincronización completa"
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Täysi uudelleensynkronointi"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -467,10 +473,22 @@
             "value" : "Pełna ponowna synchronizacja"
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ressincronização completa"
+          }
+        },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resincronizare completă"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Úplná resynchronizácia"
           }
         },
         "sv" : {
@@ -4543,7 +4561,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Une mise à jour est disponible : cliquez pour le redémarrage et installer."
+            "value" : "Une mise à jour est disponible : cliquez pour redémarrer et installer."
           }
         },
         "hu" : {
@@ -5365,7 +5383,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Счёт"
+            "value" : "Аккаунт"
           }
         },
         "sk" : {

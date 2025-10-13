@@ -18,19 +18,30 @@
 import Foundation
 import ProtonCoreObservability
 
-protocol UploadSpeedMetricResource {
+public protocol UploadSpeedMetricResource {
     /// - Parameters:
     ///   - speed: is in KiB/s
     func sendMetric(speed: Int, isBackground: Bool)
+
+    /// - Parameters:
+    ///   - speed: is in KiB/s
+    ///   - pipeline: pipeline responsible for the metric
+    func sendMetric(speed: Int, isBackground: Bool, pipeline: DriveObservabilityPipeline)
 }
 
-final class ObservabilityUploadSpeedMetricResource: UploadSpeedMetricResource {
-    func sendMetric(speed: Int, isBackground: Bool) {
+public final class ObservabilityUploadSpeedMetricResource: UploadSpeedMetricResource {
+    public func sendMetric(speed: Int, isBackground: Bool, pipeline: DriveObservabilityPipeline) {
         Log.debug("Sending upload speed metric: \(speed) KiBps", domain: .metrics)
 
         let context: DriveObservabilityUploadSpeedEventLabels.Context = isBackground ? .background : .foreground
-        let labels = DriveObservabilityUploadSpeedEventLabels(context: context, pipeline: .legacy)
+        let labels = DriveObservabilityUploadSpeedEventLabels(context: context, pipeline: pipeline)
         let event = ObservabilityEvent(name: "drive_upload_speed_histogram", value: speed, labels: labels)
         ObservabilityEnv.report(event)
     }
+
+    public func sendMetric(speed: Int, isBackground: Bool) {
+        sendMetric(speed: speed, isBackground: isBackground, pipeline: .legacy)
+    }
+
+    public init() {}
 }

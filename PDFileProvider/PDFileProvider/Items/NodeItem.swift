@@ -102,7 +102,7 @@ public class NodeItem: NSObject, NSFileProviderItem {
             creationDate = node.createdDate
 
             let activeRevision = (node as? File)?.activeRevision
-            if MimeType(value: node.mimeType) != MimeType.protonDoc,
+            if !MimeType(value: node.mimeType).isProtonFile,
                let activeRevision,
                let created = try? ISO8601DateFormatter().date(activeRevision.decryptedExtendedAttributes().common?.modificationTime) ?? activeRevision.created {
                 contentModificationDate = created

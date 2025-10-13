@@ -57,7 +57,8 @@ public class LocalSettings: NSObject {
     @SettingsStorage("debugModeEnabledValue") public var debugModeEnabledValue: Bool?
     @SettingsStorage("DriveiOSLogCollectionDisabled") public var driveiOSLogCollectionDisabled: Bool?
     @SettingsStorage("keepScreenAwakeBannerHasDismissed") public var keepScreenAwakeBannerHasDismissed: Bool?
-    @SettingsStorage("DriveDDKEnabled") public var driveDDKEnabledValue: Bool?
+    @SettingsStorage("DriveDDKIntelEnabled") public var driveDDKIntelEnabledValue: Bool?
+    @SettingsStorage("DriveDDKDisabled") public var driveDDKDisabledValue: Bool?
     @SettingsStorage("DriveMacSyncRecoveryDisabled") public var driveMacSyncRecoveryDisabledValue: Bool?
     @SettingsStorage("DriveMacKeepDownloadedDisabled") public var driveMacKeepDownloadedDisabledValue: Bool?
     @SettingsStorage("DriveAlbumsDisabled") public var driveAlbumsDisabledValue: Bool?
@@ -117,6 +118,7 @@ public class LocalSettings: NSObject {
     @SettingsStorage("DocsCreateNewSheetOnMobileEnabledValue") private var docsCreateNewSheetOnMobileEnabledValue: Bool?
 
     @SettingsStorage("DriveiOSDebugMode") public var driveiOSDebugModeValue: Bool?
+    @SettingsStorage("DriveiOSPaymentsV2") public var driveiOSPaymentsV2Value: Bool?
     // drive/me/settings
     @SettingsStorage("Layout") public var layout: Int?
     @SettingsStorage("Sort") public var sort: Int?
@@ -161,6 +163,7 @@ public class LocalSettings: NSObject {
         self._debugModeEnabledValue.configure(with: suite)
         self._driveiOSLogCollectionDisabled.configure(with: suite)
         self._driveiOSDebugModeValue.configure(with: suite)
+        self._driveiOSPaymentsV2Value.configure(with: suite)
         self._domainReconnectionEnabledValue.configure(with: suite)
         self._postMigrationJunkFilesCleanupValue.configure(with: suite)
         self._userId.configure(with: suite)
@@ -168,7 +171,8 @@ public class LocalSettings: NSObject {
         self._defaultHomeTabTagValue.configure(with: suite)
         self._oneDollarPlanUpsellEnabledValue.configure(with: suite)
         self._keepScreenAwakeBannerHasDismissed.configure(with: suite)
-        self._driveDDKEnabledValue.configure(with: suite)
+        self._driveDDKIntelEnabledValue.configure(with: suite)
+        self._driveDDKDisabledValue.configure(with: suite)
         self._driveMacSyncRecoveryDisabledValue.configure(with: suite)
         self._driveMacKeepDownloadedDisabledValue.configure(with: suite)
         self._didFetchFeatureFlags.configure(with: suite)
@@ -280,7 +284,8 @@ public class LocalSettings: NSObject {
         drivePublicShareEditModeDisabled = drivePublicShareEditModeDisabledValue ?? false
         driveDisablePhotosForB2B = driveDisablePhotosForB2BValue ?? false
         driveDocsDisabled = driveDocsDisabledValue ?? false
-        driveDDKEnabled = driveDDKEnabledValue ?? false
+        driveDDKIntelEnabled = driveDDKIntelEnabledValue ?? false
+        driveDDKDisabled = driveDDKDisabledValue ?? false
         driveMacSyncRecoveryDisabled = driveMacSyncRecoveryDisabledValue ?? false
         driveMacKeepDownloadedDisabled = driveMacKeepDownloadedDisabledValue ?? false
         didEnableComputers = didEnableComputersValue ?? false
@@ -332,7 +337,8 @@ public class LocalSettings: NSObject {
         self.debugModeEnabledValue = nil
         self.domainReconnectionEnabledValue = nil
         self.postMigrationJunkFilesCleanupValue = nil
-        self.driveDDKEnabledValue = nil
+        self.driveDDKIntelEnabledValue = nil
+        self.driveDDKDisabledValue = nil
         self.driveMacSyncRecoveryDisabledValue = nil
         self.driveMacKeepDownloadedDisabledValue = nil
         self.pushNotificationIsEnabledValue = nil
@@ -514,6 +520,11 @@ public class LocalSettings: NSObject {
         set { driveiOSDebugModeValue = newValue }
     }
 
+    public var driveiOSPaymentsV2: Bool {
+        get { driveiOSPaymentsV2Value ?? false }
+        set { driveiOSPaymentsV2Value = newValue }
+    }
+
     @objc public dynamic var defaultHomeTabTag: Int = 1 {
         willSet {
             defaultHomeTabTagValue = newValue
@@ -603,9 +614,14 @@ public class LocalSettings: NSObject {
         willSet { driveDocsDisabledValue = newValue }
     }
 
-    public var driveDDKEnabled: Bool {
-        get { driveDDKEnabledValue ?? false }
-        set { driveDDKEnabledValue = newValue }
+    public var driveDDKIntelEnabled: Bool {
+        get { driveDDKIntelEnabledValue ?? false }
+        set { driveDDKIntelEnabledValue = newValue }
+    }
+    
+    public var driveDDKDisabled: Bool {
+        get { driveDDKDisabledValue ?? false }
+        set { driveDDKDisabledValue = newValue }
     }
 
     public var driveMacSyncRecoveryDisabled: Bool {

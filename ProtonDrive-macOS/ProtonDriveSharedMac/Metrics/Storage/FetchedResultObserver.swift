@@ -19,16 +19,18 @@ import PDCore
 import CoreData
 import Combine
 
-/// Observes changes to the SyncItem DB (using a `NSFetchedResultsController`) and publishes them on `syncItemPublisher`.
-class SyncDBFetchedResultObserver: NSObject {
-    private let fetchedResultsController: NSFetchedResultsController<SyncItem>
-    
-    private let subject = PassthroughSubject<[SyncItem], Never>()
-    var syncItemPublisher: AnyPublisher<[ReportableSyncItem], Never> {
+/// Observes changes made to a DB using both a `NSFetchedResultsController` for process-local
+/// changes and listening to `NSNotification.Name.NSPersistentStoreRemoteChange` for remote
+/// changes; publishes them mapped to domain objects on `itemPublisher`.
+class FetchedResultObserver<DBModel: NSManagedObject & DomainConvertible>: NSObject {
+    private let fetchedResultsController: NSFetchedResultsController<DBModel>
+
+    private let subject = PassthroughSubject<[DBModel], Never>()
+    var itemPublisher: AnyPublisher<[DBModel.DomainObject], Never> {
         subject
             .map { items in
-                items.map {
-                    ReportableSyncItem(item: $0)
+                items.compactMap {
+                    try? $0.toDomain()
                 }
             }
             .receive(on: DispatchQueue.main)
@@ -38,7 +40,7 @@ class SyncDBFetchedResultObserver: NSObject {
     private var cancellable: AnyCancellable?
 
     init(
-        fetchRequest: NSFetchRequest<SyncItem>,
+        fetchRequest: NSFetchRequest<DBModel>,
         context: NSManagedObjectContext
     ) {
         Log.trace()
@@ -81,7 +83,7 @@ class SyncDBFetchedResultObserver: NSObject {
     // MARK: - Private
 
     /// Note: always call within the items' managed object context!!!
-    private func didReceiveUpdate(items: [SyncItem]) {
+    private func didReceiveUpdate(items: [DBModel]) {
         subject.send(items)
     }
     

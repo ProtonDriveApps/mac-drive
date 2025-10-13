@@ -42,6 +42,7 @@ public protocol FeatureFlagsControllerProtocol {
     var hasPhotosTagsMigration: Bool { get }
     var hasProtonSheetCreation: Bool { get }
     var hasDebugMode: Bool { get }
+    var hasPaymentsV2: Bool { get }
     /// Makes current value publisher for the specific FF
     func makePublisher(keyPath: KeyPath<FeatureFlagsControllerProtocol, Bool>) -> AnyPublisher<Bool, Never>
 }
@@ -73,180 +74,86 @@ public final class FeatureFlagsController: FeatureFlagsControllerProtocol {
     }
 
     public var hasProtonDocumentCreation: Bool {
-        guard !buildType.isDev else {
-            // Dev will have this feature always, no matter what
-            return true
-        }
-
-        // Only guarded by killswitch
         return !featureFlagsStore.isFeatureEnabled(.driveDocsDisabled)
     }
 
     public var hasSharing: Bool {
-        guard !buildType.isDev else {
-            // Dev will have this feature always, no matter what
-            return true
-        }
-
         return !featureFlagsStore.isFeatureEnabled(.driveSharingDisabled)
     }
 
     public var hasSharingInvitations: Bool {
-        guard !buildType.isDev else {
-            // Dev will have this feature always, no matter what
-            return true
-        }
-
         return hasSharing && featureFlagsStore.isFeatureEnabled(.driveSharingInvitations)
     }
 
     public var hasSharingExternalInvitations: Bool {
-        guard !buildType.isDev else {
-            // Dev will have this feature always, no matter what
-            return true
-        }
-
         return hasSharingInvitations && featureFlagsStore.isFeatureEnabled(.driveSharingExternalInvitations) && !featureFlagsStore.isFeatureEnabled(.driveSharingExternalInvitationsDisabled)
     }
 
     public var hasSharingEditing: Bool {
-        guard !buildType.isDev else {
-            // Dev will have this feature always, no matter what
-            return true
-        }
-
         return hasSharing && !featureFlagsStore.isFeatureEnabled(.driveSharingEditingDisabled)
     }
     
     public var hasPublicShareEditMode: Bool {
-        guard !buildType.isDev else {
-            // Dev will have this feature always, no matter what
-            return true
-        }
         return featureFlagsStore.isFeatureEnabled(.drivePublicShareEditMode) && !featureFlagsStore.isFeatureEnabled(.drivePublicShareEditModeDisabled)
     }
 
     public var hasAcceptRejectInvitations: Bool {
-        guard !buildType.isDev else {
-            // Dev will have this feature always, no matter what
-            return true
-        }
         return hasSharing && featureFlagsStore.isFeatureEnabled(.driveMobileSharingInvitationsAcceptReject)
     }
 
     public var hasRatingBooster: Bool {
-        guard !buildType.isDev else {
-            // Dev will have this feature always, no matter what
-            return true
-        }
         return featureFlagsStore.isFeatureEnabled(.driveRatingBooster)
     }
     
     public var hasRatingIOSDrive: Bool {
-        // Enable it when you want to test rating popup
-        guard !buildType.isDev else {
-            // Dev will disable this feature always, no matter what
-            return false
-        }
         return featureFlagsStore.isFeatureEnabled(.ratingIOSDrive)
     }
 
     public var hasBookmarks: Bool {
-        guard !buildType.isDev else {
-            return true
-        }
         return featureFlagsStore.isFeatureEnabled(.driveShareURLBookmarking) && !featureFlagsStore.isFeatureEnabled(.driveShareURLBookmarksDisabled)
     }
 
     public var hasRefreshableBlockDownloadLink: Bool {
-        guard !buildType.isDev else {
-            // Dev will have this feature always, no matter what
-            return true
-        }
         return featureFlagsStore.isFeatureEnabled(.driveiOSRefreshableBlockDownloadLink)
     }
 
     public var hasAlbums: Bool {
-        #if DEBUG
-        if let overridenValue = getOverridenAlbumsValue() {
-            return overridenValue
-        }
-        #endif
         return !featureFlagsStore.isFeatureEnabled(.driveAlbumsDisabled)
     }
 
-    #if DEBUG
-    private func getOverridenAlbumsValue() -> Bool? {
-        guard buildType.isDev else {
-            return nil
-        }
-
-        if DebugConstants.commandLineContains(flags: [.uiTests, .overrideAlbumsFeatureFlagToFalse]) {
-            return false
-        } else if DebugConstants.commandLineContains(flags: [.uiTests, .overrideAlbumsFeatureFlagToTrue]) {
-            return true
-        } else if !DebugConstants.commandLineContains(flags: [.uiTests]) {
-            return true
-        } else {
-            return nil
-        }
-    }
-    #endif
-
     public var hasAlbumsActions: Bool {
-        if buildType.isDev {
-            return true
-        }
         return !featureFlagsStore.isFeatureEnabled(.driveAlbumsDisabled)
     }
 
     public var hasAlbumsSharing: Bool {
-        if buildType.isDev {
-            return true
-        }
         return hasSharing && !featureFlagsStore.isFeatureEnabled(.driveAlbumsDisabled)
     }
 
     public var hasComputers: Bool {
-        guard !buildType.isDev else {
-            return true
-        }
         return featureFlagsStore.isFeatureEnabled(.driveiOSComputers) && !featureFlagsStore.isFeatureEnabled(.driveiOSComputersDisabled)
     }
 
     public var hasCopy: Bool {
-        if buildType.isDev {
-            // Dev will have this feature always, no matter what
-            return true
-        }
         return !featureFlagsStore.isFeatureEnabled(.driveCopyDisabled)
     }
 
     public var hasPhotosTagsMigration: Bool {
-        guard !buildType.isDev else {
-            return true
-        }
         return featureFlagsStore.isFeatureEnabled(.drivePhotosTagsMigration) &&
                !featureFlagsStore.isFeatureEnabled(.drivePhotosTagsMigrationDisabled)
     }
 
     public var hasProtonSheetCreation: Bool {
-        guard !buildType.isDev else {
-            // Dev will have this feature always, no matter what
-            return true
-        }
-
         return featureFlagsStore.isFeatureEnabled(.docsSheetsEnabled) &&
         featureFlagsStore.isFeatureEnabled(.docsCreateNewSheetOnMobileEnabled) &&
         !featureFlagsStore.isFeatureEnabled(.docsSheetsDisabled)
     }
 
     public var hasDebugMode: Bool {
-        guard !buildType.isDev else {
-            return true
-        }
-
         return featureFlagsStore.isFeatureEnabled(.driveiOSDebugMode)
+    }
+
+    public var hasPaymentsV2: Bool {
+        return featureFlagsStore.isFeatureEnabled(.driveiOSPaymentsV2)
     }
 
     public func makePublisher(keyPath: KeyPath<FeatureFlagsControllerProtocol, Bool>) -> AnyPublisher<Bool, Never> {

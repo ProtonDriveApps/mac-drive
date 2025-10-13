@@ -395,7 +395,6 @@ public class DDKMetadataUpdater {
         fileUploadRequest: FileUploadRequest,
         fileUploadResponse _: ProtonDriveProtos.FileUploadResponse,
         itemTemplate: NSFileProviderItem,
-        parent: Folder,
         in moc: NSManagedObjectContext
     ) async -> Result<Node, MetadataUpdateError> {
         guard let (newFileParameters, newFileId, didIdentifyConflict) = cachedNewFileResponses.transform({ $0[fileUploadRequest.operationID] }),
@@ -444,7 +443,7 @@ public class DDKMetadataUpdater {
         do {
             return try await moc.perform {
                 let node = self.storage.updateLink(link, using: moc)
-                node.isInheritingOfflineAvailable = parent.isAvailableOffline
+                node.isInheritingOfflineAvailable = node.parentFolder?.isAvailableOffline ?? false
                 try moc.saveOrRollback()
                 return .success(node)
             }

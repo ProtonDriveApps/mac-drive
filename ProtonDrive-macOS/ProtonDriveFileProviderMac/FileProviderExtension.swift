@@ -24,12 +24,11 @@ import ProtonCoreLog
 import ProtonCoreCryptoGoInterface
 import ProtonCoreUtilities
 import PDUploadVerifier
-import ProtonCoreCryptoPatchedGoImplementation
+import ProtonCoreCryptoMultiversionPatchedGoImplementation
 import PDFileProviderOperations
 import PMEventsManager
 
 class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
-    
     @SettingsStorage(UserDefaults.FileProvider.workingSetEnumerationInProgressKey.rawValue) var workingSetEnumerationInProgress: Bool?
     @SettingsStorage(UserDefaults.FileProvider.shouldReenumerateItemsKey.rawValue) var shouldReenumerateItems: Bool?
     @SettingsStorage("domainDisconnectedReasonCacheReset") public var cacheReset: Bool?
@@ -37,22 +36,50 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     @SettingsStorage(UserDefaults.FileProvider.pathsMarkedAsKeepDownloadedKey.rawValue) var pathsMarkedAsKeepDownloaded: String?
     @SettingsStorage(UserDefaults.FileProvider.pathsMarkedAsOnlineOnlyKey.rawValue) var pathsMarkedAsOnlineOnly: String?
     @SettingsStorage(UserDefaults.FileProvider.openItemsInBrowserKey.rawValue) var openItemsInBrowser: String?
+    @SettingsStorage(UserDefaults.FileProvider.extensionPathKey.rawValue) var fileProviderExtensionPath: String?
 
     #if HAS_QA_FEATURES
-    @SettingsStorage("driveDDKEnabled") var driveDDKEnabledInQASettings: Bool?
+    @SettingsStorage("driveDDKEnabledInQASettings") var driveDDKEnabledInQASettings: Bool?
     #endif
-
+    
     private var isDDKEnabled: Bool {
-        let ddkFeatureFlagEnabled = tower.featureFlags.isEnabled(flag: .driveDDKEnabled)
         #if arch(x86_64)
-        // Go-runtime clashes are leading to crashes on Intel-based Macs
-        let ddkEnabled = false
-        #elseif HAS_QA_FEATURES
-        let ddkEnabled = self.driveDDKEnabledInQASettings ?? ddkFeatureFlagEnabled
+            return isDDKEnabledOnIntel
         #else
-        let ddkEnabled = ddkFeatureFlagEnabled
+            return isDDKEnabledOnAppleSilicon
         #endif
-        return ddkEnabled
+    }
+    
+    private var isDDKEnabledOnAppleSilicon: Bool {
+        #if HAS_QA_FEATURES
+            if driveDDKEnabledInQASettings == false {
+                return false
+            }
+        #endif
+
+        if tower.featureFlags.isEnabled(flag: .driveDDKDisabled) {
+            return false
+        }
+
+        return true
+    }
+    
+    private var isDDKEnabledOnIntel: Bool {
+        #if HAS_QA_FEATURES
+            if driveDDKEnabledInQASettings == false {
+                return false
+            }
+        #endif
+
+        if tower.featureFlags.isEnabled(flag: .driveDDKDisabled) {
+            return false
+        }
+
+        guard tower.featureFlags.isEnabled(flag: .driveDDKIntelEnabled) else {
+            return false
+        }
+
+        return true
     }
 
     private var isKeepDownloadedEnabled: Bool {
@@ -82,7 +109,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     private var enumerationObserver: EnumerationObserver!
 
     private let instanceIdentifier = UUID()
-    
+
     private lazy var initialServices = InitialServices(
         userDefault: Constants.appGroup.userDefaults,
         clientConfig: Constants.userApiConfig,
@@ -119,7 +146,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     private let observationCenter: PDCore.UserDefaultsObservationCenter
 
     required init(domain: NSFileProviderDomain) {
-        inject(cryptoImplementation: ProtonCoreCryptoPatchedGoImplementation.CryptoGoMethodsImplementation.instance)
+        inject(cryptoImplementation: ProtonCoreCryptoMultiversionPatchedGoImplementation.CryptoGoMethodsImplementation.instance)
         // Inject build type to enable build differentiation. (Build macros don't work in SPM)
         PDCore.Constants.buildType = Constants.buildType
 
@@ -159,8 +186,9 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         _shouldReenumerateItems.configure(with: Constants.appGroup)
         _openItemsInBrowser.configure(with: Constants.appGroup)
         _cacheReset.configure(with: Constants.appGroup)
+        _fileProviderExtensionPath.configure(with: Constants.appGroup)
         updateLastLineBeforeHanging()
-        
+
         domainSettings = LocalSettings.shared
         updateLastLineBeforeHanging()
         
@@ -169,7 +197,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         
         super.init()
         updateLastLineBeforeHanging()
-        
+
         let syncStorage = tower.syncStorage ?? SyncStorageManager(suite: Constants.appGroup)
         updateLastLineBeforeHanging()
         
@@ -212,7 +240,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         
         self.startObservingRunningAppChanges()
         updateLastLineBeforeHanging()
-        
+
         self.syncReporter.cleanUpOnLaunch()
         updateLastLineBeforeHanging()
         
@@ -223,6 +251,20 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         
         self.reenumerateIfNecessary(hasKeepDownloadedStateChanged: hasKeepDownloadedStateChanged)
         updateLastLineBeforeHanging()
+
+        postExtensionLaunchNotification()
+        updateLastLineBeforeHanging()
+    }
+
+    private func postExtensionLaunchNotification() {
+        guard let extensionExecutablePath = Bundle.main.executablePath else {
+            Log.error("Unable to get executable path for FileProviderExtension", domain: .fileProvider)
+            return
+        }
+
+        fileProviderExtensionPath = extensionExecutablePath
+
+        Log.trace("FileProviderExtension launched from \(extensionExecutablePath)", domain: .fileProvider)
     }
 
     private func setUpKeepDownloadedObservers() {
@@ -276,6 +318,8 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
                     syncReporter: syncReporter,
                     itemProvider: itemProvider,
                     manager: manager,
+                    downloadCollector: DBPerformanceMeasurementCollector(operationType: .download),
+                    uploadCollector: DBPerformanceMeasurementCollector(operationType: .upload),
                     progresses: progresses,
                     enableRegressionTestHelpers: RuntimeConfiguration.shared.enableTestAutomation,
                     ignoreSslCertificateErrors: RuntimeConfiguration.shared.ignoreDdkSslCertificateErrors
@@ -291,7 +335,9 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
                 itemProvider: itemProvider,
                 manager: manager,
                 progresses: progresses,
-                enableRegressionTestHelpers: RuntimeConfiguration.shared.enableTestAutomation
+                enableRegressionTestHelpers: RuntimeConfiguration.shared.enableTestAutomation,
+                downloadCollector: DBPerformanceMeasurementCollector(operationType: .download),
+                uploadCollector: DBPerformanceMeasurementCollector(operationType: .upload)
             )
         }
     }
@@ -578,7 +624,7 @@ extension FileProviderExtension {
                 return fe
             }
         } catch {
-            throw PDFileProvider.Errors.mapToFileProviderError(error) ?? error
+            throw PDFileProvider.Errors.mapToFileProviderError(error)
         }
     }
 }

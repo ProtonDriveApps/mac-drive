@@ -12,7 +12,7 @@ let package = Package(
         .library(name: "PDLogin-macOS", targets: ["PDLogin-macOS"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "32.7.1"),
+        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "33.2.0"),
         .package(name: "PDUIComponents", path: "../PDUIComponents"),
     ],
     targets: [

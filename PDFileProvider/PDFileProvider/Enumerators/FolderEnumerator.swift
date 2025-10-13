@@ -101,7 +101,7 @@ public class FolderEnumerator: NSObject, NSFileProviderEnumerator, EnumeratorWit
         do {
             try self.reinitializeModelIfNeeded()
         } catch {
-            observers.forEach { $0.finishEnumeratingWithError(Errors.mapToFileProviderError(Errors.failedToCreateModel)!) }
+            observers.forEach { $0.finishEnumeratingWithError(Errors.mapToFileProviderError(Errors.failedToCreateModel)) }
             Log
                 .error(
                     "Failed to enumerate items due to model failing to be created",
@@ -115,7 +115,7 @@ public class FolderEnumerator: NSObject, NSFileProviderEnumerator, EnumeratorWit
         
         self.model.loadFromCache()
         guard let moc = model.node.moc else {
-            observers.forEach { $0.finishEnumeratingWithError(Errors.mapToFileProviderError(Errors.failedToCreateModel)!) }
+            observers.forEach { $0.finishEnumeratingWithError(Errors.mapToFileProviderError(Errors.failedToCreateModel)) }
             return
         }
 

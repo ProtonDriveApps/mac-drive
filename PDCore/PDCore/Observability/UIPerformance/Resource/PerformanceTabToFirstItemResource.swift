@@ -26,13 +26,13 @@ protocol PerformanceTabToFirstItemResourceResource {
 
 final class ObservabilityPerformanceTabToFirstItemResource: PerformanceTabToFirstItemResourceResource {
     func send(labels: PerformanceTabToFirstItemLabels, duration: Measurement<UnitDuration>) {
-        Log.debug("Sending tabToFirst: \(labels.pageType), \(labels.appLoadType), \(labels.dataSource), \(duration.value) ms", domain: .metrics)
+        Log.debug("Sending tab to first item: \(labels.pageType), \(labels.appLoadType), \(labels.dataSource), \(duration.value) ms", domain: .metrics)
         guard duration.unit == UnitDuration.milliseconds else {
             assertionFailure()
             return
         }
         let event = ObservabilityEvent(
-            name: "drive_mobile_performance_tabToFirstItem_histogram_v1",
+            name: "drive_mobile_performance_tabToFirstItem_histogram",
             value: Int(duration.value),
             labels: labels
         )

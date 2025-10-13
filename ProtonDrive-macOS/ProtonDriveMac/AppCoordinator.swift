@@ -28,7 +28,7 @@ import PDClient
 import PDCore
 import PDLogin_macOS
 import Combine
-import ProtonCoreCryptoPatchedGoImplementation
+import ProtonCoreCryptoMultiversionPatchedGoImplementation
 
 /// Coordinates all the app's dependencies and responsibilities.
 ///
@@ -49,6 +49,8 @@ import ProtonCoreCryptoPatchedGoImplementation
 ///         ↳ `PDCore.EventsSystemManager` - CoreData (Tower).
 ///         ↳ `DomainOperationsService` Events from the FileProvider.
 ///   ↳ `MenuBarCoordinator` - logic related to then menu icon and dropdown menu.
+///   ↳ `DBPerformanceMetricsReporter` - logic related to watching the performance metrics DB and sending
+///   signals to observability system.
 class AppCoordinator: NSObject, ObservableObject {
 
     @SettingsStorage(UserDefaults.FileProvider.pathsMarkedAsKeepDownloadedKey.rawValue) var pathsMarkedAsKeepDownloaded: String?
@@ -91,6 +93,7 @@ class AppCoordinator: NSObject, ObservableObject {
 
     private let appUpdateService: AppUpdateServiceProtocol?
     private let subscriptionService: SubscriptionService
+    private let performanceMetricsReporter: DBPerformanceMetricsReporter
 
     private(set) var window: NSWindow?
 
@@ -227,6 +230,7 @@ class AppCoordinator: NSObject, ObservableObject {
         self.subscriptionService = SubscriptionService(apiService: initialServices.authenticator.apiService)
 
         self.observationCenter = UserDefaultsObservationCenter(userDefaults: Constants.appGroup.userDefaults)
+        self.performanceMetricsReporter = DBPerformanceMetricsReporter()
 
         super.init()
 
@@ -368,6 +372,8 @@ class AppCoordinator: NSObject, ObservableObject {
 
         appState.setLaunchCompletion(100)
         menuBarCoordinator?.hideActivityIndicator()
+
+        performanceMetricsReporter.startReporting()
 
         if postLoginServices.metadataDBWasRecreated {
             performFullResync()

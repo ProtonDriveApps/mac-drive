@@ -35,7 +35,8 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .logCollectionDisabled: logCollectionDisabled = value
         case .oneDollarPlanUpsellEnabled: oneDollarPlanUpsellEnabled = value
         case .driveDisablePhotosForB2B: driveDisablePhotosForB2B = value
-        case .driveDDKEnabled: driveDDKEnabled = value
+        case .driveDDKIntelEnabled: driveDDKIntelEnabled = value
+        case .driveDDKDisabled: driveDDKDisabled = value
         case .driveMacSyncRecoveryDisabled: driveMacSyncRecoveryDisabled = value
         case .driveMacKeepDownloadedDisabled: driveMacKeepDownloadedDisabled = value
         // Sharing
@@ -74,6 +75,8 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .docsSheetsDisabled: docsSheetsDisabled = value
         case .docsCreateNewSheetOnMobileEnabled: docsCreateNewSheetOnMobileEnabled = value
         case .driveiOSDebugMode: driveiOSDebugMode = value
+        // Payments
+        case .driveiOSPaymentsV2: driveiOSPaymentsV2 = value
         }
     }
 
@@ -89,7 +92,8 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .logCollectionDisabled: return logCollectionDisabled
         case .oneDollarPlanUpsellEnabled: return oneDollarPlanUpsellEnabled
         case .driveDisablePhotosForB2B: return driveDisablePhotosForB2B
-        case .driveDDKEnabled: return driveDDKEnabled
+        case .driveDDKIntelEnabled: return driveDDKIntelEnabled
+        case .driveDDKDisabled: return driveDDKDisabled
         case .driveMacSyncRecoveryDisabled: return driveMacSyncRecoveryDisabled
         case .driveMacKeepDownloadedDisabled: return driveMacKeepDownloadedDisabled
         // Sharing
@@ -127,6 +131,8 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .docsSheetsDisabled: return docsSheetsDisabled
         case .docsCreateNewSheetOnMobileEnabled: return docsCreateNewSheetOnMobileEnabled
         case .driveiOSDebugMode: return driveiOSDebugMode
+        // Payments
+        case .driveiOSPaymentsV2: return driveiOSPaymentsV2
         }
     }
 }

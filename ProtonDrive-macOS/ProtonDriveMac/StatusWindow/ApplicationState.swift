@@ -248,7 +248,9 @@ class ApplicationState: ObservableObject {
     }
 
     func setCanGetMoreStorage(_ canGetMoreStorage: Bool) {
-        self.canGetMoreStorage = canGetMoreStorage
+        Task { @MainActor in
+            self.canGetMoreStorage = canGetMoreStorage
+        }
     }
 
     deinit {

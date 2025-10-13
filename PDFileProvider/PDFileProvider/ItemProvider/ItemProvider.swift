@@ -35,11 +35,10 @@ public final class ItemProvider {
         fileSystemSlot: FileSystemSlot,
         cloudSlot: any CloudSlotProtocol,
         completionHandler: @escaping (NSFileProviderItem?, Error?) -> Void
-    ) -> Progress
-    {
+    ) -> Progress {
         let task = Task { [weak self] in
             guard !Task.isCancelled else { return }
-            guard let (item, error) = await self?.localOrRemoteItem(
+            guard let itemOrError = await self?.localOrRemoteItem(
                 for: identifier,
                 creatorAddresses: creatorAddresses,
                 fileSystemSlot: fileSystemSlot,
@@ -47,7 +46,33 @@ public final class ItemProvider {
             )
             else { return }
             guard !Task.isCancelled else { return }
-            completionHandler(item, error)
+            switch itemOrError {
+            case .success(let item):
+                completionHandler(item, nil)
+            
+            case .failure(let error):
+                // According to comment in NSFileProviderReplicatedExtension.h, if this method return any other error than:
+                // * NSFileProviderErrorNoSuchItem (will not be retried)
+                // * NSFileProviderErrorNotAuthenticated (will be retried with a back-off)
+                // * NSFileProviderErrorServerUnreachable (will be retried with a back-off)
+                // than the call will be retried by the system immediately, possibly causing a retry loop.
+                // This is why we ensure that only one of these three is returned here.
+                let mappedError = PDFileProvider.Errors.mapToFileProviderError(error)
+                switch mappedError {
+                case let fpError as NSFileProviderError
+                    where fpError.code == .notAuthenticated || fpError.code == .noSuchItem || fpError.code == .serverUnreachable:
+                    completionHandler(nil, fpError)
+                
+                case let fpError as NSFileProviderError
+                    where fpError.code == .syncAnchorExpired || fpError.code == .pageExpired || fpError.code == .excludedFromSync:
+                    let noSuchItemError = NSError.fileProviderErrorForNonExistentItem(withIdentifier: identifier)
+                    completionHandler(nil, noSuchItemError)
+                    
+                default:
+                    let serverUnreachableError = NSFileProviderError.create(.serverUnreachable, from: error)
+                    completionHandler(nil, serverUnreachableError)
+                }
+            }
         }
         return Progress { _ in
             Log.info("Item for identifier cancelled", domain: .fileProvider)
@@ -62,51 +87,50 @@ public final class ItemProvider {
         for identifier: NSFileProviderItemIdentifier,
         creatorAddresses: Set<String>,
         fileSystemSlot: FileSystemSlot
-    ) -> (NSFileProviderItem?, Error?) {
+    ) -> Result<NSFileProviderItem, Errors> {
         switch identifier {
         case .rootContainer:
             guard !creatorAddresses.isEmpty, let mainShare = fileSystemSlot.getMainShare(of: creatorAddresses), let root = fileSystemSlot.moc.performAndWait({ mainShare.root }) else {
                 Log.error(error: Errors.noMainShare, domain: .fileProvider)
-                return (nil, Errors.noMainShare)
+                return .failure(Errors.noMainShare)
             }
             Log.info("Got item ROOT", domain: .fileProvider)
             do {
                 let item = try NodeItem(node: root)
-                return (item, nil)
+                return .success(item)
             } catch {
-                return (nil, Errors.itemCannotBeCreated)
+                return .failure(Errors.itemCannotBeCreated)
             }
 
         case .workingSet:
             Log.info("Getting item WORKING_SET does not make sense", domain: .fileProvider)
-            return (nil, Errors.requestedItemForWorkingSet)
+            return .failure(Errors.requestedItemForWorkingSet(identifier: identifier))
             
         case .trashContainer:
             Log.info("Getting item TRASH does not make sense", domain: .fileProvider)
-            return (nil, Errors.requestedItemForTrash)
+            return .failure(Errors.requestedItemForTrash(identifier: identifier))
 
         default:
             guard let nodeId = NodeIdentifier(identifier) else {
-                Log.error(error: Errors.nodeIdentifierNotFound, domain: .fileProvider)
-                return (nil, Errors.nodeIdentifierNotFound)
+                Log.error(error: Errors.nodeIdentifierNotFound(identifier: identifier), domain: .fileProvider)
+                return .failure(Errors.nodeIdentifierNotFound(identifier: identifier))
             }
             guard let node = fileSystemSlot.getNode(nodeId) else {
-                Log.error(error: Errors.nodeNotFound, domain: .fileProvider)
-                return (nil, Errors.nodeNotFound)
+                Log.error(error: Errors.nodeNotFound(identifier: identifier), domain: .fileProvider)
+                return .failure(Errors.nodeNotFound(identifier: identifier))
             }
             let (nodeState, isTrashInheriting) = fileSystemSlot.moc.performAndWait { (node.state, node.isTrashInheriting) }
             guard nodeState != .deleted, !isTrashInheriting else {
                 // We don't want trashed items to display locally (disassociated items are
                 // no longer managed by the File Provider and so don't get asked for)
-                return (nil, Errors.nodeNotFound)
+                return .failure(Errors.nodeFoundInTrash(identifier: identifier))
             }
-
             do {
                 let item = try NodeItem(node: node)
                 Log.debug("Got item \(~item)", domain: .fileProvider)
-                return (item, nil)
+                return .success(item)
             } catch {
-                return (nil, Errors.itemCannotBeCreated)
+                return .failure(Errors.itemCannotBeCreated)
             }
         }
     }
@@ -119,27 +143,24 @@ public final class ItemProvider {
         creatorAddresses: Set<String>,
         fileSystemSlot: FileSystemSlot,
         cloudSlot: any CloudSlotProtocol
-    ) async -> (NSFileProviderItem?, Error?) {
+    ) async -> Result<NSFileProviderItem, Error> {
         // Try locally...
-        let (localItem, error) = localItem(for: identifier, creatorAddresses: creatorAddresses, fileSystemSlot: fileSystemSlot)
-
-        // Ignore lookups for the working set and trash (which we don't support)
-        if case Errors.requestedItemForWorkingSet? = error {
-            return (nil, error)
-        }
-        if case Errors.requestedItemForTrash? = error {
-            return (nil, error)
-        }
-
+        let localItemOrError = localItem(for: identifier, creatorAddresses: creatorAddresses, fileSystemSlot: fileSystemSlot)
+        
         // ...if item was found, don't try remote — we have metadata...
-        guard localItem == nil else {
-            return (localItem, error)
+        if case .success = localItemOrError {
+            return localItemOrError.mapError { $0 }
         }
 
-        // ...if that doesn't work, try remotely.
+        // ...if the error is other than nodeNotFound, which indicates we don't have node in our database, there is no point in calling remote...
+        guard case .failure(.nodeNotFound) = localItemOrError else {
+            return localItemOrError.mapError { $0 }
+        }
+        
+        // ...if error is nodeNotFound, try remote.
         guard let nodeId = NodeIdentifier(identifier) else {
-            Log.error("localOrRemoteItem - nodeIdentifierNotFound", error: Errors.nodeIdentifierNotFound, domain: .fileProvider, context: LogContext("Identifier: \(identifier)"))
-            return (nil, Errors.nodeIdentifierNotFound)
+            Log.error("localOrRemoteItem - nodeIdentifierNotFound", error: Errors.nodeIdentifierNotFound(identifier: identifier), domain: .fileProvider, context: LogContext("Identifier: \(identifier)"))
+            return .failure(Errors.nodeIdentifierNotFound(identifier: identifier))
         }
 
         do {
@@ -152,21 +173,21 @@ public final class ItemProvider {
             guard remoteNodeState != .deleted, !remoteNodeIsTrashInheriting else {
                 // We don't want trashed items to display locally (disassociated items are
                 // no longer managed by the File Provider and so don't get asked for)
-                return (nil, Errors.nodeNotFound)
+                return .failure(Errors.nodeFoundInTrash(identifier: identifier))
             }
             do {
                 let item = try NodeItem(node: remoteNode)
                 Log.debug("Got item \(~item)", domain: .fileProvider)
-                return (item, nil)
+                return .success(item)
             } catch {
-                return (nil, Errors.itemCannotBeCreated)
+                return .failure(Errors.itemCannotBeCreated)
             }
         } catch {
             if let responseError = error as? ResponseError,
                responseError.responseCode == APIErrorCodes.itemOrItsParentDeletedErrorCode.rawValue {
-                return (nil, Errors.nodeNotFound)
+                return .failure(Errors.nodeNotFound(identifier: identifier))
             } else {
-                return (nil, error)
+                return .failure(error)
             }
         }
     }
@@ -188,8 +209,8 @@ public final class ItemProvider {
         let moc = storage.newBackgroundContext()
         guard let file = await nodeFetcher(itemIdentifier) as? File
         else {
-            Log.error(error: Errors.nodeNotFound, domain: .fileProvider)
-            completionHandler(nil, nil, Errors.nodeNotFound)
+            Log.error(error: Errors.nodeNotFound(identifier: itemIdentifier), domain: .fileProvider)
+            completionHandler(nil, nil, Errors.nodeNotFound(identifier: itemIdentifier))
             return Progress { _ in
                 Log.info("Fetch contents for \(itemIdentifier) cancelled", domain: .fileProvider)
                 completionHandler(nil, nil, CocoaError(.userCancelled))
@@ -220,16 +241,16 @@ public final class ItemProvider {
 
         let moc = storage.newBackgroundContext()
         guard let fileId = NodeIdentifier(itemIdentifier) else {
-            Log.error(error: Errors.nodeIdentifierNotFound, domain: .fileProvider)
-            completionHandler(nil, nil, Errors.nodeIdentifierNotFound)
+            Log.error(error: Errors.nodeIdentifierNotFound(identifier: itemIdentifier), domain: .fileProvider)
+            completionHandler(nil, nil, Errors.nodeIdentifierNotFound(identifier: itemIdentifier))
             return Progress { _ in
                 Log.info("Fetch contents for \(itemIdentifier) cancelled", domain: .fileProvider)
                 completionHandler(nil, nil, CocoaError(.userCancelled))
             }
         }
         guard let file = fileSystemSlot.getNode(fileId, moc: moc) as? File else {
-            Log.error(error: Errors.nodeNotFound, domain: .fileProvider)
-            completionHandler(nil, nil, Errors.nodeNotFound)
+            Log.error(error: Errors.nodeNotFound(identifier: itemIdentifier), domain: .fileProvider)
+            completionHandler(nil, nil, Errors.nodeNotFound(identifier: itemIdentifier))
             return Progress { _ in
                 Log.info("Fetch contents for \(itemIdentifier) cancelled", domain: .fileProvider)
                 completionHandler(nil, nil, CocoaError(.userCancelled))

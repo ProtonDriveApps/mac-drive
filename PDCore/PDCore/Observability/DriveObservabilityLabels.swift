@@ -34,3 +34,8 @@ public enum DriveObservabilityInitiator: String, Encodable, Equatable {
     case background
     case explicit
 }
+
+public enum DriveObservabilityPipeline: String, Encodable, Equatable {
+    case `default`
+    case legacy
+}

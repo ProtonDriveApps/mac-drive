@@ -22,6 +22,7 @@ import CoreData
 public typealias CreateFilePerformerProvider = () async -> CreateFilePerformer
 
 public protocol CreateFilePerformer {
+    // swiftlint:disable:next function_parameter_count
     func createFile(tower: Tower,
                     item: NSFileProviderItem,
                     with contents: URL?,
@@ -46,6 +47,7 @@ public final class ItemActionsOutlet {
     private let instanceIdentifier = UUID()
     let fileCreationProvider: CreateFilePerformerProvider
     let newRevisionUploadPerformerProvider: NewRevisionUploadPerformerProvider
+    private(set) var validNameDiscoverer: ValidNameDiscoverer?
 
     public init(fileProviderManager: NSFileProviderManager,
                 fileCreationProvider: @escaping CreateFilePerformerProvider = { DefaultCreateFilePerformer() },
@@ -59,7 +61,11 @@ public final class ItemActionsOutlet {
     deinit {
         Log.info("ItemActionsOutlet deinit: \(instanceIdentifier.uuidString)", domain: .syncing)
     }
-    
+
+    public func set(validNameDiscoverer: ValidNameDiscoverer) {
+        self.validNameDiscoverer = validNameDiscoverer
+    }
+
     public func deleteItem(tower: Tower,
                            identifier: NSFileProviderItemIdentifier,
                            baseVersion version: NSFileProviderItemVersion,
@@ -70,7 +76,7 @@ public final class ItemActionsOutlet {
         Log.info("Delete item \(identifier)", domain: .fileProvider)
         guard let nodeID = NodeIdentifier(identifier) else {
             Log.info("Failed to delete item: node ID is invalid \(identifier)", domain: .fileProvider)
-            throw Errors.nodeIdentifierNotFound
+            throw Errors.nodeIdentifierNotFound(identifier: identifier)
         }
         let itemTemplate = ItemTemplate(itemIdentifier: identifier)
 
@@ -86,13 +92,13 @@ public final class ItemActionsOutlet {
                 guard let node = await tower.node(itemIdentifier: identifier) else {
                     Log.error("Node not found despite no conflict being found", domain: .fileProvider)
                     assertionFailure("Missing node in DB must be identified as a conflict")
-                    throw Errors.nodeNotFound
+                    throw Errors.nodeNotFound(identifier: identifier)
                 }
 
                 guard let moc = node.moc else { throw Node.noMOC() }
 
                 let parentID = try moc.performAndWait {
-                    guard let parent = node.parentFolder else { throw Errors.parentNotFound }
+                    guard let parent = node.parentFolder else { throw Errors.parentNotFound(identifier: identifier) }
                     return parent.id
                 }
 
@@ -147,7 +153,7 @@ public final class ItemActionsOutlet {
             Log.info("Irrelevant changes", domain: .fileProvider)
             guard let node = await tower.node(itemIdentifier: item.itemIdentifier) else {
                 Log.error("Can't find item's node in metadata DB, expect item to be removed by system on next enumeration", error: nil, domain: .fileProvider)
-                throw Errors.nodeNotFound
+                throw Errors.nodeNotFound(identifier: item.itemIdentifier)
             }
             return (try NodeItem(node: node), [], false)
         }
@@ -162,6 +168,7 @@ public final class ItemActionsOutlet {
                            contents url: URL?,
                            options: NSFileProviderCreateItemOptions = [],
                            request: NSFileProviderRequest? = nil,
+                           filename: String? = nil,
                            progress: Progress?) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
     {
         Log.info("Create item \(itemTemplate.itemIdentifier) from cleartext content at path \(url?.path ?? "unknown")", domain: .fileProvider)
@@ -174,13 +181,13 @@ public final class ItemActionsOutlet {
             return (resolvedItem, [], false)
         }
 
-        guard let parent = await tower.parentFolder(of: itemTemplate) else { throw Errors.parentNotFound }
+        guard let parent = await tower.parentFolder(of: itemTemplate) else { throw Errors.parentNotFound(identifier: itemTemplate.parentItemIdentifier) }
         try checkFolderLimit(for: parent, storage: tower.storage)
 
         if itemTemplate.isFolder {
             Log.info("Item is a folder", domain: .fileProvider)
 
-            let createdFolder = try await tower.createFolder(named: itemTemplate.filename, under: parent)
+            let createdFolder = try await tower.createFolder(named: filename ?? itemTemplate.filename, under: parent)
             return (try NodeItem(node: createdFolder), [], false)
         } else {
             Log.info("Item is a file", domain: .fileProvider)
@@ -266,7 +273,7 @@ public final class ItemActionsOutlet {
 
         #if os(iOS)
         guard let node = await tower.node(itemIdentifier: item.itemIdentifier) else {
-            throw Errors.nodeNotFound
+            throw Errors.nodeNotFound(identifier: item.itemIdentifier)
         }
 
         guard let moc = node.moc else {
@@ -321,9 +328,9 @@ public final class ItemActionsOutlet {
     {
         Log.info("Moving item...", domain: .fileProvider)
         guard let nodeID = NodeIdentifier(item.itemIdentifier) else {
-            throw Errors.nodeIdentifierNotFound
+            throw Errors.nodeIdentifierNotFound(identifier: item.itemIdentifier)
         }
-        guard let newParent = await tower.parentFolder(of: item) else { throw Errors.parentNotFound }
+        guard let newParent = await tower.parentFolder(of: item) else { throw Errors.parentNotFound(identifier: item.parentItemIdentifier) }
         try checkFolderLimit(for: newParent, storage: tower.storage)
 
         var pendingFields = changedFields
@@ -347,10 +354,10 @@ public final class ItemActionsOutlet {
     {
         Log.info("Renaming item...", domain: .fileProvider)
         guard let nodeID = NodeIdentifier(item.itemIdentifier) else {
-            throw Errors.nodeIdentifierNotFound
+            throw Errors.nodeIdentifierNotFound(identifier: item.itemIdentifier)
         }
         guard await tower.parentFolder(of: item) != nil else {
-            throw Errors.parentNotFound
+            throw Errors.parentNotFound(identifier: item.parentItemIdentifier)
         }
 
         var pendingFields = changedFields
@@ -400,7 +407,7 @@ public final class ItemActionsOutlet {
                 guard let file = await tower.node(itemIdentifier: item.itemIdentifier) as? File else {
                     Log.error("File not found despite no conflict being found", error: nil, domain: .fileProvider)
                     assertionFailure("Missing file in DB must be identified as a conflict")
-                    throw Errors.nodeNotFound
+                    throw Errors.nodeNotFound(identifier: item.itemIdentifier)
                 }
 
                 // fileCopy is the copy of the file that the system asked us to upload from the system-provided location
@@ -493,7 +500,8 @@ public final class DefaultCreateFilePerformer: CreateFilePerformer {
 
     public init() {}
 
-    public func createFile(tower: Tower, 
+    // swiftlint:disable:next function_parameter_count
+    public func createFile(tower: Tower,
                            item: NSFileProviderItem,
                            with url: URL?,
                            under parent: Folder,

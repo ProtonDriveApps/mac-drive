@@ -20,9 +20,12 @@ import Foundation
 
 public protocol PausableTimerResource {
     var updatePublisher: AnyPublisher<Void, Never> { get }
+    var isRunning: Bool { get }
+
     func resume()
     func pause()
     func stop()
+    func restart()
     func getElapsedTime() -> TimeInterval
 }
 
@@ -31,13 +34,23 @@ public final class CommonRunLoopPausableTimerResource: PausableTimerResource {
     private var subject = PassthroughSubject<Void, Never>()
     private let duration: TimeInterval
     private var startTime: Double?
+
     // Cumulative time since an interval start. It resets after interval finishes or if the timer is stopped.
     // E.g. - start timer {event1}, pause {event2}, resume {event3}, stop {event4}
     // - the result should be sum of intervals {event1} - {event2} and {event3} - {event4}
     private var elapsedTime: Double = 0
 
+    /// Timer invalidation is not enough to consistently pause/stop this timer. When we call `timer.invalidate()`,
+    /// `.isValid` immediately becomes false, but the RunLoop might still fire the timer elapsed block. Thus, we need to
+    /// track whether to send an update to our publisher and recreate the timer in `handleIntervalEnd` ourselves.
+    private var hasStopBeenRequested = true
+
     public var updatePublisher: AnyPublisher<Void, Never> {
         subject.eraseToAnyPublisher()
+    }
+
+    public var isRunning: Bool {
+        timer?.isValid ?? false
     }
 
     /// `duration`: in seconds
@@ -46,37 +59,40 @@ public final class CommonRunLoopPausableTimerResource: PausableTimerResource {
     }
 
     public func resume() {
-        guard timer == nil else {
-            return
-        }
+        hasStopBeenRequested = false
 
         startTime = Date.timeIntervalSinceReferenceDate
         let interval = max(duration - elapsedTime, 0)
         let timer = Timer(timeInterval: interval, repeats: false) { [weak self] _ in
             self?.handleIntervalEnd()
         }
+
         self.timer = timer
+
         RunLoop.current.add(timer, forMode: .common)
     }
 
     public func pause() {
-        guard timer != nil else {
-            return
-        }
+        hasStopBeenRequested = true
 
         elapsedTime += Date.timeIntervalSinceReferenceDate - (startTime ?? 0.0)
         timer?.invalidate()
-        timer = nil
     }
 
     public func stop() {
+        hasStopBeenRequested = true
+
         timer?.invalidate()
-        timer = nil
         elapsedTime = 0
     }
 
+    public func restart() {
+        stop()
+        resume()
+    }
+
     public func getElapsedTime() -> TimeInterval {
-        if timer != nil {
+        if !isRunning {
             return elapsedTime + Date.timeIntervalSinceReferenceDate - (startTime ?? 0.0)
         } else {
             return elapsedTime
@@ -84,10 +100,13 @@ public final class CommonRunLoopPausableTimerResource: PausableTimerResource {
     }
 
     private func handleIntervalEnd() {
-        timer = nil
+        timer?.invalidate()
         elapsedTime += Date.timeIntervalSinceReferenceDate - (startTime ?? 0.0)
-        subject.send()
         elapsedTime = 0
-        resume()
+
+        if !hasStopBeenRequested {
+            subject.send()
+            resume()
+        }
     }
 }

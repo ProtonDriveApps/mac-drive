@@ -77,10 +77,14 @@ public class SentryClient {
             options.beforeSend = { event in
                 #if os(macOS)
                 let exceptionMessagesToIgnore = ExceptionMessagesExcludedFromSentryCrashReport.allCases.map(\.rawValue)
-                if let exceptions = event.exceptions {
-                    let exception = exceptions.first { exception in
-                        exceptionMessagesToIgnore.contains { exception.value.contains($0) }
-                    }
+                // this strange dance of casting to NSArray and back was introduced to hopefully remove the cryptic
+                // Fatal error: NSArray element failed to match the Swift Array Element type. Expected SentryException but found SentryException
+                if let exceptions = event.exceptions as? NSArray {
+                    let exception = exceptions
+                        .compactMap { $0 as? Sentry.Exception }
+                        .first { exception in
+                            exceptionMessagesToIgnore.contains { exception.value.contains($0) }
+                        }
                     if let exception {
                         Log.info("Crash report not sent to Sentry because it contains the following message: \(exception.value)",
                                  domain: .diagnostics)

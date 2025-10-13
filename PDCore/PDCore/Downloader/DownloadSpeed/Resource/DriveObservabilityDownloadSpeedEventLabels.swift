@@ -21,15 +21,10 @@ import ProtonCoreObservability
 // See drive_download_speed_histogram_v1.schema.json
 struct DriveObservabilityDownloadSpeedEventLabels: Encodable, Equatable {
     let context: Context
-    let pipeline: Pipeline
+    let pipeline: DriveObservabilityPipeline
 
     enum Context: String, Encodable, Equatable {
         case foreground
         case background
-    }
-
-    enum Pipeline: String, Encodable, Equatable {
-        case `default`
-        case legacy
     }
 }

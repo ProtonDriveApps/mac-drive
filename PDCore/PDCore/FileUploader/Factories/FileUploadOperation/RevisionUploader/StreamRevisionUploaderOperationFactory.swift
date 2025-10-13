@@ -99,7 +99,8 @@ class StreamRevisionUploaderOperationFactory: FileUploadOperationFactory {
             queue: .serial,
             moc: moc
         )
-        return PageRevisionUploaderOperation(uploader: uploader, onError: onError)
+        let retryRevisionUploader = RetryPageRevisionUploader(decoratee: uploader, maximumRetryCount: 3, uploadID: id, page: page.index)
+        return PageRevisionUploaderOperation(uploader: retryRevisionUploader, onError: onError)
     }
 
     func makeCreatorOperation(_ id: UUID, _ page: RevisionPage, _ onError: @escaping OnUploadError) -> Operation {

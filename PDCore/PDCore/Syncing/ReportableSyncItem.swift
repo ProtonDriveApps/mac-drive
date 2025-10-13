@@ -31,21 +31,6 @@ public struct ReportableSyncItem: Encodable {
     public let progress: Int
     public var errorDescription: String?
 
-    // this is the initializer for the app side
-    public init(item: SyncItem) {
-        self.id = item.id
-        self.modificationTime = item.modificationTime
-        self.objectIdentifier = item.objectIdentifier
-        self.filename = item.filename ?? ""
-        self.location = item.location
-        self.mimeType = item.mimeType
-        self.fileSize = item.fileSize?.intValue
-        self.fileProviderOperation = item.fileProviderOperation
-        self.state = item.state
-        self.progress = item.progress
-        self.errorDescription = item.errorDescription?.split(separator: "\n").first?.description
-    }
-
     // this is the initializer for the file provider side
     public init(id: String,
                 modificationTime: Date,

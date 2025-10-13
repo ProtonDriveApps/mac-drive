@@ -50,7 +50,7 @@ extension EnumeratorWithItemsFromAPI {
         .sink { completion in
             if case let .failure(error) = completion {
                 Log.error("Error fetching page", error: error, domain: .enumerating)
-                let fsError = Errors.mapToFileProviderError(error) ?? error
+                let fsError = Errors.mapToFileProviderError(error)
                 observers.forEach { $0.finishEnumeratingWithError(fsError) }
             } else {
                 Log.info("Finished fetching page \(page) from cloud", domain: .enumerating)

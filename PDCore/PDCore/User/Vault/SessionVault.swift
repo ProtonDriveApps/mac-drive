@@ -347,7 +347,7 @@ extension SessionVault: SessionStore {
             Log.info("New child session credentials \(newChildSessionCredentials.UID) consumed in the extension",
                      domain: .sessionManagement)
         } else {
-            Log.info("New child session credentials consumed in the extension",
+            Log.info("New child session credentials of type \(kind) consumed in the extension",
                      domain: .sessionManagement)
         }
         switch kind {

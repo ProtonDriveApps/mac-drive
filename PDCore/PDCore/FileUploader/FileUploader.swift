@@ -172,6 +172,11 @@ public class FileUploader: OperationProcessor<FileUploaderOperation>, ErrorContr
     public func deleteUploadingFile(_ file: File, error: PhotosFailureUserError? = nil) {
         moc.perform { [weak self] in
             guard let self else { return }
+            guard file.moc != nil else {
+                // Cannot do anything, the file is already deleted
+                Log.info("Calling deleteUploadingFile - cannot delete file, it's already deleted", domain: .uploader)
+                return
+            }
 
             let file = file.in(moc: self.moc)
             self.performDeletionOfUploadingFileOutsideMOC(file)

@@ -23,7 +23,7 @@ extension Tower {
     func nodeWithName(of item: NSFileProviderItem) async throws -> Node? {
         guard let parent = await self.node(itemIdentifier: item.parentItemIdentifier) as? Folder,
               let moc = parent.moc else {
-            throw Errors.parentNotFound
+            throw Errors.parentNotFound(identifier: item.parentItemIdentifier)
         }
 
         return try moc.performAndWait {
@@ -40,7 +40,7 @@ extension Tower {
     public func rootFolder() async throws -> Folder {
         guard let root = await node(itemIdentifier: .rootContainer) as? Folder else {
             assertionFailure("Could not find rootContainer")
-            throw NSFileProviderError(.noSuchItem)
+            throw NSError.fileProviderErrorForNonExistentItem(withIdentifier: .rootContainer)
         }
         return root
     }

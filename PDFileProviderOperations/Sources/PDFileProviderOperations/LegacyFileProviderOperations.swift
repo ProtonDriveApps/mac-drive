@@ -28,13 +28,18 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
     private let progresses: FileOperationProgresses
     private let regressionTestHelpers: RegressionTestHelpers?
 
+    private let downloadCollector: ProgressPerformanceCollector
+    private let uploadCollector: ProgressPerformanceCollector
+
     public required init(tower: Tower,
                          syncReporter: SyncReporter,
                          itemProvider: ItemProvider,
                          manager: NSFileProviderManager,
                          itemActionsOutlet: ItemActionsOutlet? = nil,
                          progresses: FileOperationProgresses,
-                         enableRegressionTestHelpers: Bool
+                         enableRegressionTestHelpers: Bool,
+                         downloadCollector: ProgressPerformanceCollector,
+                         uploadCollector: ProgressPerformanceCollector
     ) {
         self.tower = tower
         self.syncReporter = syncReporter
@@ -56,6 +61,9 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
                 return (filename: filename, mimeType: mimeType, size: node.presentableNodeSize)
             }
         }
+
+        self.downloadCollector = downloadCollector
+        self.uploadCollector = uploadCollector
     }
 
     public func item(for identifier: NSFileProviderItemIdentifier,
@@ -83,7 +91,7 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
                 return
             }
             
-            let fpError = PDFileProvider.Errors.mapToFileProviderError(error)
+            let fpError = PDFileProvider.Errors.mapToFileProviderErrorIfPossible(error)
             completionBlockWrapper(item, fpError)
         }
         
@@ -134,9 +142,11 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
                 possibleError: error,
                 during: .fetchContents,
                 withoutLocation: false)
-            let fpError = PDFileProvider.Errors.mapToFileProviderError(error)
+            let fpError = PDFileProvider.Errors.mapToFileProviderErrorIfPossible(error)
             completionBlockWrapper(url, item, fpError)
         }
+
+        didStartFileDownloadOperation(with: progress)
 
         fetchContentsProgress = progress
         progresses.add(progress)
@@ -186,7 +196,6 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
         let progress = itemActionsOutlet.createItem(
             tower: tower, basedOn: itemTemplate, fields: fields, contents: url, options: options, request: request
         ) { [weak self] item, fields, needUpload, error in
-
             createItemProgress?.clearOneTimeCancellationHandler()
             self?.progresses.remove(createItemProgress)
             guard createItemProgress?.isCancelled != true else {
@@ -201,10 +210,12 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
                 changedFields: fields,
                 temporaryItem: itemTemplate,
                 withoutLocation: withoutLocation)
-            let fpError = PDFileProvider.Errors.mapToFileProviderError(error)
+            let fpError = PDFileProvider.Errors.mapToFileProviderErrorIfPossible(error)
             completionBlockWrapper(item, fields, needUpload, fpError)
         }
-        
+
+        didStartFileUploadOperation(with: progress)
+
         createItemProgress = progress
         progresses.add(progress)
         return progress
@@ -240,6 +251,7 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
         let fileProviderOperation = FileProviderOperation(changedFields: changedFields)
 
         let withoutLocation = options.contains(.mayAlreadyExist)
+        let contentsChanged = changedFields.contains(.contents)
 
         syncReporter.didStartFileOperation(item: item, operation: fileProviderOperation, changedFields: changedFields, withoutLocation: withoutLocation)
 
@@ -247,7 +259,6 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
             tower: tower, item: item, baseVersion: version, changedFields: changedFields, contents: newContents,
             options: options, request: request
         ) { [weak self] modifiedItem, fields, needUpload, error in
-
             let error = self?.regressionTestHelpers?.error(for: item, operation: fileProviderOperation) ?? error
 
             modifyItemProgress?.clearOneTimeCancellationHandler()
@@ -264,10 +275,14 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
                 changedFields: changedFields,
                 withoutLocation: withoutLocation
             )
-            let fpError = PDFileProvider.Errors.mapToFileProviderError(error)
+            let fpError = PDFileProvider.Errors.mapToFileProviderErrorIfPossible(error)
             completionBlockWrapper(modifiedItem, fields, needUpload, fpError)
         }
-        
+
+        if contentsChanged {
+            didStartFileUploadOperation(with: progress)
+        }
+
         modifyItemProgress = progress
         progresses.add(progress)
         return progress
@@ -312,13 +327,35 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
                 possibleError: error,
                 during: .delete,
                 withoutLocation: true)
-            let fpError = PDFileProvider.Errors.mapToFileProviderError(error)
+            let fpError = PDFileProvider.Errors.mapToFileProviderErrorIfPossible(error)
             completionBlockWrapper(fpError)
         }
         
         deleteItemProgress = progress
         progresses.add(progress)
         return progress
+    }
+}
+
+private extension LegacyFileProviderOperations {
+    func didStartFileUploadOperation(with progress: Progress?) {
+        guard let progress else { return }
+        uploadCollector.startObserving(progress: progress, using: .legacy)
+    }
+
+    func didFinishFileUploadOperation(with progress: Progress?) {
+        guard let progress else { return }
+        uploadCollector.finishObserving(progress: progress, using: .legacy)
+    }
+
+    func didStartFileDownloadOperation(with progress: Progress?) {
+        guard let progress else { return }
+        downloadCollector.startObserving(progress: progress, using: .legacy)
+    }
+
+    func didFinishFileDownloadOperation(with progress: Progress?) {
+        guard let progress else { return }
+        downloadCollector.finishObserving(progress: progress, using: .legacy)
     }
 }
 

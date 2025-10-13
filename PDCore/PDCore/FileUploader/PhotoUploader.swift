@@ -170,10 +170,11 @@ public final class PhotoUploader: MyFilesFileUploader {
         ObservabilityEnv.report(
             .uploadSuccessRateEvent(
                 status: .failure,
-                retryCount: retryCount,
-                fileDraft: fileDraft)
+                retry: .from(retryCount: retryCount),
+                shareType: .photo,
+                initiator: .background
+            )
         )
-
     }
     
     private func mapToUserError(error: Error) -> PhotosFailureUserError? {
