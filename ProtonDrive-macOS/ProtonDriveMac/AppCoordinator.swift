@@ -38,7 +38,7 @@ import ProtonCoreCryptoMultiversionPatchedGoImplementation
 ///   ↳ `ApplicationEventObserver` - observes all changes relevant to the state of the status window (sync in progress? user logged in?, network reachable?, update available?), and propagates them to the menu bar status item and status window.
 ///     ↳ `ApplicationState` - shared with `AppCoordinator`.
 ///     ↳ `NetworkStateInteractor` - provides updates on whether the network is reachable.
-///     ↳ `AppUpdateServiceProtocol` - provides updates on whether an app update is available.
+///     ↳ `AppUpdateServiceProtocol` - provides updaes on whether an app update is available.
 ///     ↳ `SessionVault` - provides updates on when a user logs in.
 ///     ↳ `LoggedInStateReporter` - provides updates on when a user logs in.
 ///     ↳ `GlobalProgressObserver` - provides updates on the state of uploading or downloading operations from the File Provider extension.
@@ -48,6 +48,7 @@ import ProtonCoreCryptoMultiversionPatchedGoImplementation
 ///       ↳ `SyncStateDelegate` -  updates the `isPaused` and `isOffline` status of `EventsSystemManager` and `DomainOperationsService`.
 ///         ↳ `PDCore.EventsSystemManager` - CoreData (Tower).
 ///         ↳ `DomainOperationsService` Events from the FileProvider.
+///     ↳ `PromoCampaignInteractor` - provides information about active promo campaigns, used for the banner within the tray app.
 ///   ↳ `MenuBarCoordinator` - logic related to then menu icon and dropdown menu.
 ///   ↳ `DBPerformanceMetricsReporter` - logic related to watching the performance metrics DB and sending
 ///   signals to observability system.
@@ -104,6 +105,7 @@ class AppCoordinator: NSObject, ObservableObject {
     private var menuBarCoordinator: MenuBarCoordinator?
     private var applicationEventObserver: ApplicationEventObserver?
     private var globalProgressObserver: GlobalProgressObserver?
+    private var promoCampaignInteractor: PromoCampaignInteractorProtocol
 
     private var initializationCoordinator: InitializationCoordinator?
     private var onboardingCoordinator: OnboardingCoordinator?
@@ -168,6 +170,7 @@ class AppCoordinator: NSObject, ObservableObject {
             accountInfoProvider: initialServices.sessionVault,
             featureFlags: { featureFlagsAccessor() },
             fileProviderManagerFactory: SystemFileProviderManagerFactory())
+        let promoCampaignInteractor = PromoCampaignInteractor.shared
 
 #if HAS_BUILTIN_UPDATER
         let appUpdateService = SparkleAppUpdateService()
@@ -175,16 +178,19 @@ class AppCoordinator: NSObject, ObservableObject {
         let appUpdateService: AppUpdateServiceProtocol? = nil
 #endif
 
-        self.init(initialServices: initialServices,
-                  networkStateService: networkStateService,
-                  driveCoreAlertListener: driveCoreAlertListener,
-                  loginBuilder: loginBuilder,
-                  postLoginServicesBuilder: postLoginServicesBuilder,
-                  logContentLoader: logContentLoader,
-                  launchOnBoot: launchOnBoot,
-                  appUpdateService: appUpdateService,
-                  domainOperationsService: domainOperationsService,
-                  ddkSessionCommunicator: ddkSessionCommunicator)
+        self.init(
+            initialServices: initialServices,
+            networkStateService: networkStateService,
+            driveCoreAlertListener: driveCoreAlertListener,
+            loginBuilder: loginBuilder,
+            postLoginServicesBuilder: postLoginServicesBuilder,
+            logContentLoader: logContentLoader,
+            launchOnBoot: launchOnBoot,
+            appUpdateService: appUpdateService,
+            domainOperationsService: domainOperationsService,
+            ddkSessionCommunicator: ddkSessionCommunicator,
+            promoCampaignInteractor: promoCampaignInteractor
+        )
 
         featureFlagsAccessor = { [weak self] in self?.featureFlags }
         await ddkSessionCommunicator.performInitialSetup()
@@ -195,25 +201,31 @@ class AppCoordinator: NSObject, ObservableObject {
         }
     }
 
-#if DEBUG && !canImport(XCTest)
+#if DEBUG
     static var counter = 0
 #endif
 
-    required init(initialServices: InitialServices,
-                  networkStateService: NetworkStateInteractor,
-                  driveCoreAlertListener: DriveCoreAlertListener,
-                  loginBuilder: LoginManagerBuilder,
-                  postLoginServicesBuilder: PostLoginServicesBuilder,
-                  logContentLoader: LogContentLoader,
-                  launchOnBoot: any LaunchOnBootServiceProtocol,
-                  appUpdateService: AppUpdateServiceProtocol?,
-                  domainOperationsService: DomainOperationsService,
-                  ddkSessionCommunicator: SessionRelatedCommunicatorBetweenMainAppAndExtensions) {
+    required init(
+        initialServices: InitialServices,
+        networkStateService: NetworkStateInteractor,
+        driveCoreAlertListener: DriveCoreAlertListener,
+        loginBuilder: LoginManagerBuilder,
+        postLoginServicesBuilder: PostLoginServicesBuilder,
+        logContentLoader: LogContentLoader,
+        launchOnBoot: any LaunchOnBootServiceProtocol,
+        appUpdateService: AppUpdateServiceProtocol?,
+        domainOperationsService: DomainOperationsService,
+        ddkSessionCommunicator: SessionRelatedCommunicatorBetweenMainAppAndExtensions,
+        promoCampaignInteractor: PromoCampaignInteractorProtocol
+    ) {
 
-#if DEBUG && !canImport(XCTest)
-        // Make sure this is only instantiated once
+#if DEBUG
         Self.counter += 1
-        assert(Self.counter == 1)
+
+        // Make sure this is only instantiated once only if we're not running tests
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
+            assert(Self.counter == 1)
+        }
 #endif
 
         self.initialServices = initialServices
@@ -228,9 +240,9 @@ class AppCoordinator: NSObject, ObservableObject {
         self.ddkSessionCommunicator = ddkSessionCommunicator
         self.appState = ApplicationState()
         self.subscriptionService = SubscriptionService(apiService: initialServices.authenticator.apiService)
-
         self.observationCenter = UserDefaultsObservationCenter(userDefaults: Constants.appGroup.userDefaults)
         self.performanceMetricsReporter = DBPerformanceMetricsReporter()
+        self.promoCampaignInteractor = promoCampaignInteractor
 
         super.init()
 
@@ -647,6 +659,10 @@ class AppCoordinator: NSObject, ObservableObject {
                 sessionVault: postLoginServices.tower.sessionVault
             )
 
+            applicationEventObserver?.startGeneralSettingsMonitoring(
+                settingsService: postLoginServices.tower.generalSettings
+            )
+
             let hasPlan = initialServices.sessionVault.userInfo?.hasAnySubscription
             DriveIntegrityErrorMonitor.configure(with: Constants.appGroup, forUserWithPlan: hasPlan)
         } catch {
@@ -669,10 +685,13 @@ class AppCoordinator: NSObject, ObservableObject {
 
         appState.setAccountInfo(self.initialServices.sessionVault.getAccountInfo())
 
-        self.applicationEventObserver = ApplicationEventObserver(state: appState,
-                                                                 logoutStateService: initialServices,
-                                                                 networkStateService: networkStateService,
-                                                                 appUpdateService: appUpdateService)
+        self.applicationEventObserver = ApplicationEventObserver(
+            state: appState,
+            logoutStateService: initialServices,
+            networkStateService: networkStateService,
+            appUpdateService: appUpdateService,
+            promoCampaignInteractor: promoCampaignInteractor
+        )
 
         self.menuBarCoordinator = await MenuBarCoordinator(
             state: appState,
@@ -1445,6 +1464,12 @@ extension AppCoordinator: UserActionsDelegate {
             itemIdentifiers.append(itemIdentifier.id)
         }
         return itemIdentifiers
+    }
+
+    // MARK: - Promotional actions
+
+    func dismissPromoBanner() {
+        promoCampaignInteractor.dismissCampaign()
     }
 }
 

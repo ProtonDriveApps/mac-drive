@@ -385,6 +385,33 @@ struct QASettingsView: View {
                         .padding(.bottom, 10)
                         .padding(.top, 20)
                 }
+
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("To clear override date, remove text from field and submit")
+                        Text("The date you input will be parsed in CET time zone")
+                        TextField("yyyy-MM-dd HH:mm", text: $vm.overrideDateForPromoCampaign)
+                            .onSubmit { vm.refreshPromoCampaign() }
+                            .font(.system(size: 11))
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let activeCampaign = vm.activeCampaign {
+                            HStack {
+                                Text("Active campaign:")
+                                Spacer()
+                                Text(activeCampaign.text)
+                            }
+                        } else {
+                            Text("No active campaign for \(vm.overrideDateForPromoCampaign.isEmpty ? "current" : "override") date")
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(16)
+                } label: {
+                    Text("Promotional campaigns")
+                        .font(.headline)
+                        .padding(.bottom, 10)
+                        .padding(.top, 20)
+                }
             }
             .frame(width: 350)
             .padding(20)

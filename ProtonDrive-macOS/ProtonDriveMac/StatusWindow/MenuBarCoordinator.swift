@@ -103,19 +103,23 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
     private func statusItemImageName(_ status: ApplicationSyncStatus) -> String {
         switch status {
         case .signedOut:
-            "status-signed-out"
+            return "status-signed-out"
         case .paused:
-            "status-paused"
+            return "status-paused"
         case .offline:
-            "status-offline"
+            return "status-offline"
         case .syncing, .enumerating, .launching, .fullResyncInProgress:
-            "status-syncing"
+            return "status-syncing"
         case .errored:
-            "status-error"
+            return "status-error"
         case .updateAvailable:
-            "status-update-available"
+            return "status-update-available"
         case .synced, .fullResyncCompleted:
-            "status-synced"
+            if state.visibleCampaign != nil && !state.items.isEmpty {
+                return "status-promo"
+            } else {
+                return "status-synced"
+            }
         }
     }
 

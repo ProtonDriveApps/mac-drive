@@ -45,7 +45,7 @@ final class AsyncThumbnailLoader: CancellableThumbnailLoader {
 extension AsyncThumbnailLoader {
     func loadThumbnail(with id: Identifier) {
         guard isIdAllowed(id) else {
-            Log.info("Load thumbnail not allowed: \(id)", domain: .thumbnails)
+            Log.debug("Load thumbnail not allowed: \(id)", domain: .thumbnails)
             failedIdSubject.send(id)
             return
         }

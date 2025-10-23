@@ -45857,6 +45857,12 @@
             "value" : "Accueil"
           }
         },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kezdőlap"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
@@ -47854,6 +47860,12 @@
             "value" : "Nom du document"
           }
         },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dokumentum neve"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
@@ -47863,7 +47875,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "文書の名"
+            "value" : "文書の名前"
           }
         },
         "ko" : {
@@ -47996,6 +48008,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nommer votre scan"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beolvasás elnevezése"
           }
         },
         "it" : {
@@ -78342,6 +78360,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Numériser un document"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dokumentum szkennelése"
           }
         },
         "it" : {
@@ -112871,6 +112895,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Faites glisser vers le bas pour actualiser"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frissítéshez húzza le"
           }
         },
         "it" : {

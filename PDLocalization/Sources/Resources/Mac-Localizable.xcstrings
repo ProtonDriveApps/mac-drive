@@ -437,6 +437,12 @@
             "value" : "Resynchronisation complète"
           }
         },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teljes újraszinkronizálás"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",

@@ -77,4 +77,13 @@ public enum FeatureAvailabilityFlag: CaseIterable {
 
     // Payments
     case driveiOSPaymentsV2
+
+    // SDK
+    case driveiOSSDKUploadMain
+    case driveiOSSDKUploadPhoto
+    case driveiOSSDKDownloadMain
+    case driveiOSSDKDownloadPhoto
+
+    // Black Friday 2025
+    case driveIOSBlackFriday2025
 }

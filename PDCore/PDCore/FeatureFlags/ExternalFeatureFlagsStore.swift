@@ -77,6 +77,13 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .driveiOSDebugMode: driveiOSDebugMode = value
         // Payments
         case .driveiOSPaymentsV2: driveiOSPaymentsV2 = value
+        // SDK
+        case .driveiOSSDKUploadMain: driveiOSSDKUploadMain = value
+        case .driveiOSSDKUploadPhoto: driveiOSSDKUploadPhoto = value
+        case .driveiOSSDKDownloadMain: driveiOSSDKDownloadMain = value
+        case .driveiOSSDKDownloadPhoto: driveiOSSDKDownloadPhoto = value
+        // Black Friday 2025
+        case .driveIOSBlackFriday2025: driveIOSBlackFriday2025 = value
         }
     }
 
@@ -133,6 +140,13 @@ extension LocalSettings: ExternalFeatureFlagsStore {
         case .driveiOSDebugMode: return driveiOSDebugMode
         // Payments
         case .driveiOSPaymentsV2: return driveiOSPaymentsV2
+        // SDK
+        case .driveiOSSDKUploadMain: return driveiOSSDKUploadMain
+        case .driveiOSSDKUploadPhoto: return driveiOSSDKUploadPhoto
+        case .driveiOSSDKDownloadMain: return driveiOSSDKDownloadMain
+        case .driveiOSSDKDownloadPhoto: return driveiOSSDKDownloadPhoto
+        // Black Friday 2025
+        case .driveIOSBlackFriday2025: return driveIOSBlackFriday2025
         }
     }
 }

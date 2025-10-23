@@ -33,6 +33,7 @@ struct QASettingsConstants {
     static let disconnectDomainOnSignOut = "disconnectDomainOnSignOut"
     static let driveDDKEnabledInQASettings = "driveDDKEnabledInQASettings"
     static let globalProgressStatusMenuEnabled = "globalProgressStatusMenuEnabled"
+    static let overrideDateForPromoCampaign = "overrideDateForPromoCampaign"
 }
 
 protocol EventLoopManager: AnyObject {
@@ -69,7 +70,7 @@ class QASettingsViewModel: ObservableObject {
     @SettingsStorage(QASettingsConstants.shouldUpdateEvenOnTestFlight) var shouldUpdateEvenOnTestFlightStorage: Bool?
     @SettingsStorage(QASettingsConstants.updateChannel) var updateChannelStorage: String?
 #endif
-    
+
     @Published var shouldFetchEvents: Bool = true {
         didSet {
             guard let eventLoopManager else { return }
@@ -78,22 +79,22 @@ class QASettingsViewModel: ObservableObject {
             }
         }
     }
-    
+
     @Published var shouldObfuscateDumps: Bool = false {
         didSet { shouldObfuscateDumpsStorage = shouldObfuscateDumps }
     }
-    
+
     @Published var enablePostMigrationCleanup: Bool = false {
         didSet { requiresPostMigrationCleanup = enablePostMigrationCleanup }
     }
     @SettingsStorage(QASettingsConstants.shouldObfuscateDumpsStorage) var shouldObfuscateDumpsStorage: Bool?
     @SettingsStorage("requiresPostMigrationStep") private var requiresPostMigrationCleanup: Bool?
-    
+
     enum FeatureFlagOptions: String, CaseIterable {
         case useFF
         case enabled
         case disabled
-        
+
         var toBool: Bool? {
             switch self {
             case .useFF: return nil
@@ -101,7 +102,7 @@ class QASettingsViewModel: ObservableObject {
             case .disabled: return false
             }
         }
-        
+
         init(bool: Bool?) {
             switch bool {
             case nil: self = .useFF
@@ -130,11 +131,19 @@ class QASettingsViewModel: ObservableObject {
     }
     @SettingsStorage(QASettingsConstants.driveDDKEnabledInQASettings) var driveDDKEnabledStorage: Bool?
 
+    @Published var overrideDateForPromoCampaign: String = "" {
+        didSet { overrideDateForPromoCampaignStorage = overrideDateForPromoCampaign }
+    }
+
+    @SettingsStorage(QASettingsConstants.overrideDateForPromoCampaign) var overrideDateForPromoCampaignStorage: String?
+    @Published var activeCampaign: PromoCampaignConfiguration?
+
     let parentSessionUID: String
     let childSessionUID: String
     let userID: String
     let clearCredentials: () -> Void
-    
+
+    private var cancellables: Set<AnyCancellable> = []
     private let dumper: Dumper?
     private let eventLoopManager: EventLoopManager?
     private let featureFlags: PDCore.FeatureFlagsRepository?
@@ -143,6 +152,7 @@ class QASettingsViewModel: ObservableObject {
     private let metadataStorage: StorageManager?
     private let eventsStorage: EventStorageManager?
     private let jailDependencies: (PMAPIService, Client)?
+    private let promoCampaignInteractor: PromoCampaignInteractor
 
     let applicationEventObserver: ApplicationEventObserver
     let userActions: UserActions
@@ -158,7 +168,8 @@ class QASettingsViewModel: ObservableObject {
          userActions: UserActions,
          metadataStorage: StorageManager?,
          eventsStorage: EventStorageManager?,
-         jailDependencies: (PMAPIService, Client)?
+         jailDependencies: (PMAPIService, Client)?,
+         promoCampaignInteractor: PromoCampaignInteractor
     ) {
         let suite = Constants.appGroup
         self._requiresPostMigrationCleanup.configure(with: suite)
@@ -186,11 +197,16 @@ class QASettingsViewModel: ObservableObject {
         self.metadataStorage = metadataStorage
         self.eventsStorage = eventsStorage
         self.jailDependencies = jailDependencies
+        self.promoCampaignInteractor = promoCampaignInteractor
 
         self.shouldObfuscateDumps = shouldObfuscateDumpsStorage ?? false
         self.enablePostMigrationCleanup = requiresPostMigrationCleanup ?? false
         self.disconnectDomainOnSignOut = FeatureFlagOptions(bool: disconnectDomainOnSignOutStorage).rawValue
         self.driveDDKEnabled = FeatureFlagOptions(bool: driveDDKEnabledStorage).rawValue
+
+        self.promoCampaignInteractor.activeCampaign.sink { activeCampaign in
+            self.activeCampaign = activeCampaign
+        }.store(in: &cancellables)
 
 #if HAS_BUILTIN_UPDATER
         self.shouldUpdateEvenOnDebugBuild = shouldUpdateEvenOnDebugBuildStorage ?? false
@@ -474,6 +490,14 @@ class QASettingsViewModel: ObservableObject {
         } catch: { @MainActor in
             dumperError = $0.localizedDescription
         }
+    }
+
+    func setOverrideDateForPromoCampaign(dateString: String) {
+        self.overrideDateForPromoCampaign = dateString
+    }
+
+    func refreshPromoCampaign() {
+        self.promoCampaignInteractor.refreshCampaign(resetBannerDismissal: true)
     }
 }
 

@@ -32,8 +32,11 @@ class DeleteAlerter {
 
     init() {
         Self.counter += 1
-        // Make sure this is only instantiated once.
-        assert(Self.counter == 1)
+
+        // Make sure this is only instantiated once only if we're not running tests
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
+            assert(Self.counter == 1)
+        }
     }
 #endif
 

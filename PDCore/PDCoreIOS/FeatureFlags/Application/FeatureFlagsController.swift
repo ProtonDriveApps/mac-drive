@@ -43,6 +43,11 @@ public protocol FeatureFlagsControllerProtocol {
     var hasProtonSheetCreation: Bool { get }
     var hasDebugMode: Bool { get }
     var hasPaymentsV2: Bool { get }
+    var hasSDKUploadMain: Bool { get }
+    var hasSDKUploadPhoto: Bool { get }
+    var hasSDKDownloadMain: Bool { get }
+    var hasSDKDownloadPhoto: Bool { get }
+    var hasIOSBlackFriday2025: Bool { get }
     /// Makes current value publisher for the specific FF
     func makePublisher(keyPath: KeyPath<FeatureFlagsControllerProtocol, Bool>) -> AnyPublisher<Bool, Never>
 }
@@ -154,6 +159,26 @@ public final class FeatureFlagsController: FeatureFlagsControllerProtocol {
 
     public var hasPaymentsV2: Bool {
         return featureFlagsStore.isFeatureEnabled(.driveiOSPaymentsV2)
+    }
+
+    public var hasSDKUploadMain: Bool {
+        return buildType.isQaOrBelow && featureFlagsStore.isFeatureEnabled(.driveiOSSDKUploadMain)
+    }
+
+    public var hasSDKUploadPhoto: Bool {
+        return buildType.isQaOrBelow && featureFlagsStore.isFeatureEnabled(.driveiOSSDKUploadPhoto)
+    }
+
+    public var hasSDKDownloadMain: Bool {
+        return buildType.isQaOrBelow && featureFlagsStore.isFeatureEnabled(.driveiOSSDKDownloadMain)
+    }
+
+    public var hasSDKDownloadPhoto: Bool {
+        return buildType.isQaOrBelow && featureFlagsStore.isFeatureEnabled(.driveiOSSDKDownloadPhoto)
+    }
+
+    public var hasIOSBlackFriday2025: Bool {
+        featureFlagsStore.isFeatureEnabled(.driveIOSBlackFriday2025)
     }
 
     public func makePublisher(keyPath: KeyPath<FeatureFlagsControllerProtocol, Bool>) -> AnyPublisher<Bool, Never> {

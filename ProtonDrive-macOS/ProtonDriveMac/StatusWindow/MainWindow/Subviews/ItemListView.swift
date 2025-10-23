@@ -36,6 +36,7 @@ struct ItemListView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
+                PromoCampaignBanner(state: state, actions: actions)
                 TimelineView(.periodic(from: Date.now, by: 0.04)) { context in
                     ForEach(Array(state.throttledItems.enumerated()), id: \.element) { index, item in
                         ItemRowView(

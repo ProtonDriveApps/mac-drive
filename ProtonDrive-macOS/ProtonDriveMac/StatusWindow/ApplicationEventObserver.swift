@@ -71,6 +71,12 @@ class ApplicationEventObserver: ObservableObject {
     /// Fires every `ElapsedTimeService.timeInterval` seconds, only the dropdown Menu or Status Window are opened.
     private var elapsedTimeService: ElapsedTimeService?
 
+    /// Fires whenever there's a change to active promo campaigns for the user.
+    private var promoCampaignInteractor: PromoCampaignInteractorProtocol?
+
+    /// Responsible for fetching user config
+    private var generalSettingsService: GeneralSettings?
+
     private let resyncUpdateSubject = PassthroughSubject<Int, Never>()
 
     /// Always-on
@@ -78,14 +84,18 @@ class ApplicationEventObserver: ObservableObject {
     /// Only while user is logged in
     private var userCancellables = Set<AnyCancellable>()
 
-    init(state: ApplicationState,
-         logoutStateService: LoggedInStateReporter?,
-         networkStateService: NetworkStateInteractor?,
-         appUpdateService: AppUpdateServiceProtocol?) {
+    init(
+        state: ApplicationState,
+        logoutStateService: LoggedInStateReporter?,
+        networkStateService: NetworkStateInteractor?,
+        appUpdateService: AppUpdateServiceProtocol?,
+        promoCampaignInteractor: PromoCampaignInteractorProtocol?
+    ) {
         self.state = state
         self.logoutStateService = logoutStateService
         self.networkStateService = networkStateService
         self.appUpdateService = appUpdateService
+        self.promoCampaignInteractor = promoCampaignInteractor
 
         self.deleteAlerter = DeleteAlerter()
 
@@ -116,6 +126,20 @@ class ApplicationEventObserver: ObservableObject {
 
         self.subscribetoLogin()
         self.subscribetoUserInfo()
+    }
+
+    public func startGeneralSettingsMonitoring(settingsService: GeneralSettings) {
+        Log.trace()
+
+        generalSettingsService = settingsService
+        generalSettingsService?.fetchUserSettings()
+
+        generalSettingsService?.userSettings
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] userSettings in
+                self?.state.setUserSettings(userSettings)
+            }
+            .store(in: &userCancellables)
     }
 
     /// - Parameters:
@@ -310,6 +334,38 @@ class ApplicationEventObserver: ObservableObject {
                 }
             }
             .store(in: &globalCancellables)
+
+        guard let promoCampaignInteractor else { return }
+
+        Publishers.CombineLatest3(
+            promoCampaignInteractor.activeCampaign,
+            state.$userInfo,
+            state.$userSettings
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] campaign, userInfo, userSettings in
+            guard let userInfo, let userSettings else {
+                Log.trace("Promo campaign filtered out because user info or settings aren't available yet")
+                self?.state.setVisibleCampaign(.none)
+                return
+            }
+
+            // In-app notifications are defined as bit 15 of userSettings.news
+            let userHasInAppNotificationsEnabled = ((userSettings.news >> 14) & 1) == 1 ? true : false
+
+            // We don't display campaigns to users who are
+            // * Paying customers
+            // * Delinquent users
+            // * Users who disabled in-app notifications
+            if userInfo.isDelinquent || userInfo.isPaid || !userHasInAppNotificationsEnabled {
+                Log.trace("Promo campaign filtered out because user is not in the target audience")
+                self?.state.setVisibleCampaign(.none)
+                return
+            }
+
+            self?.state.setVisibleCampaign(campaign)
+        }
+        .store(in: &userCancellables)
     }
 
 // MARK: - Update availability (appUpdateService)

@@ -34,6 +34,9 @@ import PDCore
     func refreshUserInfo()
     func signInUsingTestCredentials(login: String, password: String)
 
+    // Promo
+    func dismissPromoBanner()
+
     // Sync
     func pauseSyncing()
     func resumeSyncing()
@@ -76,6 +79,7 @@ class UserActions {
     private weak var delegate: UserActionsDelegate?
 
     lazy var app = ApplicationActions(delegate: delegate)
+    lazy var promo = PromotionalActions(delegate: delegate)
     lazy var account = AccountActions(delegate: delegate)
     lazy var sync = SyncActions(delegate: delegate)
     lazy var resync = ResyncActions(delegate: delegate)
@@ -172,6 +176,23 @@ class UserActions {
             Log.trace()
             assert(delegate != nil)
             delegate?.refreshUserInfo()
+        }
+    }
+
+    class PromotionalActions {
+        private weak var delegate: UserActionsDelegate?
+
+        init(delegate: UserActionsDelegate?) {
+            self.delegate = delegate
+        }
+
+        func dismissPromoBanner() {
+            delegate?.dismissPromoBanner()
+        }
+
+        func goToPromoPageOnWeb(email: String?) {
+            // reuse LinkActions to go to drive dashboard
+            LinkActions().getMoreStorage(email: email)
         }
     }
 

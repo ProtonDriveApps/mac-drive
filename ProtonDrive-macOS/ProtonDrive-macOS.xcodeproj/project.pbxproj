@@ -73,22 +73,36 @@
 		66E62A752D7B1865008222AC /* FullResyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E62A732D7B185F008222AC /* FullResyncCoordinator.swift */; };
 		66E62A762D7B1865008222AC /* FullResyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E62A732D7B185F008222AC /* FullResyncCoordinator.swift */; };
 		66FAB3332AD55EF000ADAB83 /* LaunchOnBootService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66FAB3322AD55EF000ADAB83 /* LaunchOnBootService.swift */; };
-		721D5AFC2E819C8000740E68 /* DBMeasurementCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9662E8146500013826F /* DBMeasurementCollector.swift */; };
+		7201DEB42E9405D0009FEC92 /* PerformanceMetricsReportAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7201DEB32E9405C9009FEC92 /* PerformanceMetricsReportAggregator.swift */; };
+		7201DEB52E9405D0009FEC92 /* PerformanceMetricsReportAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7201DEB32E9405C9009FEC92 /* PerformanceMetricsReportAggregator.swift */; };
 		721D72862E8A7C3000E45B33 /* FetchedResultObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D7ED9B2CEF757A00A2FAB1 /* FetchedResultObserver.swift */; };
+		7240FEAA2EA7747000B47EA7 /* PromoCampaignDateResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7240FEA92EA7746B00B47EA7 /* PromoCampaignDateResource.swift */; };
+		7240FEAB2EA7747000B47EA7 /* PromoCampaignDateResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7240FEA92EA7746B00B47EA7 /* PromoCampaignDateResource.swift */; };
+		726691C12E9FCACD00796513 /* PDCoreTestingToolkit in Frameworks */ = {isa = PBXBuildFile; productRef = 726691C02E9FCACD00796513 /* PDCoreTestingToolkit */; };
+		726A96822EA67D1B00F698F2 /* PerformanceMeasurementEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726A96812EA67D1B00F698F2 /* PerformanceMeasurementEvent.swift */; };
+		726A96832EA67D1B00F698F2 /* PerformanceMeasurementEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726A96812EA67D1B00F698F2 /* PerformanceMeasurementEvent.swift */; };
+		726A96842EA67D1B00F698F2 /* PerformanceMeasurementEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726A96812EA67D1B00F698F2 /* PerformanceMeasurementEvent.swift */; };
+		726A96862EA67D2900F698F2 /* DBPerformanceMeasurementCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726A96852EA67D2900F698F2 /* DBPerformanceMeasurementCollector.swift */; };
+		726A96872EA67D2900F698F2 /* DBPerformanceMeasurementCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726A96852EA67D2900F698F2 /* DBPerformanceMeasurementCollector.swift */; };
+		726A96882EA67D2900F698F2 /* DBPerformanceMeasurementCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726A96852EA67D2900F698F2 /* DBPerformanceMeasurementCollector.swift */; };
 		72ADD1892E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72ADD1882E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift */; };
 		72ADD18A2E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72ADD1882E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift */; };
 		72ADD18B2E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72ADD1882E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift */; };
 		72ADD1902E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72ADD18E2E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift */; };
 		72ADD1912E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72ADD18E2E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift */; };
-		72FFB96A2E8146760013826F /* MeasurementEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9692E8146730013826F /* MeasurementEvent.swift */; };
-		72FFB96B2E8146760013826F /* MeasurementEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9692E8146730013826F /* MeasurementEvent.swift */; };
+		72BDED562EA0EF1500EC3302 /* PromoCampaignBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72BDED552EA0EF0900EC3302 /* PromoCampaignBanner.swift */; };
+		72BDED572EA0EF1500EC3302 /* PromoCampaignBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72BDED552EA0EF0900EC3302 /* PromoCampaignBanner.swift */; };
+		72BDED5A2EA0F53F00EC3302 /* PromoCampaignInteractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72BDED592EA0F53900EC3302 /* PromoCampaignInteractor.swift */; };
+		72BDED5B2EA0F53F00EC3302 /* PromoCampaignInteractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72BDED592EA0F53900EC3302 /* PromoCampaignInteractor.swift */; };
+		72BDED5D2EA0F6CC00EC3302 /* UserDefaults+PromoCampaigns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72BDED5C2EA0F6C300EC3302 /* UserDefaults+PromoCampaigns.swift */; };
+		72BDED5E2EA0F6CC00EC3302 /* UserDefaults+PromoCampaigns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72BDED5C2EA0F6C300EC3302 /* UserDefaults+PromoCampaigns.swift */; };
+		72C94D122E9D51FA00FA0038 /* PDCoreTestingToolkit in Frameworks */ = {isa = PBXBuildFile; productRef = 72C94D112E9D51FA00FA0038 /* PDCoreTestingToolkit */; };
 		72FFB9862E8179820013826F /* Metrics.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9842E8179820013826F /* Metrics.xcdatamodeld */; };
 		72FFB9872E8179820013826F /* Metrics.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9842E8179820013826F /* Metrics.xcdatamodeld */; };
 		72FFB9882E8179820013826F /* Metrics.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9842E8179820013826F /* Metrics.xcdatamodeld */; };
 		72FFB98A2E8179D60013826F /* DBPerformanceMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9892E8179D10013826F /* DBPerformanceMeasurement.swift */; };
 		72FFB98B2E8179D60013826F /* DBPerformanceMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9892E8179D10013826F /* DBPerformanceMeasurement.swift */; };
 		72FFB98C2E8179D60013826F /* DBPerformanceMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9892E8179D10013826F /* DBPerformanceMeasurement.swift */; };
-		72FFB98D2E817CAD0013826F /* MeasurementEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFB9692E8146730013826F /* MeasurementEvent.swift */; };
 		76A2BBDA2AE25F26005B77A2 /* NotificationName+Window.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2BBD92AE25F26005B77A2 /* NotificationName+Window.swift */; };
 		76CEAF432A6CF67A000586F4 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CEAF422A6CF67A000586F4 /* OnboardingView.swift */; };
 		76CEAF452A6CF695000586F4 /* OnboardingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CEAF442A6CF695000586F4 /* OnboardingCoordinator.swift */; };
@@ -254,6 +268,13 @@
 			remoteGlobalIDString = 6690C7FA2AD49DD60005FC8F;
 			remoteInfo = ProtonDriveMacLauncher;
 		};
+		7240FEAE2EA7927C00B47EA7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AB71531824274ED900543720 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6690C7FA2AD49DD60005FC8F;
+			remoteInfo = ProtonDriveMacLauncher;
+		};
 		D4040203282018B9001D465B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AB71531824274ED900543720 /* Project object */;
@@ -372,10 +393,15 @@
 		66E62A732D7B185F008222AC /* FullResyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullResyncCoordinator.swift; sourceTree = "<group>"; };
 		66F061982B850C5600A6B067 /* stress-tests */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = "stress-tests"; sourceTree = "<group>"; };
 		66FAB3322AD55EF000ADAB83 /* LaunchOnBootService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LaunchOnBootService.swift; sourceTree = "<group>"; };
+		7201DEB32E9405C9009FEC92 /* PerformanceMetricsReportAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceMetricsReportAggregator.swift; sourceTree = "<group>"; };
+		7240FEA92EA7746B00B47EA7 /* PromoCampaignDateResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromoCampaignDateResource.swift; sourceTree = "<group>"; };
+		726A96812EA67D1B00F698F2 /* PerformanceMeasurementEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceMeasurementEvent.swift; sourceTree = "<group>"; };
+		726A96852EA67D2900F698F2 /* DBPerformanceMeasurementCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBPerformanceMeasurementCollector.swift; sourceTree = "<group>"; };
 		72ADD1882E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBPerformanceMeasurementRepository.swift; sourceTree = "<group>"; };
 		72ADD18E2E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBPerformanceMetricsReporter.swift; sourceTree = "<group>"; };
-		72FFB9662E8146500013826F /* DBMeasurementCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBMeasurementCollector.swift; sourceTree = "<group>"; };
-		72FFB9692E8146730013826F /* MeasurementEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementEvent.swift; sourceTree = "<group>"; };
+		72BDED552EA0EF0900EC3302 /* PromoCampaignBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromoCampaignBanner.swift; sourceTree = "<group>"; };
+		72BDED592EA0F53900EC3302 /* PromoCampaignInteractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromoCampaignInteractor.swift; sourceTree = "<group>"; };
+		72BDED5C2EA0F6C300EC3302 /* UserDefaults+PromoCampaigns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefaults+PromoCampaigns.swift"; sourceTree = "<group>"; };
 		72FFB9852E8179820013826F /* Metrics.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Metrics.xcdatamodel; sourceTree = "<group>"; };
 		72FFB9892E8179D10013826F /* DBPerformanceMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBPerformanceMeasurement.swift; sourceTree = "<group>"; };
 		763AA3F129374F9F00AEE68E /* Config-Release-Store.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Config-Release-Store.xcconfig"; sourceTree = "<group>"; };
@@ -578,16 +604,27 @@
 		72ADD18F2E8FBE0700A7ABB3 /* Reporting */ = {
 			isa = PBXGroup;
 			children = (
+				7201DEB32E9405C9009FEC92 /* PerformanceMetricsReportAggregator.swift */,
 				72ADD18E2E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift */,
 			);
 			path = Reporting;
 			sourceTree = "<group>";
 		};
+		72BDED582EA0F51E00EC3302 /* PromoCampaigns */ = {
+			isa = PBXGroup;
+			children = (
+				7240FEA92EA7746B00B47EA7 /* PromoCampaignDateResource.swift */,
+				72BDED5C2EA0F6C300EC3302 /* UserDefaults+PromoCampaigns.swift */,
+				72BDED592EA0F53900EC3302 /* PromoCampaignInteractor.swift */,
+			);
+			path = PromoCampaigns;
+			sourceTree = "<group>";
+		};
 		72FFB9602E8140430013826F /* Metrics */ = {
 			isa = PBXGroup;
 			children = (
+				726A96812EA67D1B00F698F2 /* PerformanceMeasurementEvent.swift */,
 				72FFB9832E8179690013826F /* DB */,
-				72FFB9692E8146730013826F /* MeasurementEvent.swift */,
 				72FFB9722E814AED0013826F /* Storage */,
 				72FFB9642E8146420013826F /* Collection */,
 			);
@@ -597,7 +634,7 @@
 		72FFB9642E8146420013826F /* Collection */ = {
 			isa = PBXGroup;
 			children = (
-				72FFB9662E8146500013826F /* DBMeasurementCollector.swift */,
+				726A96852EA67D2900F698F2 /* DBPerformanceMeasurementCollector.swift */,
 			);
 			path = Collection;
 			sourceTree = "<group>";
@@ -657,6 +694,7 @@
 		A30308ED2CE74CC400087F2E /* Subviews */ = {
 			isa = PBXGroup;
 			children = (
+				72BDED552EA0EF0900EC3302 /* PromoCampaignBanner.swift */,
 				D744EE452E059A9F008B005A /* SpinningImage.swift */,
 				A30308E72CE74CC400087F2E /* FooterView.swift */,
 				A30308E82CE74CC400087F2E /* HeaderView.swift */,
@@ -792,6 +830,7 @@
 		AB71532224274ED900543720 /* ProtonDriveMac */ = {
 			isa = PBXGroup;
 			children = (
+				72BDED582EA0F51E00EC3302 /* PromoCampaigns */,
 				72ADD18F2E8FBE0700A7ABB3 /* Reporting */,
 				A3D773452D3AA84400769A8D /* TestRunner.swift */,
 				D4CC491828705C7F00C6E83F /* main.m */,
@@ -1113,14 +1152,14 @@
 			);
 			mainGroup = AB71531724274ED900543720;
 			packageReferences = (
-				D83C419C2C53A233002EF29C /* XCRemoteSwiftPackageReference "Sparkle" */,
+				D83C419C2C53A233002EF29C /* XCRemoteSwiftPackageReference "Sparkle.git" */,
 				D8AB30D62C6217B5006A5F7C /* XCRemoteSwiftPackageReference "OHHTTPStubs" */,
-				D8AB30D92C621957006A5F7C /* XCRemoteSwiftPackageReference "TrustKit" */,
-				D8AB30E32C621ABF006A5F7C /* XCRemoteSwiftPackageReference "apple-fusion" */,
+				D8AB30D92C621957006A5F7C /* XCRemoteSwiftPackageReference "TrustKit.git" */,
+				D8AB30E32C621ABF006A5F7C /* XCRemoteSwiftPackageReference "apple-fusion.git" */,
 				3E9137BE2CC77C0400651BC1 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
-				661DC23D2CB94C3C00DECBDE /* XCRemoteSwiftPackageReference "CryptoSwift" */,
-				66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams" */,
-				66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */,
+				661DC23D2CB94C3C00DECBDE /* XCRemoteSwiftPackageReference "CryptoSwift.git" */,
+				66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams.git" */,
+				66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios.git" */,
 			);
 			productRefGroup = AB71532124274ED900543720 /* Products */;
 			projectDirPath = "";
@@ -1261,8 +1300,10 @@
 				669776DC2AF15BE700929E9A /* AppDelegate.swift in Sources */,
 				72FFB98C2E8179D60013826F /* DBPerformanceMeasurement.swift in Sources */,
 				669776DD2AF15BE700929E9A /* PostLoginServicesBuilder.swift in Sources */,
+				72BDED5E2EA0F6CC00EC3302 /* UserDefaults+PromoCampaigns.swift in Sources */,
 				669776E12AF15BE700929E9A /* OnboardingCoordinator.swift in Sources */,
 				66835C4C2C7F0A2100B158CB /* RecoveryAttempter.swift in Sources */,
+				726A96882EA67D2900F698F2 /* DBPerformanceMeasurementCollector.swift in Sources */,
 				D44B81EE2C71CE170074AD58 /* MemoryWarningObserver.swift in Sources */,
 				669776E22AF15BE700929E9A /* DriveCoreAlertListener.swift in Sources */,
 				D4D84DCD2C300FBB007079B4 /* macOSURLCoordinator.swift in Sources */,
@@ -1287,6 +1328,7 @@
 				669776ED2AF15BE700929E9A /* main.m in Sources */,
 				D43A7D402AF4FDB100DCA64E /* NotificationName+Window.swift in Sources */,
 				D8D6FB922B503E2400FB71AE /* Dumper.swift in Sources */,
+				72BDED5B2EA0F53F00EC3302 /* PromoCampaignInteractor.swift in Sources */,
 				A30FD4332CEF2CEB0050E2ED /* SpinningProgressView.swift in Sources */,
 				A30309162CE74CC400087F2E /* ItemRowView.swift in Sources */,
 				D48A113D2D536B2A001618CE /* DeleteAlerter.swift in Sources */,
@@ -1298,12 +1340,14 @@
 				A303091A2CE74CC400087F2E /* SyncErrorWindow.swift in Sources */,
 				A318BBBF2D242F970006212A /* SubscriptionService.swift in Sources */,
 				72ADD1912E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift in Sources */,
+				72BDED562EA0EF1500EC3302 /* PromoCampaignBanner.swift in Sources */,
 				A303091C2CE74CC400087F2E /* SyncStateView.swift in Sources */,
 				A303091D2CE74CC400087F2E /* HeaderView.swift in Sources */,
 				A303091E2CE74CC400087F2E /* ItemListView.swift in Sources */,
 				A303091F2CE74CC400087F2E /* FooterView.swift in Sources */,
 				A30309202CE74CC400087F2E /* GlobalProgressStatusItem.swift in Sources */,
 				666D1DDB2D8426FE0048A02F /* FullResyncMetrics.swift in Sources */,
+				7201DEB42E9405D0009FEC92 /* PerformanceMetricsReportAggregator.swift in Sources */,
 				A30309212CE74CC400087F2E /* UserActions.swift in Sources */,
 				A30309232CE74CC400087F2E /* FileTypeAsset.swift in Sources */,
 				A30309242CE74CC400087F2E /* SyncDBObserver.swift in Sources */,
@@ -1322,8 +1366,9 @@
 				A3DFAA3F2CE7570D0050AE64 /* QAStateDebuggingView.swift in Sources */,
 				A3DFAA402CE7570D0050AE64 /* QASettingsWindowCoordinator.swift in Sources */,
 				D4989F872C18AADF003DFF5E /* ProtonFile.swift in Sources */,
-				72FFB96A2E8146760013826F /* MeasurementEvent.swift in Sources */,
+				726A96842EA67D1B00F698F2 /* PerformanceMeasurementEvent.swift in Sources */,
 				D744EE462E059AA3008B005A /* SpinningImage.swift in Sources */,
+				7240FEAB2EA7747000B47EA7 /* PromoCampaignDateResource.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1347,8 +1392,10 @@
 				AB71532424274ED900543720 /* AppDelegate.swift in Sources */,
 				72FFB98A2E8179D60013826F /* DBPerformanceMeasurement.swift in Sources */,
 				D458EEE5286DA94200C325C1 /* PostLoginServicesBuilder.swift in Sources */,
+				72BDED5D2EA0F6CC00EC3302 /* UserDefaults+PromoCampaigns.swift in Sources */,
 				66835C4B2C7F0A2100B158CB /* RecoveryAttempter.swift in Sources */,
 				D44B81ED2C71CE170074AD58 /* MemoryWarningObserver.swift in Sources */,
+				726A96872EA67D2900F698F2 /* DBPerformanceMeasurementCollector.swift in Sources */,
 				76CEAF452A6CF695000586F4 /* OnboardingCoordinator.swift in Sources */,
 				D4D84DCC2C300FBB007079B4 /* macOSURLCoordinator.swift in Sources */,
 				D4F28D2A29E97AAE00065CD3 /* DriveCoreAlertListener.swift in Sources */,
@@ -1373,6 +1420,7 @@
 				76A2BBDA2AE25F26005B77A2 /* NotificationName+Window.swift in Sources */,
 				D8D6FB912B503E2400FB71AE /* Dumper.swift in Sources */,
 				A30FD4342CEF2CEB0050E2ED /* SpinningProgressView.swift in Sources */,
+				72BDED5A2EA0F53F00EC3302 /* PromoCampaignInteractor.swift in Sources */,
 				A303092D2CE74CC400087F2E /* ItemRowView.swift in Sources */,
 				A35169742D1041F200651795 /* Constants.swift in Sources */,
 				D48A113C2D536B2A001618CE /* DeleteAlerter.swift in Sources */,
@@ -1384,12 +1432,14 @@
 				A30309312CE74CC400087F2E /* SyncErrorWindow.swift in Sources */,
 				A318BBBE2D242F970006212A /* SubscriptionService.swift in Sources */,
 				72ADD1902E8FBE0700A7ABB3 /* DBPerformanceMetricsReporter.swift in Sources */,
+				72BDED572EA0EF1500EC3302 /* PromoCampaignBanner.swift in Sources */,
 				A30309332CE74CC400087F2E /* SyncStateView.swift in Sources */,
 				A30309342CE74CC400087F2E /* HeaderView.swift in Sources */,
 				A30309352CE74CC400087F2E /* ItemListView.swift in Sources */,
 				A30309362CE74CC400087F2E /* FooterView.swift in Sources */,
 				A30309372CE74CC400087F2E /* GlobalProgressStatusItem.swift in Sources */,
 				666D1DDA2D8426FE0048A02F /* FullResyncMetrics.swift in Sources */,
+				7201DEB52E9405D0009FEC92 /* PerformanceMetricsReportAggregator.swift in Sources */,
 				A30309382CE74CC400087F2E /* UserActions.swift in Sources */,
 				A35169762D10423300651795 /* RuntimeConfiguration.swift in Sources */,
 				A303093A2CE74CC400087F2E /* FileTypeAsset.swift in Sources */,
@@ -1408,8 +1458,9 @@
 				A3DFAA432CE7570D0050AE64 /* QAStateDebuggingView.swift in Sources */,
 				A3DFAA442CE7570D0050AE64 /* QASettingsWindowCoordinator.swift in Sources */,
 				D4989F862C18AADF003DFF5E /* ProtonFile.swift in Sources */,
-				72FFB96B2E8146760013826F /* MeasurementEvent.swift in Sources */,
+				726A96832EA67D1B00F698F2 /* PerformanceMeasurementEvent.swift in Sources */,
 				D744EE472E059AA3008B005A /* SpinningImage.swift in Sources */,
+				7240FEAA2EA7747000B47EA7 /* PromoCampaignDateResource.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1419,15 +1470,15 @@
 			files = (
 				A35169832D1045A700651795 /* RuntimeConfiguration.swift in Sources */,
 				721D72862E8A7C3000E45B33 /* FetchedResultObserver.swift in Sources */,
-				72FFB98D2E817CAD0013826F /* MeasurementEvent.swift in Sources */,
 				A351697F2D1045A200651795 /* Log+Configuration.swift in Sources */,
 				A3ED69FD2D53488D00FC2A7C /* Log+TestRunner.swift in Sources */,
 				72FFB9882E8179820013826F /* Metrics.xcdatamodeld in Sources */,
-				721D5AFC2E819C8000740E68 /* DBMeasurementCollector.swift in Sources */,
 				72FFB98B2E8179D60013826F /* DBPerformanceMeasurement.swift in Sources */,
 				ABD1909025A30FF7005D3E29 /* FileProviderExtension.swift in Sources */,
 				A351697B2D10458C00651795 /* Constants.swift in Sources */,
+				726A96822EA67D1B00F698F2 /* PerformanceMeasurementEvent.swift in Sources */,
 				72ADD18B2E8ECF4100A7ABB3 /* DBPerformanceMeasurementRepository.swift in Sources */,
+				726A96862EA67D2900F698F2 /* DBPerformanceMeasurementCollector.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1774,7 +1825,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.9.0;
+				MARKETING_VERSION = 2.10.0;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = ch.protonmail.drive;
 				PRODUCT_MODULE_NAME = ProtonDriveMac;
@@ -1861,7 +1912,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.9.0;
+				MARKETING_VERSION = 2.10.0;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = ch.protonmail.drive;
 				PRODUCT_MODULE_NAME = ProtonDriveMac;
@@ -1932,7 +1983,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.9.0;
+				MARKETING_VERSION = 2.10.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				OTHER_CODE_SIGN_FLAGS = "";
@@ -2635,7 +2686,7 @@
 				version = 0.57.0;
 			};
 		};
-		661DC23D2CB94C3C00DECBDE /* XCRemoteSwiftPackageReference "CryptoSwift" */ = {
+		661DC23D2CB94C3C00DECBDE /* XCRemoteSwiftPackageReference "CryptoSwift.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/krzyzanowskim/CryptoSwift.git";
 			requirement = {
@@ -2643,7 +2694,7 @@
 				minimumVersion = 1.8.3;
 			};
 		};
-		66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams" */ = {
+		66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/jpsim/Yams.git";
 			requirement = {
@@ -2651,7 +2702,7 @@
 				minimumVersion = 5.0.0;
 			};
 		};
-		66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */ = {
+		66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ProtonMail/protoncore_ios.git";
 			requirement = {
@@ -2659,7 +2710,7 @@
 				version = 33.2.0;
 			};
 		};
-		D83C419C2C53A233002EF29C /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+		D83C419C2C53A233002EF29C /* XCRemoteSwiftPackageReference "Sparkle.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sparkle-project/Sparkle.git";
 			requirement = {
@@ -2676,7 +2727,7 @@
 				minimumVersion = 0.0.0;
 			};
 		};
-		D8AB30D92C621957006A5F7C /* XCRemoteSwiftPackageReference "TrustKit" */ = {
+		D8AB30D92C621957006A5F7C /* XCRemoteSwiftPackageReference "TrustKit.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ProtonMail/TrustKit.git";
 			requirement = {
@@ -2685,7 +2736,7 @@
 				minimumVersion = 0.0.0;
 			};
 		};
-		D8AB30E32C621ABF006A5F7C /* XCRemoteSwiftPackageReference "apple-fusion" */ = {
+		D8AB30E32C621ABF006A5F7C /* XCRemoteSwiftPackageReference "apple-fusion.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ProtonMail/apple-fusion.git";
 			requirement = {
@@ -2715,7 +2766,7 @@
 		};
 		661DC23E2CB94C3C00DECBDE /* CryptoSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 661DC23D2CB94C3C00DECBDE /* XCRemoteSwiftPackageReference "CryptoSwift" */;
+			package = 661DC23D2CB94C3C00DECBDE /* XCRemoteSwiftPackageReference "CryptoSwift.git" */;
 			productName = CryptoSwift;
 		};
 		667B32052C69F4E500D15C95 /* PDCore */ = {
@@ -2736,48 +2787,56 @@
 		};
 		66E09DFD2E7DA3C30082A1B0 /* Yams */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams" */;
+			package = 66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams.git" */;
 			productName = Yams;
 		};
 		66E09DFF2E7DA42D0082A1B0 /* Yams */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams" */;
+			package = 66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams.git" */;
 			productName = Yams;
 		};
 		66E09E012E7DA4490082A1B0 /* Yams */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams" */;
+			package = 66E09DFC2E7DA3C30082A1B0 /* XCRemoteSwiftPackageReference "Yams.git" */;
 			productName = Yams;
 		};
 		66E09E282E7DB0A40082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
+			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios.git" */;
 			productName = ProtonCoreCryptoMultiversionPatchedGoImplementation;
 		};
 		66E09E2A2E7DB0CA0082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
+			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios.git" */;
 			productName = ProtonCoreCryptoMultiversionPatchedGoImplementation;
 		};
 		66E09E2C2E7DB0D00082A1B0 /* ProtonCoreCryptoMultiversionPatchedGoImplementation */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
+			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios.git" */;
 			productName = ProtonCoreCryptoMultiversionPatchedGoImplementation;
 		};
 		66E09E2E2E7DB2F60082A1B0 /* ProtonCoreQuarkCommands */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
+			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios.git" */;
 			productName = ProtonCoreQuarkCommands;
 		};
 		66E09E302E7DB2FC0082A1B0 /* ProtonCoreQuarkCommands */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
+			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios.git" */;
 			productName = ProtonCoreQuarkCommands;
 		};
 		66E09E322E7DB3030082A1B0 /* ProtonCoreQuarkCommands */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios" */;
+			package = 66E09E202E7DAD9F0082A1B0 /* XCRemoteSwiftPackageReference "protoncore_ios.git" */;
 			productName = ProtonCoreQuarkCommands;
+		};
+		726691C02E9FCACD00796513 /* PDCoreTestingToolkit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PDCoreTestingToolkit;
+		};
+		72C94D112E9D51FA00FA0038 /* PDCoreTestingToolkit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PDCoreTestingToolkit;
 		};
 		D8262F302C40364B00867704 /* PDLocalization */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2793,7 +2852,7 @@
 		};
 		D83C419D2C53A233002EF29C /* Sparkle */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D83C419C2C53A233002EF29C /* XCRemoteSwiftPackageReference "Sparkle" */;
+			package = D83C419C2C53A233002EF29C /* XCRemoteSwiftPackageReference "Sparkle.git" */;
 			productName = Sparkle;
 		};
 		D85AB8362C539D5600FFDC10 /* PDFileProvider */ = {
@@ -2854,17 +2913,17 @@
 		};
 		D8AB30DA2C621957006A5F7C /* TrustKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D8AB30D92C621957006A5F7C /* XCRemoteSwiftPackageReference "TrustKit" */;
+			package = D8AB30D92C621957006A5F7C /* XCRemoteSwiftPackageReference "TrustKit.git" */;
 			productName = TrustKit;
 		};
 		D8AB30E12C621A2F006A5F7C /* TrustKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D8AB30D92C621957006A5F7C /* XCRemoteSwiftPackageReference "TrustKit" */;
+			package = D8AB30D92C621957006A5F7C /* XCRemoteSwiftPackageReference "TrustKit.git" */;
 			productName = TrustKit;
 		};
 		D8AB30E42C621ABF006A5F7C /* fusion */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D8AB30E32C621ABF006A5F7C /* XCRemoteSwiftPackageReference "apple-fusion" */;
+			package = D8AB30E32C621ABF006A5F7C /* XCRemoteSwiftPackageReference "apple-fusion.git" */;
 			productName = fusion;
 		};
 		D8AB30E62C621B7F006A5F7C /* OHHTTPStubs */ = {

@@ -37,22 +37,25 @@ final class DBPerformanceMetricsReporter: PerformanceMetricsReporter {
     private let repository: PeformanceMeasurementRepository
     private let uploadResource: UploadSpeedMetricResource
     private let downloadResource: DownloadSpeedMetricResource
-    private let dateResource: DateResource
+    private let reportAggregator: PerformanceMetricsReportAggregating
+    private let shouldCleanOnStartup: Bool
 
     init(
         repository: PeformanceMeasurementRepository,
         uploadResource: UploadSpeedMetricResource,
         downloadResource: DownloadSpeedMetricResource,
-        dateResource: DateResource,
         inactivityTimer: PausableTimerResource,
-        reportingCycleTimer: PausableTimerResource
+        reportingCycleTimer: PausableTimerResource,
+        reportAggregator: PerformanceMetricsReportAggregating,
+        shouldCleanOnStartup: Bool
     ) {
         self.repository = repository
         self.uploadResource = uploadResource
         self.downloadResource = downloadResource
-        self.dateResource = dateResource
         self.inactivityTimeout = inactivityTimer
         self.reportingCycle = reportingCycleTimer
+        self.reportAggregator = reportAggregator
+        self.shouldCleanOnStartup = shouldCleanOnStartup
     }
 
     convenience init() {
@@ -60,13 +63,14 @@ final class DBPerformanceMetricsReporter: PerformanceMetricsReporter {
             repository: DBPerformanceMeasurementRepository(),
             uploadResource: ObservabilityUploadSpeedMetricResource(),
             downloadResource: ObservabilityDownloadSpeedMetricResource(),
-            dateResource: PlatformCurrentDateResource(),
             inactivityTimer: CommonRunLoopPausableTimerResource(
                 duration: Constants.inactivityTimeout
             ),
             reportingCycleTimer: CommonRunLoopPausableTimerResource(
                 duration: Constants.reportingCycleLength
-            )
+            ),
+            reportAggregator: PerformanceMetricsReportAggregator(),
+            shouldCleanOnStartup: Self.shouldClearOldMeasurementsByDefault()
         )
     }
 
@@ -75,12 +79,9 @@ final class DBPerformanceMetricsReporter: PerformanceMetricsReporter {
     func startReporting() {
         Log.trace()
 
-        #if !HAS_QA_FEATURES
+        if self.shouldCleanOnStartup {
             repository.deleteAllMeasurements()
-        #endif
-
-        self.reportingCycle.restart()
-        self.inactivityTimeout.restart()
+        }
 
         repository.unreportedMeasurementPublisher.sink { [weak self] events in
             self?.restartTimersIfNeeded()
@@ -105,6 +106,7 @@ final class DBPerformanceMetricsReporter: PerformanceMetricsReporter {
         reportIfNeeded()
 
         cancellables.forEach { $0.cancel() }
+        cancellables = []
     }
 }
 
@@ -138,11 +140,9 @@ private extension DBPerformanceMetricsReporter {
                     PerformanceOperationType.download: await repository.fetchUnreportedMeasurements(for: .download)
                 ]
 
-                let hasMeasurements = measurements.values.contains { !$0.isEmpty }
-                guard hasMeasurements else { return }
+                let report = reportAggregator.buildReport(from: measurements)
 
-                // prepare report: segmented by opreration then by pipeline for ease of reporting
-                let report = measurements.mapValues { makePerPipelineReport(measurements: $0) }
+                guard !report.isEmpty else { return }
 
                 report.forEach { operation, perPipelineReport in
                     switch operation {
@@ -172,52 +172,12 @@ private extension DBPerformanceMetricsReporter {
         }
     }
 
-    func makePerPipelineReport(measurements: [PerformanceMeasurementEvent]) -> [DriveObservabilityPipeline: Int] {
-        Log.trace()
-
-        // Ideally we'll only ever see one pipeline, but we handle the case where more than one.
-        let groupedByPipeline = Dictionary(grouping: measurements, by: \.pipeline)
-
-        return groupedByPipeline.mapValues {
-            calculateSpeed(measurements: $0)
-        }
-    }
-
-    func calculateSpeed(measurements: [PerformanceMeasurementEvent]) -> Int {
-        Log.trace()
-
-        let measurementTimeRange = getMeasurementTimeRange(from: measurements)
-        let measuredBytes = measurements.map(\.progressInBytes).reduce(0) { $0 + $1 }
-        let speedInKib = Double(measuredBytes) / (Double(1024) * measurementTimeRange)
-
-        return Int(round(speedInKib))
-    }
-
-    func getMeasurementTimeRange(from measurements: [PerformanceMeasurementEvent]) -> TimeInterval {
-        // We expect the measurements to already be sorted by timestamp.
-        // This is done via sortDescriptor in the repository.
-
-        if measurements.count >= 2 {
-            let measurementTimes = measurements.map(\.timestamp)
-            return measurementTimes[0] - measurementTimes[measurements.count - 1]
-        } else if measurements.count == 1 {
-            // It's unexpected that we'll reach this sceneario - the collector should always
-            // write at least a pair of events to the database: a start event with 0 progress,
-            // progress updates (these are optional though) and an end event with the remaining
-            // progress when the file upload completes.
-
-            // If we only have a single measurement, we use the distance to current time
-            // as its duration; the worst case scenario here (a single very small file), we'll divide
-            // its size by ~timeout.
-            Log.warning("Measurement issue: attempting to calculate time range for single measurement", domain: .metrics)
-            let distanceToCurrentTime = measurements[0].timestamp.distance(to: dateResource.getDate().timeIntervalSinceReferenceDate)
-
-            return distanceToCurrentTime == .zero ? 1 : distanceToCurrentTime
-        } else {
-            // We've guaranteed earlier in the call chain that we'd have
-            // at least one element in the measurements list.
-            Log.error("Measuring error: attempted to calculate time range for empty set of measurements", domain: .metrics)
-            return 1
-        }
+    // MARK: - Static helpers
+    private static func shouldClearOldMeasurementsByDefault() -> Bool {
+        #if HAS_QA_FEATURES
+            return false
+        #else
+            return true
+        #endif
     }
 }

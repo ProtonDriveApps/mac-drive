@@ -28,15 +28,6 @@
       }
     },
     {
-      "identity" : "ellipticcurvekeypair",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/agens-no/EllipticCurveKeyPair",
-      "state" : {
-        "revision" : "944ae5c89ca045e9f1a113b736706c73fc51d1c2",
-        "version" : "2.0.0"
-      }
-    },
-    {
       "identity" : "lottie-ios",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/airbnb/lottie-ios",
@@ -59,8 +50,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ProtonMail/protoncore_ios.git",
       "state" : {
-        "revision" : "1f7d0eb2c3feb4f28ea0251a4470c44731484637",
-        "version" : "25.3.4"
+        "revision" : "0fdf4c672d898ab8b9048c3b1c36c44a047dd694",
+        "version" : "33.2.0"
       }
     },
     {
@@ -86,8 +77,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/getsentry/sentry-cocoa.git",
       "state" : {
-        "revision" : "c9a692ba837f4832ec7ce6378c071cb91cb55f92",
-        "version" : "8.29.0"
+        "revision" : "9e193ac0b71760603aa666bad7e9e303dd7031a8",
+        "version" : "8.56.2"
       }
     },
     {
@@ -142,6 +133,15 @@
       "state" : {
         "revision" : "d107d7cc825f38ae2d6dc7c54af71d58145c3506",
         "version" : "1.0.3"
+      }
+    },
+    {
+      "identity" : "yams",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jpsim/Yams.git",
+      "state" : {
+        "revision" : "3d6871d5b4a5cd519adf233fbb576e0a2af71c17",
+        "version" : "5.4.0"
       }
     }
   ],

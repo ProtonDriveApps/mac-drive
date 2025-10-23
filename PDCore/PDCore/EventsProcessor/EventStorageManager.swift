@@ -38,21 +38,44 @@ public class EventStorageManager: NSObject, RecoverableStorage {
             return model
         }
         
-        #if RESOURCES_ARE_IMPORTED_BY_SPM
+        #if RESOURCES_ARE_IMPORTED_BY_SPM && !canImport(XCTest)
         if let bundle = Bundle.module.url(forResource: databaseName, withExtension: "momd"),
            let model = NSManagedObjectModel(contentsOf: bundle)
         {
             return model
         }
+        #elseif RESOURCES_ARE_IMPORTED_BY_SPM && canImport(XCTest)
+        // Find the model manually in case we're running tests.
+        if let libraryPath = ProcessInfo.processInfo.environment["DYLD_LIBRARY_PATH"]?.split(separator: ":").first,
+           let resourceBundle = Bundle(path: libraryPath + "/PDCore_PDCore.bundle"),
+           let modelURL = resourceBundle.url(forResource: databaseName, withExtension: "momd"),
+           let model = NSManagedObjectModel(contentsOf: modelURL)
+        {
+            return model
+        }
         #endif
-        
+
+
         // dynamic linking
         if let bundle = Bundle(for: EventStorageManager.self).url(forResource: databaseName, withExtension: "momd"),
            let model = NSManagedObjectModel(contentsOf: bundle)
         {
             return model
         }
-        
+
+        // Debug builds for real devices link XCTest in, causing problems when developing
+        // on an iOS device. This doesn't happen for macOS.
+        //
+        // We work around this by trying the SPM/application code path even in case we
+        // already tried looking for resources in DYLD_LIBRARY_PATH.
+        //
+        // We shouldn't remove the compile-time checks because checking Bundle.module while
+        // running macOS tests will crash as the resources aren't where it expects.
+        if let url = Bundle.module.url(forResource: databaseName, withExtension: "momd"),
+           let model = NSManagedObjectModel(contentsOf: url) {
+            return model
+        }
+
         fatalError("Error loading EventStorageModel from bundle")
     }()
     

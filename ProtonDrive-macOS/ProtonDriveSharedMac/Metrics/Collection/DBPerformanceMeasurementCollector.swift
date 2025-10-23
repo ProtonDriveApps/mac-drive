@@ -22,12 +22,9 @@ import PDFileProviderOperations
 import ProtonCoreUtilities
 
 final class DBPerformanceMeasurementCollector: ProgressPerformanceCollector {
-    public let hasOperations: AnyPublisher<Bool, Never>
-
     private let operationType: PerformanceOperationType
     private var progresses: Atomic<[Progress: UUID]> = Atomic([:])
     private var cancellables: [UUID: AnyCancellable] = [:]
-    private let progressCountSubject = CurrentValueSubject<Int, Never>(0)
 
     private let repository: PeformanceMeasurementRepository
     private let dateResource: DateResource
@@ -38,14 +35,8 @@ final class DBPerformanceMeasurementCollector: ProgressPerformanceCollector {
         dateResource: DateResource
     ) {
         self.operationType = operationType
-
         self.repository = repository
         self.dateResource = dateResource
-
-        self.hasOperations = progressCountSubject
-            .map { $0 > 0 }
-            .removeDuplicates()
-            .eraseToAnyPublisher()
     }
 
     convenience init(operationType: PerformanceOperationType) {
@@ -62,7 +53,6 @@ final class DBPerformanceMeasurementCollector: ProgressPerformanceCollector {
         let taskID = UUID()
 
         progresses.mutate { $0.updateValue(taskID, forKey: progress) }
-        progressCountSubject.send(progresses.fetch(\.count))
 
         // Upload progress events are optional: these will only be reliably sent for
         // large files.
@@ -117,7 +107,6 @@ final class DBPerformanceMeasurementCollector: ProgressPerformanceCollector {
                 )
 
                 cancellables[taskID]?.cancel()
-
                 dict[progress] = nil
                 return
             }

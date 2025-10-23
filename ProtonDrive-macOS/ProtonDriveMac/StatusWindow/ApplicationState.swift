@@ -20,6 +20,7 @@ import PDCore
 import AppKit
 import SwiftUI
 import PDLocalization
+import ProtonCoreUIFoundations
 
 /// Encapsulates the state of the entire app, driving the UI by publishing updates.
 class ApplicationState: ObservableObject {
@@ -39,14 +40,14 @@ class ApplicationState: ObservableObject {
             }
         }
     }
-    
+
     enum FullResyncState: CustomStringConvertible, Equatable {
         case idle
         case inProgress(Int)
         case enumerating
         case completed(hasFileProviderResponded: Bool?)
         case errored(String)
-        
+
         var isHappening: Bool {
             switch self {
             case .idle, .completed: false
@@ -57,9 +58,9 @@ class ApplicationState: ObservableObject {
         /// Displayed in SyncStateView
         var description: String {
             switch self {
-            case .idle: 
+            case .idle:
                 "Idle"
-            case .inProgress: 
+            case .inProgress:
                 "Full resync in progress: downloading data..."
             case .enumerating:
                 "Full resync in progress: refreshing directories..."
@@ -85,10 +86,13 @@ class ApplicationState: ObservableObject {
 #endif
 
     init() {
-#if DEBUG && !canImport(XCTest)
+#if DEBUG
         Self.counter += 1
-        // Make sure this is only instantiated once.
-        assert(Self.counter == 1)
+
+        // Make sure this is only instantiated once only if we're not running tests
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
+            assert(Self.counter == 1)
+        }
 #endif
 
         $items
@@ -103,11 +107,13 @@ class ApplicationState: ObservableObject {
 
     @Published private(set) var accountInfo: AccountInfo?
     @Published private(set) var userInfo: UserInfo?
+    @Published private(set) var userSettings: UserSettings?
     @Published private(set) var canGetMoreStorage = true
     @Published private(set) var isOffline = false
     @Published private(set) var isUpdateAvailable = false
     /// Percentage of launch sequence that has been completed
     @Published private(set) var launchCompletion = 0
+    @Published private(set) var visibleCampaign: PromoCampaignConfiguration?
 
     // MARK: Sync state
 
@@ -145,7 +151,7 @@ class ApplicationState: ObservableObject {
     @Published var deleteCount = 0
 
     @Published var globalSyncStateDescription: String?
-//    private var fullResyncStateDescription: String = "Full resync"
+    //    private var fullResyncStateDescription: String = "Full resync"
 
     // MARK: Computed
 
@@ -251,6 +257,14 @@ class ApplicationState: ObservableObject {
         Task { @MainActor in
             self.canGetMoreStorage = canGetMoreStorage
         }
+    }
+
+    func setUserSettings(_ settings: UserSettings?) {
+        self.userSettings = settings
+    }
+
+    func setVisibleCampaign(_ campaign: PromoCampaignConfiguration?) {
+        self.visibleCampaign = campaign
     }
 
     deinit {

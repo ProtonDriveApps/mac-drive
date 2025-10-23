@@ -132,6 +132,15 @@ public class LocalSettings: NSObject {
     @SettingsStorage("didFetchProtonUserSettings") public var didFetchProtonUserSettings: Bool?
     @SettingsStorage("didFetchB2BStatus") public var didFetchB2BStatus: Bool?
 
+    // SDK FF
+    @SettingsStorage("DriveiOSSDKUploadMainValue") private var driveiOSSDKUploadMainValue: Bool?
+    @SettingsStorage("DriveiOSSDKUploadPhotoValue") private var driveiOSSDKUploadPhotoValue: Bool?
+    @SettingsStorage("DriveiOSSDKDownloadMainValue") private var driveiOSSDKDownloadMainValue: Bool?
+    @SettingsStorage("DriveiOSSDKDownloadPhotoValue") private var driveiOSSDKDownloadPhotoValue: Bool?
+
+    // Black Friday 2025
+    @SettingsStorage("driveIOSBlackFriday2025") private var driveIOSBlackFriday2025Value: Bool?
+
     public let suite: SettingsStorageSuite
 
     public init(suite: SettingsStorageSuite) {
@@ -243,6 +252,13 @@ public class LocalSettings: NSObject {
         self._didFetchDriveUserSettings.configure(with: suite)
         self._didFetchProtonUserSettings.configure(with: suite)
         self._didFetchB2BStatus.configure(with: suite)
+        // SDK
+        self._driveiOSSDKUploadMainValue.configure(with: suite)
+        self._driveiOSSDKUploadPhotoValue.configure(with: suite)
+        self._driveiOSSDKDownloadMainValue.configure(with: suite)
+        self._driveiOSSDKDownloadPhotoValue.configure(with: suite)
+        // Black Friday 2025
+        self._driveIOSBlackFriday2025Value.configure(with: suite)
         setDynamicVariables()
     }
 
@@ -303,6 +319,13 @@ public class LocalSettings: NSObject {
         self.driveSettingsDocsCommentsNotificationsEnabled = docsCommentsNotificationsEnabled ?? false
         self.driveSettingsDocsCommentsNotificationsIncludeDocumentName = docsCommentsNotificationsIncludeDocumentName ?? false
         self.driveSettingsPhotoTags = photoTags ?? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        // SDK
+        driveiOSSDKUploadMain = driveiOSSDKUploadMainValue ?? false
+        driveiOSSDKUploadPhoto = driveiOSSDKUploadPhotoValue ?? false
+        driveiOSSDKDownloadMain = driveiOSSDKDownloadMainValue ?? false
+        driveiOSSDKDownloadPhoto = driveiOSSDKDownloadPhotoValue ?? false
+        // Black Friday 2025
+        driveIOSBlackFriday2025 = driveIOSBlackFriday2025Value ?? false
     }
 
     /// `cleanUserSpecificSettings`
@@ -389,9 +412,15 @@ public class LocalSettings: NSObject {
         self.docsCommentsNotificationsEnabled = nil
         self.docsCommentsNotificationsIncludeDocumentName = nil
         self.photoTags = nil
-
         self.didFetchDriveUserSettings = nil
         self.didFetchProtonUserSettings = nil
+        // SDK
+        driveiOSSDKUploadMainValue = nil
+        driveiOSSDKUploadPhotoValue = nil
+        driveiOSSDKDownloadMainValue = nil
+        driveiOSSDKDownloadPhotoValue = nil
+        // Black Friday 2025
+        driveIOSBlackFriday2025Value = nil
         setDynamicVariables()
     }
 
@@ -752,6 +781,31 @@ public class LocalSettings: NSObject {
     @objc public dynamic var driveSettingsPhotoTags: [Int] {
         get { photoTags ?? [] }
         set { photoTags = newValue }
+    }
+
+    public var driveiOSSDKUploadMain: Bool {
+        get { driveiOSSDKUploadMainValue ?? false }
+        set { driveiOSSDKUploadMainValue = newValue }
+    }
+
+    public var driveiOSSDKUploadPhoto: Bool {
+        get { driveiOSSDKUploadPhotoValue ?? false }
+        set { driveiOSSDKUploadPhotoValue = newValue }
+    }
+
+    public var driveiOSSDKDownloadMain: Bool {
+        get { driveiOSSDKDownloadMainValue ?? false }
+        set { driveiOSSDKDownloadMainValue = newValue }
+    }
+
+    public var driveiOSSDKDownloadPhoto: Bool {
+        get { driveiOSSDKDownloadPhotoValue ?? false }
+        set { driveiOSSDKDownloadPhotoValue = newValue }
+    }
+
+    @objc public dynamic var driveIOSBlackFriday2025: Bool {
+        get { driveIOSBlackFriday2025Value ?? false }
+        set { driveIOSBlackFriday2025Value = newValue }
     }
 }
 

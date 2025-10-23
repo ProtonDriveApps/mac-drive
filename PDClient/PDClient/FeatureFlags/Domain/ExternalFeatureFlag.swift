@@ -75,4 +75,13 @@ public enum ExternalFeatureFlag: String, CaseIterable, Codable {
 
     // Payments
     case driveiOSPaymentsV2 = "DriveiOSPaymentsV2"
+
+    // SDK
+    case driveiOSSDKUploadMain = "DriveiOSSDKUploadMain"
+    case driveiOSSDKUploadPhoto = "DriveiOSSDKUploadPhoto"
+    case driveiOSSDKDownloadMain = "DriveiOSSDKDownloadMain"
+    case driveiOSSDKDownloadPhoto = "DriveiOSSDKDownloadPhoto"
+
+    // Black Friday 2025
+    case driveIOSBlackFriday2025 = "DriveIOSBlackFriday2025"
 }

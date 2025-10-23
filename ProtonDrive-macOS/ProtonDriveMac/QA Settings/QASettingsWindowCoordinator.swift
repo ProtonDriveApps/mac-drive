@@ -77,18 +77,21 @@ final class QASettingsWindowCoordinator: NSObject, NSWindowDelegate {
     }
 
     private func configureWindow() {
-        let vm = QASettingsViewModel(signoutManager: signoutManager,
-                                     sessionStore: sessionStore,
-                                     mainKeyProvider: mainKeyProvider,
-                                     appUpdateService: appUpdateService,
-                                     eventLoopManager: eventLoopManager,
-                                     featureFlags: featureFlags,
-                                     dumperDependencies: dumperDependencies,
-                                     applicationEventObserver: applicationEventObserver,
-                                     userActions: userActions,
-                                     metadataStorage: metadataStorage,
-                                     eventsStorage: eventsStorage,
-                                     jailDependencies: jailDependencies)
+        let vm = QASettingsViewModel(
+            signoutManager: signoutManager,
+            sessionStore: sessionStore,
+            mainKeyProvider: mainKeyProvider,
+            appUpdateService: appUpdateService,
+            eventLoopManager: eventLoopManager,
+            featureFlags: featureFlags,
+            dumperDependencies: dumperDependencies,
+            applicationEventObserver: applicationEventObserver,
+            userActions: userActions,
+            metadataStorage: metadataStorage,
+            eventsStorage: eventsStorage,
+            jailDependencies: jailDependencies,
+            promoCampaignInteractor: PromoCampaignInteractor.shared
+        )
 
         let view = QASettingsView(vm: vm)
 

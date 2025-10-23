@@ -62,7 +62,9 @@ struct QAStateDebuggingView_Previews: PreviewProvider {
             state: ApplicationState.mockWithErrorItems,
             logoutStateService: nil,
             networkStateService: nil,
-            appUpdateService: nil)
+            appUpdateService: nil,
+            promoCampaignInteractor: nil
+        )
 
         QAStateDebuggingView(
             observer: observer,

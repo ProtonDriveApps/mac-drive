@@ -187,6 +187,14 @@ class ExternalFeatureFlagsRepository: FeatureFlagsRepository {
         case .driveiOSDebugMode: return .driveiOSDebugMode
         // Payments
         case .driveiOSPaymentsV2: return .driveiOSPaymentsV2
+        // SDK
+        case .driveiOSSDKUploadMain: return .driveiOSSDKUploadMain
+        case .driveiOSSDKUploadPhoto: return .driveiOSSDKUploadPhoto
+        case .driveiOSSDKDownloadMain: return .driveiOSSDKDownloadMain
+        case .driveiOSSDKDownloadPhoto: return .driveiOSSDKDownloadPhoto
+
+        // Black Friday 2025
+        case .driveIOSBlackFriday2025: return .driveIOSBlackFriday2025
         }
     }
 }
