@@ -101,8 +101,6 @@
 			<array>
 				<string>com.apple.icon-decoration.badge</string>
 			</array>
-			<key>UTTypeIdentifier</key>
-			<string>me.proton.drive.badge.checkmark</string>
 			<key>UTTypeDescription</key>
 			<string>Keep Downloaded</string>
 			<key>UTTypeIcons</key>
@@ -110,6 +108,8 @@
 				<key>UTTypeIconName</key>
 				<string>badge-checkmark</string>
 			</dict>
+			<key>UTTypeIdentifier</key>
+			<string>me.proton.drive.badge.checkmark</string>
 		</dict>
 		<dict>
 			<key>UTTypeConformsTo</key>

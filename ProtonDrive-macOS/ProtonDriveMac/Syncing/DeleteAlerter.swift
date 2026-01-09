@@ -45,7 +45,8 @@ class DeleteAlerter {
         guard deleteAlertShown != true else { return }
 
         let alert = NSAlert()
-        alert.messageText = "Deleted cloud-only files can be recovered from Trash on the web"
+        alert.icon = NSApp.applicationIconImage
+        alert.messageText = "Deleted cloud-only files can be recovered from Proton Drive Trash on the web"
         alert.informativeText = "Files deleted from your Mac that are cloud-only will be permanently removed from your computer but can still be restored from Proton Drive Trash on the web. Files stored locally will be moved to your Mac's Trash."
 
         alert.addButton(withTitle: "OK")

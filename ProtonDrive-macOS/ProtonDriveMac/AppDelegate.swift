@@ -198,6 +198,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+    
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        coordinator?.toggleStatusWindow(onlyOpen: true)
+        return false
+    }
 }
 
 extension AppDelegate: UNUserNotificationCenterDelegate {

@@ -23,7 +23,6 @@ public extension UserDefaults {
         case workingSetEnumerationInProgressKey = "workingSetEnumerationInProgress"
         case pathsMarkedAsKeepDownloadedKey = "pathsMarkedAsKeepDownloaded"
         case pathsMarkedAsOnlineOnlyKey = "pathsMarkedAsOnlineOnly"
-        case isKeepDownloadedEnabledKey = "isKeepDownloadedEnabled"
         case openItemsInBrowserKey = "openItemsInBrowser"
         case extensionPathKey = "fileProviderExtensionPath"
     }

@@ -32,7 +32,6 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     @SettingsStorage(UserDefaults.FileProvider.workingSetEnumerationInProgressKey.rawValue) var workingSetEnumerationInProgress: Bool?
     @SettingsStorage(UserDefaults.FileProvider.shouldReenumerateItemsKey.rawValue) var shouldReenumerateItems: Bool?
     @SettingsStorage("domainDisconnectedReasonCacheReset") public var cacheReset: Bool?
-    @SettingsStorage(UserDefaults.FileProvider.isKeepDownloadedEnabledKey.rawValue) var isKeepDownloadedEnabledAccordingToExtension: Bool?
     @SettingsStorage(UserDefaults.FileProvider.pathsMarkedAsKeepDownloadedKey.rawValue) var pathsMarkedAsKeepDownloaded: String?
     @SettingsStorage(UserDefaults.FileProvider.pathsMarkedAsOnlineOnlyKey.rawValue) var pathsMarkedAsOnlineOnly: String?
     @SettingsStorage(UserDefaults.FileProvider.openItemsInBrowserKey.rawValue) var openItemsInBrowser: String?
@@ -81,12 +80,6 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
 
         return true
     }
-
-    private var isKeepDownloadedEnabled: Bool {
-        tower.featureFlags.isEnabled(flag: .driveMacKeepDownloadedDisabled) != true
-    }
-
-    private var domainSettings: DomainSettings
 
     private var isForceRefreshing: Bool = false
     
@@ -188,9 +181,6 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         _cacheReset.configure(with: Constants.appGroup)
         _fileProviderExtensionPath.configure(with: Constants.appGroup)
         updateLastLineBeforeHanging()
-
-        domainSettings = LocalSettings.shared
-        updateLastLineBeforeHanging()
         
         self.observationCenter = UserDefaultsObservationCenter(userDefaults: Constants.appGroup.userDefaults)
         updateLastLineBeforeHanging()
@@ -246,10 +236,8 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         
         self.setUpKeepDownloadedObservers()
         updateLastLineBeforeHanging()
-        let hasKeepDownloadedStateChanged = handleKeepDownloadedStateChange()
-        updateLastLineBeforeHanging()
-        
-        self.reenumerateIfNecessary(hasKeepDownloadedStateChanged: hasKeepDownloadedStateChanged)
+
+        self.reenumerateIfNecessary()
         updateLastLineBeforeHanging()
 
         postExtensionLaunchNotification()
@@ -371,8 +359,8 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         }
     }
 
-    private func reenumerateIfNecessary(hasKeepDownloadedStateChanged: Bool) {
-        if shouldReenumerateItems == true || workingSetEnumerationInProgress == true || hasKeepDownloadedStateChanged == true {
+    private func reenumerateIfNecessary() {
+        if shouldReenumerateItems == true || workingSetEnumerationInProgress == true {
             manager.signalEnumerator(for: .workingSet) { [weak self] error in
                 guard let error else { return }
                 let sei = self?.shouldReenumerateItems.map(\.description) ?? "nil"
@@ -380,20 +368,6 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
                 Log.error("Failed to signal enumerator due to shouldReenumerateItems \(sei) or workingSetEnumerationInProgress \(wseip): \(error.localizedDescription)",
                           domain: .enumerating)
             }
-        }
-    }
-
-    private func handleKeepDownloadedStateChange() -> Bool {
-        let oldState = isKeepDownloadedEnabledAccordingToExtension ?? false
-        let newState = tower.featureFlags.isEnabled(flag: .driveMacKeepDownloadedDisabled) != true
-
-        if oldState != newState {
-            isKeepDownloadedEnabledAccordingToExtension = newState
-            initialServices.localSettings.bumpDomainVersion()
-
-            return true
-        } else {
-            return false
         }
     }
 
@@ -922,14 +896,3 @@ extension FileProviderExtension: NSFileProviderCustomAction {
 }
 
 // swiftlint:enable function_parameter_count
-
-extension FileProviderExtension: NSFileProviderDomainState {
-    public var domainVersion: NSFileProviderDomainVersion {
-        domainSettings.domainVersion
-    }
-
-    // Used to enable/disable actions defined in `info.plist`
-    public var userInfo: [AnyHashable: Any] {
-        return ["keepDownloadedEnabled": isKeepDownloadedEnabled]
-    }
-}

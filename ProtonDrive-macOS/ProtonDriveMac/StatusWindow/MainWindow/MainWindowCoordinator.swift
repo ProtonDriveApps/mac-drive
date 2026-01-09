@@ -163,10 +163,9 @@ final class MainWindowCoordinator: NSObject, NSWindowDelegate {
             let idealX = buttonRect.midX - MainWindow.size.width / 2
             let requiredX = screenFrame.origin.x + screenFrame.width - MainWindow.size.width
             let requiredY = screenFrame.origin.y + screenFrame.height - MainWindow.size.height
-            window.setFrameOrigin(NSPoint(
-                x: min(idealX, requiredX),
-                y: requiredY
-            ))
+            let wouldBeOffScreenOnLeft = idealX < 0
+            let x = wouldBeOffScreenOnLeft ? requiredX : min(idealX, requiredX)
+            window.setFrameOrigin(NSPoint(x: x, y: requiredY))
         }
         window?.makeKeyAndOrderFront(nil)
         if #available(macOS 14.0, *) {

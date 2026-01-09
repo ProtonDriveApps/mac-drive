@@ -32,8 +32,8 @@ public enum FeatureAvailabilityFlag: CaseIterable {
     case driveDDKIntelEnabled
     case driveDDKDisabled
     case driveMacSyncRecoveryDisabled
-    case driveMacKeepDownloadedDisabled
     case driveMacPromoBannerDisabled
+    case driveMacGradualRolloutChannelEnabled
 
     // Sharing
     case driveSharingMigration

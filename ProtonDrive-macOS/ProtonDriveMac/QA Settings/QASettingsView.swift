@@ -263,15 +263,39 @@ struct QASettingsView: View {
                                 .frame(maxWidth: .infinity)
                         }
                         .toggleStyle(SwitchToggleStyle())
-                        Picker(selection: $vm.updateChannel) {
-                            ForEach(AppUpdateChannel.allCases.map(\.rawValue), id: \.self) {
-                                Text($0)
-                            }
-                        } label: {
-                            Text("Select update channel")
+                            
+                        HStack {
+                            TextField("Feed URL", text: $vm.providedFeedURL)
+                            Button("Set") { vm.setUpdateFeedURLAndQuit() }
+                            Button("Default") { vm.useDefaultUpdateFeedURL() }
                         }
-                        .pickerStyle(MenuPickerStyle())
-                        
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Select update channels (multi-select):")
+                                .font(.system(size: 13))
+
+                            ForEach(AppUpdateChannel.allCases, id: \.self) { channel in
+                                HStack {
+                                    Button {
+                                        vm.toggleChannelSelection(channel)
+                                    } label: {
+                                        HStack {
+                                            Image(systemName: vm.selectedUpdateChannels.contains(channel) ? "checkmark.square.fill" : "square")
+                                                .foregroundColor(vm.selectedUpdateChannels.contains(channel) ? .blue : .gray)
+                                            Text(channel.rawValue)
+                                                .foregroundColor(.primary)
+                                        }
+                                    }
+                                    .buttonStyle(.plain)
+                                    Spacer()
+                                }
+                            }
+
+                            Text("Selected: \(vm.selectedUpdateChannels.map(\.rawValue).sorted().joined(separator: ", "))")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
+
                         Text(vm.updateMessage)
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)

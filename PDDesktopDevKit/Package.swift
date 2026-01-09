@@ -33,7 +33,7 @@ let package = Package(
         /// Step 2 - Use the new version
         /// a. Update the version number below
         /// b. Rebuild the app
-        .package(url: "https://gitlab.protontech.ch/drive/sdk-swift.git", branch: "0.0.16-ddk"),
+        .package(url: "https://gitlab.protontech.ch/drive/sdk-swift.git", branch: "0.0.17-ddk"),
 
         /// To use a local build of the DDK during development:
         /// 1. In the DDK repo run `./scripts/build_framework.sh`

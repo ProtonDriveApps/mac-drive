@@ -163,7 +163,11 @@ class ApplicationState: ObservableObject {
             return .fullResyncInProgress
         }
         if accountInfo == nil {
-            return .signedOut
+            if isUpdateAvailable {
+                return .signedOutAndUpdateAvailable
+            } else {
+                return .signedOut
+            }
         }
         if isPaused {
             return .paused

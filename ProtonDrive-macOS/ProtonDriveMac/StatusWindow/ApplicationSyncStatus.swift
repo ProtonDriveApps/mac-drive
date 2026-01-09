@@ -42,6 +42,7 @@ enum ApplicationSyncStatus: Sendable, Equatable {
     case syncing
     // Source: AppUpdateService
     case updateAvailable
+    case signedOutAndUpdateAvailable
     // Source: FileProvider
     case errored(Int)
     // Source: FileProvider
@@ -53,7 +54,7 @@ enum ApplicationSyncStatus: Sendable, Equatable {
     var displayLabel: String {
         switch self {
         case .launching: Localization.menu_status_sync_launching
-        case .signedOut: Localization.menu_status_signed_out
+        case .signedOut, .signedOutAndUpdateAvailable: Localization.menu_status_signed_out
         case .paused: Localization.menu_status_sync_paused
         case .offline: Localization.menu_status_offline
         case .enumerating(let itemEnumerationDescription): itemEnumerationDescription

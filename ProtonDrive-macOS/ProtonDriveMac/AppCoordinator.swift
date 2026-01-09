@@ -173,7 +173,10 @@ class AppCoordinator: NSObject, ObservableObject {
         let promoCampaignInteractor = PromoCampaignInteractor.shared
 
 #if HAS_BUILTIN_UPDATER
-        let appUpdateService = SparkleAppUpdateService()
+        let featureFlagsStore = initialServices.localSettings
+        let appUpdateService = SparkleAppUpdateService(
+            gradualRolloutEnabled: featureFlagsStore.isFeatureEnabled(.driveMacGradualRolloutChannelEnabled)
+        )
 #else
         let appUpdateService: AppUpdateServiceProtocol? = nil
 #endif

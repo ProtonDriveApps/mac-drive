@@ -67,6 +67,7 @@ struct SyncStateView: View {
                 .tint(ColorProvider.SignalDanger)
         case .synced,
                 .signedOut,
+                .signedOutAndUpdateAvailable,
                 .updateAvailable,
                 .fullResyncCompleted:
             Image("synced")

@@ -48,6 +48,7 @@ public protocol FeatureFlagsControllerProtocol {
     var hasSDKDownloadMain: Bool { get }
     var hasSDKDownloadPhoto: Bool { get }
     var hasIOSBlackFriday2025: Bool { get }
+    var hasGradualRolloutChannel: Bool { get }
     /// Makes current value publisher for the specific FF
     func makePublisher(keyPath: KeyPath<FeatureFlagsControllerProtocol, Bool>) -> AnyPublisher<Bool, Never>
 }
@@ -179,6 +180,10 @@ public final class FeatureFlagsController: FeatureFlagsControllerProtocol {
 
     public var hasIOSBlackFriday2025: Bool {
         featureFlagsStore.isFeatureEnabled(.driveIOSBlackFriday2025)
+    }
+
+    public var hasGradualRolloutChannel: Bool {
+        featureFlagsStore.isFeatureEnabled(.driveMacGradualRolloutChannelEnabled)
     }
 
     public func makePublisher(keyPath: KeyPath<FeatureFlagsControllerProtocol, Bool>) -> AnyPublisher<Bool, Never> {

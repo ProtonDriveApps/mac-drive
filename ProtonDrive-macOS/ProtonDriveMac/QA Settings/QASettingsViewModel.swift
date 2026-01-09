@@ -28,7 +28,8 @@ import ProtonCoreServices
 struct QASettingsConstants {
     static let shouldUpdateEvenOnDebugBuild = "shouldUpdateEvenOnDebugBuild"
     static let shouldUpdateEvenOnTestFlight = "shouldUpdateEvenOnTestFlight"
-    static let updateChannel = "updateChannel"
+    static let updateChannels = "updateChannels"
+    static let updateFeedURL = "updateFeedURL"
     static let shouldObfuscateDumpsStorage = "shouldObfuscateDumpsStorage"
     static let disconnectDomainOnSignOut = "disconnectDomainOnSignOut"
     static let driveDDKEnabledInQASettings = "driveDDKEnabledInQASettings"
@@ -63,13 +64,15 @@ class QASettingsViewModel: ObservableObject {
     @Published var shouldUpdateEvenOnTestFlight: Bool = false {
         didSet { shouldUpdateEvenOnTestFlightStorage = shouldUpdateEvenOnTestFlight }
     }
-    @Published var updateChannel: String = AppUpdateChannel.stable.rawValue {
-        didSet { updateChannelStorage = updateChannel }
+    @Published var selectedUpdateChannels: Set<AppUpdateChannel> = [AppUpdateChannel.stable] {
+        didSet { updateChannelsStorage = Array(selectedUpdateChannels) }
     }
     @Published var updateMessage: String = ""
+    @Published var providedFeedURL: String = ""
     @SettingsStorage(QASettingsConstants.shouldUpdateEvenOnDebugBuild) var shouldUpdateEvenOnDebugBuildStorage: Bool?
     @SettingsStorage(QASettingsConstants.shouldUpdateEvenOnTestFlight) var shouldUpdateEvenOnTestFlightStorage: Bool?
-    @SettingsStorage(QASettingsConstants.updateChannel) var updateChannelStorage: String?
+    @SettingsStorage(QASettingsConstants.updateFeedURL) var updateFeedURL: String?
+    @SettingsCodableProperty(QASettingsConstants.updateChannels) var updateChannelsStorage: [AppUpdateChannel] = []
 #endif
 
     @Published var shouldFetchEvents: Bool = true {
@@ -226,7 +229,8 @@ class QASettingsViewModel: ObservableObject {
 #if HAS_BUILTIN_UPDATER
         self.shouldUpdateEvenOnDebugBuild = shouldUpdateEvenOnDebugBuildStorage ?? false
         self.shouldUpdateEvenOnTestFlight = shouldUpdateEvenOnTestFlightStorage ?? false
-        self.updateChannel = updateChannelStorage ?? AppUpdateChannel.stable.rawValue
+        self.providedFeedURL = updateFeedURL ?? "https://proton.me/download/drive/macos/appcast.xml"
+        self.selectedUpdateChannels = Set(updateChannelsStorage ?? [AppUpdateChannel.stable])
         if let appUpdateService {
             self.updateMessage = """
                              Last update check: \(appUpdateService.updater.lastUpdateCheckDate.map(String.init) ?? "never")
@@ -241,11 +245,31 @@ class QASettingsViewModel: ObservableObject {
             guard let self else { return }
             Constants.appGroup.userDefaults.set(self.environment, forKey: Constants.SettingsBundleKeys.host.rawValue)
             await self.signoutManager?.signOutAsync()
-            _ = await MainActor.run {
-                exit(0)
-            }
+            exit(0)
         }
     }
+
+#if HAS_BUILTIN_UPDATER
+    func toggleChannelSelection(_ channel: AppUpdateChannel) {
+        if selectedUpdateChannels.contains(channel) {
+            // Don't allow deselecting all channels - at least one must be selected
+            if selectedUpdateChannels.count > 1 {
+                selectedUpdateChannels.remove(channel)
+            }
+        } else {
+            selectedUpdateChannels.insert(channel)
+        }
+    }
+    
+    func setUpdateFeedURLAndQuit() {
+        self.updateFeedURL = providedFeedURL
+    }
+
+    func useDefaultUpdateFeedURL() {
+        self.providedFeedURL = "https://proton.me/download/drive/macos/appcast.xml"
+        self.updateFeedURL = nil
+    }
+#endif
     
     func jail() {
         Task { [weak self] in

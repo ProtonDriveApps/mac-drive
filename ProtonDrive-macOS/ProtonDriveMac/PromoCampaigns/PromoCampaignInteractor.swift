@@ -21,7 +21,7 @@ import SwiftUI
 import PDCore
 import Combine
 
-struct PromoCampaignConfiguration {
+struct PromoCampaignConfiguration: Comparable {
     enum BannerIcon {
         case drivePlus
         case discount
@@ -36,40 +36,24 @@ struct PromoCampaignConfiguration {
         }
     }
 
-    enum TimeRange {
+    enum TimeRange: Comparable {
         /// Campaign should only be active while start < date < end
         case limitedTime(start: Date, end: Date)
         /// Campaign should be active after the given date
         case indefinite(after: Date)
-        /// Campaign should always be active (useful for testing!)
-        case always
+
+        static func < (lhs: TimeRange, rhs: TimeRange) -> Bool {
+            switch (lhs, rhs) {
+            case (.limitedTime(let lStart, _), .limitedTime(let rStart, _)),
+                 (.limitedTime(let lStart, _), .indefinite(let rStart)),
+                 (.indefinite(let lStart), .limitedTime(let rStart, _)),
+                 (.indefinite(let lStart), .indefinite(let rStart)):
+                return lStart < rStart
+            }
+        }
     }
 
     fileprivate static let activeCampaigns: [PromoCampaignConfiguration] = [
-        PromoCampaignConfiguration(
-            campaignId: "bf-25-stage-1",
-            timeRange: .limitedTime(
-                start: Date(timeIntervalSinceReferenceDate: 783860400), // 2025-11-03 12:00 CET
-                end: Date(timeIntervalSinceReferenceDate: 785156400) // 2025-11-18 12:00 CET
-            ),
-            backgroundColor: Color(hex: "#D8FF00"),
-            tintColor: Color(hex: "#291C5D"),
-            icon: .discount,
-            text: "Black Friday: 50% off",
-            resetsPreviousDismissal: false
-        ),
-        PromoCampaignConfiguration(
-            campaignId: "bf-25-stage-2",
-            timeRange: .limitedTime(
-                start: Date(timeIntervalSinceReferenceDate: 785156400), // 2025-11-18 12:00 CET
-                end: Date(timeIntervalSinceReferenceDate: 786452400) // 2025-12-03 12:00 CET
-            ),
-            backgroundColor: Color(hex: "#D8FF00"),
-            tintColor: Color(hex: "#291C5D"),
-            icon: .discount,
-            text: "Black Friday: 80% off",
-            resetsPreviousDismissal: true
-        ),
         PromoCampaignConfiguration(
             campaignId: "upgrade-drive-plus",
             timeRange: .indefinite(
@@ -79,7 +63,8 @@ struct PromoCampaignConfiguration {
             tintColor: ColorProvider.White,
             icon: .drivePlus,
             text: "Upgrade to Drive Plus",
-            resetsPreviousDismissal: false
+            resetsPreviousDismissal: false,
+            displaysOnStatusBar: false
         )
     ]
 
@@ -90,6 +75,11 @@ struct PromoCampaignConfiguration {
     let icon: BannerIcon
     let text: String
     let resetsPreviousDismissal: Bool
+    let displaysOnStatusBar: Bool
+
+    static func < (lhs: PromoCampaignConfiguration, rhs: PromoCampaignConfiguration) -> Bool {
+        lhs.timeRange < rhs.timeRange
+    }
 }
 
 protocol PromoCampaignInteractorProtocol {
@@ -106,14 +96,16 @@ final class PromoCampaignInteractor: PromoCampaignInteractorProtocol {
     @SettingsStorage(UserDefaults.PromoCampaign.hasDismissedBanner.rawValue) private var hasDismissedBanner: Bool?
     @SettingsStorage(UserDefaults.PromoCampaign.lastSeenCampaignId.rawValue) private var lastSeenCampaign: String?
 
+    private let activeCampaigns: [PromoCampaignConfiguration]
     private var currentlyActiveCampaign = CurrentValueSubject<PromoCampaignConfiguration?, Never>(nil)
 
     private let dateResource: DateResource
 
     static let shared = PromoCampaignInteractor()
 
-    init(dateResource: DateResource) {
+    init(dateResource: DateResource, activeCampaigns: [PromoCampaignConfiguration]) {
         self.dateResource = dateResource
+        self.activeCampaigns = activeCampaigns
 
         _hasDismissedBanner.configure(with: Constants.appGroup)
         _lastSeenCampaign.configure(with: Constants.appGroup)
@@ -122,7 +114,10 @@ final class PromoCampaignInteractor: PromoCampaignInteractorProtocol {
     }
 
     private convenience init() {
-        self.init(dateResource: PromoCampaignDateResource())
+        self.init(
+            dateResource: PromoCampaignDateResource(),
+            activeCampaigns: PromoCampaignConfiguration.activeCampaigns
+        )
     }
 
     func refreshCampaign(forceResetBannerDismissal: Bool = false) {
@@ -146,7 +141,7 @@ final class PromoCampaignInteractor: PromoCampaignInteractorProtocol {
     }
 
     private func getActiveCampaign() -> PromoCampaignConfiguration? {
-        PromoCampaignConfiguration.activeCampaigns.first { campaign in
+        activeCampaigns.sorted().first { campaign in
             let currentDate = dateResource.getDate()
 
             switch campaign.timeRange {
@@ -154,8 +149,6 @@ final class PromoCampaignInteractor: PromoCampaignInteractorProtocol {
                 return start <= currentDate && currentDate < end
             case let .indefinite(start):
                 return start <= currentDate
-            case .always:
-                return true
             }
         }
     }

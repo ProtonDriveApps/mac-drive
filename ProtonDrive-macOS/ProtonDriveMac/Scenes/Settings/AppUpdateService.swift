@@ -45,33 +45,28 @@ enum UpdateAvailabilityStatus: Equatable {
     case errored(userFacingMessage: String)
 }
 
-enum AppUpdateChannel: String, CaseIterable {
+enum AppUpdateChannel: String, CaseIterable, Codable {
     case stable
-    case beta
-    case alpha
-    #if HAS_QA_FEATURES
-    // special channels for testing variou update scenarios
-    case testNoUpdate = "test-no-update"
-    case testUpdateAvailable = "test-update-available"
-    case testInvalidUpdate = "test-invalid"
-    case testKeyRotation = "test-key-rotation"
-    #endif
+    case gradualRollout = "gradual-rollout"
 }
 
 final class SparkleAppUpdateService: NSObject, AppUpdateServiceProtocol, SPUUpdaterDelegate, SPUStandardUserDriverDelegate {
-    
+
     @Published private(set) var updateAvailability: UpdateAvailabilityStatus
     var updateAvailabilityPublisher: AnyPublisher<UpdateAvailabilityStatus, Never> {
         self.$updateAvailability.eraseToAnyPublisher()
     }
-    
+
     private static let shortUpdateCheckInterval: TimeInterval = 60 * 60 // one hour, minumum possible in Spark
     private static let longUpdateCheckInterval: TimeInterval = 24 * 60 * 60 // one day
-    
+
+    private let gradualRolloutEnabled: () -> Bool
+
     #if HAS_QA_FEATURES
     @SettingsStorage(QASettingsConstants.shouldUpdateEvenOnDebugBuild) private var shouldUpdateEvenOnDebugBuild: Bool?
     @SettingsStorage(QASettingsConstants.shouldUpdateEvenOnTestFlight) private var shouldUpdateEvenOnTestFlight: Bool?
-    @SettingsStorage(QASettingsConstants.updateChannel) private var updateChannel: String?
+    @SettingsStorage(QASettingsConstants.updateFeedURL) private var updateFeedURL: String?
+    @SettingsCodableProperty(QASettingsConstants.updateChannels) private var qaOverrideUpdateChannels: [AppUpdateChannel] = []
     #endif
     
     private var debugBuild: Bool {
@@ -89,6 +84,9 @@ final class SparkleAppUpdateService: NSObject, AppUpdateServiceProtocol, SPUUpda
     
     private var isUpdateMechanismOn: Bool {
         #if HAS_QA_FEATURES
+        // ensure no update happens for UI tests
+        if Constants.isInUITests { return false }
+        
         let shouldUpdateEvenOnTestFlight = self.shouldUpdateEvenOnTestFlight ?? false
         let shouldUpdateEvenOnDebugBuild = self.shouldUpdateEvenOnDebugBuild ?? false
         #else
@@ -113,7 +111,8 @@ final class SparkleAppUpdateService: NSObject, AppUpdateServiceProtocol, SPUUpda
     private var updaterController: SPUStandardUpdaterController!
     #endif
     
-    init(updaterController: SPUStandardUpdaterController? = nil) {
+    init(gradualRolloutEnabled: @autoclosure @escaping () -> Bool, updaterController: SPUStandardUpdaterController? = nil) {
+        self.gradualRolloutEnabled = gradualRolloutEnabled
         self.updateAvailability = .upToDate(version: Constants.versionDigits)
         super.init()
         if let updaterController {
@@ -160,6 +159,14 @@ final class SparkleAppUpdateService: NSObject, AppUpdateServiceProtocol, SPUUpda
 
 // configuration
 extension SparkleAppUpdateService {
+    
+    func feedURLString(for updater: SPUUpdater) -> String? {
+        #if HAS_QA_FEATURES
+        return updateFeedURL
+        #else
+        return nil
+        #endif
+    }
 
     var supportsGentleScheduledUpdateReminders: Bool {
         return true
@@ -167,11 +174,24 @@ extension SparkleAppUpdateService {
     
     func allowedChannels(for updater: SPUUpdater) -> Set<String> {
         #if HAS_QA_FEATURES
-        updateChannel.map { [$0] } ?? []
-        #else
-        // we only allow the stable channel in non-QA builds
-        [AppUpdateChannel.stable.rawValue]
+        // ensure no update happens for UI tests
+        if Constants.isInUITests { return [] }
+        // In QA builds, use the selected channels from settings
+        // If no channels are selected in the QA settings, default to the usual logic
+        guard qaOverrideUpdateChannels.isEmpty else {
+            return Set(qaOverrideUpdateChannels.map(\.rawValue))
+        }
         #endif
+        
+        // Always include the stable channel
+        var channels: Set<String> = [AppUpdateChannel.stable.rawValue]
+
+        // If the gradual rollout feature flag is enabled, also include the gradual rollout channel
+        if gradualRolloutEnabled() {
+            channels.insert(AppUpdateChannel.gradualRollout.rawValue)
+        }
+        
+        return channels
     }
     
     func updaterShouldRelaunchApplication(_ updater: SPUUpdater) -> Bool {

@@ -60,13 +60,12 @@ public class LocalSettings: NSObject {
     @SettingsStorage("DriveDDKIntelEnabled") public var driveDDKIntelEnabledValue: Bool?
     @SettingsStorage("DriveDDKDisabled") public var driveDDKDisabledValue: Bool?
     @SettingsStorage("DriveMacSyncRecoveryDisabled") public var driveMacSyncRecoveryDisabledValue: Bool?
-    @SettingsStorage("DriveMacKeepDownloadedDisabled") public var driveMacKeepDownloadedDisabledValue: Bool?
     @SettingsStorage("DriveMacPromoBannerDisabled") public var driveMacPromoBannerDisabledValue: Bool?
+    @SettingsStorage("DriveMacGradualRolloutChannelEnabled") public var driveMacGradualRolloutChannelEnabledValue: Bool?
     @SettingsStorage("DriveAlbumsDisabled") public var driveAlbumsDisabledValue: Bool?
     @SettingsStorage("DriveCopyDisabled") public var driveCopyDisabledValue: Bool?
     @SettingsStorage("photoVolumeMigrationLastShownDate") public var photoVolumeMigrationLastShownDate: Date?
     @SettingsStorage("QuotaState") public var quotaStateValue: Int?
-    @SettingsStorage("domainVersion") public var domainVersionValue: Data?
     @SettingsStorage("DrivePhotosTagsMigration") public var drivePhotosTagsMigrationValue: Bool?
     @SettingsStorage("DrivePhotosTagsMigrationDisabled") public var drivePhotosTagsMigrationDisabledValue: Bool?
 
@@ -184,15 +183,14 @@ public class LocalSettings: NSObject {
         self._driveDDKIntelEnabledValue.configure(with: suite)
         self._driveDDKDisabledValue.configure(with: suite)
         self._driveMacSyncRecoveryDisabledValue.configure(with: suite)
-        self._driveMacKeepDownloadedDisabledValue.configure(with: suite)
         self._driveMacPromoBannerDisabledValue.configure(with: suite)
+        self._driveMacGradualRolloutChannelEnabledValue.configure(with: suite)
         self._didFetchFeatureFlags.configure(with: suite)
         self._promotedNewFeaturesValue.configure(with: suite)
         self._driveAlbumsDisabledValue.configure(with: suite)
         self._driveCopyDisabledValue.configure(with: suite)
         self._photoVolumeMigrationLastShownDate.configure(with: suite)
         self._quotaStateValue.configure(with: suite)
-        self._domainVersionValue.configure(with: suite)
         self._drivePhotosTagsMigrationValue.configure(with: suite)
         self._drivePhotosTagsMigrationDisabledValue.configure(with: suite)
         self._tagsMigrationFinishedValue.configure(with: suite)
@@ -305,7 +303,6 @@ public class LocalSettings: NSObject {
         driveDDKIntelEnabled = driveDDKIntelEnabledValue ?? false
         driveDDKDisabled = driveDDKDisabledValue ?? false
         driveMacSyncRecoveryDisabled = driveMacSyncRecoveryDisabledValue ?? false
-        driveMacKeepDownloadedDisabled = driveMacKeepDownloadedDisabledValue ?? false
         didEnableComputers = didEnableComputersValue ?? false
         driveiOSComputers = driveiOSComputersValue ?? false
         driveiOSComputersDisabled = driveiOSComputersDisabledValue ?? false
@@ -344,7 +341,6 @@ public class LocalSettings: NSObject {
         self.optOutFromCrashReports = nil
         self.userId = nil
         self.didFetchFeatureFlags = nil
-        self.domainVersionValue = nil
         // self.isOnboardedValue needs no clean up - we only show it for first login ever
         // self.isUpsellShownValue needs no clean up - we only show it once
         // self.isPhotoUpsellShownValue needs no clean up - we only show it once
@@ -365,7 +361,6 @@ public class LocalSettings: NSObject {
         self.driveDDKIntelEnabledValue = nil
         self.driveDDKDisabledValue = nil
         self.driveMacSyncRecoveryDisabledValue = nil
-        self.driveMacKeepDownloadedDisabledValue = nil
         self.pushNotificationIsEnabledValue = nil
         self.keepScreenAwakeBannerHasDismissed = nil
         self.didShowPhotosNotification = nil
@@ -660,14 +655,14 @@ public class LocalSettings: NSObject {
         set { driveMacSyncRecoveryDisabledValue = newValue }
     }
 
-    public var driveMacKeepDownloadedDisabled: Bool {
-        get { driveMacKeepDownloadedDisabledValue ?? false }
-        set { driveMacKeepDownloadedDisabledValue = newValue }
-    }
-
     public var driveMacPromoBannerDisabled: Bool {
         get { driveMacPromoBannerDisabledValue ?? false }
         set { driveMacPromoBannerDisabledValue = newValue }
+    }
+
+    public var driveMacGradualRolloutChannelEnabled: Bool {
+        get { driveMacGradualRolloutChannelEnabledValue ?? false }
+        set { driveMacGradualRolloutChannelEnabledValue = newValue }
     }
 
     public var ratingIOSDrive: Bool {

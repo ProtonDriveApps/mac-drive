@@ -104,6 +104,8 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         switch status {
         case .signedOut:
             return "status-signed-out"
+        case .signedOutAndUpdateAvailable:
+            return "status-signed-out-update-available"
         case .paused:
             return "status-paused"
         case .offline:
@@ -115,7 +117,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         case .updateAvailable:
             return "status-update-available"
         case .synced, .fullResyncCompleted:
-            if state.visibleCampaign != nil && !state.items.isEmpty {
+            if let campaign = state.visibleCampaign, campaign.displaysOnStatusBar, !state.items.isEmpty {
                 return "status-promo"
             } else {
                 return "status-synced"
