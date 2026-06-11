@@ -41,7 +41,7 @@ import PDCore
     func pauseSyncing()
     func resumeSyncing()
     func togglePausedStatus()
-    func cleanUpErrors()
+    func cleanUpErrors() async
 
     // Resync
     func performFullResync(onlyIfPreviouslyInterrupted: Bool)
@@ -55,9 +55,10 @@ import PDCore
     func showLogsInFinder() async throws
     func showLogsWhenNotConnected()
     func showSettings()
+    func closeOnboardingWindow()
     func closeSettingsAndShowMainWindow()
     func openDriveFolder(fileLocation: String?)
-    
+
     // FileProvider
     func keepDownloaded(paths: [String])
     func keepOnlineOnly(paths: [String])
@@ -113,39 +114,50 @@ class UserActions {
         }
 
         func toggleStatusWindow(from button: NSButton? = nil, onlyOpen: Bool = false) {
-            Log.trace()
+            Log.userAction(["buttonIsNil": "\(button == nil)", "onlyOpen": onlyOpen])
             delegate?.toggleStatusWindow(from: button, onlyOpen: onlyOpen)
         }
 
         func showStatusWindow(from button: NSButton? = nil) {
-            Log.trace()
+            Log.userAction(["buttonIsNil": "\(button == nil)"])
             delegate?.showStatusWindow(from: button)
         }
 
         @objc func openDriveFolder(fileLocation: String? = nil) {
-            Log.trace()
+            Log.userAction(["fileLocation": fileLocation])
             delegate?.openDriveFolder(fileLocation: fileLocation)
         }
 
+        func closeOnboardingWindow() {
+            Log.userAction()
+            delegate?.closeOnboardingWindow()
+        }
+
         func toggleDetailedLogging() {
-            Log.trace()
+            Log.userAction()
             delegate?.toggleDetailedLogging()
         }
 
 #if HAS_BUILTIN_UPDATER
         @objc func installUpdate() {
-            Log.trace()
+            Log.userAction()
             delegate?.installUpdate()
         }
 
         func checkForUpdates() {
-            Log.trace()
+            Log.userAction()
             delegate?.checkForUpdates()
         }
 #endif
 
         @objc func quitApp() {
-            Log.trace()
+            Log.userAction()
+            NSApp.terminate(self)
+        }
+
+        func restartApp() {
+            Log.userAction()
+            scheduleAppRelaunch(afterDelay: 3)
             NSApp.terminate(self)
         }
 
@@ -160,7 +172,7 @@ class UserActions {
         }
 
         @objc func userRequestedSignOut() {
-            Log.trace()
+            Log.userAction()
             assert(delegate != nil)
             Task {
                 await delegate?.userRequestedSignOut()
@@ -173,7 +185,7 @@ class UserActions {
         }
 
         func refreshUserInfo() {
-            Log.trace()
+            Log.userAction()
             assert(delegate != nil)
             delegate?.refreshUserInfo()
         }
@@ -187,11 +199,13 @@ class UserActions {
         }
 
         func dismissPromoBanner() {
+            Log.userAction()
             delegate?.dismissPromoBanner()
         }
 
         func goToPromoPageOnWeb(email: String?) {
             // reuse LinkActions to go to drive dashboard
+            Log.userAction(["email": email])
             LinkActions().getMoreStorage(email: email)
         }
     }
@@ -204,23 +218,23 @@ class UserActions {
         }
 
         @objc func pauseSyncing()  {
-            Log.trace()
+            Log.userAction()
             delegate?.pauseSyncing()
         }
 
         @objc func resumeSyncing()  {
-            Log.trace()
+            Log.userAction()
             delegate?.resumeSyncing()
         }
 
         func togglePausedStatus() {
-            Log.trace()
+            Log.userAction()
             delegate?.togglePausedStatus()
         }
 
-        func cleanUpErrors() {
-            Log.trace()
-            delegate?.cleanUpErrors()
+        func cleanUpErrors() async {
+            Log.userAction()
+            await delegate?.cleanUpErrors()
         }
     }
 
@@ -232,22 +246,22 @@ class UserActions {
         }
 
         func performFullResync(onlyIfPreviouslyInterrupted: Bool = false) {
-            Log.trace()
+            Log.userAction(["onlyIfPreviouslyInterrupted": onlyIfPreviouslyInterrupted])
             delegate?.performFullResync(onlyIfPreviouslyInterrupted: onlyIfPreviouslyInterrupted)
         }
-        
+
         func finishFullResync() {
-            Log.trace()
+            Log.userAction()
             delegate?.finishFullResync()
         }
-        
+
         func retryFullResync() {
-            Log.trace()
+            Log.userAction()
             delegate?.retryFullResync()
         }
-        
+
         @objc func cancelFullResync() {
-            Log.trace()
+            Log.userAction()
             delegate?.cancelFullResync()
         }
     }
@@ -260,40 +274,45 @@ class UserActions {
         }
 
         @objc func showLogin() {
-            Log.trace()
+            Log.userAction()
             delegate?.showLogin()
         }
 
         @objc func showErrorWindow() {
-            Log.trace()
+            Log.userAction()
             delegate?.showErrorWindow()
         }
 
         func showLogsInFinder() {
-            Log.trace()
+            Log.userAction()
             Task {
                 try await delegate?.showLogsInFinder()
             }
         }
 
         @objc func showLogsWhenNotConnected() {
-            Log.trace()
+            Log.userAction()
             delegate?.showLogsWhenNotConnected()
         }
 
         @objc func showSettings() {
-            Log.trace()
+            Log.userAction()
             delegate?.showSettings()
         }
-        
+
+        func closeOnboardingWindow() {
+            Log.userAction()
+            delegate?.closeOnboardingWindow()
+        }
+
         func closeSettingsAndShowMainWindow() {
-            Log.trace()
+            Log.userAction()
             delegate?.closeSettingsAndShowMainWindow()
         }
 
 #if HAS_QA_FEATURES
         @objc func showQASettings() {
-            Log.trace()
+            Log.userAction()
             delegate?.showQASettings()
         }
 #endif
@@ -308,12 +327,12 @@ class UserActions {
         private let reportBugURL = URL(string: "https://proton.me/support/contact")!
 
         private func open(url: URL) {
-            Log.trace()
+            Log.userAction(["url": url.absoluteString])
             _ = NSWorkspace.shared.open(url)
         }
 
         func openOnlineDriveFolder(email: String?, folder: String? = nil) {
-            Log.trace()
+            Log.userAction(["email": AnyEncodable(email), "folder": folder])
             var url = driveWebsiteURL.appending(email: email)
             if let folder {
                 url.appendPathComponent(folder)
@@ -322,38 +341,38 @@ class UserActions {
         }
 
         func showSupportWebsite() {
-            Log.trace()
+            Log.userAction()
             open(url: SettingsViewModel.supportWebsiteURL)
         }
 
         func manageAccount(email: String?) {
-            Log.trace()
+            Log.userAction()
             open(url: manageAccountURL.appending(email: email))
         }
 
         func getMoreStorage(email: String?) {
-            Log.trace()
+            Log.userAction()
             open(url: getMoreStorageURL.appending(email: email))
         }
 
         func showTermsAndConditions() {
-            Log.trace()
+            Log.userAction()
             open(url: termsAndConditionsURL)
         }
 
         @objc func reportBug() {
-            Log.trace()
+            Log.userAction()
             open(url: reportBugURL)
         }
 
         func showReleaseNotes() {
-            Log.trace()
+            Log.userAction()
             Task { @MainActor in
                 ReleaseNotesCoordinator().start()
             }
         }
     }
-    
+
     class FileProviderActions {
         private weak var delegate: UserActionsDelegate?
 
@@ -362,9 +381,11 @@ class UserActions {
         }
 
         func keepDownloaded(paths: [String]) {
+            Log.userAction(["paths": paths])
             delegate?.keepDownloaded(paths: paths)
         }
         func keepOnlineOnly(paths: [String]) {
+            Log.userAction(["paths": paths])
             delegate?.keepOnlineOnly(paths: paths)
         }
     }
@@ -378,12 +399,12 @@ class UserActions {
         }
 
         @objc func showQASettings() {
-            Log.trace()
+            Log.userAction()
             delegate?.showQASettings()
         }
 
         @MainActor @objc func toggleGlobalProgressStatusItem() {
-            Log.trace()
+            Log.userAction()
             delegate?.toggleGlobalProgressStatusItem()
         }
     }
@@ -402,7 +423,7 @@ class UserActions {
         func mockLogin() {
             observer?.mockLogin()
         }
-        
+
         func mockErrorState() {
             observer?.mockErrorState()
         }

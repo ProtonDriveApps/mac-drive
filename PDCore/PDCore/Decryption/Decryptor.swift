@@ -49,7 +49,7 @@ public class Decryptor {
 
 extension Decryptor {
 
-    static var cryptoTime: Int64 {
+    public static var cryptoTime: Int64 {
         CryptoGo.CryptoGetUnixTime()
     }
 

@@ -55,9 +55,22 @@ struct PromoCampaignConfiguration: Comparable {
 
     fileprivate static let activeCampaigns: [PromoCampaignConfiguration] = [
         PromoCampaignConfiguration(
+            campaignId: "spring-sale-26",
+            timeRange: .limitedTime(
+                start: Date(timeIntervalSinceReferenceDate: 795351600), // 2026-03-16 12:00 CET
+                end: Date(timeIntervalSinceReferenceDate: 796820400) // 2026-04-02 12:00 CET
+            ),
+            backgroundColor: Color(hex: "#FF4C81"),
+            tintColor: ColorProvider.White,
+            icon: .discount,
+            text: "SPRING SALE",
+            resetsPreviousDismissal: true,
+            displaysOnStatusBar: true
+        ),
+        PromoCampaignConfiguration(
             campaignId: "upgrade-drive-plus",
             timeRange: .indefinite(
-                after: Date(timeIntervalSinceReferenceDate: 786452400) // 2025-12-03 12:00 CET
+                after: Date(timeIntervalSinceReferenceDate: 796820400) // 2026-04-02 12:00 CET
             ),
             backgroundColor: ColorProvider.Primary,
             tintColor: ColorProvider.White,

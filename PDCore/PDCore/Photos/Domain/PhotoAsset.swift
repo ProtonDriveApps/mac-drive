@@ -64,7 +64,7 @@ public struct PhotoAsset: Equatable {
             localIdentifier: localIdentifier
         )
     }
-    
+
     public static func == (lhs: PhotoAsset, rhs: PhotoAsset) -> Bool {
         // Filename can be changed due to validation failed, not reliable here
         return lhs.mimeType == rhs.mimeType &&
@@ -162,5 +162,14 @@ public struct PhotoAssetMetadata: Equatable {
         self.camera = camera
         self.location = location
         self.iOSPhotos = iOSPhotos
+    }
+
+    public func copy(with iOSPhotos: iOSPhotos?) -> Self {
+        .init(
+            media: media,
+            camera: camera,
+            location: location,
+            iOSPhotos: iOSPhotos ?? self.iOSPhotos
+        )
     }
 }

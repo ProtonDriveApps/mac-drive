@@ -36,17 +36,15 @@ public final class FileOperationProgresses {
         progresses.mutate { if let progress { $0 = $0.removing(progress) } }
     }
 
-    public func invalidateProgresses() {
+    public func cancelAll(reason: CancellationReason) {
         progresses.mutate {
-            $0.forEach {
-                $0.cancel(reason: .fileProviderDeinited)
-            }
+            $0.forEach { $0.cancel(reason: reason) }
             $0.removeAll()
         }
     }
 
     deinit {
-        invalidateProgresses()
+        cancelAll(reason: .fileProviderDeinited)
     }
 }
 
@@ -73,4 +71,5 @@ extension ProgressUserInfoKey {
 public enum CancellationReason: Error {
     case unknown
     case fileProviderDeinited
+    case networkOffline
 }

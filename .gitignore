@@ -57,6 +57,7 @@ xcuserdata/
 *.xcscmblueprint
 Carthage/
 .vscode
+.air
 
 ### Xcode Patch ###
 *.xcodeproj/*
@@ -75,10 +76,12 @@ Carthage/
 # Obfuscated constants
 **/ObfuscatedConstants.swift
 
-# DDK
-PDDesktopDevKit/Libraries
-PDDesktopDevKit/Package.resolved
+# PDFileProviderOperations
 PDFileProviderOperations/Package.resolved
+PDFileProviderOperations/config.json
+
+# SDK
+PDSDKCore/config.json
 
 # Packagemodifier
 Scripts/opensource/packagemodifier/.build

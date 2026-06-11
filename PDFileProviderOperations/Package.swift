@@ -2,6 +2,7 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+import Foundation
 
 let package = Package(
     name: "PDFileProviderOperations",
@@ -9,7 +10,6 @@ let package = Package(
         .macOS(.v13),
     ],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "PDFileProviderOperations",
             targets: ["PDFileProviderOperations"]),
@@ -17,26 +17,25 @@ let package = Package(
     dependencies: [
         .package(name: "PDClient", path: "../PDClient"),
         .package(name: "PDCore", path: "../PDCore"),
+        .package(name: "PDSDKCore", path: "../PDSDKCore"),
         .package(name: "PDFileProvider", path: "../PDFileProvider"),
-        .package(name: "PDDesktopDevKit", path: "../PDDesktopDevKit"),
         .package(name: "PDUploadVerifier", path: "../PDUploadVerifier"),
-
-        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "33.2.0"),
+        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "37.0.1"),
+        .package(url: "https://github.com/AliSoftware/OHHTTPStubs", exact: "9.1.0"),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "PDFileProviderOperations",
             dependencies: [
                 .product(name: "PDClient", package: "PDClient"),
                 .product(name: "PDCore", package: "PDCore"),
+                .product(name: "PDSDKCore", package: "PDSDKCore"),
                 .product(name: "PDFileProvider", package: "PDFileProvider"),
-                .product(name: "PDDesktopDevKit", package: "PDDesktopDevKit"),
                 .product(name: "ProtonCoreCryptoGoInterface", package: "protoncore_ios"),
                 .product(name: "ProtonCoreDataModel", package: "protoncore_ios"),
                 .product(name: "ProtonCoreServices", package: "protoncore_ios"),
                 .product(name: "ProtonCoreUtilities", package: "protoncore_ios"),
-            ]),
+            ]
+        ),
     ]
 )

@@ -371,6 +371,10 @@ public class Localization {
     /// "Detecting remote changes"
     public static var detecting_remote_changes: String { localized(key: "detecting_remote_changes", table: "shared-Localizable") }
 
+    /// "Title shown in the view when device is disconnected"
+    /// "Your device has no connection"
+    public static var disconnection_view_title: String { localized(key: "disconnection_view_title", table: "shared-Localizable") }
+
     /// "Button to move item to trash"
     /// "Move to trash"
     public static var edit_section_remove: String { localized(key: "edit_section_remove", table: "shared-Localizable") }

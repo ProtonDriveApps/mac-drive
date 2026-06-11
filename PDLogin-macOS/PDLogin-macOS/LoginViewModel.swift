@@ -60,33 +60,36 @@ final class LoginViewModel: ObservableObject {
             DispatchQueue.main.async {
                 self.isLoading = false
             }
-            return	
+            return
         }
-        
+
         let username = username
         let password = password
-        login.login(username: username, password: password, intent: nil, challenge: nil) { [weak self] result in
-            Task { @MainActor [weak self] in
-                switch result {
-                case let .failure(error):
-                    self?.errors.send(error)
-                    self?.isLoading = false
-                case let .success(status):
-                    switch status {
-                    case let .finished(data):
-                        self?.finished = .done(data)
-                    case .askSecondPassword:
-                        self?.finished = .mailboxPasswordNeeded
-                    case .chooseInternalUsernameAndCreateInternalAddress:
-                        fatalError("Account has a username but no address")
-                    case .ssoChallenge:
-                        fatalError("receiving an SSO Challenge here is an invalid state")
-                    case .askTOTP:
-                        self?.finished = .twoFactorCodeNeeded
-                    case .askFIDO2(let options):
-                        self?.finished = .securityKeyNeeded(options)
-                    case .askAny2FA(let options):
-                        self?.finished = .securityKeyOrTwoFactorCodeNeeded(options)
+        // ProtonCore's login call blocks the calling thread (SRP crypto + synchronous networking).
+        Task.detached { [weak self] in
+            self?.login.login(username: username, password: password, intent: nil, challenge: nil) { [weak self] result in
+                Task { @MainActor in
+                    switch result {
+                    case let .failure(error):
+                        self?.errors.send(error)
+                        self?.isLoading = false
+                    case let .success(status):
+                        switch status {
+                        case let .finished(data):
+                            self?.finished = .done(data)
+                        case .askSecondPassword:
+                            self?.finished = .mailboxPasswordNeeded
+                        case .chooseInternalUsernameAndCreateInternalAddress:
+                            fatalError("Account has a username but no address")
+                        case .ssoChallenge:
+                            fatalError("receiving an SSO Challenge here is an invalid state")
+                        case .askTOTP:
+                            self?.finished = .twoFactorCodeNeeded
+                        case .askFIDO2(let options):
+                            self?.finished = .securityKeyNeeded(options)
+                        case .askAny2FA(let options):
+                            self?.finished = .securityKeyOrTwoFactorCodeNeeded(options)
+                        }
                     }
                 }
             }

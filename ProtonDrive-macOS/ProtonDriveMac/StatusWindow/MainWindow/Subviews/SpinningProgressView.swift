@@ -20,13 +20,13 @@ import ProtonCoreUIFoundations
 
 struct SpinningProgressView: View {
     /// On a scale of 0 to 100.
-    private let progress: Int
-    
+    private let progress: Double
+
     /// If true, the progress indicator keeps spinning. Otherwise it goes from 0 to 100%.
     private let isIndeterminate: Bool 
     
     init(
-        progress: Int,
+        progress: Double,
         isIndeterminate: Bool = false
     ) {
         self.progress = progress
@@ -51,7 +51,7 @@ struct SpinningProgressView: View {
     
     private var rotation: Double {
         if isIndeterminate {
-            return Double(progress) / 100 * 360
+            return progress / 100.0 * 360.0
         }
         return 270
     }
@@ -63,7 +63,7 @@ struct SpinningProgressView: View {
             0.25
         } else {
             // The arc goes from empty to full.
-            Double(progress) / 100
+            progress / 100.0
         }
     }
 }

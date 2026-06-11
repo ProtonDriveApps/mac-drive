@@ -17,13 +17,19 @@
 
 import Foundation
 import PDCore
+import ProtonCoreLog
 
 extension Log {
     static var domains: Set<LogDomain> {
-        LogDomain.macOSDomains(
-            appending: RuntimeConfiguration.shared.includedLogDomains,
-            subtracting: RuntimeConfiguration.shared.excludedLogDomains
-        )
+        // If detailed logging is enabled, include all domains
+        if RuntimeConfiguration.shared.includeTracesInLogs {
+            LogDomain.macOSDomains()
+        } else {
+            LogDomain.macOSDomains(
+                appending: RuntimeConfiguration.shared.includedLogDomains,
+                subtracting: RuntimeConfiguration.shared.excludedLogDomains
+            )
+        }
     }
 
     static var logLevels: Set<LogLevel> {
@@ -57,16 +63,23 @@ extension Log {
         // Create loggers
 
         var loggers: [LoggerProtocol] = [
-            AndFilteredLogger(logger: FileLogger(process: fileLog, oneFilePerRun: oneFilePerRun) { compressLogs },
-                              domains: domains,
-                              levels: logLevels)
+            AndFilteredLogger(
+                logger: FileLogger(process: fileLog, oneFilePerRun: oneFilePerRun) { compressLogs },
+                domains: domains,
+                levels: logLevels,
+                // skip log events which have a JSON payload - they will we logged by JSONLogger instead
+                exclusionFilter: { $0?.hasJSONPayload == true }
+            )
         ]
 
 #if DEBUG
         loggers.append(
-            AndFilteredLogger(logger: DebugLogger(),
-                              domains: domains,
-                              levels: logLevels)
+            AndFilteredLogger(
+                logger: DebugLogger(),
+                domains: domains,
+                levels: logLevels,
+                exclusionFilter: { $0?.hasJSONPayload == true }
+            )
         )
 #endif
 
@@ -74,9 +87,7 @@ extension Log {
             ProductionLogger()
         )
 
-        if RuntimeConfiguration.shared.sqliteLogging {
-            loggers.append(SQLiteLogger(system: system))
-        }
+        loggers.append(JSONLogger(process: fileLog, oneFilePerRun: oneFilePerRun) { compressLogs })
 
         let oldLogger = self.logger
         let newLogger = CompoundLogger(loggers: loggers)
@@ -90,5 +101,16 @@ extension Log {
 
         Log.info("Process identifier = \(ProcessInfo.processInfo.processIdentifier)", domain: .application)
         Log.info("Client version = \(Constants.clientVersion)", domain: .application)
+    }
+}
+
+func configureCoreLoggerUsingEnvironmentFromConstants() {
+    let hostString = Constants.userApiConfig.environment.doh.defaultHost
+    // PMLog uses URL.host() internally, but this method is broken on macOS 13.0-13.2
+    // and crashes instead of providing nil. The deprecated `.host` property works ok always.
+    // To prevent crash, let's not set the external logger at all if there's no host.
+    // The events won't be delivered without host anyways.
+    if URL(string: hostString)?.host != nil {
+        PMLog.setExternalLoggerHost(hostString)
     }
 }

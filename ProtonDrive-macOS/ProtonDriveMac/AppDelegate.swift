@@ -23,7 +23,7 @@ import UserNotifications
 import ProtonCoreFeatureFlags
 import ProtonCoreServices
 import ProtonCoreCryptoGoInterface
-import ProtonCoreCryptoMultiversionPatchedGoImplementation
+import ProtonCoreCryptoPatchedGoImplementation
 import ProtonCoreLog
 import PMEventsManager
 
@@ -33,13 +33,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var coordinator: AppCoordinator?
     private var isTerminatingDueToAppCoordinatorError = false
+    private let relaunchService = CacheDeleteRelaunchService()
     private let memoryWarningObserver: MemoryWarningObserver
     private let observationCenter: PDCore.UserDefaultsObservationCenter
+    private var systemMetricsMonitor: SystemMetricsMonitor?
+
+    /// Holds the flock-based instance lock for the entire process lifetime.
+    /// The kernel releases the lock automatically on process exit (including SIGKILL).
+    private static let instanceLock: SingleInstanceLocking = FlockInstanceLock(
+        containerGroupIdentifier: Constants.appContainerGroup
+    )
 
     override init() {
+        if RuntimeConfiguration.shared.enableTestAutomation {
+            relaunchService.appDidLaunch()
+        }
+        
+        // Atomic kernel-level guard: flock(2) prevents a second instance from running.
+        // Returns false only when another process definitively holds the lock (EWOULDBLOCK).
+        // Fail-opens on any filesystem error to avoid blocking app launch.
+        if !Self.instanceLock.acquireLock() {
+            assert(false, "Exiting because another instance is already running.")
+            exit(0)
+        }
         Log.trace()
-
-        inject(cryptoImplementation: ProtonCoreCryptoMultiversionPatchedGoImplementation.CryptoGoMethodsImplementation.instance)
+        
+        inject(cryptoImplementation: ProtonCoreCryptoPatchedGoImplementation.CryptoGoMethodsImplementation.instance)
         
         // this must be done before the first access to the user defaults
         GroupContainerMigrator.instance.checkIfMigrationIsNessesary()
@@ -78,6 +97,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Log.trace()
+        
+        if !RuntimeConfiguration.shared.enableTestAutomation {
+            relaunchService.appDidLaunch()
+        }
 
         UNUserNotificationCenter.current().delegate = self
         
@@ -93,8 +116,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         Constants.loadConfiguration()
-        configureCoreLogger()
+        Self.configureCoreLogger()
         
+        if RuntimeConfiguration.shared.includeTracesInLogs {
+            systemMetricsMonitor = SystemMetricsMonitor(
+                interval: RuntimeConfiguration.shared.systemMetricsMonitoringInterval,
+                volumeURL: FileManager.default.homeDirectoryForCurrentUser
+            )
+            systemMetricsMonitor?.start()
+        }
+
         Task {
             do {
                 coordinator = await AppCoordinator(())
@@ -106,6 +137,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
 
                 try await coordinator?.start()
+                
+                relaunchService.honourTheKillSwitch(
+                    coordinator?.tower?.localSettings.isFeatureEnabled(.driveMacAbnormalExitRelaunchDisabled) ?? false
+                )
 
                 Log.trace("finished launching")
             } catch {
@@ -117,10 +152,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func configureCoreLogger() {
-        let hostSubstring = Constants.userApiConfig.environment.doh.getCurrentlyUsedHostUrl()
-            .trimmingPrefix("http://").trimmingPrefix("https://")
-        PMLog.setExternalLoggerHost(String(hostSubstring))
+    private static func configureCoreLogger() {
+        // Note: this is a temporary fix, @alecrim will work with upstream to fix properly.
+        // PMLog's file logging uses queue.sync + O(n) pruneLogs on every write, blocking API callers for ~2s.
+        // Disable its file I/O entirely — macOS app uses PDCore's Log for file logging.
+        PMLog.logsDirectory = nil
+
+        configureCoreLoggerUsingEnvironmentFromConstants()
     }
 
     private func setUpLogger() {
@@ -167,6 +205,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        // this is performed before domain disconnection by design
+        // we don't want the issue with domain disconnection to cause the relaunch
+        relaunchService.appWillTerminate()
         let currentEvent = NSAppleEventManager.shared().currentAppleEvent
         let pid = currentEvent?.attributeDescriptor(forKeyword: keySenderPIDAttr)?.int32Value
         let bundleIdentifier = pid.flatMap { NSRunningApplication(processIdentifier: $0)?.bundleIdentifier } ?? Bundle.main.bundleIdentifier
@@ -257,7 +298,7 @@ extension AppDelegate {
                 }
                 NSWorkspace.shared.selectFile(location, inFileViewerRootedAtPath: location)
                 self?.isTerminatingDueToAppCoordinatorError = true
-                NSApp.terminate(nil)
+                NSApp.terminate(self)
                 return true
             }
             localizedDescription = "An older version of the application is currently in use."
@@ -271,7 +312,7 @@ extension AppDelegate {
                 }
                 NSWorkspace.shared.selectFile(location, inFileViewerRootedAtPath: location)
                 self?.isTerminatingDueToAppCoordinatorError = true
-                NSApp.terminate(nil)
+                NSApp.terminate(self)
                 return true
             }
             localizedDescription = "A newer version of the application is already installed."
@@ -312,7 +353,7 @@ extension AppDelegate {
 
         guard recoveryAttempter == nil else { return }
         isTerminatingDueToAppCoordinatorError = true
-        NSApp.terminate(nil)
+        NSApp.terminate(self)
     }
 
     private func presentErrorWithCustomerSupportButton(error: Error) {
@@ -378,4 +419,14 @@ private extension NSError {
         userInfo.merge(valuesToAdd, uniquingKeysWith: { $1 })
         self.init(domain: nsError.domain, code: nsError.code, userInfo: userInfo)
     }
+}
+
+/// Spawns a detached shell process that relaunches the app after a delay.
+/// The process survives the caller's termination, making it suitable for
+/// use right before an operation that kills the current process.
+func scheduleAppRelaunch(afterDelay delay: Int) {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/bin/sh")
+    process.arguments = ["-c", "sleep $0; open \"$1\"", String(delay), Bundle.main.bundlePath]
+    try? process.run()
 }

@@ -27,11 +27,11 @@ public struct PerformanceMetric {
     }
 
     public enum PageType: String, Encodable, Equatable {
-        case myFiles
+        case myFiles = "my_files"
         case computers
         case photos
-        case sharedWithMe
-        case sharedByMe
+        case sharedWithMe = "shared_with_me"
+        case sharedByMe = "shared_by_me"
         case trash
     }
 

@@ -2863,7 +2863,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Êtes-vous sûr de vouloir supprimer le ou les éléments sélectionnés de votre disque ?"
+            "value" : "Voulez-vous vraiment retirer le ou les éléments sélectionnés de votre album ?"
           }
         },
         "hu" : {
@@ -4151,7 +4151,7 @@
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Er De sikker på, at De vil slette albumet “%@”? Billederne vil ikke blive slettet."
+            "value" : "Er du sikker på, at du vil slette albummet “%@”? Billederne vil ikke blive slettet."
           }
         },
         "de" : {
@@ -4523,7 +4523,7 @@
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nogle fotos i dette album er ikke gemt p\bå din tidslinje. Sletning af dette album vil permanent slette disse fotos.\\n\\nVil du gerne gemme dem f\bør fjernelse?"
+            "value" : "Nogle fotos i dette album er ikke gemt p\bå din tidslinje. Sletning af dette album vil permanent slette disse fotos.\\n\\nVil du gemme dem før de slettes?"
           }
         },
         "de" : {
@@ -4866,6 +4866,168 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在偵測遠端變更"
+          }
+        }
+      }
+    },
+    "disconnection_view_title" : {
+      "comment" : "Title shown in the view when device is disconnected",
+      "extractionState" : "manual",
+      "localizations" : {
+        "be" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "У вашай прылады адсутнічае падключэнне"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El dispositiu no té connexió"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vaše zařízení je bez připojení"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din enhed har ingen forbindelse"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Gerät hat keine Verbindung."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η συσκευή σας δεν έχει σύνδεση"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your device has no connection"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El dispositivo no está conectado."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El dispositivo no tiene conexión."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laitteellasi ei ole yhteyttä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre appareil n'est pas connecté."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A készüléknek nincs kapcsolata"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perangkat Anda tidak memiliki koneksi"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo dispositivo non ha connessione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デバイスが接続されていません"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "თქვენს მოწყობილობას მიერთება არ გააჩნია"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기기 연결이 없습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enheten din har ingen tilkobling"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uw apparaat heeft geen verbinding"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twoje urządzenie nie ma połączenia"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu dispositivo não tem conexão"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dispozitivul nu are conexiune"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vaše zariadenie nemá žiadne pripojenie"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din enhet har ingen anslutning"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aygıtınızın internet bağlantısı yok"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的设备未连接"
           }
         }
       }
@@ -6269,7 +6431,7 @@
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Albummer"
+            "value" : "Albums"
           }
         },
         "de" : {
@@ -6449,7 +6611,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fotografie"
+            "value" : "Fotky"
           }
         },
         "da" : {
@@ -15890,7 +16052,7 @@
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Navn må ikke slutte med et mellemrum"
+            "value" : "Navn må ikke slutte med et mellemrum (blank tegn)"
           }
         },
         "de" : {
@@ -17936,7 +18098,7 @@
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drive lagerplads fyldt"
+            "value" : "Drive-lagerplads fyldt"
           }
         },
         "de" : {
@@ -20105,7 +20267,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sériové foto"
+            "value" : "Sekvenčné foto"
           }
         },
         "sv" : {
@@ -20723,7 +20885,7 @@
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mine albummer"
+            "value" : "Mine albums"
           }
         },
         "de" : {

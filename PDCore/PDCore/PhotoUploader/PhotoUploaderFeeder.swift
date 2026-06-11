@@ -26,34 +26,39 @@ public final class PhotoUploaderFeeder {
     private let feedSubject: PassthroughSubject<Void, Never>
 
     private let uploader: PhotoUploader
-    private let uploadingPhotosRepository: UploadingPrimaryPhotosRepository
+    private let sdkPhotoUploaderBlock: () -> SDKFileUploaderProtocol?
     private let shouldFeedPublisher: AnyPublisher<Bool, Never>
     private var uploadPendingPhotosSubscription: AnyCancellable?
+    @ThreadSafe private var isFeederAvailable = true
+
+    private var sdkPhotoUploader: SDKFileUploaderProtocol? {
+        sdkPhotoUploaderBlock()
+    }
 
     public init(
         uploader: PhotoUploader,
-        uploadingPhotosRepository: UploadingPrimaryPhotosRepository,
+        sdkPhotoUploaderBlock: @escaping () -> SDKFileUploaderProtocol?,
         notificationCenter: NotificationCenter,
         isBackupAvailable: AnyPublisher<Bool, Never>,
-        newPhotoAvailable: AnyPublisher<[Photo], Never>,
         shouldFeedPublisher: AnyPublisher<Bool, Never>,
         processor: PhotoFeederPreprocessorProtocol,
         feedSubject: PassthroughSubject<Void, Never>
     ) {
         self.uploader = uploader
-        self.uploadingPhotosRepository = uploadingPhotosRepository
+        self.sdkPhotoUploaderBlock = sdkPhotoUploaderBlock
         self.notificationCenter = notificationCenter
         self.shouldFeedPublisher = shouldFeedPublisher
         self.processor = processor
         self.feedSubject = feedSubject
 
+        /// Is backup available (is enabled and has no constraints - `LocalPhotosBackupUploadAvailableController`)
         isBackupAvailable
             .removeDuplicates()
             .receive(on: queue)
             .sink { [weak self] isAvailable in
                 guard let self else { return }
                 Log.info("📸📀 Backup is enabled: \(isAvailable)", domain: .uploader)
-                self.uploader.isEnabled = isAvailable
+                self.isFeederAvailable = isAvailable
 
                 if isAvailable {
                     self.subscribeToQueuedUploads()
@@ -63,21 +68,42 @@ public final class PhotoUploaderFeeder {
                     self.uploadPendingPhotosSubscription?.cancel()
                     self.uploadPendingPhotosSubscription = nil
                     self.uploader.onUploadsDisabled()
+                    Task { @MainActor in
+                        await self.sdkPhotoUploader?.pauseAll()
+                    }
                 }
             }.store(in: &cancellables)
 
+        // Is the app running in the foreground, unlocked... etc
+        // ConcreteComputationalAvailabilityController
         shouldFeedPublisher
             .sink {  [weak self] shouldFeed in
                 guard let self else { return }
                 if shouldFeed {
                     Log.info("📸🥣✅ resume all operations", domain: .uploader)
                     self.uploader.queue.isSuspended = false
-                    notificationCenter.post(name: .uploadPendingPhotos)
+                    Task {
+                        await self.resumePausedSDKUploads()
+                    }
                 } else {
                     Log.info("📸🥣❌ pause all operations", domain: .uploader)
                     self.uploader.queue.isSuspended = true
+                    Task { @MainActor in
+                        await self.sdkPhotoUploader?.pauseAll()
+                    }
                 }
             }.store(in: &cancellables)
+    }
+
+    @MainActor
+    private func resumePausedSDKUploads() async {
+        guard let sdkPhotoUploader else {
+            return
+        }
+        // Resume pending operations
+        await sdkPhotoUploader.resumePausedUploads()
+        // Invoke feeder to add more to queue if necessary
+        notificationCenter.post(name: .uploadPendingPhotos)
     }
 
     func subscribeToQueuedUploads() {
@@ -98,6 +124,10 @@ public final class PhotoUploaderFeeder {
     }
 
     private func processPendingPhotos() {
+        guard isFeederAvailable else {
+            Log.info("📸☁️ No need to feed photos, we don't have a feed available.", domain: .uploader)
+            return
+        }
         feedSubject.send()
     }
 }

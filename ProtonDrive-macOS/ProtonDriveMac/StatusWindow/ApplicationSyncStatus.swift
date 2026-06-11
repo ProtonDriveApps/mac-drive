@@ -37,7 +37,7 @@ enum ApplicationSyncStatus: Sendable, Equatable {
     // Source: Network
     case offline
     // Source: FileProvider
-    case enumerating(String)
+    case enumerating(String?)
     // Source: FileProvider
     case syncing
     // Source: AppUpdateService
@@ -57,7 +57,7 @@ enum ApplicationSyncStatus: Sendable, Equatable {
         case .signedOut, .signedOutAndUpdateAvailable: Localization.menu_status_signed_out
         case .paused: Localization.menu_status_sync_paused
         case .offline: Localization.menu_status_offline
-        case .enumerating(let itemEnumerationDescription): itemEnumerationDescription
+        case .enumerating(let itemEnumerationDescription): itemEnumerationDescription ?? Localization.enumerating_after_resuming
         case .syncing: Localization.menu_status_syncing
         case .updateAvailable: Localization.menu_status_update_available
         case .errored(let errorCount): Localization.menu_status_sync_items_failed(errorCount: errorCount)

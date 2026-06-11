@@ -36,6 +36,9 @@ protocol SettingsViewModelProtocol: ObservableObject {
     var userInfo: UserInfo { get }
     static var supportWebsiteURL: URL { get }
     var version: String { get }
+    var buildCommitSHA: String { get }
+    var sdkVersion: String { get }
+    var buildDetails: String { get }
     var isSignoutInProgress: Bool { get }
     var isLaunchOnBootEnabled: Bool { get set }
     var isFullResyncEnabled: Bool { get }
@@ -46,6 +49,12 @@ protocol SettingsViewModelProtocol: ObservableObject {
     #endif
 }
 
+extension SettingsViewModelProtocol {
+    var buildDetails: String {
+        "SHA: \(buildCommitSHA), SDK: \(sdkVersion)"
+    }
+}
+
 final class SettingsViewModel: SettingsViewModelProtocol {
 
     var initials: String { accountInfo.displayName.initials() }
@@ -53,6 +62,14 @@ final class SettingsViewModel: SettingsViewModelProtocol {
     var emailAddress: String { accountInfo.email }
 
     let version: String = Constants.versionDigits
+
+    var buildCommitSHA: String {
+        Constants.buildCommitSHA
+    }
+
+    var sdkVersion: String {
+        Constants.sdkVersion
+    }
 
     @Published var userInfo: UserInfo
     @Published var isSignoutInProgress: Bool = false

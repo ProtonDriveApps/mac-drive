@@ -19,14 +19,18 @@ import Foundation
 import Combine
 import PDClient
 
-protocol DownloaderProtocol: AnyObject {
-    func cancel(operationsOf identifiers: [NodeIdentifier])
+public protocol DownloaderProtocol: AnyObject {
+    func cancelAll()
     func cancel(operationsOf identifiers: [any VolumeIdentifiable])
 }
 
 public protocol TrackableDownloader {
+#if os(iOS)
+    @MainActor
     var isActivePublisher: AnyPublisher<Bool, Never> { get }
+    @MainActor
     var bytesCounterResource: BytesCounterResource { get }
+#endif
 }
 
 public class Downloader: NSObject, ProgressTrackerProvider, DownloaderProtocol, TrackableDownloader {
@@ -54,6 +58,8 @@ public class Downloader: NSObject, ProgressTrackerProvider, DownloaderProtocol, 
     private let successRateMonitor = DownloadSuccessRateMonitor()
     public let bytesCounterResource: BytesCounterResource
 
+#if os(iOS)
+    
     public var isActivePublisher: AnyPublisher<Bool, Never> {
         return downloadsPublisher()
             .receive(on: DispatchQueue.main)
@@ -63,6 +69,8 @@ public class Downloader: NSObject, ProgressTrackerProvider, DownloaderProtocol, 
             .removeDuplicates()
             .eraseToAnyPublisher()
     }
+    
+#endif
 
     internal lazy var queue: OperationQueue = {
         let queue = OperationQueue(maxConcurrentOperation: Constants.maxConcurrentInflightFileDownloads,
@@ -87,20 +95,6 @@ public class Downloader: NSObject, ProgressTrackerProvider, DownloaderProtocol, 
         successRateMonitor.cancelAll()
         self.queue.cancelAllOperations()
     }
-    
-    public func cancel(operationsOf identifiers: [NodeIdentifier]) {
-        Log.info("Downloader.cancel(operationsOf:), will cancel downloads of \(identifiers)", domain: .downloader)
-        successRateMonitor.cancel(identifiers: identifiers)
-
-        queue.operations
-            .compactMap { $0 as? DownloadOperation }
-            .filter { operation in
-                identifiers.contains { identifier in
-                    operation.identifier.id == identifier.nodeID && operation.identifier.volumeID == identifier.volumeID
-                }
-            }
-            .forEach { $0.cancel() }
-    }
 
     public func cancel(operationsOf identifiers: [any VolumeIdentifiable]) {
         Log.info("Downloader.cancel(operationsOf:), will cancel downloads of \(identifiers)", domain: .downloader)
@@ -121,6 +115,8 @@ public class Downloader: NSObject, ProgressTrackerProvider, DownloaderProtocol, 
             .compactMap({ $0 as? DownloadOperation })
             .first(where: { $0.identifier == file.identifier.any() })
     }
+    
+#if os(iOS)
 
     @discardableResult
     public func scheduleDownloadWithBackgroundSupport(cypherdataFor file: File,
@@ -167,7 +163,8 @@ public class Downloader: NSObject, ProgressTrackerProvider, DownloaderProtocol, 
     @discardableResult
     public func scheduleDownloadOfflineAvailable(cypherdataFor file: File,
                                                  completion: @escaping (Result<File, Error>) -> Void) -> Operation {
-        scheduleDownload(cypherdataFor: file) { [weak self, weak file] result in
+        // TODO: this should be using `useRefreshableDownloadOperation: true` on iOS. But it should also be deleted once we switch to SDK
+        scheduleDownload(cypherdataFor: file, useRefreshableDownloadOperation: false) { [weak self, weak file] result in
             if let self, let file {
                 self.reportDownloadResult(node: file, result: result)
             }
@@ -179,6 +176,7 @@ public class Downloader: NSObject, ProgressTrackerProvider, DownloaderProtocol, 
             )
         }
     }
+    
 
     @discardableResult
     private func scheduleDownload(cypherdataFor file: File,
@@ -190,8 +188,7 @@ public class Downloader: NSObject, ProgressTrackerProvider, DownloaderProtocol, 
             return presentOperation
         }
         let identifier = file.identifier
-        if isMacOS() || !useRefreshableDownloadOperation {
-            /// Legacy for mac, can be removed after 2025 Feb, once macOS migrated to DDK
+        if !useRefreshableDownloadOperation {
             let operation = LegacyDownloadFileOperation(
                 file,
                 cloudSlot: self.cloudSlot,
@@ -205,21 +202,20 @@ public class Downloader: NSObject, ProgressTrackerProvider, DownloaderProtocol, 
             }
             self.queue.addOperation(operation)
             return operation
-        } else {
-            let operation = DownloadFileOperation(
-                file,
-                cloudSlot: self.cloudSlot,
-                endpointFactory: endpointFactory,
-                storage: storage,
-                bytesCounterResource: bytesCounterResource
-            ) { [weak self] result in
-                self?.clearUnavailableFileIfNeeded(identifier: identifier, error: result.error)
-                result.sendNotificationIfFailure(with: Self.downloadFail)
-                completion(result)
-            }
-            self.queue.addOperation(operation)
-            return operation
         }
+        let operation = DownloadFileOperation(
+            file,
+            cloudSlot: self.cloudSlot,
+            endpointFactory: endpointFactory,
+            storage: storage,
+            bytesCounterResource: bytesCounterResource
+        ) { [weak self] result in
+            self?.clearUnavailableFileIfNeeded(identifier: identifier, error: result.error)
+            result.sendNotificationIfFailure(with: Self.downloadFail)
+            completion(result)
+        }
+        self.queue.addOperation(operation)
+        return operation
     }
 
     @discardableResult
@@ -239,12 +235,15 @@ public class Downloader: NSObject, ProgressTrackerProvider, DownloaderProtocol, 
         self.queue.addOperation(downloadTree)
         return downloadTree
     }
+
+#endif
     
     @discardableResult
     public func scanChildren(of folder: Folder,
                              enumeration: @escaping Enumeration,
                              completion: @escaping (Result<Folder, Error>) -> Void) -> Operation
     {
+        Log.info("Downloader - scan \(folder.identifier.id)", domain: .downloader)
         let scanChildren = ScanChildrenOperation(
             node: folder,
             cloudSlot: self.cloudSlot,
@@ -305,18 +304,23 @@ public class Downloader: NSObject, ProgressTrackerProvider, DownloaderProtocol, 
         }
     }
 
-    private func isMacOS() -> Bool {
-#if os(macOS)
-        return true
-#else
-        return false
-#endif
-    }
 }
 
+#if os(iOS)
+
 extension Downloader {
-    public func downloadProcessesAndErrors() -> AnyPublisher<[ProgressTracker], Error> {
+    public func downloadProcessesAndErrors() -> AnyPublisher<[String: ProgressTracker], Error> {
         self.progressPublisher(direction: .downstream)
+            .compactMap { progresses -> ProgressTrackers in
+                let keysAndValues = progresses.compactMap { progressTracker -> (String, ProgressTracker)? in
+                    guard let id = progressTracker.id else {
+                        return nil
+                    }
+                    return (id, progressTracker)
+                }
+                // To prevent crash caused by duplicate dictionary keys
+                return ProgressTrackers(keysAndValues, uniquingKeysWith: { _, new in new })
+            }
             .setFailureType(to: Error.self)
             .merge(with: NotificationCenter.default.throwIfFailure(with: Self.downloadFail))
             .eraseToAnyPublisher()
@@ -362,3 +366,5 @@ extension Downloader {
         }
     }
 }
+
+#endif

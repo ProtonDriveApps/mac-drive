@@ -63,10 +63,10 @@ final class DBPerformanceMetricsReporter: PerformanceMetricsReporter {
             repository: DBPerformanceMeasurementRepository(),
             uploadResource: ObservabilityUploadSpeedMetricResource(),
             downloadResource: ObservabilityDownloadSpeedMetricResource(),
-            inactivityTimer: CommonRunLoopPausableTimerResource(
+            inactivityTimer: MacOSPausableTimerResource(
                 duration: Constants.inactivityTimeout
             ),
-            reportingCycleTimer: CommonRunLoopPausableTimerResource(
+            reportingCycleTimer: MacOSPausableTimerResource(
                 duration: Constants.reportingCycleLength
             ),
             reportAggregator: PerformanceMetricsReportAggregator(),
@@ -84,6 +84,7 @@ final class DBPerformanceMetricsReporter: PerformanceMetricsReporter {
         }
 
         repository.unreportedMeasurementPublisher.sink { [weak self] events in
+            guard !events.isEmpty else { return }
             self?.restartTimersIfNeeded()
         }.store(in: &cancellables)
 

@@ -55,7 +55,6 @@ public class EventStorageManager: NSObject, RecoverableStorage {
         }
         #endif
 
-
         // dynamic linking
         if let bundle = Bundle(for: EventStorageManager.self).url(forResource: databaseName, withExtension: "momd"),
            let model = NSManagedObjectModel(contentsOf: bundle)
@@ -204,17 +203,16 @@ public class EventStorageManager: NSObject, RecoverableStorage {
         super.init()
         
         do {
-            try restoreFromBackup()
-            cleanupLeftoversFromPreviousRecoveryAttempt()
+            if Constants.runningInExtension,
+               RecoveryCoordination.isInProgress {
+                Log.info("Skipping recovery cleanup: main app resync in progress", domain: .storage)
+            } else {
+                try restoreFromBackup()
+                cleanupLeftoversFromPreviousRecoveryAttempt()
+            }
         } catch {
             Log.error("Restoring from backup failed", error: error, domain: .storage)
         }
-        
-        #if DEBUG
-        // swiftlint:disable no_print
-        print("💠 EventsCoreData model located at: \(self.persistentContainer.persistentStoreCoordinator.persistentStores)")
-        // swiftlint:enable no_print
-        #endif
     }
 }
 
@@ -242,7 +240,7 @@ extension EventStorageManager {
     
     public func disregard(_ objectID: NSManagedObjectID) {
         self.backgroundContext.performAndWait {
-            guard let object = self.backgroundContext.object(with: objectID) as? PersistedEvent else { return }
+            guard let object: PersistedEvent = try? self.backgroundContext.typedObject(with: objectID) else { return }
             object.isProcessed = true
             object.isEnumerated = true
             try? self.backgroundContext.saveOrRollback()
@@ -251,17 +249,21 @@ extension EventStorageManager {
     
     public func discard(_ objectID: NSManagedObjectID) {
         self.backgroundContext.performAndWait {
-            let object = self.backgroundContext.object(with: objectID) as? PersistedEvent
-            // we need to keep events for EventListeners
-            object?.isProcessed = true
-            try? self.backgroundContext.saveOrRollback()
+            do {
+                let object: PersistedEvent? = try self.backgroundContext.typedObject(with: objectID)
+                // we need to keep events for EventListeners
+                object?.isProcessed = true
+                try self.backgroundContext.saveOrRollback()
+            } catch {
+                Log.error("Discard event failed", error: error, domain: .events)
+            }
         }
     }
     
     public func setEnumerated(_ objectIDs: [NSManagedObjectID]) {
         self.backgroundContext.performAndWait {
             objectIDs.forEach { objectID in
-                let object = self.backgroundContext.object(with: objectID) as? PersistedEvent
+                let object: PersistedEvent? = try? self.backgroundContext.typedObject(with: objectID)
                 object?.isEnumerated = true
             }
             try? self.backgroundContext.saveOrRollback()
@@ -364,9 +366,8 @@ extension EventStorageManager {
             #keyPath(PersistedEvent.volumeId), volumeId
         )
 
-        let context = self.persistentContainer.viewContext
-        return try context.performAndWait {
-            try context.count(for: fetchRequest)
+        return try backgroundContext.performAndWait {
+            try backgroundContext.count(for: fetchRequest)
         }
     }
     

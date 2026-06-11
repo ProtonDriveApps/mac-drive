@@ -29,10 +29,17 @@ public final class GeneralSettings {
 
     private let network: ProtonCoreServices.APIService
     private let localSettings: LocalSettings
+    private let connectionStateResource: ConnectionStateResource
 
-    init(mainKeyProvider: MainKeyProvider, network: ProtonCoreServices.APIService, localSettings: LocalSettings) {
+    init(
+        mainKeyProvider: MainKeyProvider,
+        network: ProtonCoreServices.APIService,
+        localSettings: LocalSettings,
+        connectionStateResource: ConnectionStateResource
+    ) {
         self.network = network
         self.localSettings = localSettings
+        self.connectionStateResource = connectionStateResource
         self._currentUserSettings.configure(with: mainKeyProvider)
     }
 
@@ -149,13 +156,20 @@ extension GeneralSettings: ProtonUserSettingsStarterInteractorProtocol {
                 do {
                     try await fetchAndStoreUserSettings()
                 } catch {
-                    Log.error("Fetch Proton user settings failed", error: error, domain: .application)
+                    if error is NetworkStateError {
+                        Log.debug("Fetch Proton user settings failed since device is offline", domain: .application)
+                    } else {
+                        Log.error("Fetch Proton user settings failed", error: error, domain: .application)
+                    }
                 }
             }
         }
     }
 
     private func fetchAndStoreUserSettings() async throws {
+        guard connectionStateResource.currentState.isReachable else {
+            throw NetworkStateError.deviceIsOffline
+        }
         let response: GetGeneralSettingsResponse = try await fetchGeneralSettingsAsync()
         storeUserSettings(response.userSettings)
     }

@@ -25,7 +25,8 @@ public class FileUploader: OperationProcessor<FileUploaderOperation>, ErrorContr
     let uploadSuccessRateMonitor = UploadSuccessRateMonitor()
     
     public let moc: NSManagedObjectContext
-    var isEnabled = true {
+    @available(*, deprecated, message: "Do not disable, keep the state unchanged")
+    public var isEnabled = true {
         didSet { Log.info("\(type(of: self)) isEnabled will become \(isEnabled)", domain: .uploader) }
     }
     var didSignOut = false {

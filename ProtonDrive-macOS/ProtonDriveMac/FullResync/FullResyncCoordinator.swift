@@ -135,8 +135,8 @@ final class FullResyncCoordinator {
         workingSetEnumerationInProgress = true
 
         do {
-            try await domainOperationsService.signalEnumerator()
-
+            try await domainOperationsService.signalEnumerator(reason: .fullResync)
+            
             try await applicationEventObserver.waitUntilEnumerationHasBegunAndEnded()
 
             self.completeFullResync(hasFileProviderResponded: true, startTime: startTime)

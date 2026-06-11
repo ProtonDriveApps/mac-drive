@@ -120,10 +120,11 @@ final class DownloadFileOperation: SynchronousOperation, DownloadOperation {
     
     private func initialRevision() async throws -> Revision {
         do {
+            let moc = storage.backgroundContext
             Log.info("Starts to download file details for \(fileIdentifier)", domain: .downloader)
-            let node = try await cloudSlot.scanNode(fileIdentifier, linkProcessingErrorTransformer: { $1 })
+            let node = try await cloudSlot.scanNode(fileIdentifier, linkProcessingErrorTransformer: { $1 }, moc: moc)
             let fileIdentifier = self.fileIdentifier
-            return try await storage.backgroundContext.perform {
+            return try await moc.perform {
                 guard let file = node as? File, let revision = file.activeRevision else {
                     let error = Errors.errorReadingMetadata
                     Log.error("Downloaded file details is in invalid state", error: error, domain: .downloader, context: LogContext("fileIdentifier: \(fileIdentifier)"))
@@ -191,12 +192,13 @@ final class DownloadFileOperation: SynchronousOperation, DownloadOperation {
     }
     
     private func update(revision: Revision) async throws -> Revision {
+        let moc = storage.backgroundContext
         guard !self.isCancelled, !Task.isCancelled else { return revision }
-        let revisionIdentifier = await storage.backgroundContext.perform { revision.identifier }
+        let revisionIdentifier = await moc.perform { revision.identifier }
         guard !self.isCancelled, !Task.isCancelled else { return revision }
         do {
             Log.info("Starts to scan revision for file: \(fileIdentifier), revision: \(revisionIdentifier)", domain: .downloader)
-            let updatedRevision = try await cloudSlot.scanRevision(revisionIdentifier)
+            let updatedRevision = try await cloudSlot.scanRevision(revisionIdentifier, moc: moc)
             return updatedRevision
         } catch {
             Log

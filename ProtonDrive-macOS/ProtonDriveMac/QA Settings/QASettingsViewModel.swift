@@ -32,10 +32,10 @@ struct QASettingsConstants {
     static let updateFeedURL = "updateFeedURL"
     static let shouldObfuscateDumpsStorage = "shouldObfuscateDumpsStorage"
     static let disconnectDomainOnSignOut = "disconnectDomainOnSignOut"
-    static let driveDDKEnabledInQASettings = "driveDDKEnabledInQASettings"
     static let globalProgressStatusMenuEnabled = "globalProgressStatusMenuEnabled"
     static let overrideDateForPromoCampaign = "overrideDateForPromoCampaign"
     static let driveMacPromoBannerDisabled = "driveMacPromoBannerDisabled"
+    static let simulateNetworkOffline = "simulateNetworkOffline"
 }
 
 protocol EventLoopManager: AnyObject {
@@ -56,6 +56,25 @@ class QASettingsViewModel: ObservableObject {
     @Published var dumperError: String = ""
     @Published var jailStatus: String = "Unknown"
     @Published var pauseResumeLoopEnabled: Bool = false
+
+    @SettingsStorage(QASettingsConstants.simulateNetworkOffline)
+    var simulateNetworkOfflineStorage: Bool?
+
+    @Published var simulateNetworkOffline: Bool = false {
+        didSet {
+            simulateNetworkOfflineStorage = simulateNetworkOffline
+            #if DEBUG
+            let center = DarwinNotificationCenter.shared
+            if simulateNetworkOffline {
+                center.postNotification(.simulateNetworkOffline)
+                Self.postCFNotification("ch.protonmail.drive.debug.urlprotocol.offline")
+            } else {
+                center.postNotification(.simulateNetworkOnline)
+                Self.postCFNotification("ch.protonmail.drive.debug.urlprotocol.online")
+            }
+            #endif
+        }
+    }
 
 #if HAS_BUILTIN_UPDATER
     @Published var shouldUpdateEvenOnDebugBuild: Bool = false {
@@ -124,19 +143,6 @@ class QASettingsViewModel: ObservableObject {
     }
     @SettingsStorage(QASettingsConstants.disconnectDomainOnSignOut) var disconnectDomainOnSignOutStorage: Bool?
 
-    var driveDDKIntelEnabledFeatureFlagValue: Bool {
-        featureFlags?.isEnabled(flag: .driveDDKIntelEnabled) ?? false
-    }
-    var driveDDKDisabledFeatureFlagValue: Bool {
-        featureFlags?.isEnabled(flag: .driveDDKDisabled) ?? false
-    }
-
-    @Published var driveDDKEnabled: String = FeatureFlagOptions.useFF.rawValue {
-        didSet { driveDDKEnabledStorage = FeatureFlagOptions(rawValue: driveDDKEnabled)?.toBool }
-    }
-
-    @SettingsStorage(QASettingsConstants.driveDDKEnabledInQASettings) var driveDDKEnabledStorage: Bool?
-
     var driveMacPromoBannerDisabledFeatureFlagValue: Bool {
         featureFlags?.isEnabled(flag: .driveMacPromoBannerDisabled) ?? false
     }
@@ -190,8 +196,8 @@ class QASettingsViewModel: ObservableObject {
         let suite = Constants.appGroup
         self._requiresPostMigrationCleanup.configure(with: suite)
         self._disconnectDomainOnSignOutStorage.configure(with: suite)
-        self._driveDDKEnabledStorage.configure(with: suite)
         self._driveMacPromoBannerDisabledStorage.configure(with: suite)
+        self._simulateNetworkOfflineStorage.configure(with: suite)
 
         self.dumper = dumperDependencies.map(Dumper.init)
         self.environment = Constants.appGroup.userDefaults.string(forKey: Constants.SettingsBundleKeys.host.rawValue) ?? ""
@@ -219,8 +225,8 @@ class QASettingsViewModel: ObservableObject {
         self.shouldObfuscateDumps = shouldObfuscateDumpsStorage ?? false
         self.enablePostMigrationCleanup = requiresPostMigrationCleanup ?? false
         self.disconnectDomainOnSignOut = FeatureFlagOptions(bool: disconnectDomainOnSignOutStorage).rawValue
-        self.driveDDKEnabled = FeatureFlagOptions(bool: driveDDKEnabledStorage).rawValue
         self.driveMacPromoBannerDisabled = FeatureFlagOptions(bool: driveMacPromoBannerDisabledStorage).rawValue
+        self.simulateNetworkOffline = simulateNetworkOfflineStorage ?? false
 
         self.promoCampaignInteractor.activeCampaign.sink { activeCampaign in
             self.activeCampaign = activeCampaign
@@ -245,7 +251,7 @@ class QASettingsViewModel: ObservableObject {
             guard let self else { return }
             Constants.appGroup.userDefaults.set(self.environment, forKey: Constants.SettingsBundleKeys.host.rawValue)
             await self.signoutManager?.signOutAsync()
-            exit(0)
+            self.userActions.app.restartApp()
         }
     }
 
@@ -538,6 +544,13 @@ class QASettingsViewModel: ObservableObject {
     func refreshPromoCampaign() {
         self.promoCampaignInteractor.refreshCampaign(forceResetBannerDismissal: true)
     }
+
+    #if DEBUG
+    private static func postCFNotification(_ name: String) {
+        let center = CFNotificationCenterGetDarwinNotifyCenter()
+        CFNotificationCenterPostNotification(center, CFNotificationName(name as CFString), nil, nil, true)
+    }
+    #endif
 }
 
 extension Notification.Name {

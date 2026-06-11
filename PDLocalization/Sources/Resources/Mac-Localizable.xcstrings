@@ -14,7 +14,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "S'estan buscant fitxers per sincronitzar…"
+            "value" : "S'estan cercant fitxers per a sincronitzar…"
           }
         },
         "cs" : {
@@ -68,7 +68,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Analyse de fichiers à synchroniser…"
+            "value" : "Recherche de fichiers à synchroniser…"
           }
         },
         "hu" : {
@@ -443,6 +443,12 @@
             "value" : "Teljes újraszinkronizálás"
           }
         },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sinkronisasi ulang lengkap"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
@@ -453,6 +459,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "完全な再同期"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "სრული ხელახალი სინქრონიზაცია"
           }
         },
         "ko" : {
@@ -513,6 +525,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Повна повторна синхронізація"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完全重新同步"
           }
         },
         "zh-Hant" : {
@@ -2816,7 +2834,7 @@
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Synkronisering pauset"
+            "value" : "Synkronisering sat på pause"
           }
         },
         "de" : {
@@ -9358,7 +9376,7 @@
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pause synkronisering"
+            "value" : "Pause i synkronisering"
           }
         },
         "de" : {

@@ -126,9 +126,20 @@ public final class DomainOperationsService: DomainOperationsServiceProtocol {
         }
     }
     
-    public func signalEnumerator() async throws {
+    public func signalEnumerator(reason: FileOperationEvent.SignalEnumeratorReason) async throws {
+        Log.event(.signalEnumerator(.started(.init(containerType: .workingSet, reason: reason))))
+
         guard let fileManagerForDomain else { throw NSFileProviderError(.providerNotFound) }
-        try await signalEnumeratorWithRetry(fileManager: fileManagerForDomain)
+        do {
+            try await signalEnumeratorWithRetry(fileManager: fileManagerForDomain)
+            Log.event(.signalEnumerator(.succeeded(.init(containerType: .workingSet, reason: reason))))
+        } catch {
+            Log.event(.signalEnumerator(.failed(.init(
+                id: NSFileProviderItemIdentifier.workingSet.logIdentifier,
+                error: error
+            ))))
+            throw error
+        }
     }
 
     public func removeAllDomains() async throws {

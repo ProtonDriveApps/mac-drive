@@ -30,7 +30,7 @@ class RemoteChangeSignaler: EventsListener {
         Task {
             do {
                 Log.info("🚦 Signaling FileProvider", domain: .application)
-                try await domainOperationsService.signalEnumerator()
+                try await domainOperationsService.signalEnumerator(reason: .eventsReceived)
             } catch {
                 let message = "Signaling should never fail"
                 Log.error(message, error: error, domain: .events)

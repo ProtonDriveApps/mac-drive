@@ -23,20 +23,22 @@ public protocol BytesCounterResource {
     func reset()
 }
 
-final class ThreadSafeBytesCounterResource: BytesCounterResource {
+public final class ThreadSafeBytesCounterResource: BytesCounterResource {
     @ThreadSafe private var totalCount: Int = 0
 
-    func add(bytes: Int) {
+    public init() {}
+
+    public func add(bytes: Int) {
         Log.debug("Adding bytes: \(bytes)", domain: .downloader)
         totalCount += bytes
     }
 
-    func reset() {
+    public func reset() {
         Log.debug("Resetting", domain: .downloader)
         totalCount = 0
     }
 
-    func getBytesCount() -> Int {
+    public func getBytesCount() -> Int {
         Log.debug("Total bytes: \(totalCount)", domain: .downloader)
         return totalCount
     }

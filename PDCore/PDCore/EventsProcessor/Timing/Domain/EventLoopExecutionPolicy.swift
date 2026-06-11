@@ -42,6 +42,7 @@ protocol EventLoopPriorityPolicyProtocol {
 }
 
 final class EventLoopPriorityPolicy: EventLoopPriorityPolicyProtocol {
+    let timeConstants = EventLoopTimingConstants()
     private var isDebug: Bool {
         #if DEBUG
         return Constants.isUnitTest ? false : true
@@ -62,7 +63,7 @@ final class EventLoopPriorityPolicy: EventLoopPriorityPolicyProtocol {
     }
 
     private func getOwnVolumePriority(with data: EventLoopPriorityData) -> EventLoopExecutionPriority? {
-        let threshold = thresholdForOwnedVolume(isBackground: data.isRunningInBackground)
+        let threshold = timeConstants.ownedVolumeThreshold(isBackground: data.isRunningInBackground)
         if data.isRunningInBackground {
             // background
             return getPriority(data: data, thresholdDelayInSeconds: threshold, isHighPriority: true)
@@ -72,16 +73,8 @@ final class EventLoopPriorityPolicy: EventLoopPriorityPolicyProtocol {
         }
     }
 
-    private func thresholdForOwnedVolume(isBackground: Bool) -> Double {
-        if isDebug {
-            return isBackground ? 10.0.minutes : 10.0.seconds
-        } else {
-            return isBackground ? 30.0.minutes : 30.0.seconds
-        }
-    }
-
     func getSharedVolumePriority(with data: EventLoopPriorityData, isActive: Bool) -> EventLoopExecutionPriority? {
-        let threshold = thresholdForSharedVolume(isBackground: data.isRunningInBackground, isActive: isActive)
+        let threshold = timeConstants.sharedVolumeThreshold(isBackground: data.isRunningInBackground, isActive: isActive)
         if data.isRunningInBackground {
             // background
             return getPriority(data: data, thresholdDelayInSeconds: threshold, isHighPriority: false)
@@ -91,26 +84,6 @@ final class EventLoopPriorityPolicy: EventLoopPriorityPolicyProtocol {
         } else {
             // foreground
             return getPriority(data: data, thresholdDelayInSeconds: threshold, isHighPriority: false)
-        }
-    }
-
-    private func thresholdForSharedVolume(isBackground: Bool, isActive: Bool) -> Double {
-        if isDebug {
-            if isBackground {
-                return 8.0.hours
-            } else if isActive {
-                return 10.0.seconds
-            } else {
-                return 200.0.seconds
-            }
-        } else {
-            if isBackground {
-                return 24.0.hours
-            } else if isActive {
-                return 30.0.seconds
-            } else {
-                return 10.0.minutes
-            }
         }
     }
 

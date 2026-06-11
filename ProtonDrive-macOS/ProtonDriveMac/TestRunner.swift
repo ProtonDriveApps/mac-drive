@@ -35,7 +35,9 @@ enum TestRunnerAction {
     case finishFullResync
     case dumpDiagnostics(String)
     case openMenu
+    case closeOnboardingWindow
     case takeScreenshot(String)
+    case pollSyncState
     case log(String)
 
     private static let commandPrefix = "protondrive://testrunner/"
@@ -81,8 +83,12 @@ enum TestRunnerAction {
             self = .dumpDiagnostics(String(message.dropFirst(12)))
         case "open_menu":
             self = .openMenu
+        case "close_onboarding_window":
+            self = .closeOnboardingWindow
         case let message where message.hasPrefix("take_screenshot/"):
             self = .takeScreenshot(String(message.dropFirst(16)))
+        case "poll_sync_state":
+            self = .pollSyncState
         case let message where message.hasPrefix("log/"):
             self = .log(String(message.dropFirst(4)))
         default:
@@ -96,33 +102,43 @@ enum TestRunnerAction {
         case .startApp:
             // nothing to do
             break
+
         case .stopApp:
-            fatalError("App stopped by TestRunner")
+            await NSApp.terminate(self)
 
         case .logIn(let login, let password):
-            userActions.account.signInUsingTestCredentials(login: login, password: password)
+            return await testRunner.waitForLogin(login: login, password: password, userActions: userActions)
+
         case .logOut:
             userActions.account.userRequestedSignOut()
 
         case .beginTest(let testRunId):
             testRunner.beginTest(testRunId: testRunId)
+
+            let sdkVersion: String = Constants.sdkVersion
+
+            return "\(sdkVersion)"
+
         case .endTest(let diagnostics):
             // Disable dumping all data until it can be done more efficiently (DM-851)
             // await testRunner.dump(diagnostics: diagnostics)
             testRunner.endTest()
+
         case .dumpDiagnostics(let diagnostics):
             await testRunner.dump(diagnostics: diagnostics)
 
         case .pauseSyncing:
             userActions.sync.pauseSyncing()
+
         case .resumeSyncing:
             userActions.sync.resumeSyncing()
 
         case .resetErrors:
-            userActions.sync.cleanUpErrors()
+            await userActions.sync.cleanUpErrors()
 
         case .keepDownloaded(let paths):
             userActions.fileProvider.keepDownloaded(paths: paths.components(separatedBy: ":"))
+
         case .keepOnlineOnly(let paths):
             userActions.fileProvider.keepOnlineOnly(paths: paths.components(separatedBy: ":"))
 
@@ -135,8 +151,14 @@ enum TestRunnerAction {
         case .openMenu:
             userActions.app.toggleStatusWindow(onlyOpen: true)
 
+        case .closeOnboardingWindow:
+            userActions.app.closeOnboardingWindow()
+
         case .takeScreenshot(let filename):
             testRunner.takeScreenshot(filename: filename)
+
+        case .pollSyncState:
+            return testRunner.syncState
 
         case .log(let message):
             Log.debug(message, domain: .testRunner)
@@ -184,22 +206,25 @@ class TestRunner {
 
         Log.trace("\(action)")
 
-        /// This is necessary because this method is synchronous, and `reply` has to be modified before it exits -
-        /// but action.run() has to be asynchronous because otherwise we still wouldn't be able to wait until the action is completed.
-        let semaphore = DispatchSemaphore(value: 0)
-
-        var resultString: String?
-        Task.detached {
-            resultString = await action.run(self.userActions, self)
-            semaphore.signal()
+        /// This method must stay synchronous (Apple Event reply contract), but `action.run` is async.
+        /// `SyncAwait.runOnMainLoop` spins the run loop while waiting so login/UI work can progress.
+        let resultString: String?
+        do {
+            resultString = try SyncAwait.runOnMainLoop(timeout: .seconds(180)) {
+                await action.run(self.userActions, self)
+            } ?? nil
+        } catch {
+            reportError("Action failed: \(error)", reply: reply)
+            return
         }
 
-        semaphore.wait()
-
-        if let resultString {
-            let responseDescriptor = NSAppleEventDescriptor(string: resultString)
-            reply.setParam(responseDescriptor, forKeyword: keyDirectObject)
+        guard let resultString else {
+            reportError("Timed out while handling action: \(urlString)", reply: reply)
+            return
         }
+
+        let responseDescriptor = NSAppleEventDescriptor(string: resultString)
+        reply.setParam(responseDescriptor, forKeyword: keyDirectObject)
     }
 
     /// If an error has occurred, the response will be prefixed with "Error: "
@@ -222,6 +247,36 @@ class TestRunner {
         testRunId = nil
         deleteTestRunIdFile()
         Log.configureAppForTesting(testRunId: nil)
+    }
+
+    /// Waits for login to complete and returns a result string
+    fileprivate func waitForLogin(login: String, password: String, userActions: UserActions) async -> String {
+        Log.trace("Starting login for \(login)", domain: .testRunner)
+
+        await appCoordinator.userRequestedSignOut()
+        userActions.account.signInUsingTestCredentials(login: login, password: password)
+
+        // Wait for login to complete by polling `appState.isLoggedIn`
+        let timeout: TimeInterval = 120.0
+        let startTime = Date()
+        let pollInterval: TimeInterval = 1
+
+        while Date().timeIntervalSince(startTime) < timeout {
+            Log.trace("Looping for another \(Int(timeout - Date().timeIntervalSince(startTime)))s. Loggedin: \(appCoordinator.appState.isLoggedIn.description)", domain: .testRunner)
+
+            if appCoordinator.appState.isLoggedIn {
+                Log.info("Login completed successfully for \(login)", domain: .testRunner)
+                return "OK"
+            }
+            
+            // Wait before checking again
+            try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
+        }
+
+        // Timeout reached
+        let errorMessage = "Login timed out after \(timeout) seconds"
+        Log.error(errorMessage, domain: .testRunner)
+        return "ERROR: \(errorMessage)"
     }
 
     fileprivate func dump(diagnostics diagnosticsString: String) async {
@@ -288,14 +343,47 @@ class TestRunner {
             }
         }
 
-        if let window = NSApplication.shared.windows.first {
-            let fileURL = testLogDirectory.appendingPathComponent("\(filename)_icon.png")
-            captureWindow(window: window, to: fileURL)
-        }
 
-        if let window = NSApplication.shared.windows.last {
-            let fileURL = testLogDirectory.appendingPathComponent("\(filename)_window.png")
-            captureWindow(window: window, to: fileURL)
+        Task { @MainActor in
+            if let window = NSApplication.shared.windows.first {
+                let fileURL = testLogDirectory.appendingPathComponent("\(filename)_icon.png")
+                captureWindow(window: window, to: fileURL)
+            }
+
+            if let window = NSApplication.shared.windows.last {
+                let fileURL = testLogDirectory.appendingPathComponent("\(filename)_window.png")
+                captureWindow(window: window, to: fileURL)
+            }
+        }
+    }
+
+    fileprivate var syncState: String {
+        let properties = appCoordinator.appState.properties
+            .filter {
+                [
+                    "overallStatus",
+                    "overallStatusLabel",
+                    "lastSyncTime",
+                    "timeSinceSync",
+                    "itemCount",
+                    "totalFilesLeftToSync",
+                    "errorCount",
+                    "isSyncing",
+                    "isEnumerating",
+                    "itemEnumerationProgress",
+                    "globalSyncStateDescription"
+                ].contains($0.name)
+            }
+
+        do {
+            let jsonData = try JSONEncoder().encode(properties)
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                return jsonString
+            } else {
+                return "Error: UTF8 encoding error"
+            }
+        } catch {
+            return "Error: JSON encoding error"
         }
     }
 

@@ -22,12 +22,14 @@ struct UploadSpeedConstants {
     static let tickInterval: TimeInterval = 60
 }
 
+@MainActor
 final class UploadSpeedController {
     private let uploadingQueue: TrackableUploadingQueue
     private let processEligibilityController: ProcessEligibilityController
     private let bytesCounterResource: BytesCounterResource
     private let timerResource: PausableTimerResource
     private let metricResource: UploadSpeedMetricResource
+    private let pipeline: DriveObservabilityPipeline
     private var cancellables = Set<AnyCancellable>()
     private var isMeasuring = false
     private var isInBackground = false
@@ -37,13 +39,15 @@ final class UploadSpeedController {
         processEligibilityController: ProcessEligibilityController,
         bytesCounterResource: BytesCounterResource,
         timerResource: PausableTimerResource,
-        metricResource: UploadSpeedMetricResource
+        metricResource: UploadSpeedMetricResource,
+        pipeline: DriveObservabilityPipeline
     ) {
         self.uploadingQueue = uploadingQueue
         self.processEligibilityController = processEligibilityController
         self.bytesCounterResource = bytesCounterResource
         self.timerResource = timerResource
         self.metricResource = metricResource
+        self.pipeline = pipeline
         subscribeToUpdates()
     }
 
@@ -110,6 +114,6 @@ final class UploadSpeedController {
         let kibiBytes = Double(bytes) / Double(1024)
         let speedInKiBps = Int((kibiBytes / secondsCount).rounded())
         Log.debug("Measured: \(kibiBytes) KiB uploaded in \(secondsCount) seconds", domain: .metrics)
-        metricResource.sendMetric(speed: speedInKiBps, isBackground: isInBackground)
+        metricResource.sendMetric(speed: speedInKiBps, isBackground: isInBackground, pipeline: pipeline)
     }
 }

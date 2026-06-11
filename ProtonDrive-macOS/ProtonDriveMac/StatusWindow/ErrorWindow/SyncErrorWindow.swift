@@ -104,7 +104,7 @@ struct SyncErrorWindow: View {
         HStack(alignment: .center, spacing: 16) {
             Spacer()
             AsyncButton(progressViewSize: CGSize(width: 16, height: 16)) {
-                actions.sync.cleanUpErrors()
+                await actions.sync.cleanUpErrors()
             } label: {
                 Text("Retry syncing")
             }

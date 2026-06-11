@@ -103,10 +103,14 @@ struct ItemRowView: View {
                         .frame(width: 16, height: 16)
                 case .inProgress:
                     if item.shouldShowIndeterminateProgress {
-                        SpinningProgressView(progress: Int(synchronizedProgress), isIndeterminate: item.shouldShowIndeterminateProgress)
+                        SpinningProgressView(progress: synchronizedProgress, isIndeterminate: item.shouldShowIndeterminateProgress)
                     } else {
                         SpinningProgressView(progress: item.progress)
                     }
+                case .paused:
+                    Image("pause")
+                        .resizable()
+                        .frame(width: 16, height: 16)
                 case .cancelled, .excludedFromSync, .undefined:
                     EmptyView()
                 }
@@ -120,7 +124,7 @@ extension ReportableSyncItem {
     /// In these cases, we show indeterminate progress.
     /// Once the first block has been completed, the progress is larger than 0, which tells us to start displaying determinate progress.
     fileprivate var shouldShowIndeterminateProgress: Bool {
-        return progress == 0
+        return progress.isZero
     }
 }
 

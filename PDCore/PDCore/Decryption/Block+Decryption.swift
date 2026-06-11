@@ -25,13 +25,25 @@ extension Block {
         case tamperedBlock
     }
 
+    private var blockPath: URL? {
+        if let localUrl,
+           FileManager.default.fileExists(atPath: localUrl.path) {
+            return localUrl
+        } else if let permanentUrl,
+                  FileManager.default.fileExists(atPath: permanentUrl.path) {
+            return permanentUrl
+        } else {
+            return nil
+        }
+    }
+
     internal func decrypt(with contentSessionKey: SessionKey, decryptionResource: DecryptionResource = Decryptor()) throws -> Data {
         do {
-            guard let localUrl = self.localUrl, FileManager.default.fileExists(atPath: localUrl.path) else {
+            guard let blockPath else {
                 throw Errors.blockDataNotDownloaded
             }
 
-            let blockDataPacket = try Data(contentsOf: localUrl)
+            let blockDataPacket = try Data(contentsOf: blockPath)
             guard !blockDataPacket.isEmpty, revision.size > 0 else {
                 // empty file does not require decryption
                 return Data()

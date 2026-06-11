@@ -112,7 +112,7 @@ public final class RefreshingNodesService: RefreshingNodesServiceProtocol {
         
         var nodeCount = 0
         let enumeration: Downloader.Enumeration = { node in
-            Log.debug("[Eager sync] Scanned node \(node.decryptedName)", domain: .syncing)
+            Log.debug("[Eager sync] Scanned node \(node.id)", domain: .syncing)
             nodeCount += 1
             Task { @MainActor [currentNodeCount = nodeCount] in
                 onNodesRefreshed(currentNodeCount)
@@ -305,7 +305,7 @@ public final class RefreshingNodesService: RefreshingNodesServiceProtocol {
         // we don't handle the missing parent here because root has no parent by design
         if let rootFolderIdentifier, nodeIdentifier == rootFolderIdentifier {
             _ = try await withCheckedThrowingContinuation { continuation in
-                ctx.cloudSlot.scanNode(rootFolderIdentifier, linkProcessingErrorTransformer: { $1 }, handler: { continuation.resume(with: $0) })
+                ctx.cloudSlot.scanNode(rootFolderIdentifier, linkProcessingErrorTransformer: { $1 }, moc: ctx.moc, handler: { continuation.resume(with: $0) })
             }
         }
         
@@ -432,6 +432,7 @@ public final class RefreshingNodesService: RefreshingNodesServiceProtocol {
                 return try await withCheckedThrowingContinuation { continuation in
                     ctx.cloudSlot.scanNode(nodeIdentifier,
                                            linkProcessingErrorTransformer: ErrorWithLink.init(link:error:),
+                                           moc: ctx.moc,
                                            handler: { continuation.resume(with: $0) })
                 }
             } catch {
@@ -543,6 +544,7 @@ public final class RefreshingNodesService: RefreshingNodesServiceProtocol {
             node = try await withCheckedThrowingContinuation { continuation in
                 ctx.cloudSlot.scanNode(nodeIdentifier,
                                        linkProcessingErrorTransformer: ErrorWithLink.init(link:error:),
+                                       moc: ctx.moc,
                                        handler: { continuation.resume(with: $0) })
             }
         } catch {
@@ -619,7 +621,7 @@ public final class RefreshingNodesService: RefreshingNodesServiceProtocol {
                                       alreadyFetchedChildren: [Node],
                                       moc: NSManagedObjectContext,
                                       handler: @escaping (Result<(Folder, [Node]), Error>) -> Void) {
-        cloudSlot.scanChildren(of: folderIdentifier, parameters: [.page(pageToFetch), .pageSize(pageSize)]) { resultChildren in
+        cloudSlot.scanChildren(of: folderIdentifier, parameters: [.page(pageToFetch), .pageSize(pageSize)], moc: moc) { resultChildren in
             switch resultChildren {
             case let .failure(error):
                 handler(.failure(error))

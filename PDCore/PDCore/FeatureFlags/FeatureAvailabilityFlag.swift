@@ -24,32 +24,23 @@ public enum FeatureAvailabilityFlag: CaseIterable {
     case domainReconnectionEnabled
     case postMigrationJunkFilesCleanup
     case pushNotificationIsEnabled
-    case logCollectionEnabled
-    case logCollectionDisabled
     case driveiOSDebugMode
     case oneDollarPlanUpsellEnabled
     case driveDisablePhotosForB2B
-    case driveDDKIntelEnabled
-    case driveDDKDisabled
     case driveMacSyncRecoveryDisabled
     case driveMacPromoBannerDisabled
     case driveMacGradualRolloutChannelEnabled
+    case driveMacAbnormalExitRelaunchDisabled
 
     // Sharing
     case driveSharingMigration
-    case driveSharingInvitations
     case driveSharingExternalInvitations
     case driveSharingDisabled
     case driveSharingExternalInvitationsDisabled
-    case driveSharingEditingDisabled
     case drivePublicShareEditMode
     case drivePublicShareEditModeDisabled
-    case driveMobileSharingInvitationsAcceptReject
     case driveShareURLBookmarking
     case driveShareURLBookmarksDisabled
-
-    // ProtonDoc
-    case driveDocsDisabled
     
     // Rating booster
     // Legacy feature flags we used before migrating to Unleash
@@ -58,17 +49,8 @@ public enum FeatureAvailabilityFlag: CaseIterable {
     // Entitlement
     case driveDynamicEntitlementConfiguration
 
-    // Refactor
-    case driveiOSRefreshableBlockDownloadLink
-
-    // Computers
-    case driveiOSComputers
-    case driveiOSComputersDisabled
-
     // Album
-    case driveAlbumsDisabled
     case driveCopyDisabled
-    case drivePhotosTagsMigration
     case drivePhotosTagsMigrationDisabled
 
     // Proton sheets
@@ -84,7 +66,10 @@ public enum FeatureAvailabilityFlag: CaseIterable {
     case driveiOSSDKUploadPhoto
     case driveiOSSDKDownloadMain
     case driveiOSSDKDownloadPhoto
-
-    // Black Friday 2025
-    case driveIOSBlackFriday2025
+    case driveiOSSDKNodeOperations
+    case driveCryptoEncryptBlocksWithPgpAead
+    case driveMacFileProviderBatchingDisabled
+    case driveMacDecryptPassphraseIterativeDisabled
+    case driveDownloadVerificationDisabled
+    case driveUploadVerificationDisabled
 }

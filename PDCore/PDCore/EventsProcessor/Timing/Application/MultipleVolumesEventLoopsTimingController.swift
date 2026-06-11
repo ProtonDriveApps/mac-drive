@@ -57,11 +57,7 @@ final class MultipleVolumesEventLoopsTimingController: EventLoopsTimingControlle
     }
 
     func getInterval() -> Double {
-        #if DEBUG
-        return Constants.isUnitTest ? 30 : 10
-        #else
-        return 30
-        #endif
+        EventLoopTimingConstants().eventLoopRefillInterval
     }
 
     func getReadyLoops(possible: [LoopID]) -> [LoopID] {

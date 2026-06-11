@@ -17,20 +17,46 @@
 
 import Foundation
 
+@MainActor
 public final class UploadSpeedContainer {
-    private let uploadSpeedController: UploadSpeedController
+    private let legacyController: UploadSpeedController
+    private var sdkController: UploadSpeedController?
+    private var sdkPhotoController: UploadSpeedController?
 
     public init(
-        uploadingQueue: TrackableUploadingQueue,
-        bytesCounterResource: BytesCounterResource,
+        legacyUploadingQueue: TrackableUploadingQueue,
+        legacyBytesCounterResource: BytesCounterResource,
+        sdkUploader: SDKFileUploaderProtocol?,
+        sdkPhotoUploader: SDKFileUploaderProtocol?,
         processEligibilityController: ProcessEligibilityController
     ) {
-        uploadSpeedController = UploadSpeedController(
-            uploadingQueue: uploadingQueue,
+        legacyController = UploadSpeedController(
+            uploadingQueue: legacyUploadingQueue,
             processEligibilityController: processEligibilityController,
-            bytesCounterResource: bytesCounterResource,
-            timerResource: CommonRunLoopPausableTimerResource(duration: UploadSpeedConstants.tickInterval),
-            metricResource: ObservabilityUploadSpeedMetricResource()
+            bytesCounterResource: legacyBytesCounterResource,
+            timerResource: iOSPausableTimerResource(duration: UploadSpeedConstants.tickInterval),
+            metricResource: ObservabilityUploadSpeedMetricResource(),
+            pipeline: .legacy
         )
+        if let sdkUploader {
+            sdkController = UploadSpeedController(
+                uploadingQueue: sdkUploader,
+                processEligibilityController: processEligibilityController,
+                bytesCounterResource: sdkUploader.bytesCounterResource,
+                timerResource: iOSPausableTimerResource(duration: UploadSpeedConstants.tickInterval),
+                metricResource: ObservabilityUploadSpeedMetricResource(),
+                pipeline: .default
+            )
+        }
+        if let sdkPhotoUploader {
+            sdkPhotoController = UploadSpeedController(
+                uploadingQueue: sdkPhotoUploader,
+                processEligibilityController: processEligibilityController,
+                bytesCounterResource: sdkPhotoUploader.bytesCounterResource,
+                timerResource: iOSPausableTimerResource(duration: UploadSpeedConstants.tickInterval),
+                metricResource: ObservabilityUploadSpeedMetricResource(),
+                pipeline: .default
+            )
+        }
     }
 }

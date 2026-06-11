@@ -15,18 +15,41 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
+#if os(iOS)
+
 import Foundation
 
-public final class DownloadSpeedContainer {
-    private let downloadSpeedController: DownloadSpeedController
+@MainActor
+public final class DownloadSpeedContainer { // TODO(SDK): add Photos SDK downloader
+    private let legacyController: DownloadSpeedController
+    private let sdkController: DownloadSpeedController?
 
-    public init(downloader: TrackableDownloader, processEligibilityController: ProcessEligibilityController) {
-        downloadSpeedController = DownloadSpeedController(
-            downloader: downloader,
+    public init(
+        legacyDownloader: TrackableDownloader,
+        sdkDownloader: TrackableDownloader?,
+        processEligibilityController: ProcessEligibilityController
+    ) {
+        legacyController = DownloadSpeedController(
+            downloader: legacyDownloader,
             processEligibilityController: processEligibilityController,
-            bytesCounterResource: downloader.bytesCounterResource,
-            timerResource: CommonRunLoopPausableTimerResource(duration: DownloadSpeedConstants.tickInterval),
-            metricResource: ObservabilityDownloadSpeedMetricResource()
+            bytesCounterResource: legacyDownloader.bytesCounterResource,
+            timerResource: iOSPausableTimerResource(duration: DownloadSpeedConstants.tickInterval),
+            metricResource: ObservabilityDownloadSpeedMetricResource(),
+            pipeline: .legacy
         )
+        if let sdkDownloader {
+            sdkController = DownloadSpeedController(
+                downloader: sdkDownloader,
+                processEligibilityController: processEligibilityController,
+                bytesCounterResource: sdkDownloader.bytesCounterResource,
+                timerResource: iOSPausableTimerResource(duration: DownloadSpeedConstants.tickInterval),
+                metricResource: ObservabilityDownloadSpeedMetricResource(),
+                pipeline: .default
+            )
+        } else {
+            sdkController = nil
+        }
     }
 }
+
+#endif

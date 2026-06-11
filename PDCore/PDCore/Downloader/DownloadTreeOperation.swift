@@ -68,6 +68,9 @@ class TreeParsingOperation<ReturnType>: SynchronousOperation, OperationWithProgr
         guard let self = self, !self.isCancelled else { return }
         
         guard self.recursiveScanErrors.isEmpty else {
+            for (index, error) in self.recursiveScanErrors.enumerated() {
+                Log.error("Tree scan error [\(index)]: \(error)", domain: .downloader)
+            }
             self.completion?(.failure(Errors.compound(self.recursiveScanErrors)))
             return
         }
@@ -107,13 +110,15 @@ class TreeParsingOperation<ReturnType>: SynchronousOperation, OperationWithProgr
     }
 }
 
+#if os(iOS)
+
 /// Downloads whole tree of Drive objects under a Folder, including ecnrypted blocks of active revisions of files
 class DownloadTreeOperation: TreeParsingOperation<Folder>, @unchecked Sendable {
     
     override fileprivate func scanNodeAndChildrenOperation(of currentNode: Folder) -> Operation {
         self.output = currentNode
         self.enumeration?(currentNode)
-        let operation = ScanNodeOperation(currentNode.identifier, cloudSlot: self.cloudSlot) { [weak self] result in
+        let operation = ScanNodeOperation(currentNode.identifier, cloudSlot: self.cloudSlot, storage: self.storage) { [weak self] result in
             guard let self = self, !self.isCancelled else { return }
             
             switch result {
@@ -124,10 +129,10 @@ class DownloadTreeOperation: TreeParsingOperation<Folder>, @unchecked Sendable {
                 // files
                 let downloadFiles = children.compactMap { $0 as? File }
                 .filter { file -> Bool in
+                    guard let revision = file.activeRevision else { return true }
                     // need to download only files that are not downloaded yet
-                    file.activeRevision?.blocksAreValid() != true
+                    return revision.isAvailableLocally() == false
                 }.map { file in
-#if os(iOS)
                     DownloadFileOperation(
                         file,
                         cloudSlot: self.cloudSlot,
@@ -143,24 +148,6 @@ class DownloadTreeOperation: TreeParsingOperation<Folder>, @unchecked Sendable {
                             self?.recursiveScanErrors.append(error)
                         }
                     }
-#else
-                    /// Legacy for mac, can be removed after 2025 Feb, once macOS migrated to DDK
-                    LegacyDownloadFileOperation(
-                        file,
-                        cloudSlot: self.cloudSlot,
-                        endpointFactory: self.endpointFactory,
-                        storage: self.storage,
-                        bytesCounterResource: self.bytesCounterResource
-                    ) { [weak self] in
-                        // remember error or execute enumeration block
-                        switch $0 {
-                        case .success(let node):
-                            self?.enumeration?(node)
-                        case .failure(let error):
-                            self?.recursiveScanErrors.append(error)
-                        }
-                    }
-#endif
                 }
                 downloadFiles.forEach(self.finish.addDependency)
                 self.internalQueue.addOperations(downloadFiles, waitUntilFinished: false)
@@ -175,6 +162,8 @@ class DownloadTreeOperation: TreeParsingOperation<Folder>, @unchecked Sendable {
         return operation
     }
 }
+
+#endif
 
 class ScanTreesOperation: TreeParsingOperation<[Node]>, @unchecked Sendable {
     
@@ -215,6 +204,7 @@ class ScanTreesOperation: TreeParsingOperation<[Node]>, @unchecked Sendable {
         self.output.append(node)
         let operation = ScanNodeOperation(node.identifier,
                                           cloudSlot: self.cloudSlot,
+                                          storage: self.storage,
                                           shouldIncludeDeletedItems: shouldIncludeDeletedItems) { [weak self] result in
             guard let self = self, !self.isCancelled else { return }
             
@@ -251,7 +241,9 @@ class ScanChildrenOperation: TreeParsingOperation<Folder>, @unchecked Sendable {
     
     override fileprivate func scanNodeAndChildrenOperation(of currentNode: Folder) -> Operation {
         self.output = currentNode
-        let operation = ScanNodeOperation(currentNode.identifier, cloudSlot: self.cloudSlot) { [weak self] result in
+        let operation = ScanNodeOperation(
+            currentNode.identifier, cloudSlot: self.cloudSlot, storage: self.storage
+        ) { [weak self] result in
             guard let self = self, !self.isCancelled else { return }
             
             switch result {

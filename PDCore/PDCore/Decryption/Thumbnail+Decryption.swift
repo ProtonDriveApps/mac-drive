@@ -72,4 +72,55 @@ extension Thumbnail {
         }
     }
 
+    #if os(iOS)
+    public static func saveClearDataToDisk(
+        clearData: Data,
+        type: ThumbnailType,
+        identifier: NodeIdentifier,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line,
+        completion: (() -> Void)? = nil
+    ) {
+        DispatchQueue.global().async {
+            let storageType = preferredStorageType(identifier: identifier)
+            let url = PDFileManager.createThumbnailURL(for: identifier, type: type, storageType: storageType)
+            do {
+                if FileManager.default.fileExists(atPath: url.path) {
+                    try FileManager.default.removeItem(atPath: url.path)
+                }
+                try clearData.write(to: url)
+            } catch {
+                let parent = url.deletingLastPathComponent()
+                let hasParent = FileManager.default.fileExists(atPath: parent.path)
+                Log.error("Save clear data to disk failed, has parent? \(hasParent)", error: error, domain: .photosUI, file: file, function: function, line: line)
+            }
+            completion?()
+        }
+    }
+
+    public static func saveClearDataToDisk(
+        clearData: Data,
+        type: ThumbnailType,
+        identifier: NodeIdentifier
+    ) async {
+        await withCheckedContinuation { continuation in
+            saveClearDataToDisk(
+                clearData: clearData,
+                type: type,
+                identifier: identifier,
+                completion: {
+                    continuation.resume()
+                }
+            )
+        }
+    }
+    
+    private static func preferredStorageType(identifier: NodeIdentifier) -> FileStorageType {
+        let permanentURL = PDFileManager
+            .fileURL(for: identifier, prefix: nil, storageType: .permanent, shouldCreate: false)
+        if FileManager.default.fileExists(atPath: permanentURL.path) { return .permanent }
+        return .temporary
+    }
+    #endif // os(iOS)
 }

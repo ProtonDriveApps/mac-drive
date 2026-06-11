@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
+#if os(iOS)
+
 import Combine
 import Foundation
 
@@ -22,6 +24,7 @@ struct DownloadSpeedConstants {
     static let tickInterval: TimeInterval = 60
 }
 
+@MainActor
 final class DownloadSpeedController {
     private let downloader: TrackableDownloader
     private let processEligibilityController: ProcessEligibilityController
@@ -31,19 +34,22 @@ final class DownloadSpeedController {
     private var cancellables = Set<AnyCancellable>()
     private var isMeasuring = false
     private var isInBackground = false
+    private let pipeline: DriveObservabilityPipeline
 
     init(
         downloader: TrackableDownloader,
         processEligibilityController: ProcessEligibilityController,
         bytesCounterResource: BytesCounterResource,
         timerResource: PausableTimerResource,
-        metricResource: DownloadSpeedMetricResource
+        metricResource: DownloadSpeedMetricResource,
+        pipeline: DriveObservabilityPipeline
     ) {
         self.downloader = downloader
         self.processEligibilityController = processEligibilityController
         self.bytesCounterResource = bytesCounterResource
         self.timerResource = timerResource
         self.metricResource = metricResource
+        self.pipeline = pipeline
         subscribeToUpdates()
     }
 
@@ -110,6 +116,8 @@ final class DownloadSpeedController {
         let kibiBytes = Double(bytes) / Double(1024)
         let speedInKiBps = Int((kibiBytes / secondsCount).rounded())
         Log.debug("Measured: \(kibiBytes) KiB downloaded in \(secondsCount) seconds", domain: .metrics)
-        metricResource.sendMetric(speed: speedInKiBps, isBackground: isInBackground)
+        metricResource.sendMetric(speed: speedInKiBps, isBackground: isInBackground, pipeline: pipeline)
     }
 }
+
+#endif

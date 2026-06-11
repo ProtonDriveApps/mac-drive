@@ -22,28 +22,24 @@ public final class NodeRenamer: NodeRenamerProtocol {
     /// Typealias for one of the methods of PDCLient's Client.
     public typealias CloudNodeRenamer = (Client.ShareID, Client.LinkID, RenameNodeParameters) async throws -> Void
 
-    private let moc: NSManagedObjectContext
-    private let storage: StorageManager
     private let signersKitFactory: SignersKitFactoryProtocol
     private let cloudNodeRenamer: CloudNodeRenamer
 
     public init(
-        storage: StorageManager,
         cloudNodeRenamer: @escaping CloudNodeRenamer,
-        signersKitFactory: SignersKitFactoryProtocol,
-        moc: NSManagedObjectContext
+        signersKitFactory: SignersKitFactoryProtocol
     ) {
-        self.moc = moc
-        self.storage = storage
         self.signersKitFactory = signersKitFactory
         self.cloudNodeRenamer = cloudNodeRenamer
     }
 
-    public func rename(_ node: Node, to newName: String, mimeType: String?) async throws {
+    public func rename(_ node: Node, to newName: String, mimeType: String?, moc: NSManagedObjectContext) async throws {
         let validatedNewName = try newName.validateNodeName(validator: NameValidations.iosName)
 
+        let nodeManagedObjectID = node.objectID
+        
         let (nodeID, shareID, oldNodeName, parentKey, parentPassphrase, parentHashKey, signersKit) = try await moc.perform {
-            let node = node.in(moc: self.moc)
+            let node = moc.object(with: nodeManagedObjectID) as! Node
             let nodeID = node.id
             let shareID = try node.getContextShare().id
 #if os(macOS)
@@ -77,14 +73,16 @@ public final class NodeRenamer: NodeRenamerProtocol {
             MIMEType: mimeType,
             signatureAddress: signersKit.address.email
         )
+        
+        let nameSignatureEmail = signersKit.address.email
 
         try await cloudNodeRenamer(shareID, nodeID, parameters)
 
         try await moc.perform {
-            let node = node.in(moc: self.moc)
+            let node = moc.object(with: nodeManagedObjectID) as! Node
             node.name = newEncryptedName
             node.nodeHash = newNameHash
-            node.nameSignatureEmail = signersKit.address.email
+            node.nameSignatureEmail = nameSignatureEmail
 
             // MIME type should remain unchanged if the rename either removed
             // the file extension, or it's Proton Doc, which doesn't have an
@@ -93,7 +91,7 @@ public final class NodeRenamer: NodeRenamerProtocol {
                 node.mimeType = mimeType
             }
 
-            try self.moc.saveOrRollback()
+            try moc.saveOrRollback()
         }
     }
 }
@@ -102,7 +100,6 @@ public final class DeviceRenamer: NodeRenamerProtocol {
     /// Typealias for one of the methods of PDCLient's Client.
     public typealias CloudNodeRenamer = (Client.ShareID, Client.LinkID, RenameNodeParameters) async throws -> Void
 
-    private let moc: NSManagedObjectContext
     private let storage: StorageManager
     private let signersKitFactory: SignersKitFactoryProtocol
     private let cloudNodeRenamer: CloudNodeRenamer
@@ -111,19 +108,17 @@ public final class DeviceRenamer: NodeRenamerProtocol {
         storage: StorageManager,
         cloudNodeRenamer: @escaping CloudNodeRenamer,
         signersKitFactory: SignersKitFactoryProtocol,
-        moc: NSManagedObjectContext
     ) {
-        self.moc = moc
         self.storage = storage
         self.signersKitFactory = signersKitFactory
         self.cloudNodeRenamer = cloudNodeRenamer
     }
 
-    public func rename(_ node: Node, to newName: String, mimeType: String?) async throws {
+    public func rename(_ node: Node, to newName: String, mimeType: String?, moc: NSManagedObjectContext) async throws {
         let validatedNewName = try newName.validateNodeName(validator: NameValidations.iosName)
 
         let (nodeID, shareID, oldNodeName, shareKey, parentPassphrase, signersKit) = try await moc.perform {
-            let node = node.in(moc: self.moc)
+            let node = node.in(moc: moc)
             let nodeID = node.id
             let contextShare = try node.getContextShare()
             let shareID = contextShare.id
@@ -157,11 +152,11 @@ public final class DeviceRenamer: NodeRenamerProtocol {
         try await cloudNodeRenamer(shareID, nodeID, parameters)
 
         try await moc.perform {
-            let node = node.in(moc: self.moc)
+            let node = node.in(moc: moc)
             node.name = newEncryptedName
             node.nameSignatureEmail = signersKit.address.email
 
-            try self.moc.saveOrRollback()
+            try moc.saveOrRollback()
         }
     }
 }

@@ -66,14 +66,21 @@ final class GroupContainerMigrator: GroupContainerMigratorProtocol {
     }
  
     func migrateUserDefaults() {
+        // Skip migration entirely when running integration tests
+        guard !Constants.isInIntegrationTests else {
+            userDefaultsMigrationHappened = true
+            appendToDelayedEvents(.info, "GroupContainerMigration: skipping user defaults migration (integration tests)", false)
+            return
+        }
+
         // there is no kill switch here, because the feature flags are stored in the user defaults,
         // so we must migrate their storage before we can check them.
-        
+
         guard userDefaultsMigrationHappened != true else {
             appendToDelayedEvents(.info, "GroupContainerMigration: user defaults migration already happened or never needed", false)
             return
         }
-        
+
         if #available(macOS 15.0, *) {
             presentPopupAskingForAccessToOldContainer()
         }
@@ -183,12 +190,19 @@ final class GroupContainerMigrator: GroupContainerMigratorProtocol {
                                   _ featureFlags: FeatureFlagsRepositoryProtocol) async throws -> Bool {
         // here we log and send to sentry the events that happened before the logger was available
         logDelayedEvents()
-        
+
+        // Skip migration entirely when running integration tests
+        guard !Constants.isInIntegrationTests else {
+            databaseMigrationHappened = true
+            Log.info("GroupContainerMigration: skipping database migration (integration tests)", domain: .application)
+            return false
+        }
+
         guard databaseMigrationHappened != true else {
             Log.info("GroupContainerMigration: container migration already happened or never needed", domain: .application)
             return false
         }
-        
+
         let killSwitchEnabled = featureFlags.isEnabled(
             GroupContainerMigratorFeatureFlag.driveMacGroupContainerMigrationDisabled, reloadValue: true
         )
@@ -325,7 +339,10 @@ final class GroupContainerMigrator: GroupContainerMigratorProtocol {
         let recoverySugestion = "The migration is required for the app to work. Please restart the app to try again."
 
         let recoveryAttempter = makeRestartingRecoveryAttempter()
-        recoveryAttempter.option(with: "Quit app without restarting") { _ in exit(0) }
+        recoveryAttempter.option(with: "Quit app without restarting") { _ in
+            NSApp.terminate(self)
+            return true
+        }
         
         let errorToPresent = NSError(domain: "ch.protonmail.drive", code: 0, userInfo: [
             NSLocalizedDescriptionKey: localizedDescription,
@@ -357,11 +374,8 @@ final class GroupContainerMigrator: GroupContainerMigratorProtocol {
     private func makeRestartingRecoveryAttempter() -> RecoveryAttempter {
         let recoveryAttempter = RecoveryAttempter()
         recoveryAttempter.option(with: "Restart the app now") { error in
-            let task = Process()
-            task.launchPath = "/bin/sh"
-            task.arguments = ["-c", "sleep \(1); open \"\(Bundle.main.bundlePath)\""]
-            task.launch()
-            exit(0)
+            UserActions(delegate: nil).app.restartApp()
+            return true
         }
         
         return recoveryAttempter

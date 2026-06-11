@@ -17,6 +17,7 @@
 
 import Foundation
 import PDCore
+import CoreData
 
 protocol FullResyncServiceProtocol {
     func start(onNodesRefreshed: @MainActor @escaping (Int) -> Void,
@@ -73,6 +74,8 @@ final class FullResyncService: FullResyncServiceProtocol {
     var previousRunWasInterrupted: Bool {
         metadataStorage.previousRunWasInterrupted
     }
+    
+    private let moc: NSManagedObjectContext
 
     convenience init(tower: Tower) {
         self.init(
@@ -81,6 +84,7 @@ final class FullResyncService: FullResyncServiceProtocol {
             eventStorage: tower.eventStorageManager,
             cloudSlot: tower.cloudSlot,
             nodeRefresher: tower.refresher,
+            moc: tower.storage.backgroundContext,
             startEvents: { [weak tower] in tower?.runEventsSystem() },
             pauseEvents: { [weak tower] in tower?.pauseEventsSystem() },
             clearAndReinitializeEvents: { [weak tower] in
@@ -95,10 +99,12 @@ final class FullResyncService: FullResyncServiceProtocol {
          eventStorage: RecoverableStorage,
          cloudSlot: CloudSlotProtocol,
          nodeRefresher: RefreshingNodesServiceProtocol,
+         moc: NSManagedObjectContext,
          startEvents: @escaping () -> Void,
          pauseEvents: @escaping () -> Void,
          clearAndReinitializeEvents: @escaping () async throws -> Void) {
         Log.trace()
+        self.moc = moc
         self.metadataStorage = metadataStorage
         self.syncStorage = syncStorage
         self.eventStorage = eventStorage
@@ -127,12 +133,13 @@ final class FullResyncService: FullResyncServiceProtocol {
             // 1. Stop event loops
             try await performIfNotCancelled { stopEvents() }
 
-            // 2. Backup all DBs
+            // 2. Backup all DBs — mark recovery in progress so the extension doesn't delete our files
+            RecoveryCoordination.setInProgress()
             let metadata = try await performIfNotCancelled { try setupMetadataRecovery() }
             let events = try await performIfNotCancelled { try setupEventRecovery(metadata: metadata) }
 
             // 3. Bootstrap the new recovery DB
-            let root = try await performIfNotCancelled { try await fetchRootFolder() }
+            let root = try await performIfNotCancelled { try await fetchRootFolder(moc: moc) }
             
             // 4. Perform the refresh
             try await performIfNotCancelled { try await performRefresh(metadata, events, root, onNodesRefreshed) }
@@ -145,6 +152,8 @@ final class FullResyncService: FullResyncServiceProtocol {
             
             try eventStorage.replaceExistingDBWithRecovery(existing: events.existing, recovery: events.recovery)
             resyncStage = .eventsReplacedWithRecovery
+            RecoveryCoordination.clearInProgress()
+            RecoveryCoordination.markStoreReplaced()
             
             // 6. Enumerate
             resyncStage = .enumeratingAfterResync
@@ -161,6 +170,7 @@ final class FullResyncService: FullResyncServiceProtocol {
             resyncStage = .idle
             try await onCompleted()
         } catch {
+            RecoveryCoordination.clearInProgress()
             let wasCancelled = await handleError(error, resyncStage)
             resyncStage = .idle
 
@@ -228,10 +238,10 @@ final class FullResyncService: FullResyncServiceProtocol {
         return (existingEvents, recoveryEvents)
     }
     
-    private func fetchRootFolder() async throws -> Folder {
+    private func fetchRootFolder(moc: NSManagedObjectContext) async throws -> Folder {
         Log.trace()
-        let share = try await cloudSlot.scanRootsAsync(isPhotosEnabled: false)
-        let root = await cloudSlot.moc.perform {
+        let share = try await cloudSlot.scanRootsAsync(isPhotosEnabled: false, moc: moc)
+        let root = await moc.perform {
             share?.root as? Folder
         }
         guard let root else {

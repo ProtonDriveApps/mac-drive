@@ -20,26 +20,16 @@ import PDCore
 
 /// Enables changing the behavior of the app for regression testing purposes (e.g. triggering errors or other hard-to-duplicate conditions.
 class RegressionTestHelpers {
-    private var alreadyUsed = Set<String>()
-
     /// Triggers an error for certain file names.
     func error(for item: NSFileProviderItem, operation: FileProviderOperation) -> Error? {
-        if alreadyUsed.contains(item.filename) {
-            return nil
+        let error: NSFileProviderError? = switch item.filename {
+        case "proton_drive_test_error_notAuthenticated.err": NSFileProviderError(.notAuthenticated)
+        case "proton_drive_test_error_insufficientQuota.err": NSFileProviderError(.insufficientQuota)
+        case "proton_drive_test_error_serverUnreachable.err": NSFileProviderError(.serverUnreachable)
+        case "proton_drive_test_error_cannotSynchronize.err": NSFileProviderError(.cannotSynchronize)
+        default: nil
         }
 
-        let fileNameToErrorMap: [String: Error] = [
-            "proton_drive_test_error_notAuthenticated.err": NSFileProviderError(.notAuthenticated),
-            "proton_drive_test_error_insufficientQuota.err": NSFileProviderError(.insufficientQuota),
-            "proton_drive_test_error_serverUnreachable.err": NSFileProviderError(.serverUnreachable),
-            "proton_drive_test_error_cannotSynchronize.err": NSFileProviderError(.cannotSynchronize),
-        ]
-
-        if let error = fileNameToErrorMap[item.filename] {
-            alreadyUsed.insert(item.filename)
-            return error
-        }
-
-        return nil
+        return error
     }
 }

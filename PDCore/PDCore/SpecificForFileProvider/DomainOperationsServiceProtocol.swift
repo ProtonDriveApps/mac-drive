@@ -46,7 +46,7 @@ public struct CacheCleanupStrategy: OptionSet {
 public protocol DomainOperationsServiceProtocol {
     var cacheCleanupStrategy: CacheCleanupStrategy { get }
     func tearDownConnectionToAllDomains() async throws
-    func signalEnumerator() async throws
+    func signalEnumerator(reason: FileOperationEvent.SignalEnumeratorReason) async throws
     func removeAllDomains() async throws
     func groupContainerMigrationStarted() async throws
 }

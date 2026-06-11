@@ -64,7 +64,7 @@ public class NodeItem: NSObject, NSFileProviderItem {
             filesystemFilename = filesystemFilename.appendingProtonExtensionIfNecessary(basedOn: node.mimeType)
 
             guard !filesystemFilename.isEmpty else {
-                Log.debug("Filename must not be empty. Node: \(node)", domain: .fileProvider)
+                Log.debug("Filename must not be empty. Node: \(node.id)", domain: .fileProvider)
                 throw Errors.invalidFilename(filename: filename)
             }
 
@@ -104,7 +104,7 @@ public class NodeItem: NSObject, NSFileProviderItem {
             let activeRevision = (node as? File)?.activeRevision
             if !MimeType(value: node.mimeType).isProtonFile,
                let activeRevision,
-               let created = try? ISO8601DateFormatter().date(activeRevision.decryptedExtendedAttributes().common?.modificationTime) ?? activeRevision.created {
+               let created = try? ISO8601DateFormatter.default.date(activeRevision.decryptedExtendedAttributes().common?.modificationTime) ?? activeRevision.created {
                 contentModificationDate = created
             } else {
                 contentModificationDate = node.modifiedDate
@@ -356,5 +356,11 @@ public extension NodeItem {
 #if os(iOS)
         return areBaseFieldsSame && isCreationDateSame && lhs.isTrashed == rhs.isTrashed && lhs.isDownloaded == rhs.isDownloaded
 #endif
+    }
+}
+
+extension NodeItem {
+    var nodeID: String {
+        NodeIdentifier(itemIdentifier)?.nodeID ?? itemIdentifier.rawValue
     }
 }

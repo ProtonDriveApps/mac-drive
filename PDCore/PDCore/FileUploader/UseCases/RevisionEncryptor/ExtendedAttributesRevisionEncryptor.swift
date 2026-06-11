@@ -114,7 +114,7 @@ class ExtendedAttributesRevisionEncryptor: RevisionEncryptor {
     }
     
     func modificationDate(_ draft: CreatedRevisionDraft) -> String {
-        ISO8601DateFormatter().string(from: draft.localURL.contentModificationDate ?? Date())
+        ISO8601DateFormatter.default.string(from: draft.localURL.contentModificationDate ?? Date())
     }
     
     func digest() -> ExtendedAttributes.Digests {

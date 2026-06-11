@@ -1,10 +1,19 @@
+// Copyright (c) 2025 Proton AG
 //
-//  Config-Release-Store.xcconfig
-//  ProtonDrive-macOS
+// This file is part of Proton Drive.
 //
-//  Created by Audrey SOBGOU ZEBAZE on 28/11/2022.
-//  Copyright © 2022 ProtonMail. All rights reserved.
+// Proton Drive is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
+// Proton Drive is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 // Configuration settings file format documentation can be found at:
 // https://help.apple.com/xcode/#/dev745c5c974
@@ -14,4 +23,7 @@ DEFAULT_API_HOST = drive-api.proton.me
 APP_VERSION_IDENTIFIER =
 
 ICON_NAME = AppIcon-Release-External
-SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) SSL_PINNING PRODUCTION_LEVEL_LOGS HAS_BUILTIN_UPDATER
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) SSL_PINNING HAS_BUILTIN_UPDATER                 PRODUCTION_LEVEL_LOGS
+
+#include "SharedBuildConfigs/Config-Version-Number.xcconfig"
+

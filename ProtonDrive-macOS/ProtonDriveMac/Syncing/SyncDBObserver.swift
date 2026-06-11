@@ -46,7 +46,7 @@ final class SyncDBObserver: ObservableObject {
         eventsProcessor: EventsSystemManager,
         domainOperationsService: DomainOperationsService,
         testRunner: TestRunner?
-    ) {
+    ) async {
         Log.trace()
 
         self.state = state
@@ -55,9 +55,9 @@ final class SyncDBObserver: ObservableObject {
         self.syncStateDelegate = SyncStateDelegate(eventsProcessor: eventsProcessor,
                                                    domainOperationsService: domainOperationsService)
 
-        self.syncStorageManager?.cleanUpOnLaunch()
-
         self.testRunner = testRunner
+
+        await self.syncStorageManager?.cleanUpOnLaunch()
     }
 
     deinit {
@@ -82,7 +82,7 @@ final class SyncDBObserver: ObservableObject {
     private func setUpObservers() {
         Log.trace()
 
-        subscribeToCoreDataUpdates(context: syncStorageManager!.backgroundContext)
+        subscribeToCoreDataUpdates(context: syncStorageManager!.presentationContext)
     }
 
     func subscribeToCoreDataUpdates(context: NSManagedObjectContext) {
@@ -110,11 +110,7 @@ final class SyncDBObserver: ObservableObject {
                 state.lastSyncTime = syncStorageManager.lastSyncTime()
                 
                 state.isEnumerating = syncStorageManager.countEnumerationsInProgress() > 0
-                if let itemEnumerationProgress = syncStorageManager.itemEnumerationProgress {
-                    state.itemEnumerationProgress = itemEnumerationProgress
-                } else {
-                    state.itemEnumerationProgress = ""
-                }
+                state.itemEnumerationProgress = syncStorageManager.itemEnumerationProgress
 
                 state.isSyncing = syncStorageManager.countSyncsInProgress() > 0
 
@@ -147,7 +143,11 @@ final class SyncDBObserver: ObservableObject {
         }
 
         Task {
-            try await fetchItems()
+            do {
+                try await fetchItems()
+            } catch {
+                Log.error("Failed to fetch sync items after subscribeToCoreDataUpdates", error: error, domain: .application)
+            }
         }
     }
 
@@ -201,9 +201,14 @@ final class SyncDBObserver: ObservableObject {
         try await syncDBFetchedResultObserver?.fetchItems()
     }
 
-    func cleanUpErrors() {
+    func cleanUpErrors() async {
         Log.trace()
-        syncStorageManager?.cleanUpErrors()
+        await syncStorageManager?.cleanUpErrors()
+        do {
+            try await fetchItems()
+        } catch {
+            Log.error("Failed to fetch sync items after cleanUpErrors", error: error, domain: .application)
+        }
     }
 
     // MARK: - SyncStateDelegate
@@ -211,6 +216,11 @@ final class SyncDBObserver: ObservableObject {
     public func updateSyncState(paused: Bool, offline: Bool, fullResyncInProgress: Bool) async throws {
         Log.trace()
         try await syncStateDelegate.updateState(paused: paused, offline: offline, fullResyncInProgress: fullResyncInProgress)
-        syncStorageManager?.cleanUpOnPause()
+        await syncStorageManager?.cleanUpOnPause()
+        do {
+            try await fetchItems()
+        } catch {
+            Log.error("Failed to fetch sync items after updateSyncState", error: error, domain: .application)
+        }
     }
 }

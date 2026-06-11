@@ -146,13 +146,16 @@ class ApplicationState: ObservableObject {
 
     @Published var totalFilesLeftToSync: Int = 0
     @Published var errorCount: Int = 0
-    @Published var itemEnumerationProgress: String = ""
+
+    /// Contains information about an enumeration in progress
+    /// Written wherever you see `ItemEnumerationObserver.enumerationSyncItemIdentifier`
+    /// Read in `SyncStorageManager.itemEnumerationProgress`
+    @Published var itemEnumerationProgress: String?
 
     @Published var deleteCount = 0
 
     @Published var globalSyncStateDescription: String?
-    //    private var fullResyncStateDescription: String = "Full resync"
-
+    
     // MARK: Computed
 
     var overallStatus: ApplicationSyncStatus {
@@ -279,7 +282,7 @@ class ApplicationState: ObservableObject {
 // MARK: - Extensions
 
 extension ApplicationState: CustomDebugStringConvertible {
-    struct Property: Equatable, Hashable, CustomStringConvertible {
+    struct Property: Equatable, Hashable, Encodable, CustomStringConvertible {
         let name: String
         let value: String
         init(_ name: String, _ value: String) {
@@ -307,7 +310,7 @@ extension ApplicationState: CustomDebugStringConvertible {
             Property("isResuming", self.isResuming.description),
             Property("isOffline", self.isOffline.description),
             Property("isEnumerating", self.isEnumerating.description),
-            Property("itemEnumerationProgress", itemEnumerationProgress),
+            Property("itemEnumerationProgress", itemEnumerationProgress ?? "n/a"),
             Property("isUpdateAvailable", self.isUpdateAvailable.description),
             Property("notificationState", notificationState.description),
             Property("userInfo.usedSpace", userInfo?.usedSpace.description ?? "n/a"),

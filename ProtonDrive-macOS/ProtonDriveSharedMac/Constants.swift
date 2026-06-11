@@ -24,10 +24,9 @@ enum Constants {
     /// Conforms to https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions
     /// Configuration            App                                                         FileProvider
     ///
-    /// Debug                  |    macos-drive@1.3.2-dev               |    macos-drive-fileprovider@1.3.2-dev
-    /// Release-QA         |    macos-drive@1.3.2-dev+4379    |    macos-drive-fileprovider@1.3.2-dev+4379
-    /// Release-External |    macos-drive@1.3.2-beta+4379  |    macos-drive-fileprovider@1.3.2-beta+4379
-    /// Release-Store      |    macos-drive@1.3.2+4379             |    macos-drive-fileprovider@1.3.2+4379
+    /// Debug                |    macos-drive@1.3.2-dev         |    macos-drive-fileprovider@1.3.2-dev
+    /// Release-QA           |    macos-drive@1.3.2-dev+4379    |    macos-drive-fileprovider@1.3.2-dev+4379
+    /// Release-Store        |    macos-drive@1.3.2+4379        |    macos-drive-fileprovider@1.3.2+4379
     ///
     internal static let clientVersion: String = {
         guard let info = Bundle.main.infoDictionary else {
@@ -62,6 +61,20 @@ enum Constants {
         // the part of client version before "@"
         clientVersion.split(separator: "@").last.map(String.init) ?? "-"
     }()
+
+    internal static var buildCommitSHA: String {
+        if let sha = Bundle.main.infoDictionary?["BUILD_COMMIT_SHA"] as? String, !sha.isEmpty {
+            return sha
+        }
+        return "dev"
+    }
+
+    internal static var sdkVersion: String {
+        if let sdk = Bundle.main.infoDictionary?["DRIVE_SDK_VERSION"] as? String, !sdk.isEmpty {
+            return sdk
+        }
+        return "dev"
+    }
 
     private static func loadSettingValue(for key: SettingsBundleKeys) -> String {
         // values should be placed in shared UserDefaults so appex will be able to read them
@@ -113,12 +126,8 @@ enum Constants {
         CommandLine.arguments.contains("--unitTests")
     }
 
-    static var isInStressTests: Bool {
-        CommandLine.arguments.contains("--stressTests")
-    }
-
     static var isInAnyTests: Bool {
-        isInUITests || isInIntegrationTests || isInUnitTests || isInStressTests
+        isInUITests || isInIntegrationTests || isInUnitTests
     }
 
 // MARK: - Polling intervals
@@ -194,8 +203,6 @@ enum Constants {
         return .dev
 #elseif HAS_QA_FEATURES
         return .qa
-#elseif HAS_BETA_FEATURES
-        return .alphaOrBeta
 #else
         return .prod
 #endif

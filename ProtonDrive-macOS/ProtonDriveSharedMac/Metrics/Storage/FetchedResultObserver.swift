@@ -64,7 +64,11 @@ class FetchedResultObserver<DBModel: NSManagedObject & DomainConvertible>: NSObj
     @objc func handleStoreRemoteChange(_ object: Any?) {
         Task {
             Log.trace()
-            try await fetchItems()
+            do {
+                try await fetchItems()
+            } catch {
+                Log.error("Failed to fetch sync items after handleStoreRemoteChange", error: error, domain: .application)
+            }
         }
     }
 

@@ -22,23 +22,14 @@ public protocol FeatureFlagsControllerProtocol {
     // Publisher that triggers update every time FFs are updated
     var updatePublisher: AnyPublisher<Void, Never> { get }
     // Actual feature flags combinations, taking into account build type, killswitches and rollout flags
-    var hasProtonDocumentCreation: Bool { get }
     var hasSharing: Bool { get }
-    var hasSharingInvitations: Bool { get }
     var hasSharingExternalInvitations: Bool { get }
-    var hasSharingEditing: Bool { get }
-    var hasAcceptRejectInvitations: Bool { get }
     var hasPublicShareEditMode: Bool { get }
     var hasRatingIOSDrive: Bool { get }
     var hasRatingBooster: Bool { get }
     var hasBookmarks: Bool { get }
-    var hasRefreshableBlockDownloadLink: Bool { get }
     /// Gates creation of new photo volume OR possibility to migrate legacy share
-    var hasAlbums: Bool { get }
-    var hasAlbumsActions: Bool { get }
-    var hasComputers: Bool { get }
     var hasCopy: Bool { get }
-    var hasAlbumsSharing: Bool { get }
     var hasPhotosTagsMigration: Bool { get }
     var hasProtonSheetCreation: Bool { get }
     var hasDebugMode: Bool { get }
@@ -47,7 +38,7 @@ public protocol FeatureFlagsControllerProtocol {
     var hasSDKUploadPhoto: Bool { get }
     var hasSDKDownloadMain: Bool { get }
     var hasSDKDownloadPhoto: Bool { get }
-    var hasIOSBlackFriday2025: Bool { get }
+    var hasSDKNodeOperations: Bool { get }
     var hasGradualRolloutChannel: Bool { get }
     /// Makes current value publisher for the specific FF
     func makePublisher(keyPath: KeyPath<FeatureFlagsControllerProtocol, Bool>) -> AnyPublisher<Bool, Never>
@@ -79,32 +70,16 @@ public final class FeatureFlagsController: FeatureFlagsControllerProtocol {
         subject.eraseToAnyPublisher()
     }
 
-    public var hasProtonDocumentCreation: Bool {
-        return !featureFlagsStore.isFeatureEnabled(.driveDocsDisabled)
-    }
-
     public var hasSharing: Bool {
         return !featureFlagsStore.isFeatureEnabled(.driveSharingDisabled)
     }
 
-    public var hasSharingInvitations: Bool {
-        return hasSharing && featureFlagsStore.isFeatureEnabled(.driveSharingInvitations)
-    }
-
     public var hasSharingExternalInvitations: Bool {
-        return hasSharingInvitations && featureFlagsStore.isFeatureEnabled(.driveSharingExternalInvitations) && !featureFlagsStore.isFeatureEnabled(.driveSharingExternalInvitationsDisabled)
-    }
-
-    public var hasSharingEditing: Bool {
-        return hasSharing && !featureFlagsStore.isFeatureEnabled(.driveSharingEditingDisabled)
+        return hasSharing && featureFlagsStore.isFeatureEnabled(.driveSharingExternalInvitations) && !featureFlagsStore.isFeatureEnabled(.driveSharingExternalInvitationsDisabled)
     }
     
     public var hasPublicShareEditMode: Bool {
         return featureFlagsStore.isFeatureEnabled(.drivePublicShareEditMode) && !featureFlagsStore.isFeatureEnabled(.drivePublicShareEditModeDisabled)
-    }
-
-    public var hasAcceptRejectInvitations: Bool {
-        return hasSharing && featureFlagsStore.isFeatureEnabled(.driveMobileSharingInvitationsAcceptReject)
     }
 
     public var hasRatingBooster: Bool {
@@ -119,33 +94,12 @@ public final class FeatureFlagsController: FeatureFlagsControllerProtocol {
         return featureFlagsStore.isFeatureEnabled(.driveShareURLBookmarking) && !featureFlagsStore.isFeatureEnabled(.driveShareURLBookmarksDisabled)
     }
 
-    public var hasRefreshableBlockDownloadLink: Bool {
-        return featureFlagsStore.isFeatureEnabled(.driveiOSRefreshableBlockDownloadLink)
-    }
-
-    public var hasAlbums: Bool {
-        return !featureFlagsStore.isFeatureEnabled(.driveAlbumsDisabled)
-    }
-
-    public var hasAlbumsActions: Bool {
-        return !featureFlagsStore.isFeatureEnabled(.driveAlbumsDisabled)
-    }
-
-    public var hasAlbumsSharing: Bool {
-        return hasSharing && !featureFlagsStore.isFeatureEnabled(.driveAlbumsDisabled)
-    }
-
-    public var hasComputers: Bool {
-        return featureFlagsStore.isFeatureEnabled(.driveiOSComputers) && !featureFlagsStore.isFeatureEnabled(.driveiOSComputersDisabled)
-    }
-
     public var hasCopy: Bool {
         return !featureFlagsStore.isFeatureEnabled(.driveCopyDisabled)
     }
 
     public var hasPhotosTagsMigration: Bool {
-        return featureFlagsStore.isFeatureEnabled(.drivePhotosTagsMigration) &&
-               !featureFlagsStore.isFeatureEnabled(.drivePhotosTagsMigrationDisabled)
+        return !featureFlagsStore.isFeatureEnabled(.drivePhotosTagsMigrationDisabled)
     }
 
     public var hasProtonSheetCreation: Bool {
@@ -163,23 +117,31 @@ public final class FeatureFlagsController: FeatureFlagsControllerProtocol {
     }
 
     public var hasSDKUploadMain: Bool {
-        return buildType.isQaOrBelow && featureFlagsStore.isFeatureEnabled(.driveiOSSDKUploadMain)
+        return featureFlagsStore.isFeatureEnabled(.driveiOSSDKUploadMain)
     }
 
     public var hasSDKUploadPhoto: Bool {
-        return buildType.isQaOrBelow && featureFlagsStore.isFeatureEnabled(.driveiOSSDKUploadPhoto)
+        return featureFlagsStore.isFeatureEnabled(.driveiOSSDKUploadPhoto)
     }
 
     public var hasSDKDownloadMain: Bool {
-        return buildType.isQaOrBelow && featureFlagsStore.isFeatureEnabled(.driveiOSSDKDownloadMain)
+        return featureFlagsStore.isFeatureEnabled(.driveiOSSDKDownloadMain)
     }
 
     public var hasSDKDownloadPhoto: Bool {
-        return buildType.isQaOrBelow && featureFlagsStore.isFeatureEnabled(.driveiOSSDKDownloadPhoto)
+        return featureFlagsStore.isFeatureEnabled(.driveiOSSDKDownloadPhoto)
     }
 
-    public var hasIOSBlackFriday2025: Bool {
-        featureFlagsStore.isFeatureEnabled(.driveIOSBlackFriday2025)
+    public var hasSDKCryptoEncryptBlocksWithPgpAead: Bool {
+        return featureFlagsStore.isFeatureEnabled(.driveCryptoEncryptBlocksWithPgpAead)
+    }
+    
+    public var hasDriveDownloadVerificationDisabled: Bool {
+        return featureFlagsStore.isFeatureEnabled(.driveDownloadVerificationDisabled)
+    }
+
+    public var hasSDKNodeOperations: Bool {
+        return featureFlagsStore.isFeatureEnabled(.driveiOSSDKNodeOperations)
     }
 
     public var hasGradualRolloutChannel: Bool {

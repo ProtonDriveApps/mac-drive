@@ -15,10 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
+#if os(iOS)
+
 import Foundation
 import PDClient
 
-/// Legacy operation for mac, can be removed after 2025 Feb, once macOS migrated to DDK
 /// Accepts: File with short metadata
 /// Works:
 /// 1. makes API call to get full File metadata
@@ -45,7 +46,8 @@ class LegacyDownloadFileOperation: SynchronousOperation, DownloadOperation {
         super.start()
         guard !self.isCancelled else { return }
         Log.info("DownloadFileOperation.start, will fetch full file details, file: \(fileIdentifier)", domain: .downloader)
-        self.cloudSlot.scanNode(fileIdentifier, linkProcessingErrorTransformer: { $1 }, handler: { [fileIdentifier] resultFile in
+        let moc = storage.backgroundContext
+        self.cloudSlot.scanNode(fileIdentifier, linkProcessingErrorTransformer: { $1 }, moc: moc, handler: { [fileIdentifier] resultFile in
             guard !self.isCancelled else { return }
             switch resultFile {
             case .failure(let error):
@@ -68,7 +70,7 @@ class LegacyDownloadFileOperation: SynchronousOperation, DownloadOperation {
                 }
 
                 Log.info("DownloadFileOperation.start, fetch full revision details, file: \(fileIdentifier)", domain: .downloader)
-                self.cloudSlot.scanRevision(revision.identifier) { [revisionIdentifier = revision.identifier] resultRevision in
+                self.cloudSlot.scanRevision(revision.identifier, moc: moc) { [revisionIdentifier = revision.identifier] resultRevision in
                     guard !self.isCancelled else { return }
                     switch resultRevision {
                     case .failure(let error):
@@ -258,3 +260,5 @@ class LegacyDownloadFileOperation: SynchronousOperation, DownloadOperation {
         }
     }
 }
+
+#endif

@@ -15,25 +15,86 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
-import PDCore
+@preconcurrency import PDCore
 import FileProvider
 import PDFileProvider
-import PDDesktopDevKit
+import ProtonDriveSDK
 
 // Tuple used to thread-safely store some information about the node
 typealias NodeInformationExtractor = (Node) -> (filename: String, mimeType: String, size: Int)?
 
+public final class SyncStateMapper {
+    public init() {}
+
+    public func syncState(for error: Swift.Error) -> SyncItemState {
+        switch error {
+        case Errors.excludeFromSync:
+            return .excludedFromSync
+        case CancellationReason.networkOffline:
+            return .paused
+        case let error as any CancellationIdentifiableError where error.isCancellationError:
+            return .cancelled
+        case CocoaError.userCancelled, CancellationReason.fileProviderDeinited:
+            return .cancelled
+        default:
+            return .errored
+        }
+    }
+}
+
+public final class NetworkOfflineDetector {
+    private let connectionStateResource: ConnectionStateResource
+
+    public init(connectionStateResource: ConnectionStateResource) {
+        self.connectionStateResource = connectionStateResource
+    }
+
+    public func isLikelyOffline(progress: Progress, error: Error? = nil) -> Bool {
+        if progress.cancellationReason == .networkOffline {
+            return true
+        }
+        if connectionStateResource.currentState == .unreachable {
+            return true
+        }
+        if let sdkError = error as? ProtonDriveSDKError, sdkError.isLikelyOffline {
+            return true
+        }
+        return false
+    }
+}
+
 public class SyncReporter {
     private let tower: Tower
     private let manager: NSFileProviderManager
+    private let syncStateMapper = SyncStateMapper()
+    private let itemTasksLock = NSLock()
+    private var itemTasks: [String: Task<Void, Never>] = [:]
+
+    /// Enqueues an async operation for the given item, guaranteeing that operations
+    /// for the same `itemId` execute in the order they were enqueued.
+    /// Operations for different items run concurrently.
+    private func enqueue(for itemId: String, operation: @escaping @Sendable () async -> Void) {
+        itemTasksLock.lock()
+        let previous = itemTasks[itemId]
+        let newTask = Task {
+            await previous?.value
+            await operation()
+        }
+        itemTasks[itemId] = newTask
+        itemTasksLock.unlock()
+    }
 
     private var syncStorage: SyncStorageManager {
         tower.syncStorage ?? SyncStorageManager(suite: .group(named: Constants.appGroup))
     }
 
+    // must be called within NSManagedObject
     var nodeInformationExtractor: NodeInformationExtractor?
 
-    public init(tower: Tower, manager: NSFileProviderManager) {
+    public init(
+        tower: Tower,
+        manager: NSFileProviderManager
+    ) {
         self.tower = tower
         self.manager = manager
     }
@@ -53,16 +114,16 @@ public class SyncReporter {
         }
         Log.trace()
 
-        let filename: String
-        switch operation {
-        // use the internal filename rather than the normalized version provided to the local filesystem
-        case .move, .update:
-            filename = nodeFilename(for: item)
-        default:
-            filename = item.filename
-        }
+        enqueue(for: item.itemIdentifier.id) { [self] in
+            let filename: String
+            switch operation {
+            // use the internal filename rather than the normalized version provided to the local filesystem
+            case .move, .update:
+                filename = await nodeFilename(for: item)
+            default:
+                filename = item.filename
+            }
 
-        Task {
             let location = withoutLocation ? "" : await shortLocation(for: item.itemIdentifier)
 
             let reportableSyncItem = ReportableSyncItem(
@@ -77,7 +138,9 @@ public class SyncReporter {
                 progress: 0,
                 errorDescription: nil
             )
-            syncStorage.upsert(reportableSyncItem)
+            await syncStorage.backgroundContextPool.withContext { context in
+                syncStorage.upsert(reportableSyncItem, in: context)
+            }
         }
     }
 
@@ -88,18 +151,9 @@ public class SyncReporter {
         changedFields: NSFileProviderItemFields,
         withoutLocation: Bool)
     {
-        // Fetch node from MetadataDB
-        let context = tower.storage.mainContext
-        guard let nodeIdentifier = NodeIdentifier(rawValue: itemIdentifier.rawValue),
-              let node = tower.storage.fetchNode(id: nodeIdentifier, moc: context) else {
-            Log.trace("guard: node not found")
-            return
-        }
-        Log.trace("\(node.description)")
+        enqueue(for: itemIdentifier.id) { [self] in
+            guard let fileInfo = await nodeMetadata(for: itemIdentifier) else { return }
 
-        guard let fileInfo = nodeInformationExtractor!(node) else { return }
-
-        Task {
             let location = withoutLocation ? "" : await shortLocation(for: itemIdentifier)
 
             let reportableSyncItem = ReportableSyncItem(
@@ -114,7 +168,9 @@ public class SyncReporter {
                 progress: 0,
                 errorDescription: nil
             )
-            syncStorage.upsert(reportableSyncItem)
+            await syncStorage.backgroundContextPool.withContext { context in
+                syncStorage.upsert(reportableSyncItem, in: context)
+            }
         }
     }
 
@@ -133,11 +189,11 @@ public class SyncReporter {
         }
         Log.trace()
 
-        Task {
+        enqueue(for: item.itemIdentifier.id) { [self] in
             if let temporaryItem,
                 shouldReconcileCreatedItem(item: item, possibleError: possibleError, during: operation, temporaryItem: temporaryItem) {
 
-                resolve(
+                await resolve(
                     createdItem: item,
                     against: temporaryItem,
                     operation: operation,
@@ -147,9 +203,11 @@ public class SyncReporter {
                 // Temporary workaround for DM-703 - `shortLocation` blocks on `manager.getUserVisibleURL(for:)` until
                 // all downloads in a batch are completed, so we don't call it for `resolve()`, and update just the location afterwards.
                 let location = withoutLocation ? "" : await shortLocation(for: item.itemIdentifier)
-                syncStorage.updateLocation(identifier: item.itemIdentifier.id, to: location)
+                await syncStorage.backgroundContextPool.withContext { context in
+                    syncStorage.updateLocation(identifier: item.itemIdentifier.id, to: location, in: context)
+                }
             } else {
-                handleErrorOrResolve(
+                await handleErrorOrResolve(
                     forItem: item,
                     possibleError: possibleError,
                     during: operation,
@@ -157,7 +215,9 @@ public class SyncReporter {
                 )
 
                 let location = withoutLocation ? "" : await shortLocation(for: item.itemIdentifier)
-                syncStorage.updateLocation(identifier: item.itemIdentifier.id, to: location)
+                await syncStorage.backgroundContextPool.withContext { context in
+                    syncStorage.updateLocation(identifier: item.itemIdentifier.id, to: location, in: context)
+                }
             }
         }
     }
@@ -169,10 +229,10 @@ public class SyncReporter {
         during operation: FileProviderOperation,
         withoutLocation: Bool)
     {
-        Task {
+        enqueue(for: itemIdentifier.id) { [self] in
             let location = withoutLocation ? "" : await shortLocation(for: itemIdentifier)
 
-            handleErrorOrResolve(
+            await handleErrorOrResolve(
                 forItemIdentifier: itemIdentifier,
                 possibleError: possibleError,
                 during: operation,
@@ -181,9 +241,16 @@ public class SyncReporter {
         }
     }
 
-    func updateProgress(itemIdentifier: NSFileProviderItemIdentifier, progress: Progress) {
-        Log.trace("\(itemIdentifier.id) \(progress.completedUnitCount)/\(progress.totalUnitCount)")
-        syncStorage.updateProgress(identifier: itemIdentifier.id, progress: progress)
+    func updateProgress(itemIdentifier: NSFileProviderItemIdentifier, progress: Progress?) {
+        if let progress {
+            Log.trace("\(itemIdentifier.id) \(progress.completedUnitCount)/\(progress.totalUnitCount)")
+        }
+        enqueue(for: itemIdentifier.id) { [self] in
+            guard let progress else { return }
+            await syncStorage.backgroundContextPool.withContext { moc in
+                syncStorage.updateProgress(identifier: itemIdentifier.id, progress: progress, in: moc)
+            }
+        }
     }
 
     // MARK: Refresh action
@@ -201,7 +268,11 @@ public class SyncReporter {
             state: .inProgress,
             progress: 0,
             errorDescription: nil)
-        syncStorage.upsert(item)
+        Task {
+            await syncStorage.backgroundContextPool.withContext { context in
+                syncStorage.upsert(item, in: context)
+            }
+        }
     }
 
     public func refreshFinished() {
@@ -217,25 +288,29 @@ public class SyncReporter {
             state: .finished,
             progress: 100,
             errorDescription: nil)
-        syncStorage.upsert(item)
+        Task {
+            await syncStorage.backgroundContextPool.withContext { context in
+                syncStorage.upsert(item, in: context)
+            }
+        }
     }
 
     // MARK: Clean up
 
-    public func cleanUpOnLaunch() {
+    public func cleanUpOnLaunch() async {
         Log.trace()
-        syncStorage.cleanUpExpiredItems()
-        syncStorage.cleanUpInProgressItems()
+        await syncStorage.cleanUpExpiredItems()
+        await syncStorage.cleanUpInProgressItems()
     }
 
-    public func cleanUpOnInvalidate() {
+    public func cleanUpOnInvalidate() async {
         Log.trace()
-        cleanUpOnLaunch()
+        await cleanUpOnLaunch()
     }
 
-    func cleanUpExpiredItems() {
+    func cleanUpExpiredItems() async {
         Log.trace()
-        syncStorage.cleanUpExpiredItems()
+        await syncStorage.cleanUpExpiredItems()
     }
 
     // MARK: - Private
@@ -246,8 +321,8 @@ public class SyncReporter {
         createdItem: NSFileProviderItem,
         against temporaryItem: NSFileProviderItem,
         operation: FileProviderOperation,
-        location: String)
-    {
+        location: String
+    ) async {
         Log.trace()
 
         let reportableItem = ReportableSyncItem(
@@ -262,8 +337,9 @@ public class SyncReporter {
             progress: 100,
             errorDescription: nil
         )
-
-        syncStorage.updateItem(identifiedBy: temporaryItem.itemIdentifier.id, to: reportableItem)
+        await syncStorage.backgroundContextPool.withContext { context in
+            syncStorage.updateItem(identifiedBy: temporaryItem.itemIdentifier.id, to: reportableItem, in: context)
+        }
     }
 
     /// Use to handle errors from `id` when `Node` equivalent can be found in MetadataDB
@@ -272,29 +348,31 @@ public class SyncReporter {
         forItemIdentifier itemIdentifier: NSFileProviderItemIdentifier,
         possibleError error: Swift.Error?,
         during operation: FileProviderOperation,
-        location: String)
-    {
+        location: String
+    ) async {
         Log.trace()
 
-        cleanUpExpiredItems()
+        await cleanUpExpiredItems()
 
-        let context = tower.storage.mainContext
+        let result: (String, String, Int, Bool)? = await tower.storage.backgroundContextPool.withContext { context in
+            guard let nodeIdentifier = NodeIdentifier(rawValue: itemIdentifier.rawValue),
+                  let node = tower.storage.fetchNode(id: nodeIdentifier, moc: context) else {
+                Log.trace("guard")
+                return nil
+            }
+            return await context.perform {
+                let filename = (try? node.decryptName()) ?? "Filename decryption failed"
+                let mimeType = node.mimeType
+                let size = node.presentableNodeSize
+                let isDeleted = node.isDeleted
+                return (filename, mimeType, size, isDeleted)
+            }
+        }
+        guard let (filename, mimeType, size, isDeleted) = result else { return }
 
-        guard let nodeIdentifier = NodeIdentifier(rawValue: itemIdentifier.rawValue),
-              let node = tower.storage.fetchNode(id: nodeIdentifier, moc: context) else {
-            Log.trace("guard")
-            return
-        }
-        var filename: String!
-        var mimeType: String!
-        var size: Int!
-        context.performAndWait {
-            filename = (try? node.decryptName()) ?? "Filename decryption failed"
-            mimeType = node.mimeType
-            size = node.presentableNodeSize
-        }
+
         if let error {
-            handleError(
+            await handleError(
                 error,
                 itemIdentifier: itemIdentifier,
                 filename: filename,
@@ -303,8 +381,10 @@ public class SyncReporter {
                 location: location,
                 operation: operation)
         } else {
-            if isActingUponTrashedItem(node: node, operation: operation) {
-                syncStorage.updateTrash(identifier: itemIdentifier.id)
+            if isActingUponTrashedItem(isDeleted: isDeleted, operation: operation) {
+                await syncStorage.backgroundContextPool.withContext { context in
+                    syncStorage.updateTrash(identifier: itemIdentifier.id, in: context)
+                }
             } else {
                 let reportableSyncItem = ReportableSyncItem(
                     id: itemIdentifier.id,
@@ -318,7 +398,9 @@ public class SyncReporter {
                     progress: 100,
                     errorDescription: nil
                 )
-                syncStorage.upsert(reportableSyncItem)
+                await syncStorage.backgroundContextPool.withContext { context in
+                    syncStorage.upsert(reportableSyncItem, in: context)
+                }
             }
         }
     }
@@ -329,23 +411,23 @@ public class SyncReporter {
         forItem item: NSFileProviderItem,
         possibleError error: Swift.Error?,
         during operation: FileProviderOperation,
-        location: String)
-    {
+        location: String
+    ) async {
         Log.trace()
 
-        cleanUpExpiredItems()
+        await cleanUpExpiredItems()
 
         let filename: String
         switch operation {
         // use the internal filename rather than the normalized version provided to the local filesystem
         case .move, .update:
-            filename = nodeFilename(for: item)
+            filename = await nodeFilename(for: item)
         default:
             filename = item.filename
         }
 
         if let error {
-            handleError(
+            await handleError(
                 error,
                 itemIdentifier: item.itemIdentifier,
                 filename: filename,
@@ -366,7 +448,9 @@ public class SyncReporter {
                 progress: 100,
                 errorDescription: nil
             )
-            syncStorage.upsert(reportableSyncItem)
+            await syncStorage.backgroundContextPool.withContext { context in
+                syncStorage.upsert(reportableSyncItem, in: context)
+            }
         }
     }
 
@@ -378,13 +462,13 @@ public class SyncReporter {
         mimeType: String?,
         size: Int?,
         location: String,
-        operation: FileProviderOperation)
-    {
-        let syncState = syncState(for: error)
+        operation: FileProviderOperation
+    ) async {
+        let syncState = syncStateMapper.syncState(for: error)
         Log.trace("\(syncState.description) \(error.localizedDescription)")
 
         switch syncState {
-        case .finished, .excludedFromSync, .cancelled:
+        case .finished, .excludedFromSync, .cancelled, .paused:
             let reportableSyncItem = ReportableSyncItem(
                 id: itemIdentifier.id,
                 modificationTime: Date(),
@@ -394,10 +478,12 @@ public class SyncReporter {
                 fileSize: size,
                 operation: operation,
                 state: syncState,
-                progress: 100,
+                progress: syncState == .paused ? 0 : 100,
                 errorDescription: nil
             )
-            syncStorage.upsert(reportableSyncItem)
+            await syncStorage.backgroundContextPool.withContext { context in
+                syncStorage.upsert(reportableSyncItem, in: context)
+            }
 
         case .errored:
             let reportableSyncItem = ReportableSyncItem(
@@ -412,7 +498,9 @@ public class SyncReporter {
                 progress: 0,
                 errorDescription: error.localizedDescription.firstLine
             )
-            syncStorage.upsert(reportableSyncItem)
+            await syncStorage.backgroundContextPool.withContext { context in
+                syncStorage.upsert(reportableSyncItem, in: context)
+            }
 
         case .undefined, .inProgress:
             assert(false, "Should never happen")
@@ -432,8 +520,8 @@ public class SyncReporter {
         return item.itemIdentifier.id != temporaryItem.itemIdentifier.id
     }
 
-    private func isActingUponTrashedItem(node: Node, operation: FileProviderOperation) -> Bool {
-        operation == .delete && node.state == .deleted
+    private func isActingUponTrashedItem(isDeleted: Bool, operation: FileProviderOperation) -> Bool {
+        operation == .delete && isDeleted
     }
 
     private func shouldConsiderItem(
@@ -480,13 +568,13 @@ public class SyncReporter {
         location: String,
         mimeType: String?,
         size: Int?,
-        operation: FileProviderOperation)
-    {
-        let syncState = syncState(for: error)
+        operation: FileProviderOperation
+    ) async {
+        let syncState = syncStateMapper.syncState(for: error)
         Log.trace("\(syncState.description) \(error.localizedDescription)")
 
         switch syncState {
-        case .finished, .excludedFromSync, .cancelled:
+        case .finished, .excludedFromSync, .cancelled, .paused:
             let reportableSyncItem = ReportableSyncItem(
                 id: itemIdentifier.id,
                 modificationTime: Date(),
@@ -496,10 +584,12 @@ public class SyncReporter {
                 fileSize: size,
                 operation: operation,
                 state: syncState,
-                progress: 100,
+                progress: syncState == .paused ? 0 : 100,
                 errorDescription: nil
             )
-            syncStorage.upsert(reportableSyncItem)
+            await syncStorage.backgroundContextPool.withContext { context in
+                syncStorage.upsert(reportableSyncItem, in: context)
+            }
 
         case .errored:
             let reportableSyncItem = ReportableSyncItem(
@@ -514,36 +604,46 @@ public class SyncReporter {
                 progress: 0,
                 errorDescription: error.localizedDescription.firstLine
             )
-            syncStorage.upsert(reportableSyncItem)
+            await syncStorage.backgroundContextPool.withContext { context in
+                syncStorage.upsert(reportableSyncItem, in: context)
+            }
 
         case .undefined, .inProgress:
             assert(false, "Should never happen")
         }
     }
 
-    private func syncState(for error: Swift.Error) -> SyncItemState {
-        switch error {
-        case Errors.excludeFromSync:
-            return .excludedFromSync
-        case DDKError.cancellation,
-            CocoaError.userCancelled,
-            CancellationReason.fileProviderDeinited:
-            return .cancelled
-        default:
-            return .errored
+    private func nodeMetadata(
+        for itemIdentifier: NSFileProviderItemIdentifier
+    ) async -> (filename: String, mimeType: String, size: Int)? {
+        guard let nodeInformationExtractor else { return nil }
+        return await tower.storage.backgroundContextPool.withContext { context in
+            guard let nodeIdentifier = NodeIdentifier(rawValue: itemIdentifier.rawValue),
+                  let node = tower.storage.fetchNode(id: nodeIdentifier, moc: context) else {
+                Log.trace("guard: node not found")
+                return nil
+            }
+
+            return await context.perform {
+                Log.trace("\(node.description)")
+                return nodeInformationExtractor(node)
+            }
         }
     }
 
-    private func nodeFilename(for item: NSFileProviderItem) -> String {
-        let context = tower.storage.mainContext
-        guard let nodeIdentifier = NodeIdentifier(rawValue: item.itemIdentifier.rawValue),
-              let node = tower.storage.fetchNode(id: nodeIdentifier, moc: context) else {
-            Log.trace("guard: node not found")
-            return item.filename
-        }
-        Log.trace("\(node.description)")
+    private func nodeFilename(for item: NSFileProviderItem) async -> String {
+        await nodeMetadata(for: item.itemIdentifier)?.filename ?? item.filename
+    }
+}
 
-        return nodeInformationExtractor?(node)?.filename ?? item.filename
+protocol CancellationIdentifiableError where Self: Error {
+    var isCancellationError: Bool { get }
+}
+
+extension ProtonDriveSDKError: CancellationIdentifiableError {
+    var isCancellationError: Bool {
+        guard case .successfulCancellation = domain else { return false }
+        return true
     }
 }
 
@@ -555,7 +655,7 @@ extension NSFileProviderItem {
         guard let utType = contentType else {
             return nil
         }
-        return MimeType(uti: utType.identifier)?.value
+        return MimeType(utType: utType)?.value
     }
 }
 

@@ -280,6 +280,14 @@ extension StorageManager {
                 let factory = CoreDataPhotoFactory(managedObjectContext: moc, storageManager: self)
                 factory.updatePhoto(photo: photo, link: link)
 
+                let myPhotoVolumeID = getPhotosVolumeId(in: moc)
+                if myPhotoVolumeID != link.volumeID {
+                    // From shared volume
+                    // ShareID is mandatory attribute but we can't get it from shared volume event
+                    // In volume based db, we actually don't need ShareID anymore 
+                    photo.setShareID("")
+                }
+
                 node = photo
             } else {
 

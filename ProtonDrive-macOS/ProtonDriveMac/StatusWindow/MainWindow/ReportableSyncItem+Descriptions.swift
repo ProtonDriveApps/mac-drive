@@ -26,6 +26,8 @@ extension ReportableSyncItem {
         let result = switch state {
         case .inProgress:
             "\(operationDescription) \(progressDescription)"
+        case .paused:
+            "Paused "
         case .errored:
             "\(operationDescription) "
         case .finished:
@@ -47,11 +49,13 @@ extension ReportableSyncItem {
         case .finished:
             fileProviderOperation.operationDescriptionWhenCompleted
         case .inProgress:
-            if progress == 0 {
+            if progress.isZero {
                 fileProviderOperation.operationDescriptionWhenQueued
             } else {
                 fileProviderOperation.operationDescriptionWhenInProgress
             }
+        case .paused:
+            fileProviderOperation.operationDescriptionWhenInProgress
         case .errored:
             errorDescription ?? "Error"
         }
@@ -78,7 +82,7 @@ extension ReportableSyncItem {
 
     private var progressDescription: String {
         if case .inProgress = state, progress > 0 {
-            "\(progress)% "
+            "\(String(format: "%.2f", progress))% "
         } else {
             ""
         }

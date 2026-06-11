@@ -53,16 +53,14 @@ struct RuntimeConfiguration: PlistSaveable {
     /// Changes to this value take effect after items have been enumerated.
     private(set) var includeItemEnumerationDetailsInTrayApp = false
 
-    private(set) var eventLoopInterval = 90.0
-
-    /// Writes logs to SQLite DB.
-    private(set) var sqliteLogging = false
+    private(set) var eventLoopInterval: Double = 90.0
 
     /// Listen to events from the the TestRunner?
     private(set) var enableTestAutomation: Bool = false
 
-    /// Disable SSL certificate checking in the .NET SDK
-    private(set) var ignoreDdkSslCertificateErrors: Bool = false
+    /// Interval at which process and system CPU/memory metrics are log to a JSONL file.
+    /// Disabled if equal to 0.
+    private(set) var systemMetricsMonitoringInterval: Double = 60
 
     /// LogDomains to include
 #if DEBUG
@@ -76,7 +74,7 @@ struct RuntimeConfiguration: PlistSaveable {
 
     /// LogDomains to exclude
 #if DEBUG
-    private(set) var excludedLogDomainNames = ["ddk", "clientNetworking", "featureFlags"]
+    private(set) var excludedLogDomainNames = ["clientNetworking", "featureFlags"]
 #else
     private(set) var excludedLogDomainNames = [String]()
 #endif
@@ -136,10 +134,6 @@ struct RuntimeConfiguration: PlistSaveable {
                 if let value = value as? Double {
                     self.eventLoopInterval = value
                 }
-            case "sqliteLogging":
-                if let value = value as? Bool {
-                    self.sqliteLogging = value
-                }
             case "enableTestAutomation":
                 if let value = value as? Bool {
                     self.enableTestAutomation = value
@@ -152,9 +146,9 @@ struct RuntimeConfiguration: PlistSaveable {
                 if let value = value as? [String] {
                     self.excludedLogDomainNames = value
                 }
-            case "ignoreDdkSslCertificateErrors":
-                if let value = value as? Bool {
-                    self.ignoreDdkSslCertificateErrors = value
+            case "systemMetricsMonitoringInterval":
+                if let value = value as? Double {
+                    self.systemMetricsMonitoringInterval = value
                 }
             default:
                 Log.debug("Unknown entry in file: \(key)", domain: .logs)
@@ -174,11 +168,33 @@ struct RuntimeConfiguration: PlistSaveable {
         var dictionary = self.loadFromPlist(url: try configFileURL()) ?? [:]
         dictionary["includeTracesInLogs"] = !self.includeTracesInLogs
         self.saveToPlist(url: try configFileURL(), data: dictionary)
-        fatalError(ExceptionMessagesExcludedFromSentryCrashReport.toggledRuntimeConfigFile.rawValue)
     }
 
     /// Call to create a sample config file when needed.
-    private func createConfigFile() throws {
-        self.saveToPlist(url: try configFileURL(), data: [:])
+    func createConfigFile() throws {
+        self.saveToPlist(url: try configFileURL(), data: currentSettingsDictionary())
+    }
+
+    func save(settings: [String: Any]) throws {
+        var dictionary = self.loadFromPlist(url: try configFileURL()) ?? [:]
+        for (key, value) in settings {
+            dictionary[key] = value
+        }
+        self.saveToPlist(url: try configFileURL(), data: dictionary)
+    }
+
+    func currentSettingsDictionary() -> [String: Any] {
+        [
+            "includeTracesInLogs": includeTracesInLogs,
+            "includeChangeEnumerationSummaryInTrayApp": includeChangeEnumerationSummaryInTrayApp,
+            "includeChangeEnumerationDetailsInTrayApp": includeChangeEnumerationDetailsInTrayApp,
+            "includeItemEnumerationSummaryInTrayApp": includeItemEnumerationSummaryInTrayApp,
+            "includeItemEnumerationDetailsInTrayApp": includeItemEnumerationDetailsInTrayApp,
+            "eventLoopInterval": eventLoopInterval,
+            "enableTestAutomation": enableTestAutomation,
+            "systemMetricsMonitoringInterval": systemMetricsMonitoringInterval,
+            "includedLogDomainNames": includedLogDomainNames,
+            "excludedLogDomainNames": excludedLogDomainNames,
+        ]
     }
 }

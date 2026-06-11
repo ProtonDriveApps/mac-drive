@@ -63,6 +63,7 @@ class GlobalProgressObserver {
         globalUploadProgress = domainOperationsService.globalProgress(for: .uploading)
         for progress in [globalDownloadProgress, globalUploadProgress] {
             guard let progress else {
+                assertionFailure("No global progress mean no status updates")
                 continue
             }
             var observer = progress.observe(\.description) { [weak self] progress, change in
@@ -84,12 +85,18 @@ class GlobalProgressObserver {
             globalProgressObservers.append(observer)
         }
     }
-
+    
     func stopMonitoring() {
         globalProgressObservers.forEach { $0.invalidate() }
         globalProgressObservers.removeAll()
         globalDownloadProgress = nil
         globalUploadProgress = nil
+        resetApplicationState()
+    }
+    
+    private func resetApplicationState() {
+        state.globalSyncStateDescription = nil
+        state.totalFilesLeftToSync = 0
     }
 
 #if HAS_QA_FEATURES
@@ -104,8 +111,7 @@ class GlobalProgressObserver {
             downloadProgress: self.globalDownloadProgress,
             uploadProgress: self.globalUploadProgress) else {
 
-            state.globalSyncStateDescription = nil
-            state.totalFilesLeftToSync = 0
+            resetApplicationState()
             return
         }
 

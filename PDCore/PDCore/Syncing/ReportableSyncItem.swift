@@ -17,7 +17,7 @@
 
 import Foundation
 
-public struct ReportableSyncItem: Encodable {
+public struct ReportableSyncItem: Encodable, Sendable {
 
     public let id: String
     public let modificationTime: Date
@@ -28,7 +28,7 @@ public struct ReportableSyncItem: Encodable {
     public let fileSize: Int?
     public let fileProviderOperation: FileProviderOperation
     public let state: SyncItemState
-    public let progress: Int
+    public let progress: Double
     public var errorDescription: String?
 
     // this is the initializer for the file provider side
@@ -40,7 +40,7 @@ public struct ReportableSyncItem: Encodable {
                 fileSize: Int?,
                 operation: FileProviderOperation,
                 state: SyncItemState,
-                progress: Int,
+                progress: Double,
                 errorDescription: String? = nil) {
         self.id = id
         self.modificationTime = modificationTime

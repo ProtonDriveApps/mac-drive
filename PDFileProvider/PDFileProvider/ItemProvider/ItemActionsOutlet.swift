@@ -22,42 +22,62 @@ import CoreData
 public typealias CreateFilePerformerProvider = () async -> CreateFilePerformer
 
 public protocol CreateFilePerformer {
+
     // swiftlint:disable:next function_parameter_count
     func createFile(tower: Tower,
                     item: NSFileProviderItem,
                     with contents: URL?,
                     under parent: Folder,
                     progress: Progress?,
-                    logOperation: Bool) async throws -> (Node, NSManagedObjectContext)
+                    logOperation: Bool,
+                    moc: NSManagedObjectContext) async throws -> Node
 }
 
 public typealias NewRevisionUploadPerformerProvider = () async -> NewRevisionUploadPerformer
 
 public protocol NewRevisionUploadPerformer {
+
     // swiftlint:disable:next function_parameter_count
-    func uploadNewRevision(item: NSFileProviderItem, file: File, tower: Tower, copy: URL, fileSize: Int, pendingFields: NSFileProviderItemFields, progress: Progress?) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
+    func uploadNewRevision(item: NSFileProviderItem, file: File, tower: Tower, copy: URL, fileSize: Int, pendingFields: NSFileProviderItemFields, progress: Progress?, moc: NSManagedObjectContext) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
 }
 
 public final class ItemActionsOutlet {
     public typealias SuccessfulCompletion = (NSFileProviderItem?, NSFileProviderItemFields, Bool)
     public typealias Completion = (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void
-    private typealias ProgressFunction = (Tower, NSFileProviderItem, NSFileProviderItemVersion, NSFileProviderItemFields, URL?, Progress?) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
+    private typealias ProgressFunction = (Tower, NSFileProviderItem, NSFileProviderItemVersion, NSFileProviderItemFields, URL?, Progress?, NSManagedObjectContext) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
 
     private let fileProviderManager: NSFileProviderManager
     private let instanceIdentifier = UUID()
     let fileCreationProvider: CreateFilePerformerProvider
     let newRevisionUploadPerformerProvider: NewRevisionUploadPerformerProvider
+    public let providersPipeline: DriveObservabilityPipeline
     private(set) var validNameDiscoverer: ValidNameDiscoverer?
+    
+    private let folderRateLimiter: FolderRateLimiting
+
+#if os(macOS)
+    fileprivate struct TrashBucketKey: Hashable, Sendable {
+        let shareID: String
+        let parentID: String
+    }
+
+    private let deleteBatcherLock = NSLock()
+    private var deleteBatcher: RequestBatcher<TrashBucketKey, String, Void>?
+#endif
 
     public init(fileProviderManager: NSFileProviderManager,
                 fileCreationProvider: @escaping CreateFilePerformerProvider = { DefaultCreateFilePerformer() },
-                newRevisionUploadPerformProvider: @escaping NewRevisionUploadPerformerProvider = { DefaultNewRevisionUploadPerformer() }) {
+                newRevisionUploadPerformProvider: @escaping NewRevisionUploadPerformerProvider = { DefaultNewRevisionUploadPerformer() },
+                providersPipeline: DriveObservabilityPipeline = .legacy,
+                folderRateLimiter: FolderRateLimiting = NoOpFolderRateLimiter()) {
         self.fileProviderManager = fileProviderManager
         self.fileCreationProvider = fileCreationProvider
         self.newRevisionUploadPerformerProvider = newRevisionUploadPerformProvider
+        self.providersPipeline = providersPipeline
+        self.folderRateLimiter = folderRateLimiter
         Log.info("ItemActionsOutlet init: \(instanceIdentifier.uuidString)", domain: .syncing)
     }
-    
+
     deinit {
         Log.info("ItemActionsOutlet deinit: \(instanceIdentifier.uuidString)", domain: .syncing)
     }
@@ -71,7 +91,8 @@ public final class ItemActionsOutlet {
                            baseVersion version: NSFileProviderItemVersion,
                            options: NSFileProviderDeleteItemOptions = [],
                            request: NSFileProviderRequest? = nil,
-                           progress: Progress?) async throws
+                           progress: Progress?,
+                           pool: AsyncManagedObjectContextPool) async throws
     {
         Log.info("Delete item \(identifier)", domain: .fileProvider)
         guard let nodeID = NodeIdentifier(identifier) else {
@@ -81,30 +102,16 @@ public final class ItemActionsOutlet {
         let itemTemplate = ItemTemplate(itemIdentifier: identifier)
 
         do {
-            if let resolvedItem = try await findAndResolveConflictIfNeeded(tower: tower, item: itemTemplate, changeType: .delete(version: version), fields: [], contentsURL: nil, progress: progress) {
-                throw Errors.deletionRejected(updatedItem: resolvedItem)
-            } else {
-                #if os(iOS)
-                try await tower.delete(nodeID: nodeID)
-                #else
-                Log.info("Trashing item remotely, deleting locally...", domain: .fileProvider)
-
-                guard let node = await tower.node(itemIdentifier: identifier) else {
-                    Log.error("Node not found despite no conflict being found", domain: .fileProvider)
-                    assertionFailure("Missing node in DB must be identified as a conflict")
-                    throw Errors.nodeNotFound(identifier: identifier)
+#if os(iOS)
+            try await pool.withContext { moc in
+                if let resolvedItem = try await findAndResolveConflictIfNeeded(tower: tower, item: itemTemplate, changeType: .delete(version: version), fields: [], contentsURL: nil, progress: progress, moc: moc) {
+                    throw Errors.deletionRejected(updatedItem: resolvedItem)
                 }
-
-                guard let moc = node.moc else { throw Node.noMOC() }
-
-                let parentID = try moc.performAndWait {
-                    guard let parent = node.parentFolder else { throw Errors.parentNotFound(identifier: identifier) }
-                    return parent.id
-                }
-
-                try await tower.trash(shareID: nodeID.shareID, parentID: parentID, linkIDs: [nodeID.nodeID])
-                #endif
+                try await tower.delete(nodeID: nodeID, moc: moc)
             }
+#else
+            try await deleteItemForMacOS(pool, tower, itemTemplate, version, progress, identifier, nodeID)
+#endif
         } catch Errors.itemDeleted {
             return // item already deleted remotely
         } catch Errors.itemTrashed {
@@ -115,17 +122,18 @@ public final class ItemActionsOutlet {
             // "work" by forcing a download of the contents before creating anew.
             // In case of the former, nothing will happen (item will still be
             // deleted locally though).
-            #if os(macOS)
+#if os(macOS)
             if #available(macOS 13, *) {
                 try await fileProviderManager.signalErrorResolved(NSFileProviderError(.excludedFromSync))
             } else {
                 try await fileProviderManager.signalErrorResolved(NSFileProviderError(.cannotSynchronize))
             }
-            #endif
+#endif
             return
         }
     }
-    
+
+
     @discardableResult
     // swiftlint:disable:next function_parameter_count
     public func modifyItem(tower: Tower,
@@ -135,32 +143,33 @@ public final class ItemActionsOutlet {
                            contents newContents: URL?,
                            options: NSFileProviderModifyItemOptions? = nil,
                            request: NSFileProviderRequest? = nil,
-                           progress: Progress?) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
+                           progress: Progress?,
+                           moc: NSManagedObjectContext) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
     {
         #if os(macOS)
         let mayAlreadyExist = options?.contains(.mayAlreadyExist) ?? false
         #else
         let mayAlreadyExist = false
-        #endif
         Log.info("Modify item \(item.itemIdentifier) fields \(changedFields) mayAlreadyExist \(mayAlreadyExist)", domain: .fileProvider)
+        #endif
         if newContents != nil {
-            Log.info("New cleartext content available at path \(newContents?.path ?? "-")", domain: .fileProvider)
+            Log.info("New cleartext content available", domain: .fileProvider)
         }
 
-        guard let progressFunction = try await progressWithFunction(tower: tower, item: item, baseVersion: version, changedFields: changedFields, contents: newContents, progress: progress) else {
+        guard let progressFunction = try await progressWithFunction(tower: tower, item: item, baseVersion: version, changedFields: changedFields, contents: newContents, progress: progress, moc: moc) else {
             // If none of the above cases could be handled, then we either couldn't
             // find the node in our DB or we don't handle any of the change fields
             Log.info("Irrelevant changes", domain: .fileProvider)
-            guard let node = await tower.node(itemIdentifier: item.itemIdentifier) else {
+            guard let node = await tower.node(itemIdentifier: item.itemIdentifier, in: moc) else {
                 Log.error("Can't find item's node in metadata DB, expect item to be removed by system on next enumeration", error: nil, domain: .fileProvider)
                 throw Errors.nodeNotFound(identifier: item.itemIdentifier)
             }
             return (try NodeItem(node: node), [], false)
         }
 
-        return try await progressFunction(tower, item, version, changedFields, newContents, progress)
+        return try await progressFunction(tower, item, version, changedFields, newContents, progress, moc)
     }
-    
+
     @discardableResult
     public func createItem(tower: Tower,
                            basedOn itemTemplate: NSFileProviderItem,
@@ -169,51 +178,198 @@ public final class ItemActionsOutlet {
                            options: NSFileProviderCreateItemOptions = [],
                            request: NSFileProviderRequest? = nil,
                            filename: String? = nil,
-                           progress: Progress?) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
+                           progress: Progress?,
+                           moc: NSManagedObjectContext) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
     {
-        Log.info("Create item \(itemTemplate.itemIdentifier) from cleartext content at path \(url?.path ?? "unknown")", domain: .fileProvider)
+        Log.info("Create item \(itemTemplate.itemIdentifier) from cleartext content", domain: .fileProvider)
 
         if itemTemplate.parentItemIdentifier == .trashContainer { // file system is attempting to create item in trash
             throw Errors.excludeFromSync
         }
 
-        if let resolvedItem = try await findAndResolveConflictIfNeeded(tower: tower, item: itemTemplate, changeType: .create, fields: fields, contentsURL: url, progress: progress) {
+        if let resolvedItem = try await findAndResolveConflictIfNeeded(tower: tower, item: itemTemplate, changeType: .create, fields: fields, contentsURL: url, progress: progress, moc: moc) {
             return (resolvedItem, [], false)
         }
 
-        guard let parent = await tower.parentFolder(of: itemTemplate) else { throw Errors.parentNotFound(identifier: itemTemplate.parentItemIdentifier) }
-        try checkFolderLimit(for: parent, storage: tower.storage)
+        guard let parent = await tower.parentFolder(of: itemTemplate, in: moc) else { throw Errors.parentNotFound(identifier: itemTemplate.parentItemIdentifier) }
 
-        if itemTemplate.isFolder {
-            Log.info("Item is a folder", domain: .fileProvider)
+        let parentIdentifier = await moc.perform { parent.identifierWithinManagedObjectContext }
+        return try await folderRateLimiter.runOperation(parent: parentIdentifier, in: moc) {
+            if itemTemplate.isFolder {
+                Log.info("Item is a folder", domain: .fileProvider)
 
-            let createdFolder = try await tower.createFolder(named: filename ?? itemTemplate.filename, under: parent)
-            return (try NodeItem(node: createdFolder), [], false)
-        } else {
-            Log.info("Item is a file", domain: .fileProvider)
-            guard tower.sessionVault.currentAddress() != nil else {
-                throw Errors.noAddressInTower
-            }
+                let createdFolder = try await tower.createFolder(named: filename ?? itemTemplate.filename, under: parent, moc: moc)
+                return (try NodeItem(node: createdFolder), [], false)
+            } else {
+                Log.info("Item is a file", domain: .fileProvider)
+                guard tower.sessionVault.currentAddress() != nil else {
+                    throw Errors.noAddressInTower
+                }
 
-            // Delete the draft if it already exists before creating a new one
-            if let existingDraft = await tower.draft(for: itemTemplate) {
-                existingDraft.delete()
-            }
-            
-            // We do not support creating proton doc files from the macOS client.
-            // If one is created in the filesystem (e.g. copy/pasted), then we
-            // exclude it from sync.
-            if itemTemplate.isProtonFile {
-                throw Errors.excludeFromSync
-            }
+                // Delete the draft if it already exists before creating a new one
+                if let existingDraft = await tower.draft(for: itemTemplate, moc: moc) {
+                    existingDraft.delete()
+                }
 
-            let (file, context) = try await fileCreationProvider().createFile(tower: tower, item: itemTemplate, with: url, under: parent, progress: progress, logOperation: true)
+                // We do not support creating proton doc files from the macOS client.
+                // If one is created in the filesystem (e.g. copy/pasted), then we
+                // exclude it from sync.
+                if itemTemplate.isProtonFile {
+                    throw Errors.excludeFromSync
+                }
 
-            return try await context.perform {
-                (try NodeItem(node: file), [], false)
+                let file = try await fileCreationProvider().createFile(tower: tower, item: itemTemplate, with: url, under: parent, progress: progress, logOperation: true, moc: moc)
+
+                return try await moc.perform {
+                    (try NodeItem(node: file), [], false)
+                }
             }
         }
     }
+}
+
+#if os(macOS)
+// MARK: - Batching
+
+extension ItemActionsOutlet {
+
+    private func deleteItemForMacOS(
+        _ pool: AsyncManagedObjectContextPool,
+        _ tower: Tower,
+        _ itemTemplate: ItemTemplate,
+        _ version: NSFileProviderItemVersion,
+        _ progress: Progress?,
+        _ identifier: NSFileProviderItemIdentifier,
+        _ nodeID: NodeIdentifier
+    ) async throws {
+        // Release the moc before the batched flush so it can't pin a pool
+        // slot for the duration of the batch wait.
+        let parentID: String = try await pool.withContext { moc in
+            if let resolvedItem = try await findAndResolveConflictIfNeeded(tower: tower, item: itemTemplate, changeType: .delete(version: version), fields: [], contentsURL: nil, progress: progress, moc: moc) {
+                throw Errors.deletionRejected(updatedItem: resolvedItem)
+            }
+            Log.info("Trashing item remotely, deleting locally...", domain: .fileProvider)
+
+            guard let node = await tower.node(itemIdentifier: identifier, in: moc) else {
+                Log.error("Node not found despite no conflict being found", domain: .fileProvider)
+                assertionFailure("Missing node in DB must be identified as a conflict")
+                throw Errors.nodeNotFound(identifier: identifier)
+            }
+
+            guard let nodeMoc = node.moc else { throw Node.noMOC() }
+
+            return try nodeMoc.performAndWait {
+                guard let parent = node.parentFolder else { throw Errors.parentNotFound(identifier: identifier) }
+                return parent.id
+            }
+        }
+
+        if tower.featureFlags.isEnabled(flag: .driveMacFileProviderBatchingDisabled) {
+            try await pool.withContext { moc in
+                try await tower.trash(shareID: nodeID.shareID, parentID: parentID, linkIDs: [nodeID.nodeID], moc: moc)
+            }
+        } else {
+            // Lock-protected so concurrent first-time access can't construct two batchers.
+            let deleteBatcher: RequestBatcher<TrashBucketKey, String, Void> = deleteBatcherLock.withLock {
+                if let deleteBatcher = self.deleteBatcher {
+                    return deleteBatcher
+                }
+                let deleteBatcher = RequestBatcher<TrashBucketKey, String, Void>(
+                    maxBatchSize: CloudSlot.maxBatchSize,
+                    maxLatency: .seconds(3)
+                ) { [weak tower] linkIDs, key in
+                    await Self.flushTrashBatch(linkIDs: linkIDs, key: key, tower: tower)
+                }
+                self.deleteBatcher = deleteBatcher
+                return deleteBatcher
+            }
+
+            let key = TrashBucketKey(shareID: nodeID.shareID, parentID: parentID)
+            let linkID = nodeID.nodeID
+            // Don't hold a moc during the enqueue wait — the flush acquires its own.
+            try await withTaskCancellationHandler {
+                try await deleteBatcher.enqueue(item: linkID, key: key, id: linkID)
+            } onCancel: {
+                Task { await deleteBatcher.cancel(id: linkID, key: key) }
+            }
+        }
+    }
+
+    private static func flushTrashBatch(
+        linkIDs: [String],
+        key: TrashBucketKey,
+        tower: Tower?
+    ) async -> [String: Result<Void, Error>] {
+        guard let tower else {
+            Log.error("Trash batch flush dropped — tower deallocated", domain: .fileProvider)
+            return Dictionary(uniqueKeysWithValues: linkIDs.map {
+                ($0, .failure(NSFileProviderError(.serverUnreachable)))
+            })
+        }
+
+        // If the kill switch was flipped while items waited, drain one at a time through legacy.
+        guard !tower.featureFlags.isEnabled(flag: .driveMacFileProviderBatchingDisabled) else {
+            return await flushTrashBatchOneAtATime(key, linkIDs, tower)
+        }
+
+        Log.info(
+            "Flushing trash batch (share=\(key.shareID), parent=\(key.parentID), \(linkIDs.count) links)",
+            domain: .fileProvider
+        )
+        do {
+            try await tower.storage.backgroundContextPool.withContext { moc in
+                try await tower.trash(
+                    shareID: key.shareID,
+                    parentID: key.parentID,
+                    linkIDs: linkIDs,
+                    moc: moc
+                )
+            }
+            return Dictionary(uniqueKeysWithValues: linkIDs.map { ($0, .success(())) })
+        } catch {
+            Log.error("Trash batch flush failed", error: error, domain: .fileProvider)
+            return Dictionary(uniqueKeysWithValues: linkIDs.map { ($0, .failure(error)) })
+        }
+    }
+
+    private static func flushTrashBatchOneAtATime(
+        _ key: ItemActionsOutlet.TrashBucketKey,
+        _ linkIDs: [String],
+        _ tower: Tower
+    ) async -> [String : Result<Void, any Error>] {
+        Log.info(
+            "Trash batch flush degrading to legacy per-item (share=\(key.shareID), parent=\(key.parentID), \(linkIDs.count) links)",
+            domain: .fileProvider
+        )
+        return await tower.storage.backgroundContextPool.withContext { moc in
+            await withTaskGroup(of: (String, Result<Void, Error>).self) { group in
+                for linkID in linkIDs {
+                    group.addTask {
+                        do {
+                            try await tower.trash(
+                                shareID: key.shareID,
+                                parentID: key.parentID,
+                                linkIDs: [linkID],
+                                moc: moc
+                            )
+                            return (linkID, .success(()))
+                        } catch {
+                            return (linkID, .failure(error))
+                        }
+                    }
+                }
+                var results: [String: Result<Void, Error>] = [:]
+                for await (linkID, result) in group {
+                    results[linkID] = result
+                }
+                return results
+            }
+        }
+    }
+}
+#endif
+
+extension ItemActionsOutlet {
 
     // MARK: - Actions on items
     // swiftlint:disable:next function_parameter_count
@@ -223,14 +379,15 @@ public final class ItemActionsOutlet {
         baseVersion version: NSFileProviderItemVersion,
         changedFields: NSFileProviderItemFields,
         contents: URL?,
-        progress: Progress?
+        progress: Progress?,
+        moc: NSManagedObjectContext
     ) async throws -> ProgressFunction? {
         if changedFields.contains(.parentItemIdentifier), item.parentItemIdentifier == .trashContainer { // trash
             return progressWithTrash
         }
 
         if changedFields.contains(.parentItemIdentifier),
-           let node = await tower.node(itemIdentifier: item.itemIdentifier),
+           let node = await tower.node(itemIdentifier: item.itemIdentifier, in: moc),
            let moc = node.moc {
             var shouldProgressWithRestore = false
             await moc.perform {
@@ -239,9 +396,11 @@ public final class ItemActionsOutlet {
             if shouldProgressWithRestore { // restore from trash
                 Log.info("Synced item with remote shouldn't be present in local trash", domain: .fileProvider)
                 return progressWithRestore
-            } else { // move
-                return progressWithMove
             }
+            if changedFields.contains(.filename) { // combined move + rename (e.g. Finder "Keep Both")
+                return progressWithMoveAndRename
+            }
+            return progressWithMove
         }
 
         if changedFields.contains(.filename) {
@@ -254,7 +413,7 @@ public final class ItemActionsOutlet {
                 throw Errors.noAddressInTower
             }
             return await progressWithNewRevision(
-                uploadNewRevision: newRevisionUploadPerformerProvider().uploadNewRevision(item:file:tower:copy:fileSize:pendingFields:progress:)
+                uploadNewRevision: newRevisionUploadPerformerProvider().uploadNewRevision(item:file:tower:copy:fileSize:pendingFields:progress:moc:)
             )
         }
 
@@ -267,12 +426,13 @@ public final class ItemActionsOutlet {
                            baseVersion version: NSFileProviderItemVersion,
                            changedFields: NSFileProviderItemFields,
                            contents: URL?,
-                           progress: Progress?) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
+                           progress: Progress?,
+                           moc: NSManagedObjectContext) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
     {
         Log.info("Trashing item...", domain: .fileProvider)
 
         #if os(iOS)
-        guard let node = await tower.node(itemIdentifier: item.itemIdentifier) else {
+        guard let node = await tower.node(itemIdentifier: item.itemIdentifier, in: moc) else {
             throw Errors.nodeNotFound(identifier: item.itemIdentifier)
         }
 
@@ -295,7 +455,7 @@ public final class ItemActionsOutlet {
         #else
         do {
             // Can only use the .delete changeType because all trash conflicts are ignored (same as delete)
-            if let updatedItem = try await findAndResolveConflictIfNeeded(tower: tower, item: item, changeType: .trash(version: version), fields: changedFields, contentsURL: contents, progress: progress) {
+            if let updatedItem = try await findAndResolveConflictIfNeeded(tower: tower, item: item, changeType: .trash(version: version), fields: changedFields, contentsURL: contents, progress: progress, moc: moc) {
                 return (updatedItem, [], false)
             } else {
                 throw Errors.excludeFromSync
@@ -312,7 +472,8 @@ public final class ItemActionsOutlet {
                              baseVersion version: NSFileProviderItemVersion,
                              changedFields: NSFileProviderItemFields,
                              contents: URL?,
-                             progress: Progress?) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
+                             progress: Progress?,
+                             moc: NSManagedObjectContext) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
     {
         Log.info("Restoring item (shouldn't be possible)...", domain: .fileProvider)
         throw Errors.excludeFromSync
@@ -323,23 +484,95 @@ public final class ItemActionsOutlet {
                           item: NSFileProviderItem,
                           baseVersion version: NSFileProviderItemVersion,
                           changedFields: NSFileProviderItemFields,
-                          contents: URL?, 
-                          progress: Progress?) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
+                          contents: URL?,
+                          progress: Progress?,
+                          moc: NSManagedObjectContext) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
     {
         Log.info("Moving item...", domain: .fileProvider)
         guard let nodeID = NodeIdentifier(item.itemIdentifier) else {
             throw Errors.nodeIdentifierNotFound(identifier: item.itemIdentifier)
         }
-        guard let newParent = await tower.parentFolder(of: item) else { throw Errors.parentNotFound(identifier: item.parentItemIdentifier) }
-        try checkFolderLimit(for: newParent, storage: tower.storage)
+        guard let newParent = await tower.parentFolder(of: item, in: moc) else { throw Errors.parentNotFound(identifier: item.parentItemIdentifier) }
 
         var pendingFields = changedFields
         pendingFields.remove(.parentItemIdentifier)
 
-        if let updatedItem = try await findAndResolveConflictIfNeeded(tower: tower, item: item, changeType: .move(version: version), fields: changedFields, contentsURL: contents, progress: progress) {
-            return (updatedItem, pendingFields, false)
-        } else {
-            let node = try await tower.move(nodeID: nodeID, under: newParent)
+        let destinationParent = await moc.perform { newParent.identifierWithinManagedObjectContext }
+        return try await folderRateLimiter.runOperation(parent: destinationParent, in: moc) {
+            if let updatedItem = try await findAndResolveConflictIfNeeded(tower: tower, item: item, changeType: .move(version: version), fields: changedFields, contentsURL: contents, progress: progress, moc: moc) {
+                return (updatedItem, pendingFields, false)
+            } else {
+                let node = try await tower.move(nodeID: nodeID, under: newParent, moc: moc)
+                return (try NodeItem(node: node), pendingFields, false)
+            }
+        }
+    }
+
+    // swiftlint:disable:next function_parameter_count
+    func progressWithMoveAndRename(tower: Tower,
+                                   item: NSFileProviderItem,
+                                   baseVersion version: NSFileProviderItemVersion,
+                                   changedFields: NSFileProviderItemFields,
+                                   contents: URL?,
+                                   progress: Progress?,
+                                   moc: NSManagedObjectContext) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
+    {
+        Log.info("Moving and renaming item...", domain: .fileProvider)
+        guard let nodeID = NodeIdentifier(item.itemIdentifier) else {
+            throw Errors.nodeIdentifierNotFound(identifier: item.itemIdentifier)
+        }
+        guard let newParent = await tower.parentFolder(of: item, in: moc) else {
+            throw Errors.parentNotFound(identifier: item.parentItemIdentifier)
+        }
+
+        var pendingFields = changedFields
+        pendingFields.remove(.parentItemIdentifier)
+        pendingFields.remove(.filename)
+
+        let destinationParent = await moc.perform { newParent.identifierWithinManagedObjectContext }
+        return try await folderRateLimiter.runOperation(parent: destinationParent, in: moc) {
+            if let updatedItem = try await findAndResolveConflictIfNeeded(
+                tower: tower, item: item, changeType: .move(version: version),
+                fields: changedFields, contentsURL: contents, progress: progress, moc: moc
+            ) {
+                return (updatedItem, pendingFields, false)
+            }
+
+            let newName = item.filename.removingProtonExtensionIfNecessary()
+            let newMime = item.contentType?.preferredMIMEType
+
+            // Capture state BEFORE mutating — we need the old MIME to decide whether
+            // to fire a follow-up rename for BE MIME sync.
+            guard let existingNode = await tower.node(itemIdentifier: item.itemIdentifier, in: moc),
+                  let nodeMoc = existingNode.moc else {
+                throw Errors.nodeNotFound(identifier: item.itemIdentifier)
+            }
+            let (currentParentID, oldMime): (NodeIdentifier?, String?) = nodeMoc.performAndWait {
+                (existingNode.parentNode?.identifier, existingNode.mimeType)
+            }
+
+            // Same-parent edge case: tower.move silently drops withNewName when newParent == currentParent.
+            // Delegate to rename, which carries MIME natively.
+            if currentParentID == newParent.identifier {
+                Log.warning("Combined move+rename received with unchanged parent — applying rename only", domain: .fileProvider)
+                let node = try await tower.rename(node: nodeID, cleartextName: newName, mimeType: newMime, moc: moc)
+                return (try NodeItem(node: node), pendingFields, false)
+            }
+
+            // Atomic move with rename — server gets parent + name.
+            let node = try await tower.move(nodeID: nodeID, under: newParent, withNewName: newName, moc: moc)
+
+            // MoveEntryEndpoint doesn't carry MIME; if the new MIME differs from the local DB
+            // value captured before the move, push it via a follow-up rename (which updates both
+            // server and local DB). Best-effort: log on failure, don't roll back the successful move.
+            if let newMime, newMime != oldMime {
+                do {
+                    _ = try await tower.rename(node: nodeID, cleartextName: newName, mimeType: newMime, moc: moc)
+                } catch {
+                    Log.error("Follow-up rename to sync MIME failed; local and server MIME remain stale until next rename", error: error, domain: .fileProvider)
+                }
+            }
+
             return (try NodeItem(node: node), pendingFields, false)
         }
     }
@@ -350,13 +583,14 @@ public final class ItemActionsOutlet {
                             baseVersion version: NSFileProviderItemVersion,
                             changedFields: NSFileProviderItemFields,
                             contents: URL?,
-                            progress: Progress?) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
+                            progress: Progress?,
+                            moc: NSManagedObjectContext) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
     {
         Log.info("Renaming item...", domain: .fileProvider)
         guard let nodeID = NodeIdentifier(item.itemIdentifier) else {
             throw Errors.nodeIdentifierNotFound(identifier: item.itemIdentifier)
         }
-        guard await tower.parentFolder(of: item) != nil else {
+        guard await tower.parentFolder(of: item, in: moc) != nil else {
             throw Errors.parentNotFound(identifier: item.parentItemIdentifier)
         }
 
@@ -365,19 +599,19 @@ public final class ItemActionsOutlet {
 
         // Check for conflicts
         let actionChangeType: ItemActionChangeType = changedFields.contains(.parentItemIdentifier) ? .move(version: version) : .modifyMetadata(version: version)
-        if let updatedItem = try await findAndResolveConflictIfNeeded(tower: tower, item: item, changeType: actionChangeType, fields: changedFields, contentsURL: contents, progress: progress) {
+        if let updatedItem = try await findAndResolveConflictIfNeeded(tower: tower, item: item, changeType: actionChangeType, fields: changedFields, contentsURL: contents, progress: progress, moc: moc) {
             return (updatedItem, pendingFields, false)
         } else {
-            let node = try await tower.rename(node: nodeID, cleartextName: item.filename.removingProtonExtensionIfNecessary())
+            let node = try await tower.rename(node: nodeID, cleartextName: item.filename.removingProtonExtensionIfNecessary(), moc: moc)
             return (try NodeItem(node: node), pendingFields, false)
         }
     }
 
     private func progressWithNewRevision(
-        uploadNewRevision: @escaping (NSFileProviderItem, File, Tower, URL, Int, NSFileProviderItemFields, Progress?) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
+        uploadNewRevision: @escaping (NSFileProviderItem, File, Tower, URL, Int, NSFileProviderItemFields, Progress?, NSManagedObjectContext) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool)
     ) -> ProgressFunction {
-        return { tower, item, version, changedFields, newContents, progress in
-            
+        return { tower, item, version, changedFields, newContents, progress, moc in
+
             try abortIfCancelled(progress: progress)
 
             var pendingFields = changedFields
@@ -386,8 +620,8 @@ public final class ItemActionsOutlet {
             #if os(macOS)
             pendingFields.remove(.lastUsedDate)
             #endif
-            
-            if let updatedItem = try await self.findAndResolveConflictIfNeeded(tower: tower, item: item, changeType: .modifyContents(version: version, contents: newContents), fields: changedFields, contentsURL: newContents, progress: progress) {
+
+            if let updatedItem = try await self.findAndResolveConflictIfNeeded(tower: tower, item: item, changeType: .modifyContents(version: version, contents: newContents), fields: changedFields, contentsURL: newContents, progress: progress, moc: moc) {
 
                 try abortIfCancelled(progress: progress)
 
@@ -404,7 +638,7 @@ public final class ItemActionsOutlet {
 
                 try abortIfCancelled(progress: progress)
 
-                guard let file = await tower.node(itemIdentifier: item.itemIdentifier) as? File else {
+                guard let file = await tower.node(itemIdentifier: item.itemIdentifier, in: moc) as? File else {
                     Log.error("File not found despite no conflict being found", error: nil, domain: .fileProvider)
                     assertionFailure("Missing file in DB must be identified as a conflict")
                     throw Errors.nodeNotFound(identifier: item.itemIdentifier)
@@ -428,7 +662,7 @@ public final class ItemActionsOutlet {
                 defer { try? FileManager.default.removeItem(at: fileCopy.deletingLastPathComponent()) }
 
                 return try await performIfNotCancelled(progress: progress, {
-                    return try await uploadNewRevision(item, file, tower, fileCopy, fileSize, pendingFields, progress)
+                    return try await uploadNewRevision(item, file, tower, fileCopy, fileSize, pendingFields, progress, moc)
                 })
             }
         }
@@ -443,32 +677,25 @@ extension ItemActionsOutlet {
         changeType: ItemActionChangeType,
         fields: NSFileProviderItemFields,
         contentsURL: URL?,
-        progress: Progress?) async throws -> NSFileProviderItem?
+        progress: Progress?,
+        moc: NSManagedObjectContext
+    ) async throws -> NSFileProviderItem?
     {
         #if os(iOS)
         return nil
         #else
         let itemWithNormalizedFilename = NodeItem(item: item, filename: item.filename.removingProtonExtensionIfNecessary())
 
-        guard let (action, conflictingNode) = try await identifyConflict(tower: tower, basedOn: itemWithNormalizedFilename, changeType: changeType, fields: fields) else {
+        guard let (action, conflictingNode) = try await identifyConflict(tower: tower, basedOn: itemWithNormalizedFilename, changeType: changeType, fields: fields, moc: moc) else {
             Log.info("No conflict identified", domain: .fileProvider)
             return nil // no conflict found
         }
 
         Log.info("Conflict identified: \(action)", domain: .fileProvider)
         return try await resolveConflict(
-            tower: tower, between: itemWithNormalizedFilename, with: contentsURL, and: conflictingNode, applying: action, fields: fields, progress: progress
+            tower: tower, between: itemWithNormalizedFilename, with: contentsURL, and: conflictingNode, applying: action, fields: fields, progress: progress, moc: moc
         )
         #endif
-    }
-
-    private func checkFolderLimit(for parent: Folder, storage: StorageManager) throws {
-        guard let moc = parent.moc else { throw Folder.noMOC() }
-        try moc.performAndWait {
-            guard try storage.fetchEntireChildCount(of: parent.id, share: parent.shareId, moc: moc) <= Constants.maxChildrenInFolder else {
-                throw Errors.childLimitReached
-            }
-        }
     }
 }
 
@@ -506,7 +733,8 @@ public final class DefaultCreateFilePerformer: CreateFilePerformer {
                            with url: URL?,
                            under parent: Folder,
                            progress: Progress?,
-                           logOperation _: Bool) async throws -> (Node, NSManagedObjectContext) {
+                           logOperation _: Bool,
+                           moc: NSManagedObjectContext) async throws -> Node {
 
         guard let url else {
             throw Errors.urlForUploadIsNil
@@ -530,15 +758,21 @@ public final class DefaultCreateFilePerformer: CreateFilePerformer {
 
         #if os(iOS)
         do {
-            return (try await tower.fileUploader.upload(draft), tower.fileUploader.moc)
+            if let uploader = tower.getSdkFileUploader() {
+                let fileIdentifier = try await uploader.upload(identifier: draft.identifier.any())
+                let uploadedFile: File = try File.fetchOrThrow(identifier: fileIdentifier, in: moc)
+                return uploadedFile
+            } else {
+                return try await tower.fileUploader.upload(draft)
+            }
         } catch {
-            tower.fileUploader.deleteUploadingFile(draft, error: nil)
-            throw error
-        }
+           tower.fileUploader.deleteUploadingFile(draft, error: nil)
+           throw error
+       }
         #else
-        let fileUploader = SuspendableFileUploader(uploader: tower.fileUploader, progress: progress)
+        let fileUploader = SuspendableFileUploader(uploader: tower.fileUploader, progress: progress, networkMonitor: tower.connectionStateResource)
         do {
-            return (try await fileUploader.upload(draft), tower.fileUploader.moc)
+            return try await fileUploader.upload(draft)
         } catch {
             fileUploader.deleteUploadingFile(draft)
             throw error
@@ -548,11 +782,11 @@ public final class DefaultCreateFilePerformer: CreateFilePerformer {
 }
 
 public final class DefaultNewRevisionUploadPerformer: NewRevisionUploadPerformer {
-    
+
     public init() {}
-    
+
     // swiftlint:disable:next function_parameter_count
-    public func uploadNewRevision(item: NSFileProviderItem, file: File, tower: Tower, copy: URL, fileSize: Int, pendingFields: NSFileProviderItemFields, progress: Progress?) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool) {
+    public func uploadNewRevision(item: NSFileProviderItem, file: File, tower: Tower, copy: URL, fileSize: Int, pendingFields: NSFileProviderItemFields, progress: Progress?, moc: NSManagedObjectContext) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool) {
         if let uploadID = file.uploadIDIfUploadingNewRevision() {
             tower.fileUploader.cancelOperation(id: uploadID)
             file.prepareForNewUpload()

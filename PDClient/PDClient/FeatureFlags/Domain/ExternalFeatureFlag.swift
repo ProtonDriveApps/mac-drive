@@ -21,32 +21,23 @@ public enum ExternalFeatureFlag: String, CaseIterable, Codable {
     case domainReconnectionEnabled = "DriveDomainReconnectionEnabled"
     case postMigrationJunkFilesCleanup = "DrivePostMigrationJunkFilesCleanup"
     case pushNotificationIsEnabled = "PushNotifications"
-    case logCollectionEnabled = "DriveiOSLogCollection"
-    case logCollectionDisabled = "DriveiOSLogCollectionDisabled"
     case driveiOSDebugMode = "DriveiOSDebugMode"
     case oneDollarPlanUpsellEnabled = "DriveOneDollarPlanUpsell"
     case driveDisablePhotosForB2B = "DriveDisablePhotosForB2B"
-    case driveDDKIntelEnabled = "DriveDDKIntelEnabled"
-    case driveDDKDisabled = "DriveDDKDisabled"
     case driveMacSyncRecoveryDisabled = "DriveMacSyncRecoveryDisabled"
     case driveMacPromoBannerDisabled = "DriveMacPromoBannerDisabled"
     case driveMacGradualRolloutChannelEnabled = "DriveMacGradualRolloutChannelEnabled"
+    case driveMacAbnormalExitRelaunchDisabled = "DriveMacAbnormalExitRelaunchDisabled"
 
     // Sharing
     case driveSharingMigration = "DriveSharingMigration"
-    case driveSharingInvitations = "DriveSharingInvitations"
     case driveSharingExternalInvitations = "DriveSharingExternalInvitations"
     case driveSharingDisabled = "DriveSharingDisabled"
     case driveSharingExternalInvitationsDisabled = "DriveSharingExternalInvitationsDisabled"
-    case driveSharingEditingDisabled = "DriveSharingEditingDisabled"
     case drivePublicShareEditMode = "DrivePublicShareEditMode"
     case drivePublicShareEditModeDisabled = "DrivePublicShareEditModeDisabled"
-    case acceptRejectInvitation = "DriveMobileSharingInvitationsAcceptReject"
     case driveShareURLBookmarking = "DriveShareURLBookmarking"
     case driveShareURLBookmarksDisabled = "DriveShareURLBookmarksDisabled"
-
-    // ProtonDoc
-    case driveDocsDisabled = "DriveDocsDisabled"
 
     // Rating booster
     // Legacy feature flags we used before migrating to Unleash
@@ -56,17 +47,8 @@ public enum ExternalFeatureFlag: String, CaseIterable, Codable {
     // Entitlement
     case driveDynamicEntitlementConfiguration = "DriveDynamicEntitlementConfiguration"
 
-    // Refactor
-    case driveiOSRefreshableBlockDownloadLink = "DriveiOSRefreshableBlockDownloadLink"
-
-    // Computers
-    case driveiOSComputers = "DriveiOSComputers"
-    case driveiOSComputersDisabled = "DriveiOSComputersDisabled"
-
     // Albums
-    case driveAlbumsDisabled = "DriveAlbumsDisabled"
     case driveCopyDisabled = "DriveCopyDisabled"
-    case drivePhotosTagsMigration = "DrivePhotosTagsMigration"
     case drivePhotosTagsMigrationDisabled = "DrivePhotosTagsMigrationDisabled"
 
     // Sheets
@@ -82,7 +64,10 @@ public enum ExternalFeatureFlag: String, CaseIterable, Codable {
     case driveiOSSDKUploadPhoto = "DriveiOSSDKUploadPhoto"
     case driveiOSSDKDownloadMain = "DriveiOSSDKDownloadMain"
     case driveiOSSDKDownloadPhoto = "DriveiOSSDKDownloadPhoto"
-
-    // Black Friday 2025
-    case driveIOSBlackFriday2025 = "DriveIOSBlackFriday2025"
+    case driveCryptoEncryptBlocksWithPgpAead = "DriveCryptoEncryptBlocksWithPgpAead"
+    case driveMacFileProviderBatchingDisabled = "DriveMacFileProviderBatchingDisabled"
+    case driveMacDecryptPassphraseIterativeDisabled = "DriveMacDecryptPassphraseIterativeDisabled"
+    case driveiOSSDKNodeOperations = "DriveiOSSDKNodeOperations"
+    case driveDownloadVerificationDisabled = "DriveDownloadVerificationDisabled"
+    case driveUploadVerificationDisabled = "DriveUploadVerificationDisabled"
 }

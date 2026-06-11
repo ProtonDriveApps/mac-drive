@@ -30,7 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Ensures the app is not already running
         guard NSRunningApplication.runningApplications(withBundleIdentifier: AppDelegate.protonDriveAppIdentifier).isEmpty else {
             logger.info("Proton Drive app already running, exiting")
-            NSApp.terminate(nil)
+            NSApp.terminate(self)
             return
         }
         
@@ -52,7 +52,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             case (_?, let error?):
                 logger.info("Launching Proton Drive app succeeded but with error \(error)")
             }
-            NSApp.terminate(nil)
+            NSApp.terminate(self)
         }
     }
 }

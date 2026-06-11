@@ -18,6 +18,12 @@
 import CoreData
 
 extension SyncStorageManager {
+    
+    public func fetchAll(moc: NSManagedObjectContext) async throws -> [SyncItem] {
+        try await moc.perform {
+            try moc.fetch(SyncItem.fetchRequest())
+        }
+    }
 
     func fetch(with predicate: NSPredicate, in moc: NSManagedObjectContext) -> [SyncItem] {
         Log.trace("Predicate: \(predicate.description)")
@@ -77,18 +83,18 @@ extension SyncStorageManager {
         }
     }
 
-    public func delete(id: String) {
+    public func delete(id: String, in moc: NSManagedObjectContext) async {
         let predicate = NSPredicate(format: "%K == %@", #keyPath(SyncItem.id), "enumerateItems")
-        delete(with: predicate, in: backgroundContext)
+        await delete(with: predicate, in: moc)
     }
 
     @discardableResult
-    func delete(with predicate: NSPredicate, in moc: NSManagedObjectContext) -> Int {
+    func delete(with predicate: NSPredicate, in moc: NSManagedObjectContext) async -> Int {
         Log.trace("Predicate: \(predicate.description)")
 
         do {
-            return try moc.performAndWait {
-                let items = self.fetch(with: predicate, in: moc)
+            return try await moc.perform {
+                let items = (try? moc.fetch(self.fetchRequest(with: predicate))) ?? []
                 Log.trace("Found \(items.count) items")
                 if !items.isEmpty {
                     for item in items {

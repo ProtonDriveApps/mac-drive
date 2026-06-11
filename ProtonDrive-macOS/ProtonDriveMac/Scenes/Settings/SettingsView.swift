@@ -48,6 +48,10 @@ struct SettingsView<ViewModel: SettingsViewModelProtocol>: View {
                     SettingsSystemSection(viewModel: viewModel)
                 }
                 
+                SettingsSectionView(headline: Localization.setting_get_help) {
+                    SettingsGetHelpSection(viewModel: viewModel)
+                }
+
                 if viewModel.isFullResyncEnabled {
                     HideableView(modifier: .option, defaultView: {
                         EmptyView()
@@ -56,10 +60,6 @@ struct SettingsView<ViewModel: SettingsViewModelProtocol>: View {
                             SettingsFullResyncSection(viewModel: viewModel)
                         }
                     })
-                }
-
-                SettingsSectionView(headline: Localization.setting_get_help) {
-                    SettingsGetHelpSection(viewModel: viewModel)
                 }
 
                 SettingsFooterView(viewModel: viewModel)
@@ -296,48 +296,49 @@ private struct SettingsGetHelpSection: View {
     }
 
     var body: some View {
-        HStack(alignment: .top) {
+        VStack(alignment: .trailing, spacing: 12) {
+            HStack(alignment: .top) {
 
-            VStack(alignment: .leading, spacing: 12) {
-                Text(Localization.setting_help_report_encourage_text)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(Localization.setting_help_report_encourage_text)
 
-                if let additionHelp {
-                    Text(additionHelp)
+                    if let additionHelp {
+                        Text(additionHelp)
+                    }
                 }
-            }
 
-            Spacer(minLength: 16)
+                Spacer(minLength: 16)
 
-            VStack(alignment: .trailing, spacing: 16) {
-                Button(Localization.setting_help_report_issue) {
-                    viewModel.actions.links.reportBug()
-                }
-                .buttonStyle(.bordered)
+                VStack(alignment: .trailing, spacing: 16) {
+                    Button(Localization.setting_help_report_issue) {
+                        viewModel.actions.links.reportBug()
+                    }
+                    .buttonStyle(.bordered)
 
-                HideableView(modifier: .option, defaultView: {
                     AsyncButton(progressViewSize: CGSize(width: 16, height: 16)) {
                         viewModel.actions.windows.showLogsInFinder()
                     } label: {
                         Text(Localization.setting_help_show_logs)
                     }
                     .buttonStyle(.bordered)
-                }, pressedView: {
-                    if RuntimeConfiguration.shared.includeTracesInLogs {
-                        Button("Disable detailed logging") {
-                            viewModel.actions.app.toggleDetailedLogging()
-                        }
-                        .buttonStyle(.bordered)
-                    } else {
-                        Button("Detailed logging") {
-                            viewModel.actions.app.toggleDetailedLogging()
-                        }
-                        .buttonStyle(.bordered)
-                    }
-                })
+                }
             }
+
+            HideableView(modifier: .option, defaultView: {
+                EmptyView()
+            }, pressedView: {
+                Button(detailedLoggingButtonLabel) {
+                    viewModel.actions.app.toggleDetailedLogging()
+                }
+                .buttonStyle(.bordered)
+            })
         }
         .padding([.top, .bottom], 12)
         .padding([.leading, .trailing], 8)
+    }
+
+    private var detailedLoggingButtonLabel: String {
+        RuntimeConfiguration.shared.includeTracesInLogs ? "Disable detailed logging" : "Enable detailed logging"
     }
 }
 
@@ -373,13 +374,37 @@ private struct SettingsFooterView: View {
             .foregroundColor(ColorProvider.LinkNorm)
             .buttonStyle(.link)
             .accessibilityIdentifier("SettingsView.Button.termsAndConditions")
+            
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Button(Localization.setting_mac_version(version: viewModel.version)) {
+                    viewModel.actions.links.showReleaseNotes()
+                }
+                .foregroundColor(ColorProvider.LinkNorm)
+                .buttonStyle(.link)
+                .accessibilityIdentifier("SettingsView.Button.version")
 
-            Button(Localization.setting_mac_version(version: viewModel.version)) {
-                viewModel.actions.links.showReleaseNotes()
+                Button {
+                    let stringToCopy = "\(viewModel.version), \(viewModel.buildDetails)"
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(stringToCopy, forType: .string)
+                } label: {
+                    Image(systemName: "clipboard")
+                        .imageScale(.small)
+                        .foregroundColor(ColorProvider.LinkNorm)
+                }
+                .buttonStyle(.plain)
+                .help("Copy the version number to the clipboard")
+                .accessibilityIdentifier("SettingsView.Button.copyVersion")
+
+                HideableView(modifier: .command, defaultView: {
+                    EmptyView()
+                }, pressedView: {
+                    HStack(alignment: .bottom) {
+                        Text("\(viewModel.buildDetails)")
+                    }
+                    .foregroundColor(ColorProvider.TextWeak)
+                })
             }
-            .foregroundColor(ColorProvider.LinkNorm)
-            .buttonStyle(.link)
-            .accessibilityIdentifier("SettingsView.Button.version")
         }
         .padding(.leading)
         .padding(.top)
@@ -391,7 +416,7 @@ private struct SettingsFooterView: View {
 struct SettingsViewPreview: PreviewProvider {
 
     private final class SettingsViewModelForPreview: SettingsViewModelProtocol {
-        
+
         var userInfo = UserInfo(
             usedSpace: 10_000_000_000,
             maxSpace: 20_000_000_000,
@@ -408,6 +433,8 @@ struct SettingsViewPreview: PreviewProvider {
         var isFullResyncEnabled: Bool = true
         var isSignoutInProgress: Bool = false
         var launchOnBootUserFacingMessage: String?
+        var buildCommitSHA: String = "12345678"
+        var sdkVersion: String = "0.0.0-alpha.1"
         var actions = UserActions(delegate: nil)
 #if HAS_BUILTIN_UPDATER
         var updateAvailability: UpdateAvailabilityStatus = .checking

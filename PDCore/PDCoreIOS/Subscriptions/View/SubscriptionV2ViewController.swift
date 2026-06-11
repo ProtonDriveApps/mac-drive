@@ -28,17 +28,17 @@ import PDClient
 final class SubscriptionV2ViewController: UIViewController {
 
     private let payments: PaymentsV2
-    private let credentialProvider: CredentialProvider
-    private let configuration: PDClient.APIService.Configuration
+    private let coreAPIService: ProtonCoreServices.APIService
+    private let messageHander: UserMessageHandlerProtocol
 
     init(
         payments: PaymentsV2,
-        credentialProvider: CredentialProvider,
-        configuration: PDClient.APIService.Configuration
+        coreAPIService: ProtonCoreServices.APIService,
+        messageHander: UserMessageHandlerProtocol
     ) {
         self.payments = payments
-        self.credentialProvider = credentialProvider
-        self.configuration = configuration
+        self.coreAPIService = coreAPIService
+        self.messageHander = messageHander
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -62,27 +62,17 @@ final class SubscriptionV2ViewController: UIViewController {
             if !TransactionsObserver.shared.isON {
                 try await startTransactionsObserver()
             }
-            let credential = try credentialProvider.getCredential()
-            let paymentsViewController = try payments.availablePlansView(
-                sessionID: credential.UID,
-                accessToken: credential.accessToken,
-                appVersion: configuration.clientVersion,
-                doh: configuration.environment.doh
-            )
+            let paymentsViewController = try payments.availablePlansView(apiService: coreAPIService)
             add(paymentsViewController)
         } catch {
             Log.error(error: error, domain: .subscriptions)
+            messageHander.handleError(PlainMessageError(error.localizedDescription))
         }
     }
 
     private func startTransactionsObserver() async throws {
-        let credential = try credentialProvider.getCredential()
-        let configuration = TransactionsObserverConfiguration(
-            sessionID: credential.UID,
-            authToken: credential.accessToken,
-            appVersion: configuration.clientVersion,
-            doh: configuration.environment.doh
-        )
+        let manager = RemoteManager(apiService: coreAPIService)
+         let configuration = TransactionsObserverConfiguration(remoteManager: manager)
         TransactionsObserver.shared.setConfiguration(configuration)
         try await TransactionsObserver.shared.start()
     }

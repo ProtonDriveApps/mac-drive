@@ -18,5 +18,6 @@
 import Combine
 
 public protocol TrackableUploadingQueue {
+    @MainActor
     var hasOperations: AnyPublisher<Bool, Never> { get }
 }

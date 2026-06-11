@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
-#if DEBUG
 public struct ExternalFeatureFlagOverride {
     public let flag: ExternalFeatureFlag
     public let value: Bool
@@ -25,4 +24,3 @@ public struct ExternalFeatureFlagOverride {
         self.value = value
     }
 }
-#endif

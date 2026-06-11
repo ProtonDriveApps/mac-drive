@@ -59,10 +59,10 @@ struct SubscriptionsFactory {
     }
 
     private func makeV2ViewController(tower: Tower) -> UIViewController {
-        return SubscriptionV2ViewController(
+        SubscriptionV2ViewController(
             payments: PaymentsV2(),
-            credentialProvider: tower.sessionVault,
-            configuration: tower.clientConfiguration
+            coreAPIService: tower.networking,
+            messageHander: UserMessageHandler()
         )
     }
 }

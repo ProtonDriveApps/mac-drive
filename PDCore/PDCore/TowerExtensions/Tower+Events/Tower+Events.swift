@@ -24,7 +24,7 @@ public protocol EventsTriggerController {
     func forcePolling(volumeIDs: [String])
 }
 
-public protocol EventsSystemManager: MainVolumeEventsReferenceProtocol, EventsTriggerController {
+public protocol EventsSystemManager: AnyObject, MainVolumeEventsReferenceProtocol, EventsTriggerController {
     // event scheduler
     func intializeEventsSystem(includeAllVolumes: Bool) throws
     func runEventsSystem()
@@ -32,7 +32,7 @@ public protocol EventsSystemManager: MainVolumeEventsReferenceProtocol, EventsTr
 
     // event loops
     func forcePolling(volumeIDs: [String])
-    func forceProcessEvents()
+    func forceProcessEvents() async
     var eventProcessorIsRunning: Bool { get }
     
     #if os(iOS)
@@ -64,12 +64,16 @@ extension Tower: EventsSystemManager {
 #endif
     }
 
+    public func set(nodeTreeOperator: NodeTreeOperatorProtocol) {
+        #if os(iOS)
+        self.nodeTreeOperator = nodeTreeOperator
+        #endif
+    }
+
     public func intializeEventsSystem(includeAllVolumes: Bool) throws {
         Log.trace()
         let moc = storage.backgroundContext
-        let volumeIds = try moc.performAndWait {
-            try self.storage.getVolumeIDs(in: moc)
-        }
+        let volumeIds = try self.storage.getVolumeIDs(in: moc)
 
         #if os(macOS)
         initializeSingleVolumeEventLoop(volumeId: volumeIds.main)
@@ -185,15 +189,15 @@ extension Tower: EventsSystemManager {
         coreEventManager.suspend()
     }
     
-    public func forceProcessEvents() {
+    public func forceProcessEvents() async {
         Log.trace()
         guard !coreEventManager.currentlyEnabledLoops().isEmpty else {
             Log.error("No event loop(s) to process events", error: nil, domain: .events)
             return
         }
 
-        coreEventManager.currentlyEnabledLoops().forEach { loop in
-            try? loop.performProcessing()
+        await coreEventManager.currentlyEnabledLoops().asyncForEach { loop in
+            try? await loop.performProcessing()
         }
     }
 

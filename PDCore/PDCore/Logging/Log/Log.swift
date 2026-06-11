@@ -29,8 +29,10 @@ public struct LogSystem: Equatable {
     public static let `default` = LogSystem(suffix: "")
     public static let iOSApp = LogSystem(suffix: ".ios.app")
     public static let iOSFileProvider = LogSystem(suffix: ".ios.fileProvider")
+    public static let iOSShare = LogSystem(suffix: ".ios.shareExtension")
     public static let macOSApp = LogSystem(suffix: "macos.app")
     public static let macOSFileProvider = LogSystem(suffix: "macos.fileProvider")
+    public static let observabilityEvents = LogSystem(suffix: ".observability-events")
 }
 
 extension LogSystem {
@@ -83,7 +85,7 @@ public struct LogDomain: Equatable, Hashable {
     public static let protonDocs = LogDomain(name: "protonDocs")
     public static let testRunner = LogDomain(name: "testRunner")
     public static let contact = LogDomain(name: "contact")
-    public static let ddk = LogDomain(name: "ddk")
+    public static let sdk = LogDomain(name: "sdk")
     public static let restricted = LogDomain(name: "restricted")
     public static let computers = LogDomain(name: "computers")
     public static let scenes = LogDomain(name: "scenes")
@@ -95,6 +97,9 @@ public struct LogDomain: Equatable, Hashable {
     public static let coreLibrary = LogDomain(name: "coreLibrary")
     public static let metrics = LogDomain(name: "metrics")
     public static let subscriptions = LogDomain(name: "subscriptions")
+    public static let shareExtension = LogDomain(name: "shareExtension")
+    public static let itemProviderLoader = LogDomain(name: "itemProviderLoader")
+    public static let nodeOperation = LogDomain(name: "nodeOperation")
 
     public static let iOSDomains: Set<LogDomain> = [
         .applicationBootstrap,
@@ -131,10 +136,18 @@ public struct LogDomain: Equatable, Hashable {
         .coreLibrary,
         .thumbnails,
         .metrics,
-        .subscriptions
+        .subscriptions,
+        .sdk,
+        .downloader,
+        .shareExtension,
+        .itemProviderLoader,
+        .syncing,
+        .nodeOperation
     ]
 
-    public static func macOSDomains(appending: Set<LogDomain>, subtracting: Set<LogDomain>) -> Set<LogDomain> {
+    /// If both params are empty, returns all domains
+    /// Subtracting takes precedence over appending
+    public static func macOSDomains(appending: Set<LogDomain> = Set(), subtracting: Set<LogDomain> = Set()) -> Set<LogDomain> {
         let domains = Set(
             [
                 .application,
@@ -146,6 +159,7 @@ public struct LogDomain: Equatable, Hashable {
                 .fileProvider,
                 .enumerating,
                 .networking,
+                .offlineAvailable,
                 .protonDocs,
                 .sessionManagement,
                 .storage,
@@ -180,10 +194,37 @@ public class Log {
 
     public static var enableTraces = true
 
-    public static var formattedTime: String {
+    private static let formatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "MM-dd HH:mm:ss.SSS"
+        return formatter
+    }()
+
+    public static var formattedTime: String {
         return formatter.string(from: Date.now)
+    }
+
+    public static func log(
+        _ level: LogLevel,
+        message: String,
+        domain: LogDomain,
+        context: LogContext? = nil,
+        sendToSentryIfPossible: Bool = false,
+        file: String = #filePath,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        logger.log(
+            level,
+            message: message,
+            system: logSystem,
+            domain: domain,
+            context: context,
+            sendToSentryIfPossible: sendToSentryIfPossible,
+            file: file,
+            function: function,
+            line: line
+        )
     }
 
     // debug logs are not sent to sentry by default
@@ -400,9 +441,33 @@ public class Log {
     }
 }
 
+extension Log {
+    static func logEvent(
+        _ event: JSONLoggable,
+        file: String = #filePath,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        let level = event.logLevel
+        log(
+            event.logLevel,
+            message: event.eventName,
+            domain: event.domain,
+            context: LogContext(jsonPayload: event),
+            sendToSentryIfPossible: level == .error,
+            file: file,
+            function: function,
+            line: line
+        )
+    }
+}
+
 extension Thread {
     var number: String {
-        Thread.current.description.range(of: "(?<=number = )\\d+", options: .regularExpression).map { String(Thread.current.description[$0]) } ?? ""
+        guard let match = Thread.current.description.firstMatch(of: #/number = (\d+)/#) else {
+            return ""
+        }
+        return String(match.output.1)
     }
 }
 

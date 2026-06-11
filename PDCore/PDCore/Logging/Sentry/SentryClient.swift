@@ -29,6 +29,7 @@ public enum ExceptionMessagesExcludedFromSentryCrashReport: String, CaseIterable
 public class SentryClient {
     typealias Event = Sentry.Event
     public static let shared = SentryClient()
+    public static let sentryClientFilePath = URL(fileURLWithPath: #file).deletingPathExtension().lastPathComponent
     
     private var localSettings: LocalSettings?
     private var optOutFromCrashReports: Bool {
@@ -54,8 +55,6 @@ public class SentryClient {
 #endif
     }
 
-    private var isSendingEvent: Atomic<Bool> = .init(false)
-
     public func start(localSettings: LocalSettings) {
         self.localSettings = localSettings
 
@@ -79,14 +78,15 @@ public class SentryClient {
                 let exceptionMessagesToIgnore = ExceptionMessagesExcludedFromSentryCrashReport.allCases.map(\.rawValue)
                 // this strange dance of casting to NSArray and back was introduced to hopefully remove the cryptic
                 // Fatal error: NSArray element failed to match the Swift Array Element type. Expected SentryException but found SentryException
-                if let exceptions = event.exceptions as? NSArray {
+                if let exceptions = event.exceptions {
                     let exception = exceptions
-                        .compactMap { $0 as? Sentry.Exception }
+                        .compactMap { $0 as Sentry.Exception }
                         .first { exception in
-                            exceptionMessagesToIgnore.contains { exception.value.contains($0) }
+                            guard let value = exception.value else { return false }
+                            return exceptionMessagesToIgnore.contains { value.contains($0) }
                         }
-                    if let exception {
-                        Log.info("Crash report not sent to Sentry because it contains the following message: \(exception.value)",
+                    if let value = exception?.value {
+                        Log.info("Crash report not sent to Sentry because it contains the following message: \(value)",
                                  domain: .diagnostics)
                         return nil
                     }
@@ -105,32 +105,40 @@ public class SentryClient {
     }
 
     func record(logEntry: StructuredLogEntry) {
+        guard logEntry.file != Self.sentryClientFilePath else {
+            // drop the logs from within the SentryClient file itself, to avoid the possible loop
+            return
+        }
+        var extra = logEntry.context?.jsonDictionary ?? [:]
+        extra["callSite"] = "[\(logEntry.threadNumber)] \(logEntry.file).\(logEntry.function):\(logEntry.line)"
         let event = Event(level: logEntry.level.toSentryLevel)
         event.message = SentryMessage(formatted: logEntry.message)
-        event.extra = logEntry.context?.context ?? [:]
+        event.extra = extra
         event.environment = environment
-        
+        event.tags = ["domain": logEntry.domain.name]
         record(event)
     }
 
-    func recordError(_ message: String) {
-        let event = Event(level: LogLevel.error.toSentryLevel)
-        event.message = SentryMessage(formatted: message)
-        event.environment = environment
-        
-        record(event)
+    func recordError(_ message: String, system: LogSystem, domain: LogDomain,
+                     file: String = #file, function: String = #function, line: Int = #line) {
+        let logEntry = StructuredLogEntry(
+            level: .error,
+            message: message,
+            timestamp: Log.formattedTime,
+            threadNumber: Thread.current.number.description,
+            system: system,
+            domain: domain,
+            context: nil,
+            sendToSentryIfPossible: true,
+            file: URL(fileURLWithPath: file).deletingPathExtension().lastPathComponent,
+            function: function,
+            line: line
+        )
+        record(logEntry: logEntry)
     }
 
     private func record(_ event: Event) {
         guard !optOutFromCrashReports else { return }
-        guard !isSendingEvent.value else {
-            return
-        }
-
-        isSendingEvent.mutate { $0 = true }
-        defer {
-            isSendingEvent.mutate { $0 = false }
-        }
 
         let id = SentrySDK.capture(event: event)
         if id == SentryId.empty {

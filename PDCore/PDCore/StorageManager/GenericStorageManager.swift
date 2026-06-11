@@ -38,10 +38,10 @@ public final class GenericStorageManager: NSObject, StorageManagerProtocol {
 
     private let contexts: Atomic<[WeakReference<NSManagedObjectContext>]> = .init([])
 
-    private(set) public lazy var mainContext: NSManagedObjectContext = makeMainContext()
-    private(set) public lazy var backgroundContext: NSManagedObjectContext = makeBackgroundContext()
+    public private(set) lazy var mainContext: NSManagedObjectContext = makeMainContext()
+    public private(set) lazy var backgroundContext: NSManagedObjectContext = makeBackgroundContext()
     private lazy var persistentContainer = makePersistentContainer(for: suite)
-    private lazy var managedObjectModel = makeModel(in: bundle)
+    private let managedObjectModel: NSManagedObjectModel
 
     // Requirement from RecoverableStorage
     public private(set) var previousRunWasInterrupted = false
@@ -54,12 +54,11 @@ public final class GenericStorageManager: NSObject, StorageManagerProtocol {
         self.bundle = bundle
         self.suite = suite
         self.databaseName = databaseName
+        self.managedObjectModel = Self.makeModel(with: databaseName, in: bundle)
 
         super.init()
-
-        // Force model to be loaded here.
-        // TODO: Fix this
-        _ = managedObjectModel
+        
+        _ = backgroundContextPool
 
         do {
             try restoreFromBackup()
@@ -68,10 +67,8 @@ public final class GenericStorageManager: NSObject, StorageManagerProtocol {
             Log.error("Restoring from backup failed", error: error, domain: .storage)
         }
 
-        let storeLocation = self.persistentContainer.persistentStoreCoordinator.persistentStores
-
         Log.debug(
-            "💠 [GenericStorageManager] CoreData model for database \(databaseName) located at: \(storeLocation)",
+            "💠 [GenericStorageManager] CoreData model for database \(databaseName)",
             domain: .storage
         )
     }
@@ -81,10 +78,19 @@ public final class GenericStorageManager: NSObject, StorageManagerProtocol {
             return try block(mainContext)
         }
     }
+    
+    public lazy var backgroundContextPool: AsyncManagedObjectContextPool = {
+        AsyncManagedObjectContextPool(
+            configuration: .init(maxPoolSize: 32, mergePolicy: .mergeByPropertyObjectTrumpMergePolicyType, contextNamePrefix: "StorageManagerPoolContext"),
+            contextFactory: { [self] _ in
+                makeBackgroundContext()
+            }
+        )
+    }()
 
     public func performInBackgroundContext<T>(block: @escaping (NSManagedObjectContext) throws -> T) async rethrows -> T {
-        try await backgroundContext.perform { [backgroundContext] in
-            return try block(backgroundContext)
+        try await backgroundContextPool.performInContext { moc in
+            return try block(moc)
         }
     }
 }
@@ -92,7 +98,7 @@ public final class GenericStorageManager: NSObject, StorageManagerProtocol {
 // MARK: - Model setup
 
 private extension GenericStorageManager {
-    private func makeModel(in bundle: Bundle) -> NSManagedObjectModel {
+    private static func makeModel(with databaseName: String, in bundle: Bundle) -> NSManagedObjectModel {
         if let bundle = bundle.url(forResource: databaseName, withExtension: "momd"),
            let model = NSManagedObjectModel(contentsOf: bundle)
         {
@@ -107,7 +113,7 @@ private extension GenericStorageManager {
         }
         #endif
 
-        fatalError("Error loading SyncModel from bundle")
+        fatalError("Error loading model from bundle")
     }
 }
 

@@ -4,6 +4,8 @@
 <dict>
 	<key>APP_VERSION_IDENTIFIER</key>
 	<string>$(APP_VERSION_IDENTIFIER)</string>
+	<key>BUILD_COMMIT_SHA</key>
+	<string></string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDocumentTypes</key>
@@ -55,6 +57,8 @@
 	<string>Debug</string>
 	<key>DEFAULT_API_HOST</key>
 	<string>$(DEFAULT_API_HOST)</string>
+	<key>DRIVE_SDK_VERSION</key>
+	<string></string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<true/>
 	<key>ITSEncryptionExportComplianceCode</key>

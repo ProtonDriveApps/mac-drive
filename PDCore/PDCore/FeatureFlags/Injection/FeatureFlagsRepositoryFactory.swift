@@ -24,7 +24,11 @@ import UnleashProxyClientSwift
 
 struct FeatureFlagsRepositoryFactory {
     
-    private func makeExternalResource(configuration: APIService.Configuration, networking: CoreAPIService) -> ExternalFeatureFlagsResource {
+    private func makeExternalResource(
+        configuration: APIService.Configuration,
+        networking: CoreAPIService,
+        overrides: [ExternalFeatureFlagOverride]
+    ) -> ExternalFeatureFlagsResource {
         let session = UnleashPollerSession(networking: networking)
         let configurationResolver = UnleashFeatureFlagConfigurationResolver(configuration: configuration)
 
@@ -44,23 +48,23 @@ struct FeatureFlagsRepositoryFactory {
         #endif
 
         #if DEBUG && os(iOS)
-        let overrides = getFeatureFlagsOverrides()
         return ExternalFeatureFlagsOverrideResource(wrappedResource: resource, overrides: overrides)
         #else
         return resource
         #endif
     }
 
-    #if DEBUG
     private func getFeatureFlagsOverrides() -> [ExternalFeatureFlagOverride] {
+#if DEBUG
         if DebugConstants.commandLineContains(flags: [.uiTests]) {
             let commandLine = DebugConstants.getValueOf(flag: .featureFlagsOverrides) ?? ""
             return ExternalFeatureFlagOverrideCommandLineSerializer().deserialize(from: commandLine)
         } else {
             return []
         }
+#endif
+        return []
     }
-    #endif
 
     private func makeLegacyResource(
         configuration: APIService.Configuration,
@@ -83,12 +87,33 @@ struct FeatureFlagsRepositoryFactory {
     }
 
     func makeRepository(configuration: APIService.Configuration, networking: CoreAPIService, store: ExternalFeatureFlagsStore) -> FeatureFlagsRepository {
-        let externalResource = makeExternalResource(configuration: configuration, networking: networking)
+        let overrideFlags = getFeatureFlagsOverrides()
+        let externalResource = makeExternalResource(
+            configuration: configuration,
+            networking: networking,
+            overrides: overrideFlags
+        )
         let legacyResource = makeLegacyResource(configuration: configuration, networking: networking)
-        return ExternalFeatureFlagsRepository(
+
+        let repository = ExternalFeatureFlagsRepository(
             externalResource: externalResource,
             legacyResource: legacyResource,
             externalStore: store
         )
+        override(flags: overrideFlags, to: store, repository: repository)
+        return repository
+    }
+
+    private func override(
+        flags: [ExternalFeatureFlagOverride],
+        to store: ExternalFeatureFlagsStore,
+        repository: ExternalFeatureFlagsRepository
+    ) {
+        #if DEBUG
+        for flag in flags {
+            let mappedFlag = repository.mapExternalFeatureFlagToAvailability(external: flag.flag)
+            store.setFeatureEnabled(mappedFlag, value: flag.value)
+        }
+        #endif
     }
 }

@@ -24,7 +24,7 @@ import ProtonCoreUtilities
 final class DBPerformanceMeasurementCollector: ProgressPerformanceCollector {
     private let operationType: PerformanceOperationType
     private var progresses: Atomic<[Progress: UUID]> = Atomic([:])
-    private var cancellables: [UUID: AnyCancellable] = [:]
+    private var cancellables: Atomic<[UUID: AnyCancellable]> = Atomic([:])
 
     private let repository: PeformanceMeasurementRepository
     private let dateResource: DateResource
@@ -49,8 +49,27 @@ final class DBPerformanceMeasurementCollector: ProgressPerformanceCollector {
 
     func startObserving(progress: Progress, using pipeline: DriveObservabilityPipeline) {
         Log.trace()
-
+        
         let taskID = UUID()
+        
+        let timestamp = dateResource.getDate().timeIntervalSinceReferenceDate
+        
+        guard !progress.isCancelled else {
+            // If progress was cancelled, we should treat the operation as if it never even started
+            return
+        }
+        
+        // first event, progress is 0 but we're already doing something, so let's start the timestamp
+        repository.record(
+            measurement: PerformanceMeasurementEvent(
+                operationId: taskID.uuidString,
+                timestamp: timestamp,
+                pipeline: pipeline,
+                operationType: operationType,
+                progressInBytes: 0,
+                isReported: false
+            )
+        )
 
         progresses.mutate { $0.updateValue(taskID, forKey: progress) }
 
@@ -77,39 +96,44 @@ final class DBPerformanceMeasurementCollector: ProgressPerformanceCollector {
                 )
             }
 
-        cancellables[taskID] = cancellable
+        cancellables.mutate { cancellables in
+            cancellables[taskID] = cancellable
+        }
     }
 
     func finishObserving(progress: Progress, using pipeline: DriveObservabilityPipeline) {
         Log.trace()
         let timestamp = dateResource.getDate().timeIntervalSinceReferenceDate
-
-        Task {
-            guard let taskID = progresses.value[progress] else {
-                Log.warning("Failed to get taskID for running Progress, did reportUploadComplete get double called?", domain: .fileProvider)
-                return
-            }
-
-            let lastProgress = try? await repository.getLastMeasurement(for: taskID.uuidString)?.progressInBytes
-
-            progresses.mutate { dict in
-                let fileSize: Int64 = progress.totalUnitCount
-
-                repository.record(
-                    measurement: PerformanceMeasurementEvent(
-                        operationId: taskID.uuidString,
-                        timestamp: timestamp,
-                        pipeline: pipeline,
-                        operationType: operationType,
-                        progressInBytes: fileSize - (lastProgress ?? 0),
-                        isReported: false
-                    )
-                )
-
-                cancellables[taskID]?.cancel()
-                dict[progress] = nil
-                return
-            }
+        let fileSize: Int64 = progress.totalUnitCount
+        
+        guard let taskID = progresses.transform({ $0[progress] }) else {
+            Log.warning("Failed to get taskID for running Progress, did reportUploadComplete get double called?", domain: .fileProvider)
+            return
         }
+        
+        progresses.mutate { $0[progress] = nil }
+        cancellables.mutate { cancellables in
+            cancellables[taskID]?.cancel()
+            cancellables[taskID] = nil
+        }
+
+        let remainingBytes: Int64
+        if progress.isCancelled {
+            // If progress was cancelled, we should assume no more bytes were sent over what the last KVO callback told us
+            remainingBytes = 0
+        } else {
+            remainingBytes = max(0, fileSize - progress.completedUnitCount)
+        }
+
+        repository.record(
+            measurement: PerformanceMeasurementEvent(
+                operationId: taskID.uuidString,
+                timestamp: timestamp,
+                pipeline: pipeline,
+                operationType: operationType,
+                progressInBytes: remainingBytes,
+                isReported: false
+            )
+        )
     }
 }

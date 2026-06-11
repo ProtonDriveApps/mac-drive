@@ -28,7 +28,7 @@ import PDClient
 import PDCore
 import PDLogin_macOS
 import Combine
-import ProtonCoreCryptoMultiversionPatchedGoImplementation
+import ProtonCoreCryptoPatchedGoImplementation
 
 /// Coordinates all the app's dependencies and responsibilities.
 ///
@@ -98,7 +98,7 @@ class AppCoordinator: NSObject, ObservableObject {
 
     private(set) var window: NSWindow?
 
-    private let appState: ApplicationState
+    let appState: ApplicationState
 
     private var signInStep: SignInStep?
 
@@ -109,7 +109,6 @@ class AppCoordinator: NSObject, ObservableObject {
 
     private var initializationCoordinator: InitializationCoordinator?
     private var onboardingCoordinator: OnboardingCoordinator?
-    private let ddkSessionCommunicator: SessionRelatedCommunicatorBetweenMainAppAndExtensions
 
     private let observationCenter: PDCore.UserDefaultsObservationCenter
     
@@ -143,19 +142,13 @@ class AppCoordinator: NSObject, ObservableObject {
                 SessionRelatedCommunicatorForMainApp(
                     userDefaultsConfiguration: .forFileProviderExtension(userDefaults: Constants.appGroup.userDefaults),
                     sessionStorage: sessionStore,
-                    childSessionKind: .fileProviderExtension,
                     authenticator: authenticator
                 )
-            }
+            },
+            isDetailedLoggingEnabled: { RuntimeConfiguration.shared.includeTracesInLogs }
         )
-        let ddkSessionCommunicator = SessionRelatedCommunicatorForMainApp(
-            userDefaultsConfiguration: .forDDK(userDefaults: Constants.appGroup.userDefaults),
-            sessionStorage: initialServices.sessionVault,
-            childSessionKind: .ddk,
-            authenticator: initialServices.authenticator
-        )
-        let networkStateService = ConnectedNetworkStateInteractor(resource: MonitoringNetworkStateResource())
-        networkStateService.execute()
+        let networkStateService = ConnectedNetworkStateInteractor(resource: initialServices.connectionStateResource)
+        networkStateService.startMonitoring()
         let driveCoreAlertListener = DriveCoreAlertListener(client: initialServices.networkClient)
         let loginBuilder = ConcreteLoginManagerBuilder(
             environment: Constants.userApiConfig.environment,
@@ -191,13 +184,12 @@ class AppCoordinator: NSObject, ObservableObject {
             launchOnBoot: launchOnBoot,
             appUpdateService: appUpdateService,
             domainOperationsService: domainOperationsService,
-            ddkSessionCommunicator: ddkSessionCommunicator,
             promoCampaignInteractor: promoCampaignInteractor
         )
 
         featureFlagsAccessor = { [weak self] in self?.featureFlags }
-        await ddkSessionCommunicator.performInitialSetup()
-        ddkSessionCommunicator.startObservingSessionChanges()
+        await initialServices.sessionRelatedCommunicator.performInitialSetup()
+        initialServices.sessionRelatedCommunicator.startObservingSessionChanges()
 
         if RuntimeConfiguration.shared.enableTestAutomation {
             testRunner = TestRunner(coordinator: self)
@@ -218,7 +210,6 @@ class AppCoordinator: NSObject, ObservableObject {
         launchOnBoot: any LaunchOnBootServiceProtocol,
         appUpdateService: AppUpdateServiceProtocol?,
         domainOperationsService: DomainOperationsService,
-        ddkSessionCommunicator: SessionRelatedCommunicatorBetweenMainAppAndExtensions,
         promoCampaignInteractor: PromoCampaignInteractorProtocol
     ) {
 
@@ -240,7 +231,6 @@ class AppCoordinator: NSObject, ObservableObject {
         self.launchOnBoot = launchOnBoot
         self.appUpdateService = appUpdateService
         self.domainOperationsService = domainOperationsService
-        self.ddkSessionCommunicator = ddkSessionCommunicator
         self.appState = ApplicationState()
         self.subscriptionService = SubscriptionService(apiService: initialServices.authenticator.apiService)
         self.observationCenter = UserDefaultsObservationCenter(userDefaults: Constants.appGroup.userDefaults)
@@ -278,7 +268,9 @@ class AppCoordinator: NSObject, ObservableObject {
             }
 
             Task {
-                guard let root = try? await self?.postLoginServices?.tower.rootFolder() else { return }
+                guard let moc = self?.postLoginServices?.tower.storage.backgroundContext,
+                      let root = try? await self?.postLoginServices?.tower.rootFolder(moc: moc)
+                else { return }
                 
                 // Don't open more than 5 items at a time
                 folders.prefix(5).forEach {
@@ -345,7 +337,7 @@ class AppCoordinator: NSObject, ObservableObject {
         var wasRefreshingNodes = false
         if domainOperationsService.hasDomainReconnectionCapability {
             // we're after boostrap, so TBH if there's no root, I'd question my sanity (or suspect some other thread deleting it from under me)
-            guard let root = try? await postLoginServices.tower.rootFolder() else { throw Errors.rootNotFound }
+            guard let root = try? await postLoginServices.tower.rootFolder(moc: postLoginServices.tower.storage.backgroundContext) else { throw Errors.rootNotFound }
             // if there are dirty nodes in DB, it means the previous run hasn't finished successfully
             let hasDirtyNodes = try await postLoginServices.tower.refresher.hasDirtyNodes(root: root)
             if hasDirtyNodes {
@@ -374,7 +366,7 @@ class AppCoordinator: NSObject, ObservableObject {
 
         if wasRefreshingNodes {
             shouldReenumerateItems = true
-            try await domainOperationsService.signalEnumerator()
+            try await domainOperationsService.signalEnumerator(reason: .domainReconnected)
         }
 
         appState.setLaunchCompletion(90)
@@ -444,7 +436,7 @@ class AppCoordinator: NSObject, ObservableObject {
 
     private func processLoginData(_ userData: LoginData) async {
         await menuBarCoordinator?.showActivityIndicator()
-        
+
         updatePMAPIServiceSessionUID(sessionUID: userData.credential.sessionID)
         do {
             try await storeUserData(userData)
@@ -476,18 +468,15 @@ class AppCoordinator: NSObject, ObservableObject {
         let store: SessionStore = initialServices.sessionVault
         let sessionRelatedCommunicator = initialServices.sessionRelatedCommunicator
         let parentSessionCredentials = data.getCredential
-        let ddkSessionCommunicator = ddkSessionCommunicator
 
         try await sessionRelatedCommunicator.fetchNewChildSession(parentSessionCredential: parentSessionCredentials)
-        try await ddkSessionCommunicator.fetchNewChildSession(parentSessionCredential: parentSessionCredentials)
-        
+
         store.storeCredential(CoreCredential(parentSessionCredentials))
         store.storeUser(data.user)
         store.storeAddresses(data.addresses)
         store.storePassphrases(data.passphrases)
-        
+
         await sessionRelatedCommunicator.onChildSessionReady()
-        await ddkSessionCommunicator.onChildSessionReady()
     }
 
     private func performEmergencyLogout(becauseOf error: any Error) async {
@@ -505,11 +494,11 @@ class AppCoordinator: NSObject, ObservableObject {
             try await self.domainOperationsService.identifyCurrentDomain()
             postLoginServices = preparePostLoginServices()
 
-            try await postLoginServices.tower.cleanUpLockedVolumeIfNeeded(using: domainOperationsService)
+            async let cleanupTask: () = postLoginServices.tower.cleanUpLockedVolumeIfNeeded(using: domainOperationsService)
+            async let ffRepoFetch: ()? = try? FeatureFlagsRepository.shared.fetchFlags()
+            async let ffTowerStart: ()? = try? postLoginServices.tower.featureFlags.startAsync()
 
-            // error fetching feature flags should not cause the login process to fail, we will use the default values
-            try? await FeatureFlagsRepository.shared.fetchFlags()
-            try? await postLoginServices.tower.featureFlags.startAsync()
+            _ = try await (cleanupTask, ffRepoFetch, ffTowerStart)
 
             try? await domainOperationsService.tearDownConnectionToAllDomains()
             await postLoginServices.tower.cleanUpEventsAndMetadata(cleanupStrategy: domainOperationsService.cacheCleanupStrategy)
@@ -644,17 +633,20 @@ class AppCoordinator: NSObject, ObservableObject {
             let telemetrySettingsRepository = LocalTelemetrySettingRepository(localSettings: self.initialServices.localSettings)
             activityService = ActivityService(repository: postLoginServices.tower.client, telemetryRepository: telemetrySettingsRepository, frequency: Constants.activeFrequency)
 
-            let syncObserver = await SyncDBObserver(
+            async let syncObserverTask = SyncDBObserver(
                 state: appState,
                 syncStorageManager: postLoginServices.tower.syncStorage,
                 eventsProcessor: postLoginServices.tower,
                 domainOperationsService: domainOperationsService,
                 testRunner: testRunner)
 
-            globalProgressObserver = await GlobalProgressObserver(
+            async let globalProgressTask = GlobalProgressObserver(
                 state: appState,
                 domainOperationsService: domainOperationsService
             )
+
+            let syncObserver = await syncObserverTask
+            globalProgressObserver = await globalProgressTask
 
             await applicationEventObserver?.configurePostLoginServices(
                 syncObserver: syncObserver,
@@ -766,7 +758,7 @@ class AppCoordinator: NSObject, ObservableObject {
 
         // this causes the file provider to enumerate items
         shouldReenumerateItems = true
-        try await domainOperationsService.signalEnumerator()
+        try await domainOperationsService.signalEnumerator(reason: .postMigration)
 
         hasPostMigrationStepRun = true
 
@@ -817,12 +809,12 @@ extension AppCoordinator: SignoutManager {}
 extension AppCoordinator {
 
     func signOutAsync() async {
+        applicationEventObserver?.stopMonitoring(dueToSignOut: true)
         await signOutAsync(domainOperationsService: domainOperationsService)
-        ddkSessionCommunicator.clearStateOnSignOut()
         didLogout()
     }
 
-    func signOutAsync(domainOperationsService: DomainOperationsServiceProtocol) async {
+    private func signOutAsync(domainOperationsService: DomainOperationsServiceProtocol) async {
         if let tower = postLoginServices?.tower {
             // disconnect FileProvider extensions
             try? await domainOperationsService.tearDownConnectionToAllDomains()
@@ -851,7 +843,6 @@ extension AppCoordinator {
 
         launchOnBoot.userSignedOut()
         dismissAnyOpenWindows()
-        applicationEventObserver?.stopMonitoring(dueToSignOut: true)
     }
 }
 
@@ -948,7 +939,7 @@ extension AppCoordinator {
             domainOperationsService.cacheReset = false
 
             shouldReenumerateItems = true
-            try await domainOperationsService.signalEnumerator()
+            try await domainOperationsService.signalEnumerator(reason: .domainReconnected)
         } else {
             let migrationPerformer = MigrationPerformer()
             try await domainOperationsService.disconnectDomainsForQA(
@@ -977,12 +968,12 @@ extension AppCoordinator {
     private func finishDomainReconnection(tower: Tower) async throws {
         domainOperationsService.cacheReset = false
         shouldReenumerateItems = true
-        try await domainOperationsService.signalEnumerator()
+        try await domainOperationsService.signalEnumerator(reason: .domainReconnected)
         tower.runEventsSystem()
     }
 
     private func refreshUsingEagerSyncApproach(tower: Tower) async throws {
-        guard let rootFolder = try? await tower.rootFolder() else {
+        guard let rootFolder = try? await tower.rootFolder(moc: tower.storage.backgroundContext) else {
             throw Errors.rootNotFound
         }
 
@@ -1002,7 +993,7 @@ extension AppCoordinator {
     private func refreshUsingDirtyNodesApproach(tower: Tower, root: Folder? = nil, retrying: Bool = false) async throws {
         var rootFolder: Folder? = root
         if rootFolder == nil {
-            rootFolder = try await tower.rootFolder()
+            rootFolder = try await tower.rootFolder(moc: tower.storage.backgroundContext)
         }
         guard let rootFolder else {
             throw Errors.rootNotFound
@@ -1167,6 +1158,12 @@ extension AppCoordinator: UserActionsDelegate {
         }
     }
 
+    func closeOnboardingWindow() {
+        Task { @MainActor in
+            self.onboardingCoordinator?.end()
+        }
+    }
+
 #if HAS_BUILTIN_UPDATER
     func installUpdate() {
         appUpdateService?.installUpdateIfAvailable()
@@ -1210,14 +1207,13 @@ extension AppCoordinator: UserActionsDelegate {
         }
     }
 
-    func cleanUpErrors() {
-        applicationEventObserver?.cleanUpErrors()
+    func cleanUpErrors() async {
+        await applicationEventObserver?.cleanUpErrors()
         domainOperationsService.cleanUpErrors()
     }
 
     func signInUsingTestCredentials(login: String, password: String) {
         Task { @MainActor in
-            await userRequestedSignOut()
             loginManager?.logIn(as: login, password: password)
         }
     }
@@ -1252,6 +1248,7 @@ extension AppCoordinator: UserActionsDelegate {
             actionButtonText: "Restart"
         ) {
             try? RuntimeConfiguration.shared.toggleDetailedLogging()
+            UserActions(delegate: self).app.restartApp()
         }
     }
 
@@ -1434,7 +1431,7 @@ extension AppCoordinator: UserActionsDelegate {
         Task {
             do {
                 pathsMarkedAsKeepDownloaded = try await itemIdentifierStrings(for: paths).joined(separator: ":")
-                try await domainOperationsService.signalEnumerator()
+                try await domainOperationsService.signalEnumerator(reason: .keepDownloadedStateChanged)
             } catch {
                 Log.error("Error calling keepDownloaded from TestRunner", error: error, domain: .testRunner)
             }
@@ -1445,7 +1442,7 @@ extension AppCoordinator: UserActionsDelegate {
         Task {
             do {
                 pathsMarkedAsOnlineOnly = try await itemIdentifierStrings(for: paths).joined(separator: ":")
-                try await domainOperationsService.signalEnumerator()
+                try await domainOperationsService.signalEnumerator(reason: .keepDownloadedStateChanged)
             } catch {
                 Log.error("Error calling keepOnlineOnly from TestRunner", error: error, domain: .testRunner)
             }

@@ -70,7 +70,7 @@ enum GlobalProgressDescription {
         let currentState = self.syncState
 
         var percentText: String
-        let percentFormat = "%.0f%%"
+        let percentFormat = "%.2f%%"
         percentText = String(format: percentFormat, currentState.fractionCompleted * 100)
         if currentState.fractionCompleted < 1, percentText.starts(with: "100") {
             // We don't want to show 100% unless we really are at the end.

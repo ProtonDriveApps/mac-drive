@@ -30,13 +30,80 @@
 	<true/>
 	<key>NSExtension</key>
 	<dict>
+		<key>NSFileProviderUserInteractions</key>
+		<array>
+			<dict>
+				<key>ActivationRule</key>
+				<string>action == &quot;Rename&quot; AND ((NOT sourceItem.filename ENDSWITH[cd] &quot;.protondoc&quot; AND destinationItem.filename ENDSWITH[cd] &quot;.protondoc&quot;) OR (NOT sourceItem.filename ENDSWITH[cd] &quot;.protonsheet&quot; AND destinationItem.filename ENDSWITH[cd] &quot;.protonsheet&quot;))</string>
+				<key>Alert</key>
+				<dict>
+					<key>RecoveryOptions</key>
+					<dict>
+						<key>Continue</key>
+						<false/>
+					</dict>
+					<key>LocalizedTitle</key>
+					<string>File cannot be converted to cloud-only Proton file</string>
+					<key>LocalizedSubTitle</key>
+					<string>Cloud-only Proton files must be created on the Web.</string>
+				</dict>
+			</dict>
+			<dict>
+				<key>ActivationRule</key>
+				<string>(action == &quot;Create&quot; OR action == &quot;MoveIn&quot; OR action == &quot;CopyIn&quot; OR action == &quot;Copy&quot;) AND (sourceItem.filename ENDSWITH[cd] &quot;.protondoc&quot; OR sourceItem.filename ENDSWITH[cd] &quot;.protonsheet&quot;)</string>
+				<key>Alert</key>
+				<dict>
+					<key>RecoveryOptions</key>
+					<dict>
+						<key>Continue</key>
+						<false/>
+					</dict>
+					<key>LocalizedTitle</key>
+					<string>Cloud-only Proton file cannot be created</string>
+					<key>LocalizedSubTitle</key>
+					<string>This file is cloud-only. Cloud-only Proton files can only be created, copied or duplicated on the Web.</string>
+				</dict>
+			</dict>
+			<dict>
+				<key>ActivationRule</key>
+				<string>action == &quot;MoveOut&quot; AND (sourceItem.filename ENDSWITH[cd] &quot;.protondoc&quot; OR sourceItem.filename ENDSWITH[cd] &quot;.protonsheet&quot;)</string>
+				<key>Alert</key>
+				<dict>
+					<key>RecoveryOptions</key>
+					<dict>
+						<key>Continue</key>
+						<false/>
+					</dict>
+					<key>LocalizedTitle</key>
+					<string>Cloud-only Proton file cannot be moved here</string>
+					<key>LocalizedSubTitle</key>
+					<string>Moving a cloud-only Proton file outside Proton Drive would prevent it from opening.</string>
+				</dict>
+			</dict>
+			<dict>
+				<key>ActivationRule</key>
+				<string>action == &quot;Rename&quot; AND ((sourceItem.filename ENDSWITH[cd] &quot;.protondoc&quot; AND NOT destinationItem.filename ENDSWITH[cd] &quot;.protondoc&quot;) OR (sourceItem.filename ENDSWITH[cd] &quot;.protonsheet&quot; AND NOT destinationItem.filename ENDSWITH[cd] &quot;.protonsheet&quot;))</string>
+				<key>Alert</key>
+				<dict>
+					<key>RecoveryOptions</key>
+					<dict>
+						<key>Continue</key>
+						<false/>
+					</dict>
+					<key>LocalizedTitle</key>
+					<string>Cloud-only Proton file extension cannot be changed</string>
+					<key>LocalizedSubTitle</key>
+					<string>Changing a cloud-only Proton file extension would prevent it from opening.</string>
+				</dict>
+			</dict>
+		</array>
 		<key>NSExtensionAttributes</key>
 		<dict/>
 		<key>NSExtensionFileProviderActions</key>
 		<array>
 			<dict>
 				<key>NSExtensionFileProviderActionActivationRule</key>
-				<string>SUBQUERY ( fileproviderItems, $item, $item.itemIdentifier != "NSFileProviderRootContainerItemIdentifier" &amp;&amp; $item.userInfo.keep_downloaded != YES &amp;&amp; $item.userInfo.inherit_keep_downloaded != YES ).@count &gt; 0</string>
+				<string>SUBQUERY ( fileproviderItems, $item, $item.itemIdentifier != &quot;NSFileProviderRootContainerItemIdentifier&quot; &amp;&amp; $item.userInfo.keep_downloaded != YES &amp;&amp; $item.userInfo.inherit_keep_downloaded != YES ).@count &gt; 0</string>
 				<key>NSExtensionFileProviderActionIdentifier</key>
 				<string>ch.protonmail.drive.fileprovider.action.keep_downloaded</string>
 				<key>NSExtensionFileProviderActionName</key>
@@ -44,7 +111,7 @@
 			</dict>
 			<dict>
 				<key>NSExtensionFileProviderActionActivationRule</key>
-				<string>SUBQUERY ( fileproviderItems, $item, ($item.itemIdentifier != "NSFileProviderRootContainerItemIdentifier" &amp;&amp; $item.isUploaded == YES &amp;&amp; ($item.isDownloaded == YES || $item.isDownloading == YES) ) ).@count &gt; 0</string>
+				<string>SUBQUERY ( fileproviderItems, $item, ($item.itemIdentifier != &quot;NSFileProviderRootContainerItemIdentifier&quot; &amp;&amp; $item.isUploaded == YES &amp;&amp; ($item.isDownloaded == YES || $item.isDownloading == YES) ) ).@count &gt; 0</string>
 				<key>NSExtensionFileProviderActionIdentifier</key>
 				<string>ch.protonmail.drive.fileprovider.action.remove_download</string>
 				<key>NSExtensionFileProviderActionName</key>
@@ -52,7 +119,7 @@
 			</dict>
 			<dict>
 				<key>NSExtensionFileProviderActionActivationRule</key>
-				<string>SUBQUERY ( fileproviderItems, $item, ($item.itemIdentifier != "NSFileProviderRootContainerItemIdentifier" ) ).@count &gt; 0</string>
+				<string>SUBQUERY ( fileproviderItems, $item, ($item.itemIdentifier != &quot;NSFileProviderRootContainerItemIdentifier&quot; ) ).@count &gt; 0</string>
 				<key>NSExtensionFileProviderActionIdentifier</key>
 				<string>ch.protonmail.drive.fileprovider.action.open_in_browser</string>
 				<key>NSExtensionFileProviderActionName</key>

@@ -178,6 +178,7 @@ extension InvitationView {
                 }
                 
                 if candidate.isDuplicated {
+                    textFieldFocus = false
                     viewModel.presentDuplicatedInvitationError()
                 }
             }

@@ -69,6 +69,7 @@ extension SyncItemState {
         switch self {
         case .inProgress: 100
         case .errored: 50
+        case .paused: 49
         case .cancelled: 0
         case .excludedFromSync: 0
         case .finished: 0

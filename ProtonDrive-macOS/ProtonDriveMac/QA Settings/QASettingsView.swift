@@ -37,6 +37,11 @@ struct QASettingsView: View {
                 .tabItem {
                     Label("State", systemImage: "timelapse")
                 }
+
+            RuntimeConfigurationSettingsView()
+                .tabItem {
+                    Label("Runtime Config", systemImage: "gear")
+                }
         }.padding(12)
     }
 
@@ -186,27 +191,6 @@ struct QASettingsView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("DDK:")
-                                .fontWeight(.bold)
-                            Picker("", selection: $vm.driveDDKEnabled) {
-                                ForEach(QASettingsViewModel.FeatureFlagOptions.allCases.map(\.rawValue), id: \.self) {
-                                    Text($0)
-                                }
-                            }
-                            .pickerStyle(SegmentedPickerStyle())
-                            .onChange(of: vm.driveDDKEnabled) { _ in
-                                exit(0)
-                            }
-
-                            Text(
-                                [
-                                    "Unleash FFs — DriveDDKDisabled: \(vm.driveDDKDisabledFeatureFlagValue ? "true" : "false"),",
-                                    "DriveDDKIntelEnabled: \(vm.driveDDKIntelEnabledFeatureFlagValue ? "true" : "false") (used on Intel),",
-                                ].joined(separator: "\n")
-                            )
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 2) {
                             Text("BF'25:")
                                 .fontWeight(.bold)
                             Picker("", selection: $vm.driveMacPromoBannerDisabled) {
@@ -216,12 +200,12 @@ struct QASettingsView: View {
                             }
                             .pickerStyle(SegmentedPickerStyle())
                             .onChange(of: vm.driveMacPromoBannerDisabled) { _ in
-                                exit(0)
+                                NSApp.terminate(nil)
                             }
                             Text("Remember, this is a killswitch: enabled means banner should be disabled.")
                             Text(
                                 [
-                                    "Unleash FFs — DriveMacPromoBannerDisabled: \(vm.driveDDKDisabledFeatureFlagValue ? "true" : "false"),",
+                                    "Unleash FFs — DriveMacPromoBannerDisabled: \(vm.driveMacPromoBannerDisabledFeatureFlagValue ? "true" : "false"),",
                                     "QA Setting - DriveMacPromoBannerDisabled: \(vm.driveMacPromoBannerDisabledStorage ?? false)"
                                 ].joined(separator: "\n")
                             )
@@ -330,7 +314,31 @@ struct QASettingsView: View {
                         .padding(.bottom, 10)
                         .padding(.top, 20)
                 }
-                
+
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Toggle(isOn: $vm.simulateNetworkOffline) {
+                            Text("Simulate Network Offline")
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Spacer()
+                                .frame(maxWidth: .infinity)
+                        }
+                        .toggleStyle(SwitchToggleStyle())
+
+                        Text("When enabled, downloads will pause as if network is unreachable")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(16)
+                } label: {
+                    Text("Network Simulation")
+                        .font(.headline)
+                        .padding(.bottom, 10)
+                        .padding(.top, 20)
+                }
+
                 GroupBox {
                     VStack(alignment: .leading, spacing: 16) {
                         Button("Send test error event to Sentry from macOS app") {

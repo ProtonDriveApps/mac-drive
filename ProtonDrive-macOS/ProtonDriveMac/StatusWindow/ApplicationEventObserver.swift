@@ -201,10 +201,14 @@ class ApplicationEventObserver: ObservableObject {
                                                 fullResyncInProgress: state.fullResyncState.isHappening)
         state.isPaused = false
 
+        // When the user resumes syncing after a pause, the application state immediately switches
+        // to "Synced", when in reality there may be unsynced changes, which the file provider is
+        // in the process of figuring out.
+        // Therefore, we set a "Looking for files to sync..." status for up to 15 seconds - after that,
+        // either syncing has resumed and overwritten this status, or we change back to "Synced".
         state.isResuming = true
-        state.itemEnumerationProgress = Localization.enumerating_after_resuming
+        defer { state.isResuming = false }
         try await Task.sleep(for: .seconds(15))
-        state.isResuming = false
     }
 
     func waitUntilEnumerationHasBegunAndEnded() async throws {
@@ -242,9 +246,9 @@ class ApplicationEventObserver: ObservableObject {
         }
     }
 
-    public func cleanUpErrors() {
+    public func cleanUpErrors() async {
         Log.trace()
-        syncObserver?.cleanUpErrors()
+        await syncObserver?.cleanUpErrors()
     }
 
     public func refreshItems() async throws {
@@ -327,6 +331,10 @@ class ApplicationEventObserver: ObservableObject {
                 )
                 previousState = Array(self.state.properties)
                 Self.updateCounter += 1
+
+                if !diff.isEmpty {
+                    Log.uiEvent(diff.map { $0.description })
+                }
                 Log.trace("Received state.objectWillChange (\(Self.updateCounter), Diff: \(diff))")
                 if !diff.isEmpty {
                     self.syncItemHistory.append(SyncHistoryItem(id: self.syncItemHistory.count + 1, state: self.state, diff: diff))
@@ -347,6 +355,8 @@ class ApplicationEventObserver: ObservableObject {
             .dropFirst(2)
             .sink { [weak self] (oldValue, newValue) in
                 guard let self else { return }
+
+                guard !RuntimeConfiguration.shared.enableTestAutomation else { return }
 
                 // Show an alert each time `deleteCount` increases.
                 if newValue > oldValue {

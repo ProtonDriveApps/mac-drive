@@ -86,6 +86,14 @@ class ThumbnailRevisionEncryptor: RevisionEncryptor {
             revision.removeOldThumbnails(in: self.moc)
             
             let thumbnail = makeThumbnail(from: thumbnailData, type: .default, volumeID: draft.volumeID)
+            // Save clear data with temporary node identifier
+            #if os(iOS)
+            CoreDataThumbnail.saveClearDataToDisk(
+                clearData: thumbnailData.clearData,
+                type: .default,
+                identifier: revision.file.identifierWithinManagedObjectContext
+            )
+            #endif
             revision.addToThumbnails(thumbnail)
             
             if self.isCancelled {
@@ -132,11 +140,12 @@ class ThumbnailRevisionEncryptor: RevisionEncryptor {
         coreDataThumbnail.sha256 = thumbnailData.hash
         coreDataThumbnail.type = type
         coreDataThumbnail.volumeID = volumeID
+        coreDataThumbnail.clearData = thumbnailData.clearData
         return coreDataThumbnail
     }
 
     func makeEncryptedThumbnailData(ofSize size: CGSize, maxWeight: Int, encryptionMetadata: EncryptionMetadata, localURL: URL) throws -> EncryptedThumbnailData {
-        guard let rawThumbnail = self.thumbnailProvider.getThumbnail(from: localURL, ofSize: size) else {
+        guard let rawThumbnail = self.thumbnailProvider.getThumbnail(from: localURL, overrideMediaType: nil, ofSize: size) else {
             throw ThumbnailGenerationError.generation
         }
         return try self.compressAndEncrypt(rawThumbnail, maxThumbnailWeight: maxWeight, encryptionMetadata: encryptionMetadata)
@@ -172,7 +181,8 @@ class ThumbnailRevisionEncryptor: RevisionEncryptor {
         // MARK: - NEW
         return EncryptedThumbnailData(
             encrypted: encryptedThumbnail.data,
-            hash: encryptedThumbnail.hash
+            hash: encryptedThumbnail.hash,
+            clearData: thumbnail
         )
     }
 

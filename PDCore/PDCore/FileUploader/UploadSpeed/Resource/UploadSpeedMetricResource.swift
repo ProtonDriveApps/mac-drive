@@ -21,10 +21,6 @@ import ProtonCoreObservability
 public protocol UploadSpeedMetricResource {
     /// - Parameters:
     ///   - speed: is in KiB/s
-    func sendMetric(speed: Int, isBackground: Bool)
-
-    /// - Parameters:
-    ///   - speed: is in KiB/s
     ///   - pipeline: pipeline responsible for the metric
     func sendMetric(speed: Int, isBackground: Bool, pipeline: DriveObservabilityPipeline)
 }
@@ -37,10 +33,6 @@ public final class ObservabilityUploadSpeedMetricResource: UploadSpeedMetricReso
         let labels = DriveObservabilityUploadSpeedEventLabels(context: context, pipeline: pipeline)
         let event = ObservabilityEvent(name: "drive_upload_speed_histogram", value: speed, labels: labels)
         ObservabilityEnv.report(event)
-    }
-
-    public func sendMetric(speed: Int, isBackground: Bool) {
-        sendMetric(speed: speed, isBackground: isBackground, pipeline: .legacy)
     }
 
     public init() {}
