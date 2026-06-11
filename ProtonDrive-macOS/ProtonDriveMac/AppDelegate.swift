@@ -74,15 +74,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         super.init()
 
         setUpExtensionLaunchObserver()
-
-#if !HAS_QA_FEATURES
-        let executablePath = Bundle.main.executablePath ?? ""
-        if executablePath.hasPrefix("/Applications/") == false {
-            Task {
-                await handleError(NSError(domain: "", code: -1, responseDictionary: nil, localizedDescription: "This application must be run from the /Applications folder. \n  Please move it there and run it again."))
-            }
-        }
-#endif
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
