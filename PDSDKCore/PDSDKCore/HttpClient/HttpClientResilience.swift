@@ -22,6 +22,11 @@ import ProtonDriveSDK
 import ProtonCoreNetworking
 import ProtonCoreServices
 
+// The generic retry engine (`HttpClientResilience`, `Configuration`, `ParticipateInRetries`,
+// `PerformRetryDecision`) lives in PDCore so both the SDK HTTP path and PDCore's metadata scan can share it.
+// This file keeps the SDK-only surface: the `HttpClientResponse`/`HttpClientStream`-typed entry points and the
+// HTTP-status-code classification, layered on top of PDCore's `performRateLimitedWithResilience`.
+
 public enum HttpResilienceRequestType {
     case regularApi
     case storageDownload
@@ -43,53 +48,59 @@ public enum DefaultHttpResilienceConfigurationProvider: HttpResilienceConfigurat
     }
 }
 
-enum PerformRetryDecision<T> {
-    case noRetry(Result<T, NSError>)
-    case retryAfter(Duration, previousError: Error?)
-    case retryAfterRefreshingCredentials(Error)
-}
+extension HttpClientResilience {
 
-public enum ParticipateInRetries<T> {
-    case retryIfNeeded(Result<T, NSError>)
-    case doNotRetry(Result<T, NSError>)
-}
-
-public enum HttpClientResilience {
-
-    public struct Configuration {
-        fileprivate let maxNumberOfTries: Int
-        fileprivate let exponentialBackoffBase: Double
-        fileprivate let exponentialBackoffScale: Double
-        fileprivate let maxJitterFactor: Double
-        fileprivate let retryOn401: Bool
-
-        public init(maxNumberOfTries: Int,
-                    exponentialBackoffBase: Double,
-                    exponentialBackoffScale: Double,
-                    maxJitterFactor: Double,
-                    retryOn401: Bool) {
-            self.maxNumberOfTries = maxNumberOfTries
-            self.exponentialBackoffBase = exponentialBackoffBase
-            self.exponentialBackoffScale = exponentialBackoffScale
-            self.maxJitterFactor = maxJitterFactor
-            self.retryOn401 = retryOn401
+    /// Small uploads may retry rate-limit rejections, but never ambiguous transport or server failures.
+    /// One credential refresh is allowed independently of the rate-limit retry budget.
+    static func performSmallUploadWithResilience(
+        rateLimitGate: RateLimitGate,
+        family: String,
+        refreshCredentials: @escaping (Error) async throws -> Void,
+        operation: @escaping () async -> Result<HttpClientResponse, Error>
+    ) async -> Result<HttpClientResponse, Error> {
+        var didRefreshCredentials = false
+        let result = await performRateLimitedWithResilience(
+            configuration: .forDriveAPICalls,
+            rateLimitGate: rateLimitGate,
+            family: family,
+            refreshCredentials: { _ in },
+            operation: { _ in
+                let result = await operation()
+                guard case .success(let response) = result,
+                      response.statusCode == 401, !didRefreshCredentials else {
+                    return .retryIfNeeded(result)
+                }
+                // Handle refresh here so it neither consumes a 429 attempt nor hides refresh failures.
+                do {
+                    try Task.checkCancellation()
+                    try await refreshCredentials(URLError(.userAuthenticationRequired))
+                    didRefreshCredentials = true
+                    await rateLimitGate.waitIfNeeded(family: family)
+                    try Task.checkCancellation()
+                    return .retryIfNeeded(await operation())
+                } catch is CancellationError {
+                    return .doNotRetry(.failure(URLError(.cancelled)))
+                } catch {
+                    return .doNotRetry(.failure(error))
+                }
+            }
+        ) { result, attemptCount, configuration in
+            guard case .success(let response) = result, response.statusCode == 429 else {
+                return .noRetry(result)
+            }
+            await rateLimitGate.recordRateLimited(responseHeaders: response.headers, family: family)
+            guard attemptCount < configuration.maxNumberOfTries else {
+                return .noRetry(result)
+            }
+            return .retryAfter(.zero, previousError: nil)
         }
-
-        static var forDriveAPICalls: Configuration = .init(
-            maxNumberOfTries: 6,
-            exponentialBackoffBase: 2.0, // 1.0, 2.0, 4.0, 8.0, 16.0 seconds
-            exponentialBackoffScale: 0.5,
-            maxJitterFactor: 0.2,
-            retryOn401: false // the 401 retries are handled by PMAPIService
-        )
-
-        static var forNonRetriableStorageCalls: Configuration = .init(
-            maxNumberOfTries: 2,
-            exponentialBackoffBase: 5.0, // 5.0, 25.0 seconds
-            exponentialBackoffScale: 1.0,
-            maxJitterFactor: 0.2,
-            retryOn401: true
-        )
+        // `.success` means an HTTP response was received, including something like a 429 rejection.
+        // The retry driver returns that response if its retry sleep is cancelled.
+        // Report cancellation in that case while preserving completed upload responses.
+        if Task.isCancelled, case .success(let response) = result, response.statusCode == 429 {
+            return .failure(URLError(.cancelled))
+        }
+        return result
     }
 
     public static func performWithResilience(
@@ -98,15 +109,13 @@ public enum HttpClientResilience {
         family: String,
         refreshCredentials: @escaping (Error) async throws -> Void,
         operation: @escaping (Error?) async -> ParticipateInRetries<HttpClientResponse>
-    ) async -> Result<HttpClientResponse, NSError> {
-        await performWithResilienceRecursive(
-            retryCount: 0,
-            previousError: nil,
-            operation: operation,
-            refreshCredentials: refreshCredentials,
+    ) async -> Result<HttpClientResponse, Error> {
+        await performRateLimitedWithResilience(
             configuration: configuration,
             rateLimitGate: rateLimitGate,
-            family: family
+            family: family,
+            refreshCredentials: refreshCredentials,
+            operation: operation
         ) { result, retryCount, configuration in
             switch result {
             case .success(let response):
@@ -126,15 +135,13 @@ public enum HttpClientResilience {
         family: String,
         refreshCredentials: @escaping (Error) async throws -> Void,
         operation: @escaping (Error?) async -> ParticipateInRetries<HttpClientStream>
-    ) async -> Result<HttpClientStream, NSError> {
-        await performWithResilienceRecursive(
-            retryCount: 0,
-            previousError: nil,
-            operation: operation,
-            refreshCredentials: refreshCredentials,
+    ) async -> Result<HttpClientStream, Error> {
+        await performRateLimitedWithResilience(
             configuration: configuration,
             rateLimitGate: rateLimitGate,
-            family: family
+            family: family,
+            refreshCredentials: refreshCredentials,
+            operation: operation
         ) { result, retryCount, configuration in
             switch result {
             case .success(let stream):
@@ -144,82 +151,6 @@ public enum HttpClientResilience {
                 )
             case .failure(let error):
                 return parse(error: error, retryCount: retryCount, configuration: configuration)
-            }
-        }
-    }
-
-    private static func performWithResilienceRecursive<T>(
-        retryCount: Int,
-        previousError: Error?,
-        operation: @escaping (Error?) async -> ParticipateInRetries<T>,
-        refreshCredentials: @escaping (Error) async throws -> Void,
-        configuration: Configuration,
-        rateLimitGate: RateLimitGate,
-        family: String,
-        parse: @escaping (Result<T, NSError>, Int, Configuration) async -> PerformRetryDecision<T>
-    ) async -> Result<T, NSError> {
-        // Park here if any prior request in this family observed a 429. The gate
-        // is shared with PDClient's `Client`, so a 429 on either tier delays
-        // calls in the same family on the other.
-        await rateLimitGate.waitIfNeeded(family: family)
-        let retryParticipationDecision = await operation(previousError)
-
-        switch retryParticipationDecision {
-        case .doNotRetry(let result):
-            return result
-
-        case .retryIfNeeded(let result):
-
-            let retryDecision = await parse(result, retryCount + 1, configuration)
-
-            switch retryDecision {
-            case .noRetry(let result):
-                return result
-
-            case .retryAfterRefreshingCredentials(let originalError):
-                Log.debug("HttpClientResilience credentials refresh. RetryCount: \(retryCount)",
-                          domain: .networking)
-                do {
-                    try await refreshCredentials(originalError)
-                } catch is CancellationError {
-                    return result
-                } catch let refreshError {
-                    Log.error("HttpClientResilience credentials refresh failed",
-                              error: refreshError, domain: .networking)
-                    return result
-                }
-                return await performWithResilienceRecursive(
-                    retryCount: retryCount + 1,
-                    previousError: previousError,
-                    operation: operation,
-                    refreshCredentials: refreshCredentials,
-                    configuration: configuration,
-                    rateLimitGate: rateLimitGate,
-                    family: family,
-                    parse: parse
-                )
-
-            case .retryAfter(let duration, let proximateError):
-                Log.debug("HttpClientResilience retry. Duration: \(duration), retryCount: \(retryCount)",
-                          domain: .networking)
-                // Local backoff for 5xx / network errors. For 429s the gate already
-                // recorded the deadline; the next iteration's `waitIfNeeded` will
-                // park the request, and `duration` here is `.zero` (see `commonRetryDecisionLogic`).
-                do {
-                    try await Task.sleep(for: duration)
-                } catch {
-                    return result
-                }
-                return await performWithResilienceRecursive(
-                    retryCount: retryCount + 1,
-                    previousError: proximateError,
-                    operation: operation,
-                    refreshCredentials: refreshCredentials,
-                    configuration: configuration,
-                    rateLimitGate: rateLimitGate,
-                    family: family,
-                    parse: parse
-                )
             }
         }
     }
@@ -267,7 +198,7 @@ public enum HttpClientResilience {
     }
 
     static func parse<T>(
-        error: NSError, retryCount: Int, configuration: Configuration
+        error: Error, retryCount: Int, configuration: Configuration
     ) -> PerformRetryDecision<T> {
         guard retryCount < configuration.maxNumberOfTries else {
             return .noRetry(.failure(error))
@@ -313,12 +244,13 @@ public enum HttpClientResilience {
             return .retryAfter(duration, previousError: error)
         }
 
-        if let error = error as? ResponseError, error.isApiIsBlockedError {
+        if let error = error as? ResponseError,
+            error.isApiIsBlockedError || error.underlyingError?.code == APIErrorCode.potentiallyBlocked {
             let duration = durationWithJitter(retryCount: retryCount, configuration: configuration)
             return .retryAfter(duration, previousError: error)
         }
 
-        if error.code == APIErrorCode.potentiallyBlocked {
+        if (error as NSError).code == APIErrorCode.potentiallyBlocked {
             let duration = durationWithJitter(retryCount: retryCount, configuration: configuration)
             return .retryAfter(duration, previousError: error)
         }
@@ -360,10 +292,7 @@ public enum HttpClientResilience {
         // `.retryAfter(.zero, ...)` so the recursive helper schedules another
         // attempt without adding its own sleep on top of the gate's.
         if statusCode == 429 {
-            let retryAfterValue = headers.first { key, _ in
-                key.caseInsensitiveCompare("Retry-After") == .orderedSame
-            }?.1.first.flatMap { RateLimitGate.parseRetryAfterValue($0, now: now) }
-            await rateLimitGate.recordRateLimited(retryAfter: retryAfterValue, family: family, source: family)
+            await rateLimitGate.recordRateLimited(responseHeaders: headers, family: family, now: now)
             let previousError = ResponseError(
                 httpCode: 429, responseCode: nil, userFacingMessage: "Too many requests", underlyingError: nil
             )
@@ -380,26 +309,19 @@ public enum HttpClientResilience {
         return nil
     }
 
-    private static func retryAfterValueInSeconds(
-        for retryCount: Int, configuration: Configuration
-    ) -> Double {
-        pow(configuration.exponentialBackoffBase, Double(retryCount)) * configuration.exponentialBackoffScale
-    }
-
-    private static func durationWithJitter(retryCount: Int, configuration: Configuration) -> Duration {
-        let retryAfterValue = retryAfterValueInSeconds(for: retryCount, configuration: configuration)
-        return durationWithJitter(retryAfterValue: retryAfterValue)
-    }
-
-    private static func durationWithJitter(retryAfterValue: Double) -> Duration {
-        .seconds(retryAfterValue + jitterInSeconds(base: retryAfterValue))
-    }
-
-    private static func jitterInSeconds(base: Double) -> Double {
-        let minJitter = 0.0
-        let maxJitter = 0.2 * base
-        return Double.random(in: minJitter...maxJitter)
-    }
-
     // TODO: circuit breaker
+}
+
+extension RateLimitGate {
+    /// Record the server's delay independently of whether this request may be retried.
+    func recordRateLimited(
+        responseHeaders: [(String, [String])],
+        family: String,
+        now: Date = Date()
+    ) {
+        let retryAfter = responseHeaders.first { name, _ in
+            name.caseInsensitiveCompare(HTTPHeaderName.retryAfter) == .orderedSame
+        }?.1.first.flatMap { Self.parseRetryAfterValue($0, now: now) }
+        recordRateLimited(retryAfter: retryAfter, family: family, source: family)
+    }
 }

@@ -39,12 +39,14 @@ public struct SharingMemberStartFactory: SharingMemberStartFactoryProtocol {
             entitlementsManager: dependencies.tower.entitlementsManager,
             featureFlagsController: dependencies.featureFlagsController,
             node: node,
+            nodeOperationPerformer: dependencies.tower.sdkObjects.nodeOperationPerformer,
             rootViewController: dependencies.rootViewController,
             remoteShareMetadataDataSource: dependencies.tower.client,
             sessionVault: dependencies.tower.sessionVault,
             shareCreator: shareCreator,
             storage: dependencies.tower.storage,
-            invitationResultController: dependencies.invitationResultController
+            invitationResultController: dependencies.invitationResultController,
+            localSettings: dependencies.tower.localSettings
         )
         return SharingMemberCoordinator(dependencies: dependencies)
     }

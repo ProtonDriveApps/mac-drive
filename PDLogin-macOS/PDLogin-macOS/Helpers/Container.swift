@@ -32,12 +32,15 @@ final class Container {
     private let authManager: AuthHelper
     private let api: PMAPIService
     private let humanVerifier: HumanCheckHelper
+    private let offersCreateFreshSyncLocation: () -> Bool
 
     init(clientApp: ClientApp,
          environment: Environment,
          apiServiceDelegate: APIServiceDelegate,
          forceUpgradeDelegate: ForceUpgradeDelegate,
-         minimumAccountType: AccountType) {
+         minimumAccountType: AccountType,
+         offersCreateFreshSyncLocation: @escaping () -> Bool) {
+        self.offersCreateFreshSyncLocation = offersCreateFreshSyncLocation
         if PMAPIService.trustKit == nil {
             let trustKit = TrustKit()
             trustKit.pinningValidator = .init()
@@ -59,7 +62,7 @@ final class Container {
     // MARK: Login view models
 
     func makeLoginViewModel() -> LoginViewModel {
-        return LoginViewModel(login: login, domain: self.api.signUpDomain)
+        return LoginViewModel(login: login, domain: self.api.signUpDomain, offersCreateFreshSyncLocation: offersCreateFreshSyncLocation)
     }
 
     func makeMailboxPasswordViewModel() -> MailboxPasswordViewModel {

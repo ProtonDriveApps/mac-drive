@@ -24,6 +24,7 @@ public protocol FileProviderOperationsProtocol {
     func item(
         for identifier: NSFileProviderItemIdentifier,
         request: NSFileProviderRequest,
+        confirmItemNotFoundWithBackend: Bool,
         completionHandler: @escaping (
             _ item: NSFileProviderItem?,
             _ error: Error?

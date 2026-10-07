@@ -29,7 +29,7 @@ final class SyncDBObserver: ObservableObject {
     @ObservedObject private(set) var state: ApplicationState
 
     private var syncStorageManager: SyncStorageManager?
-    private var syncStateDelegate: SyncStateDelegate
+    private var syncStateDelegate: SyncStateDelegateProtocol
     private var syncDBFetchedResultObserver: SyncDBFetchedResultObserver?
     private var testRunner: TestRunner?
 
@@ -43,18 +43,14 @@ final class SyncDBObserver: ObservableObject {
     init(
         state: ApplicationState,
         syncStorageManager: SyncStorageManager?,
-        eventsProcessor: EventsSystemManager,
-        domainOperationsService: DomainOperationsService,
+        syncStateDelegate: SyncStateDelegateProtocol,
         testRunner: TestRunner?
     ) async {
         Log.trace()
 
         self.state = state
         self.syncStorageManager = syncStorageManager
-
-        self.syncStateDelegate = SyncStateDelegate(eventsProcessor: eventsProcessor,
-                                                   domainOperationsService: domainOperationsService)
-
+        self.syncStateDelegate = syncStateDelegate
         self.testRunner = testRunner
 
         await self.syncStorageManager?.cleanUpOnLaunch()
@@ -108,7 +104,7 @@ final class SyncDBObserver: ObservableObject {
                 }
                 state.items = items
                 state.lastSyncTime = syncStorageManager.lastSyncTime()
-                
+
                 state.isEnumerating = syncStorageManager.countEnumerationsInProgress() > 0
                 state.itemEnumerationProgress = syncStorageManager.itemEnumerationProgress
 
@@ -127,8 +123,6 @@ final class SyncDBObserver: ObservableObject {
 #else
                 let updateCounterDescription = ""
 #endif
-
-                testRunner?.writeSyncStateProperties(state)
 
                 Log.debug("SyncDBObserver core data update: \(items.count) items, errorCount \(state.errorCount), \(updateCounterDescription)", domain: .syncing)
             }
@@ -213,9 +207,9 @@ final class SyncDBObserver: ObservableObject {
 
     // MARK: - SyncStateDelegate
 
-    public func updateSyncState(paused: Bool, offline: Bool, fullResyncInProgress: Bool) async throws {
+    public func updateSyncState(paused: Bool, offline: Bool, fullResync: (shouldDisconnectDomain: Bool, shouldPauseEvents: Bool)) async throws {
         Log.trace()
-        try await syncStateDelegate.updateState(paused: paused, offline: offline, fullResyncInProgress: fullResyncInProgress)
+        try await syncStateDelegate.updateState(paused: paused, offline: offline, volumeLocked: state.isVolumeLocked, fullResync: fullResync)
         await syncStorageManager?.cleanUpOnPause()
         do {
             try await fetchItems()

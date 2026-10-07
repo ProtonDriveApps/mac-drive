@@ -61,7 +61,7 @@ struct SyncStateView: View {
                 .launching,
                 .fullResyncInProgress:
             SpinningImage("syncing", duration: 2)
-        case .errored:
+        case .errored, .volumeLocked:
             Image("errored")
                 .resizable()
                 .tint(ColorProvider.SignalDanger)

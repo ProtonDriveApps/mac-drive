@@ -23,36 +23,75 @@ struct SpinningProgressView: View {
     private let progress: Double
 
     /// If true, the progress indicator keeps spinning. Otherwise it goes from 0 to 100%.
-    private let isIndeterminate: Bool 
-    
+    private let isIndeterminate: Bool
+
+    /// When set, both circles use this colour: the arc at full strength, the track at reduced
+    /// opacity. Nil keeps the neutral default.
+    private let tint: Color?
+
+    private let tintedTrackOpacity: Double = 0.2
+
+    /// Diameter of the circle path. The 2pt stroke is centred on the path, so it extends 1pt beyond
+    /// this on each side: pass `glyphSize - 2` to line the indicator up with an icon of `glyphSize`.
+    private let diameter: CGFloat
+
+    private let indeterminateRotationDuration: TimeInterval = 1
+
     init(
         progress: Double,
-        isIndeterminate: Bool = false
+        isIndeterminate: Bool = false,
+        tint: Color? = nil,
+        diameter: CGFloat = 12
     ) {
         self.progress = progress
         self.isIndeterminate = isIndeterminate
+        self.tint = tint
+        self.diameter = diameter
     }
     
     var body: some View {
+        if isIndeterminate {
+            TimelineView(.animation) { context in
+                indicator(rotation: indeterminateRotation(at: context.date), fraction: fraction)
+            }
+        } else {
+            indicator(rotation: rotation, fraction: fraction)
+        }
+    }
+
+    private func indicator(rotation: Double, fraction: Double) -> some View {
         ZStack {
             Circle()
                 .stroke(lineWidth: 2)
-                .foregroundColor(ColorProvider.TextHint.opacity(0.5))
-                .frame(width: 12, height: 12)
-            
+                .foregroundColor(trackColor)
+                .frame(width: diameter, height: diameter)
+
             Circle()
                 .trim(from: 0.0, to: fraction)
                 .stroke(lineWidth: 2)
-                .foregroundColor(ColorProvider.TextNorm)
-                .frame(width: 12, height: 12)
+                .foregroundColor(arcColor)
+                .frame(width: diameter, height: diameter)
                 .rotationEffect(Angle(degrees: rotation))
         }
     }
+
+    private var trackColor: Color {
+        guard let tint else { return ColorProvider.TextHint.opacity(0.5) }
+        return tint.opacity(tintedTrackOpacity)
+    }
+
+    private var arcColor: Color {
+        tint ?? ColorProvider.TextNorm
+    }
+
+    private func indeterminateRotation(at date: Date) -> Double {
+        let progress = date
+            .timeIntervalSinceReferenceDate
+            .truncatingRemainder(dividingBy: indeterminateRotationDuration) / indeterminateRotationDuration
+        return progress * 360.0
+    }
     
     private var rotation: Double {
-        if isIndeterminate {
-            return progress / 100.0 * 360.0
-        }
         return 270
     }
     
@@ -91,6 +130,11 @@ struct SpinningProgressView_Previews: PreviewProvider {
             SpinningProgressView(progress: 75, isIndeterminate: true)
             Spacer()
             SpinningProgressView(progress: 100, isIndeterminate: true)
+            Spacer()
+            SpinningProgressView(progress: 0, isIndeterminate: true, tint: ColorProvider.InteractionNorm)
+            Spacer()
+            // As drawn by the full resync step list.
+            SpinningProgressView(progress: 0, isIndeterminate: true, tint: ColorProvider.InteractionNorm, diameter: 14)
             Spacer()
         }
         .frame(width: 200, height: 200)

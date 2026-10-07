@@ -115,7 +115,13 @@ public class SentryClient {
         event.message = SentryMessage(formatted: logEntry.message)
         event.extra = extra
         event.environment = environment
-        event.tags = ["domain": logEntry.domain.name]
+
+        var tags = ["domain": logEntry.domain.name]
+        if let tag = extra["tag"] {
+            tags["tag"] = tag
+        }
+        event.tags = tags
+
         record(event)
     }
 
@@ -125,7 +131,7 @@ public class SentryClient {
             level: .error,
             message: message,
             timestamp: Log.formattedTime,
-            threadNumber: Thread.current.number.description,
+            threadNumber: Thread.currentNumber,
             system: system,
             domain: domain,
             context: nil,

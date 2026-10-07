@@ -20,6 +20,7 @@ import PDClient
 import ProtonCoreAuthentication
 import ProtonCoreServices
 import ProtonCoreNetworking
+import ProtonCoreUtilities
 import PDCore
 import ProtonDriveSDK
 
@@ -33,7 +34,7 @@ public protocol MetadataUpdaterAwareHttpCallExecutor {
         metadataUpdater: MetadataUpdaterProtocol,
         retryConfiguration: HttpClientResilience.Configuration,
         rateLimitGate: RateLimitGate
-    ) async -> Result<HttpClientResponse, NSError>
+    ) async -> Result<HttpClientResponse, Error>
 
     /// Raw request (takes whole url) - should be storage request
     func requestUploadToStorage(
@@ -43,7 +44,17 @@ public protocol MetadataUpdaterAwareHttpCallExecutor {
         headers: [(String, [String])],
         retryConfiguration: HttpClientResilience.Configuration,
         rateLimitGate: RateLimitGate
-    ) async -> Result<HttpClientResponse, NSError>
+    ) async -> Result<HttpClientResponse, Error>
+
+    func requestSmallUpload(
+        method: String,
+        url: String,
+        content: Data,
+        metadata: Data,
+        headers: [(String, [String])],
+        metadataUpdater: MetadataUpdaterProtocol,
+        rateLimitGate: RateLimitGate
+    ) async -> Result<HttpClientResponse, Error>
 
     func requestDownloadFromStorage(
         method: String,
@@ -53,7 +64,7 @@ public protocol MetadataUpdaterAwareHttpCallExecutor {
         retryConfiguration: HttpClientResilience.Configuration,
         rateLimitGate: RateLimitGate,
         downloadStreamCreator: @Sendable @escaping (URLSession.AsyncBytes) -> AnyAsyncSequence<UInt8>
-    ) async -> Result<HttpClientStream, NSError>
+    ) async -> Result<HttpClientStream, Error>
 }
 
 /// Family identifiers used by this layer when feeding the shared 429 gate.
@@ -91,7 +102,7 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
         metadataUpdater: MetadataUpdaterProtocol,
         retryConfiguration: HttpClientResilience.Configuration,
         rateLimitGate: RateLimitGate
-    ) async -> Result<HttpClientResponse, NSError> {
+    ) async -> Result<HttpClientResponse, Error> {
         Log.debug("sdk request (drive): \(relativePath), headers: \(headers), content: \(String(data: content, encoding: .utf8) ?? "\(content.count) bytes")", domain: .sdk)
 
         // Same `(method, path) → family` mapping PDClient endpoints use, so a 429
@@ -105,7 +116,7 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
             refreshCredentials: performRequestToRefreshCredentials()
         ) { [weak self] previousError in
             guard let self else {
-                let error = (previousError ?? CocoaError(.userCancelled)) as NSError
+                let error = (previousError ?? CocoaError(.userCancelled))
                 return .doNotRetry(.failure(error))
             }
             let result = await self.executeDriveAPICall(
@@ -122,7 +133,7 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
         headers: [(String, [String])],
         retryConfiguration: HttpClientResilience.Configuration,
         rateLimitGate: RateLimitGate
-    ) async -> Result<HttpClientResponse, NSError> {
+    ) async -> Result<HttpClientResponse, Error> {
         Log.debug("upload request: \(url), headers: \(headers)", domain: .sdk)
 
         let uploader = SDKURLSessionStreamingUploader()
@@ -134,7 +145,7 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
             refreshCredentials: performRequestToRefreshCredentials()
         ) { [weak self] previousError in
             guard let self else {
-                let error = (previousError ?? CocoaError(.userCancelled)) as NSError
+                let error = (previousError ?? CocoaError(.userCancelled))
                 return .doNotRetry(.failure(error))
             }
             return await executeUpload(
@@ -157,7 +168,7 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
         retryConfiguration: HttpClientResilience.Configuration,
         rateLimitGate: RateLimitGate,
         downloadStreamCreator: @Sendable @escaping (URLSession.AsyncBytes) -> AnyAsyncSequence<UInt8>
-    ) async -> Result<HttpClientStream, NSError> {
+    ) async -> Result<HttpClientStream, Error> {
         Log.debug("download request: \(url), headers: \(headers), content: \(String(data: content, encoding: .utf8) ?? "\(content.count) bytes")", domain: .sdk)
 
         let downloader = SDKURLSessionStreamingDownloader(downloadStreamCreator: downloadStreamCreator)
@@ -169,7 +180,7 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
             refreshCredentials: performRequestToRefreshCredentials()
         ) { [weak self] previousError in
             guard let self else {
-                let error = (previousError ?? CocoaError(.userCancelled)) as NSError
+                let error = (previousError ?? CocoaError(.userCancelled))
                 return .doNotRetry(.failure(error))
             }
 
@@ -185,6 +196,151 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
         }
     }
     
+    public func requestSmallUpload(
+        method: String,
+        url: String,
+        content: Data,
+        metadata: Data,
+        headers: [(String, [String])],
+        metadataUpdater: MetadataUpdaterProtocol,
+        rateLimitGate: RateLimitGate
+    ) async -> Result<HttpClientResponse, Error> {
+        guard let parameters = try? JSONSerialization.jsonObject(with: metadata) as? JSONDictionary else {
+            return .failure(CocoaError(.propertyListReadCorrupt))
+        }
+        // Both small-upload endpoints are non-idempotent POSTs. Do not allow URLSession
+        // to infer that replay is safe from an idempotent HTTP method such as PUT.
+        guard method == HTTPMethod.post.rawValue,
+              let components = URLComponents(string: url),
+              let originalURL = components.url else {
+            return .failure(URLError(.unsupportedURL))
+        }
+        let family = RateLimitFamily.from(method: method, path: components.path)
+        return await HttpClientResilience.performSmallUploadWithResilience(
+            rateLimitGate: rateLimitGate,
+            family: family,
+            refreshCredentials: performRequestToRefreshCredentials()
+        ) { [self] in
+            do {
+                let request = try await createSmallUploadRequest(
+                    url: originalURL,
+                    components: components,
+                    method: method,
+                    headers: headers
+                )
+                let (data, response) = try await sendSmallUpload(request: request, content: content)
+                try await updateSmallUploadSession(response: response, request: request)
+                return .success(try await handleSmallUploadResponse(
+                    data: data,
+                    response: response,
+                    path: components.path,
+                    parameters: parameters,
+                    metadataUpdater: metadataUpdater
+                ))
+            } catch is CancellationError {
+                return .failure(URLError(.cancelled))
+            } catch {
+                return .failure(error)
+            }
+        }
+    }
+
+    private func createSmallUploadRequest(
+        url: URL,
+        components: URLComponents,
+        method: String,
+        headers: [(String, [String])]
+    ) async throws -> URLRequest {
+        // TODO [@alecrim, DM-1066]: Share HTTP handling between regular Drive API calls and small uploads if possible
+        try Task.checkCancellation()
+        var request = await createAuthenticatedRequest(
+            url: url.absoluteString,
+            method: method,
+            headers: headers
+        )
+        request.timeoutInterval = 60
+        guard request.value(forHTTPHeaderField: HTTPHeaderName.authorization) != nil else {
+            throw URLError(.userAuthenticationRequired)
+        }
+        guard var routedURL = URLComponents(string: dohInterface.getCurrentlyUsedHostUrl()) else {
+            throw URLError(.badURL)
+        }
+        routedURL.percentEncodedPath += components.percentEncodedPath
+        routedURL.percentEncodedQuery = components.percentEncodedQuery
+        guard let requestURL = routedURL.url else { throw URLError(.badURL) }
+        request.url = requestURL
+        for (name, value) in dohInterface.getCurrentlyUsedUrlHeaders() {
+            request.setValue(value, forHTTPHeaderField: name)
+        }
+        if let token = dohInterface.getProxyToken() {
+            request.setValue(token, forHTTPHeaderField: HTTPHeaderName.atlasSecret)
+        }
+        request.setValue("application/vnd.protonmail.v1+json", forHTTPHeaderField: HTTPHeaderName.accept)
+        return request
+    }
+
+    private func sendSmallUpload(
+        request: URLRequest,
+        content: Data
+    ) async throws -> (data: Data, response: HTTPURLResponse) {
+        try Task.checkCancellation()
+        let (data, response) = try await DefaultURLSessionProvider.instance.session.upload(
+            for: request,
+            from: content,
+            delegate: SmallUploadRedirectDelegate()
+        )
+        try Task.checkCancellation()
+        guard let response = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+        return (data: data, response: response)
+    }
+
+    private func updateSmallUploadSession(
+        response: HTTPURLResponse,
+        request: URLRequest
+    ) async throws {
+        // TODO [@alecrim, DM-1066]: Share HTTP handling between regular Drive API calls and small uploads if possible
+        await dohInterface.synchronizeCookies(with: response, requestHeaders: request.allHTTPHeaderFields ?? [:])
+        try Task.checkCancellation()
+        if let date = response.value(forHTTPHeaderField: HTTPHeaderName.date), let time = DateParser.parse(time: date) {
+            serviceDelegate?.onUpdate(serverTime: Int64(time.timeIntervalSince1970))
+        }
+    }
+
+    func handleSmallUploadResponse(
+        data: Data,
+        response: HTTPURLResponse,
+        path: String,
+        parameters: JSONDictionary,
+        metadataUpdater: MetadataUpdaterProtocol
+    ) async throws -> HttpClientResponse {
+        let result = HttpClientResponse(data: data, response: response)
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? JSONDictionary else {
+            if (200..<300).contains(response.statusCode) {
+                throw MetadataUpdateError.fieldMissing(missingField: "smallUpload.responseBody")
+            }
+            return result
+        }
+        // TODO [@alecrim, DM-1066]: Share HTTP handling between regular Drive API calls and small uploads if possible
+        if json.code == APIErrorCode.humanVerificationRequired {
+            // TODO [@alecrim, DM-1065]: improve human verification handling
+            // Let the SDK surface the rejection; we cannot trigger the verification flow from this context.
+            return result
+        }
+        if let code = json.code, code == APIErrorCode.badAppVersion || code == APIErrorCode.badApiVersion {
+            await MainActor.run { forceUpgradeDelegate?.onForceUpgrade(message: json.errorMessage ?? "") }
+        }
+        if let code = json.code, code != APIErrorCode.responseOK {
+            return result
+        }
+        try metadataUpdater.handleSmallUploadResponse(
+            path: path,
+            requestBody: parameters,
+            responseStatusCode: response.statusCode,
+            responseBody: json
+        )
+        return result
+    }
+
     private func performRequestToRefreshCredentials() -> (Error) async throws -> Void {
         { [weak self] error in
             guard let self else { throw error }
@@ -203,10 +359,10 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
         content: Data,
         headers requestHeaders: [(String, [String])],
         metadataUpdater: MetadataUpdaterProtocol
-    ) async -> Result<HttpClientResponse, NSError> {
+    ) async -> Result<HttpClientResponse, Error> {
         // Check if the task was cancelled before starting the request
         if Task.isCancelled {
-            return .failure(URLError(.cancelled) as NSError)
+            return .failure(URLError(.cancelled))
         }
         var dataTask: URLSessionDataTask?
         return await withTaskCancellationHandler {
@@ -244,7 +400,13 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
                                     }
                                     
                                     let response = try Self.handleDriveAPICallResponse(
-                                        path, method, requestHeaders, parameters, httpResponse, jsonDictionary, metadataUpdater
+                                        path: path,
+                                        method: method,
+                                        requestHeaders: requestHeaders,
+                                        parameters: parameters,
+                                        httpResponse: httpResponse,
+                                        jsonDictionary: jsonDictionary,
+                                        metadataUpdater: metadataUpdater
                                     )
                                     continuation.resume(returning: response)
                                     
@@ -254,23 +416,28 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
                                     }
                                     
                                     guard let jsonDictionary = error.userInfo[ResponseError.responseDictionaryUserInfoKey] as? JSONDictionary else {
-                                        let responseHeaders = Self.extractHeaders(from: httpResponse)
-                                        let response = HttpClientResponse(data: nil, headers: responseHeaders, statusCode: httpResponse.statusCode)
+                                        let response = HttpClientResponse(data: nil, response: httpResponse)
                                         continuation.resume(returning: .success(response))
                                         return
                                     }
                                     
                                     let response = try Self.handleDriveAPICallResponse(
-                                        path, method, requestHeaders, parameters, httpResponse, jsonDictionary, metadataUpdater
+                                        path: path,
+                                        method: method,
+                                        requestHeaders: requestHeaders,
+                                        parameters: parameters,
+                                        httpResponse: httpResponse,
+                                        jsonDictionary: jsonDictionary,
+                                        metadataUpdater: metadataUpdater
                                     )
                                     continuation.resume(returning: response)
                                 }
                             } catch {
-                                continuation.resume(returning: .failure(error as NSError))
+                                continuation.resume(returning: .failure(error))
                             }
                         })
                 } catch {
-                    continuation.resume(returning: .failure(error as NSError))
+                    continuation.resume(returning: .failure(error))
                 }
             }
         } onCancel: {
@@ -279,27 +446,25 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
     }
     
     static private func handleDriveAPICallResponse(
-        _ path: String,
-        _ method: HTTPMethod,
-        _ requestHeaders: [(String, [String])],
-        _ parameters: JSONDictionary?,
-        _ httpResponse: HTTPURLResponse,
-        _ jsonDictionary: JSONDictionary,
-        _ metadataUpdater: MetadataUpdaterProtocol
-    ) throws -> Result<HttpClientResponse, NSError> {
-        let responseHeaders = extractHeaders(from: httpResponse)
-        let data = try JSONSerialization.data(withJSONObject: jsonDictionary, options: [])
-        let statusCode = httpResponse.statusCode
+        path: String,
+        method: HTTPMethod,
+        requestHeaders: [(String, [String])],
+        parameters: JSONDictionary?,
+        httpResponse: HTTPURLResponse,
+        jsonDictionary: JSONDictionary,
+        metadataUpdater: MetadataUpdaterProtocol
+    ) throws -> Result<HttpClientResponse, Error> {
+        let responseData = try JSONSerialization.data(withJSONObject: jsonDictionary, options: [])
+        let response = HttpClientResponse(data: responseData, response: httpResponse)
         metadataUpdater.handleRequestAndResponse(
             path: path,
             method: method,
             requestHeaders: requestHeaders,
             requestBody: parameters,
-            responseStatusCode: statusCode,
-            responseHeaders: responseHeaders,
+            responseStatusCode: response.statusCode,
+            responseHeaders: response.headers,
             responseBody: jsonDictionary
         )
-        let response = HttpClientResponse(data: data, headers: responseHeaders, statusCode: statusCode)
         return .success(response)
     }
     
@@ -317,15 +482,14 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
             return .doNotRetry(.failure(NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled)))
         }
         
-        let updatedHeaders = await addHeadersToRawStorageCall(headers: headers)
-        let request = await createRequest(url: url, method: method, headers: updatedHeaders)
+        let request = await createAuthenticatedRequest(url: url, method: method, headers: headers)
         
         Log.debug("Uploading request: \(request)", domain: .sdk)
         
         // if the stream used for HTTP request body was already read from, we don't retry
         guard content.input.streamStatus == .notOpen else {
             Log.debug("HttpClientResilience: not retrying upload due to already written stream", domain: .networking)
-            let error = (previousError ?? CocoaError(.userCancelled)) as NSError
+            let error = (previousError ?? CocoaError(.userCancelled))
             return .retryIfNeeded(.failure(error))
         }
 
@@ -336,7 +500,7 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
             )
             return .retryIfNeeded(result)
         } catch {
-            return .retryIfNeeded(.failure(error as NSError))
+            return .retryIfNeeded(.failure(error))
         }
     }
     
@@ -347,28 +511,29 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
         content: Data,
         headers: [(String, [String])],
         retryConfiguration: HttpClientResilience.Configuration
-    ) async -> Result<HttpClientStream, NSError> {
+    ) async -> Result<HttpClientStream, Error> {
         // Check if the task was cancelled before starting the upload
         if Task.isCancelled {
-            return .failure(URLError(.cancelled) as NSError)
+            return .failure(URLError(.cancelled))
         }
         
-        let updatedHeaders = await addHeadersToRawStorageCall(headers: headers)
-        let request = await createRequest(url: url, method: method, headers: updatedHeaders)
+        let request = await createAuthenticatedRequest(url: url, method: method, headers: headers)
         Log.debug("Downloading request: \(request)", domain: .sdk)
         return await downloader.download(request: request)
     }
     
-    private func addHeadersToRawStorageCall(
+    private func createAuthenticatedRequest(
+        url: String,
+        method: String,
         headers: [(String, [String])]
-    ) async -> [(String, [String])] {
+    ) async -> URLRequest {
         var updatedHeaders = headers
         
         if let serviceDelegate {
-            updatedHeaders.append(("x-pm-appversion", [serviceDelegate.appVersion]))
-            updatedHeaders.append(("x-pm-locale", [serviceDelegate.locale]))
+            updatedHeaders.append((HTTPHeaderName.appVersion, [serviceDelegate.appVersion]))
+            updatedHeaders.append((HTTPHeaderName.locale, [serviceDelegate.locale]))
             if let userAgent = serviceDelegate.userAgent {
-                updatedHeaders.append(("User-Agent", [userAgent]))
+                updatedHeaders.append((HTTPHeaderName.userAgent, [userAgent]))
             }
             if let additionalHeaders = serviceDelegate.additionalHeaders {
                 additionalHeaders.forEach { updatedHeaders.append(($0, [$1])) }
@@ -377,10 +542,10 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
             assertionFailure("PMAPIService must have service delegate set")
         }
         
-        updatedHeaders.append(("x-pm-uid", [sessionUID]))
+        updatedHeaders.append((HTTPHeaderName.sessionUID, [sessionUID]))
         switch await fetchAuthCredentials() {
         case .found(let credentials):
-            updatedHeaders.append(("Authorization", ["Bearer \(credentials.accessToken)"]))
+            updatedHeaders.append((HTTPHeaderName.authorization, ["Bearer \(credentials.accessToken)"]))
         case .notFound, .wrongConfigurationNoDelegate:
             if (authDelegate as? PMAPIClient)?.isSignedIn() == true {
                 assertionFailure("The storage calls should always be performed with valid credentials")
@@ -388,14 +553,10 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
             break
         }
         
-        return updatedHeaders
-    }
-    
-    fileprivate func createRequest(url: String, method: String, headers: [(String, [String])]) async -> URLRequest {
         var request = URLRequest(url: URL(string: url)!)
         request.timeoutInterval = 604_800
         request.httpMethod = method
-        for header in headers {
+        for header in updatedHeaders {
             var values = header.1
             guard !values.isEmpty else { continue }
             let firstValue = values.removeFirst()
@@ -425,5 +586,18 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
             }
         }
         return map
+    }
+}
+
+// Retains the existing behavior to reject redirection on small file uploads.
+private final class SmallUploadRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest,
+        completionHandler: @escaping (URLRequest?) -> Void
+    ) {
+        completionHandler(nil)
     }
 }

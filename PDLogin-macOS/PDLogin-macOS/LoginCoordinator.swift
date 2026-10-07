@@ -25,7 +25,7 @@ import ProtonCoreServices
 import ProtonCoreUIFoundations
 
 protocol LoginCoordinatorDelegate: AnyObject {
-    func loginCoordinatorDidFinish(loginCoordinator: LoginCoordinator, data: LoginData) async
+    func loginCoordinatorDidFinish(loginCoordinator: LoginCoordinator, data: LoginData, createFreshSyncLocation: Bool) async
 }
 
 @MainActor
@@ -79,7 +79,8 @@ final class LoginCoordinator: NSObject {
     }
 
     private func loginComplete(_ data: LoginData) async {
-        await self.delegate?.loginCoordinatorDidFinish(loginCoordinator: self, data: data)
+        let createFreshSyncLocation = vm?.createFreshSyncLocation ?? false
+        await self.delegate?.loginCoordinatorDidFinish(loginCoordinator: self, data: data, createFreshSyncLocation: createFreshSyncLocation)
     }
 
     private func loginStepResultReceived(_ result: LoginStep) async {

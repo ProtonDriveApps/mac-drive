@@ -44,6 +44,14 @@ public final class LegacyEventsReferenceStorage: LegacyEventsReferenceStoragePro
         migrationFromCloudSlot()
     }
 
+    /// Drops the event-loop cursor, so the next poll has to fetch an initial event ID again.
+    func clear() {
+        latestEventFetchTime = nil
+        latestFetchedEventID = nil
+        referenceDate = nil
+        referenceID = nil
+    }
+
     // These values were previously stored in app's UserDefaults and accessors were implemented in `CloudSlot`
     // This method moved legacy values from app's UserDefaults to the app group's UserDefaults
     private func migrationFromCloudSlot() {

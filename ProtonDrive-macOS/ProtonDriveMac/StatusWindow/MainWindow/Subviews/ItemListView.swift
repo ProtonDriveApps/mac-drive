@@ -37,21 +37,18 @@ struct ItemListView: View {
         ScrollView {
             VStack(spacing: 0) {
                 PromoCampaignBanner(state: state, actions: actions)
-                TimelineView(.periodic(from: Date.now, by: 0.5)) { context in
-                    ForEach(Array(state.throttledItems.enumerated()), id: \.element) { index, item in
-                        ItemRowView(
-                            item: item,
-                            actions: actions,
-                            synchronizedProgress: context.date.timeIntervalSince1970.truncatingRemainder(dividingBy: 1) * 100,
-                            isHovering: indexOfRowBeingHoveredOver == index
-                        )
-                        .frame(height: 48)
-                        .onHover { isHovering in
-                            if isHovering {
-                                self.indexOfRowBeingHoveredOver = index
-                            } else if self.indexOfRowBeingHoveredOver == index {
-                                self.indexOfRowBeingHoveredOver = -1
-                            }
+                ForEach(Array(state.throttledItems.enumerated()), id: \.element) { index, item in
+                    ItemRowView(
+                        item: item,
+                        actions: actions,
+                        isHovering: indexOfRowBeingHoveredOver == index
+                    )
+                    .frame(height: 48)
+                    .onHover { isHovering in
+                        if isHovering {
+                            self.indexOfRowBeingHoveredOver = index
+                        } else if self.indexOfRowBeingHoveredOver == index {
+                            self.indexOfRowBeingHoveredOver = -1
                         }
                     }
                 }

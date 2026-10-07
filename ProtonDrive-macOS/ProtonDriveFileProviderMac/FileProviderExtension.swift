@@ -24,39 +24,41 @@ import PDFileProvider
 import ProtonCoreLog
 import ProtonCoreCryptoGoInterface
 import ProtonCoreUtilities
-import PDUploadVerifier
 import ProtonCoreCryptoPatchedGoImplementation
 import PDFileProviderOperations
 import PMEventsManager
 import PDSDKCore
 
-class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
-    @SettingsStorage(UserDefaults.FileProvider.workingSetEnumerationInProgressKey.rawValue) var workingSetEnumerationInProgress: Bool?
-    @SettingsStorage(UserDefaults.FileProvider.shouldReenumerateItemsKey.rawValue) var shouldReenumerateItems: Bool?
-    @SettingsStorage("domainDisconnectedReasonCacheReset") public var cacheReset: Bool?
+class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, NSFileProviderServicing {
+    @SettingsStorage("domainDisconnectedReasonCacheReset") public var keepDomainDisconnectedForCacheRebuild: Bool?
     @SettingsStorage(UserDefaults.FileProvider.pathsMarkedAsKeepDownloadedKey.rawValue) var pathsMarkedAsKeepDownloaded: String?
     @SettingsStorage(UserDefaults.FileProvider.pathsMarkedAsOnlineOnlyKey.rawValue) var pathsMarkedAsOnlineOnly: String?
     @SettingsStorage(UserDefaults.FileProvider.openItemsInBrowserKey.rawValue) var openItemsInBrowser: String?
     @SettingsStorage(UserDefaults.FileProvider.extensionPathKey.rawValue) var fileProviderExtensionPath: String?
+    @SettingsStorage(UserDefaults.FileProvider.volumeLockCheckRequestedAtKey.rawValue) var volumeLockCheckRequestedAt: Double?
 
     private var isForceRefreshing: Bool = false
-    
+
     private let domain: NSFileProviderDomain // use domain to support multiple accounts
     private let manager: NSFileProviderManager
-    
+
     private var observer: NSKeyValueObservation?
     private var networkCancellable: AnyCancellable?
 
     var tower: Tower { postLoginServices.tower }
 
     private lazy var syncReporter = SyncReporter(tower: tower, manager: manager)
-    
+
     private var fileProviderOperations: FileProviderOperationsProtocol!
     private var progresses = FileOperationProgresses()
-    
+    private var globalProgressServiceSource: GlobalProgressXPCServiceSource?
+
     private lazy var itemProvider = ItemProvider()
-    private lazy var keymaker = DriveKeymaker(autolocker: nil, keychain: DriveKeychain.shared,
-                                              logging: { Log.info($0, domain: .storage) })
+    private lazy var keymaker = DriveKeymaker(
+        autolocker: nil,
+        keychain: DriveKeychain.shared,
+        logging: { Log.info($0, domain: .storage) }
+    )
 
     private var enumerationObserver: EnumerationObserver!
 
@@ -81,7 +83,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         eventObservers: [],
         eventProcessingMode: .processRecords,
         eventLoopInterval: RuntimeConfiguration.shared.eventLoopInterval,
-        uploadVerifierFactory: ConcreteUploadVerifierFactory(),
+        scanEngineV2TestOverride: { RuntimeConfiguration.shared.forceSyncMetadataScanV2 },
         activityObserver: { [weak self] activity in
             self?.currentActivityChanged(activity)
         }
@@ -92,6 +94,8 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         fileProviderManager: manager
     )
 
+    private lazy var resyncEnumerationService = ResyncEnumerationService(settingsStorage: Constants.appGroup)
+
     private let observationCenter: PDCore.UserDefaultsObservationCenter
     private var systemMetricsMonitor: SystemMetricsMonitor?
 
@@ -101,25 +105,18 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         PDCore.Constants.buildType = Constants.buildType
 
         // the logger setup happens before the super.init, hence the captured `client` and `featureFlags` variables
-        var featureFlags: PDCore.FeatureFlagsRepository?
+        var featureFlags: PDCore.DriveFeatureFlagsProvider?
         Constants.loadConfiguration()
         configureCoreLoggerUsingEnvironmentFromConstants()
         FileProviderExtension.setupLogger { featureFlags }
 
-        if RuntimeConfiguration.shared.includeTracesInLogs {
-            let monitor = SystemMetricsMonitor(
-                interval: RuntimeConfiguration.shared.systemMetricsMonitoringInterval,
-                volumeURL: FileManager.default.homeDirectoryForCurrentUser
-            )
-            monitor.start()
-            systemMetricsMonitor = monitor
-        }
-        
+        systemMetricsMonitor = Self.makeSystemMetricsMonitor()
+
         Log.event(.extensionInit(.started(.init(
             domainIdentifier: domain.identifier.rawValue,
             backingStoreIdentifier: domain.backingStoreIdentity?.base64EncodedString() ?? "nil"
         ))))
-        
+
         let lastLineBeforeHanging: Atomic<Int> = .init(#line)
         func updateLastLineBeforeHanging(line: Int = #line) { lastLineBeforeHanging.mutate { $0 = line } }
         let hangLogCancellation = performUnlessCancelled(after: .seconds(60)) {
@@ -138,7 +135,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
                          sendToSentryIfPossible: false)
             }
         }
-        
+
         self.domain = domain
         guard let manager = NSFileProviderManager(for: domain) else {
             let message = "File provider manager is required by the file provider extension to operate"
@@ -150,32 +147,36 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         }
         self.manager = manager
         updateLastLineBeforeHanging()
-        
-        _shouldReenumerateItems.configure(with: Constants.appGroup)
+
         _openItemsInBrowser.configure(with: Constants.appGroup)
-        _cacheReset.configure(with: Constants.appGroup)
+        _keepDomainDisconnectedForCacheRebuild.configure(with: Constants.appGroup)
         _fileProviderExtensionPath.configure(with: Constants.appGroup)
+        _volumeLockCheckRequestedAt.configure(with: Constants.appGroup)
         updateLastLineBeforeHanging()
-        
+
         self.observationCenter = UserDefaultsObservationCenter(userDefaults: Constants.appGroup.userDefaults)
         updateLastLineBeforeHanging()
-        
+
         super.init()
         updateLastLineBeforeHanging()
+        
+        // the new instance is using the new DB from the get go,
+        // so there's no need to replace the persistent coordinator in-flight
+        _ = RecoveryCoordination.consumeStoreReplaced()
 
         let syncStorage = tower.syncStorage ?? SyncStorageManager(suite: Constants.appGroup)
         updateLastLineBeforeHanging()
-        
+
         self.enumerationObserver = EnumerationObserver(syncStorage: syncStorage)
         updateLastLineBeforeHanging()
-        
+
         self.setUpFileProviderOperations()
         updateLastLineBeforeHanging()
-        
+
         // expose featureFlags to logger
         featureFlags = tower.featureFlags
         updateLastLineBeforeHanging()
-        
+
         let context = tower.storage.synchronousContextPool.acquire()
         defer { tower.storage.synchronousContextPool.relinquish(context) }
         guard tower.rootFolderAvailable(moc: context) else {
@@ -189,7 +190,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
             return
         }
         updateLastLineBeforeHanging()
-        
+
         // this line covers a rare scenario in which the child session credentials
         // were fetched and saved to keychain by the main app, but file provider extension
         // somehow did not get informed about them through the user defaults.
@@ -197,10 +198,14 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         // to group container on the Sequoia, so the user defaults were not available
         tower.sessionVault.consumeChildSessionCredentials()
         updateLastLineBeforeHanging()
-        
-        self.clearDrafts()
+
+        // If the volume is locked on the BE (e.g. after a password reset, domain expiry), all operations fail
+        // and we keep retrying fetchContents in a loop. The main app is the authority for the (network) lock
+        // check and owns cleanup, and its domain is only connected while the app runs: we just ask the app to
+        // check on our domain. If it's locked, the app's removeAllDomains stops us.
+        requestVolumeLockCheck()
         updateLastLineBeforeHanging()
-        
+
         self.tower.start(options: [])
         updateLastLineBeforeHanging()
 
@@ -214,12 +219,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         self.startObservingRunningAppChanges()
         updateLastLineBeforeHanging()
 
-        let completed: Bool = SyncAwait.run(timeout: .seconds(3)) {
-            await self.syncReporter.cleanUpOnLaunch()
-        }
-        if !completed {
-            Log.warning("cleanUpOnLaunch timed out after 3s, proceeding with launch", domain: .fileProvider, sendToSentryIfPossible: true)
-        }
+        cleanUpSyncReporterOnLaunch()
         updateLastLineBeforeHanging()
 
         self.setUpKeepDownloadedObservers()
@@ -230,10 +230,29 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
 
         postExtensionLaunchNotification()
         updateLastLineBeforeHanging()
-        
+
         Log.event(.extensionInit(.succeeded(.init(
             domainIdentifier: domain.identifier.rawValue
         ))))
+    }
+
+    private func cleanUpSyncReporterOnLaunch() {
+        let completed: Bool = SyncAwait.run(timeout: .seconds(3)) {
+            await self.syncReporter.cleanUpOnLaunch()
+        }
+        if !completed {
+            Log.warning("cleanUpOnLaunch timed out after 3s, proceeding with launch", domain: .fileProvider, sendToSentryIfPossible: true)
+        }
+    }
+
+    private static func makeSystemMetricsMonitor() -> SystemMetricsMonitor? {
+        guard RuntimeConfiguration.shared.includeTracesInLogs else { return nil }
+        let monitor = SystemMetricsMonitor(
+            interval: RuntimeConfiguration.shared.systemMetricsMonitoringInterval,
+            volumeURL: FileManager.default.homeDirectoryForCurrentUser
+        )
+        monitor.start()
+        return monitor
     }
 
     private func postExtensionLaunchNotification() {
@@ -288,17 +307,6 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     }
 
     private func setUpFileProviderOperations() {
-        let legacyFileProviderOperations = LegacyFileProviderOperations(
-            tower: tower,
-            syncReporter: syncReporter,
-            itemProvider: itemProvider,
-            manager: manager,
-            progresses: progresses,
-            enableRegressionTestHelpers: RuntimeConfiguration.shared.enableTestAutomation,
-            downloadCollector: DBPerformanceMeasurementCollector(operationType: .download),
-            uploadCollector: DBPerformanceMeasurementCollector(operationType: .upload)
-        )
-
         do {
             self.fileProviderOperations = try SyncAwait.run {
                 try await SDKFileProviderOperations(
@@ -311,55 +319,23 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
                     uploadPerformanceCollector: DBPerformanceMeasurementCollector(operationType: .upload)
                 )
             }
+            let source = GlobalProgressXPCServiceSource(manager: manager)
+            globalProgressServiceSource = source
+            source.startServing()
         } catch {
             fatalError("Unable to initialize SDK: \(error)")
         }
     }
 
-    private func clearDrafts() {
-        do {
-            let client = tower.client
-            let draftWasCleared = try tower.storage.clearDrafts(
-                moc: tower.storage.backgroundContext,
-                deleteDraft: tower.fileUploader.performDeletionOfUploadingFileOutsideMOC,
-                deleteRevisionOnBE: { revision in
-                    guard revision.state == .draft else { return }
-                    let identifier = revision.identifier
-                    client.deleteRevision(identifier.revisionID, identifier.fileID, shareID: identifier.shareID) { _ in
-                        // The result is ignored because deleting revision draft is not strictly required.
-                        // * the revision will be cleared after 4 hours by backend's collector
-                        // * (once it's implemented) during the revision upload, if the draft revision already exists and its uploadClientUID
-                        //   matches the new revision, we will delete the revision draft as we do delete the file draft
-                    }
-                },
-                includingAlreadyUploadedFiles: true)
-            if draftWasCleared {
-                Log.event(.signalEnumerator(.started(.init(containerType: .workingSet, reason: .draftsCleared))))
-                manager.signalEnumerator(for: .workingSet) { error in
-                    if let error {
-                        Log.event(.signalEnumerator(.failed(.init(
-                            id: NSFileProviderItemIdentifier.workingSet.logIdentifier, error: error
-                        ))))
-                    } else {
-                        Log.event(.signalEnumerator(.succeeded(.init(
-                            containerType: .workingSet, reason: .draftsCleared
-                        ))))
-                    }
-                    guard let error else { return }
-                    Log.error("Failed to signal enumerator after clearing drafts",
-                              error: error, domain: .enumerating)
-                }
-            }
-        } catch {
-            Log.error("Failed to clear drafts", error: error, domain: .storage)
-        }
-    }
-
     private func reenumerateIfNecessary() {
-        if shouldReenumerateItems == true || workingSetEnumerationInProgress == true {
+        let service = resyncEnumerationService
+        if service.changesEnumerationMode != .default || service.workingSetEnumerationInProgress == true {
             Log.event(.signalEnumerator(.started(.init(containerType: .workingSet, reason: .reenumerationRequired))))
-            manager.signalEnumerator(for: .workingSet) { [weak self] error in
+            manager.signalEnumerator(for: .workingSet) { error in
                 if let error {
+                    let sei = service.changesEnumerationMode.description
+                    let wseip = service.workingSetEnumerationInProgress.description
+                    Log.error("Signal enumerator (reenumeration) failed — changesEnumerationMode: \(sei), workingSetEnumerationInProgress: \(wseip)", error: error, domain: .fileProvider)
                     Log.event(.signalEnumerator(.failed(.init(
                         id: NSFileProviderItemIdentifier.workingSet.logIdentifier, error: error
                     ))))
@@ -368,11 +344,6 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
                         containerType: .workingSet, reason: .reenumerationRequired
                     ))))
                 }
-                guard let error else { return }
-                let sei = self?.shouldReenumerateItems.map(\.description) ?? "nil"
-                let wseip = self?.workingSetEnumerationInProgress.map(\.description) ?? "nil"
-                Log.error("Failed to signal enumerator due to shouldReenumerateItems \(sei) or workingSetEnumerationInProgress \(wseip): \(error.localizedDescription)",
-                          domain: .enumerating)
             }
         }
     }
@@ -380,8 +351,22 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     deinit {
         observationCenter.removeObserver(self)
     }
-    
-    private static func setupLogger(featureFlagsGetter: @escaping () -> PDCore.FeatureFlagsRepository?) {
+
+    func supportedServiceSources(
+        for itemIdentifier: NSFileProviderItemIdentifier,
+        completionHandler: @escaping ([any NSFileProviderServiceSource]?, (any Error)?) -> Void
+    ) -> Progress {
+        let progress = Progress(totalUnitCount: 1)
+        if itemIdentifier == .rootContainer, let globalProgressServiceSource {
+            completionHandler([globalProgressServiceSource], nil)
+        } else {
+            completionHandler([], nil)
+        }
+        progress.completedUnitCount = 1
+        return progress
+    }
+
+    private static func setupLogger(featureFlagsGetter: @escaping () -> PDCore.DriveFeatureFlagsProvider?) {
         let localSettings = LocalSettings.shared
         SentryClient.shared.start(localSettings: localSettings)
 
@@ -406,7 +391,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
             fatalError("FileProvider: Forced crash to test Sentry crash reporting")
         }
 #endif
-        
+
         NotificationCenter.default.addObserver(forName: .NSApplicationProtectedDataDidBecomeAvailable, object: nil, queue: nil) { _ in
             Log.info("Notification.Name.NSApplicationProtectedDataDidBecomeAvailable", domain: .fileProvider)
         }
@@ -421,6 +406,8 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         ))))
         networkCancellable?.cancel()
         stopObservingRunningAppChanges()
+        globalProgressServiceSource?.shutdown()
+        globalProgressServiceSource = nil
         tower.stop()
         tower.sessionCommunicator.stopObservingSessionChanges()
         progresses.cancelAll(reason: .fileProviderDeinited)
@@ -431,7 +418,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         if !completed {
             Log.warning("cleanUpOnInvalidate timed out after 3s, proceeding with invalidation", domain: .fileProvider, sendToSentryIfPossible: true)
         }
-        
+
         Log.event(.extensionInvalidate(.succeeded(.init(
             domainIdentifier: domain.identifier.rawValue
         ))))
@@ -443,17 +430,19 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
             break
         }
     }
-    
+
     func importDidFinish() async {
         Log.info("Import did finish", domain: .application)
     }
-    
+
     private func startObservingRunningAppChanges() {
         Log.info("Starts monitoring the menu bar app", domain: .application)
         self.runningAppsChangeHandler(NSWorkspace.shared)
-        self.observer = NSWorkspace.shared
-            .observe(\.runningApplications, options: [.new, .old],
-                      changeHandler: { [weak self] workspace, _ in self?.runningAppsChangeHandler(workspace) })
+        self.observer = NSWorkspace.shared.observe(
+            \.runningApplications,
+            options: [.new, .old],
+            changeHandler: { [weak self] workspace, _ in self?.runningAppsChangeHandler(workspace) }
+        )
     }
 
     private func runningAppsChangeHandler(_ workspace: NSWorkspace) {
@@ -466,18 +455,18 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         Task(priority: .userInitiated) { [weak self] in
             // the error is ignored by design — if there's an error, we just rely on the `self.domain` state
             let domains = (try? await NSFileProviderManager.domains()) ?? []
-                
+
             guard let self else { return }
-            
+
             let isAppRunning = runningApplicationBundleIdentifiers.contains { Self.isMenuBarAppIdentified($0) }
-            
+
             let context = self.tower.storage.synchronousContextPool.acquire()
             let isSignedIn = self.tower.rootFolderAvailable(moc: context)
             self.tower.storage.synchronousContextPool.relinquish(context)
 
             let currentDomain = domains.first(where: { $0.identifier == self.domain.identifier }) ?? self.domain
             let isDomainConnected = !currentDomain.isDisconnected
-            
+
             if !isAppRunning && isSignedIn && isDomainConnected {
                 self.disconnectDomainDueToMenuBarAppNotRunning()
             } else if isAppRunning && isSignedIn && !isDomainConnected {
@@ -547,10 +536,10 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
             isConnected: !domain.isDisconnected,
             reason: .appStartedRunning
         ))))
-        guard cacheReset != true else {
+        guard keepDomainDisconnectedForCacheRebuild != true else {
             Log.event(.domainConnectionChanged(.failed(.init(
                 id: self.domain.identifier.rawValue,
-                errorMessage: "cacheReset"
+                errorMessage: "keepDomainDisconnectedForCacheRebuild"
             ))))
             return
         }
@@ -569,7 +558,12 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
             }
         }
     }
-    
+
+    /// Asks the running main app to validate whether the volume is locked (and clean up if so).
+    private func requestVolumeLockCheck() {
+        volumeLockCheckRequestedAt = Date().timeIntervalSince1970
+    }
+
     private func stopObservingRunningAppChanges() {
         Log.info("Stop observing app running changes", domain: .application)
         self.observer?.invalidate()
@@ -595,9 +589,26 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
 
 extension FileProviderExtension {
     func enumerator(for containerItemIdentifier: NSFileProviderItemIdentifier,
-                    request: NSFileProviderRequest) throws -> NSFileProviderEnumerator
-    {
+                    request: NSFileProviderRequest) throws -> NSFileProviderEnumerator {
+        if RecoveryCoordination.isInProgress {
+            Log.info("enumerator(for:request:) call exited early due to recovery in progress", domain: .fileProvider)
+            throw EarlyExit.error(reason: .recoveryInProgress)
+        }
+        tower.storage.reloadStoreIfReplacedByMainApp()
         Log.trace()
+
+        // Keep the domain disconnected while the cache is rebuilt for the full resync: defer enumeration
+        // with .cannotSynchronize (recording the early-exit), matching how item operations defer. The
+        // resync resolves the deferred error at reenumeration before re-signaling the enumerator.
+        guard keepDomainDisconnectedForCacheRebuild != true else {
+            Log.event(.enumerator(.failed(.init(
+                containerType: .init(containerItemIdentifier),
+                errorMessage: "keepDomainDisconnectedForCacheRebuild"
+            ))))
+            resyncEnumerationService.recordCannotSynchronizeEarlyExit()
+            throw EarlyExit.error(reason: .domainShouldBeDisconnectedDuringCacheRebuild)
+        }
+
         do {
             Log.event(.enumerator(.started(.init(containerType: .init(containerItemIdentifier),
                                                   eventSource: .init(request)))))
@@ -616,45 +627,45 @@ extension FileProviderExtension {
             case .workingSet:
                 let wse = WorkingSetEnumerator(tower: tower,
                                                keepDownloadedManager: keepDownloadedManager,
+                                               resyncEnumerationService: resyncEnumerationService,
                                                enumerationObserver: enumerationObserver,
-                                               displayChangeEnumerationDetails: RuntimeConfiguration.shared.includeChangeEnumerationDetailsInTrayApp,
-                                               shouldReenumerateItems: shouldReenumerateItems == true)
-                shouldReenumerateItems = false
+                                               displayChangeEnumerationDetails: RuntimeConfiguration.shared.includeChangeEnumerationDetailsInTrayApp)
                 Log.event(.enumerator(.succeeded(.init(containerType: .init(containerItemIdentifier)))))
                 return wse
-                
+
             case .trashContainer:
-                let te = TrashEnumerator(tower: tower,
-                                         keepDownloadedManager: keepDownloadedManager,
-                                         enumerationObserver: enumerationObserver,
-                                         displayChangeEnumerationDetails: RuntimeConfiguration.shared.includeChangeEnumerationDetailsInTrayApp)
-                Log.event(.enumerator(.succeeded(.init(containerType: .init(containerItemIdentifier)))))
-                return te
+                if self.domain.supportsSyncingTrash {
+                    let te = TrashEnumerator(tower: tower,
+                                             keepDownloadedManager: keepDownloadedManager,
+                                             enumerationObserver: enumerationObserver,
+                                             displayChangeEnumerationDetails: RuntimeConfiguration.shared.includeItemEnumerationDetailsInTrayApp)
+                    return te
+                } else {
+                    throw CocoaError(.featureUnsupported)
+                }
 
             case .rootContainer:
                 let re = RootEnumerator(tower: tower,
                                         keepDownloadedManager: keepDownloadedManager,
                                         rootID: rootID,
                                         enumerationObserver: enumerationObserver,
-                                        displayEnumeratedItems: RuntimeConfiguration.shared.includeItemEnumerationDetailsInTrayApp,
-                                        shouldReenumerateItems: shouldReenumerateItems == true)
+                                        displayEnumeratedItems: RuntimeConfiguration.shared.includeItemEnumerationDetailsInTrayApp)
                 Log.event(.enumerator(.succeeded(.init(containerType: .init(containerItemIdentifier)))))
                 return re
-                
+
             default:
                 guard let nodeId = NodeIdentifier(rawValue: containerItemIdentifier.rawValue) else {
                     Log.event(.enumerator(.failed(.init(
                         containerType: .init(containerItemIdentifier),
                         errorMessage: "Could not find NodeID for folder enumerator"
                     ))))
-                    throw NSFileProviderError(NSFileProviderError.Code.noSuchItem)
+                    throw NSError.fileProviderErrorForNonExistentItem(withIdentifier: containerItemIdentifier)
                 }
                 let fe = FolderEnumerator(tower: tower,
                                           keepDownloadedManager: keepDownloadedManager,
                                           nodeID: nodeId,
                                           enumerationObserver: enumerationObserver,
-                                          displayEnumeratedItems: RuntimeConfiguration.shared.includeItemEnumerationDetailsInTrayApp,
-                                          shouldReenumerateItems: shouldReenumerateItems == true)
+                                          displayEnumeratedItems: RuntimeConfiguration.shared.includeItemEnumerationDetailsInTrayApp)
                 Log.event(.enumerator(.succeeded(.init(containerType: .init(containerItemIdentifier)))))
                 return fe
             }
@@ -676,30 +687,46 @@ extension FileProviderExtension {
               completionHandler: @escaping (NSFileProviderItem?, Error?) -> Void) -> Progress {
         if RecoveryCoordination.isInProgress {
             Log.info("item(for:) call exited early due to recovery in progress", domain: .fileProvider)
-            completionHandler(nil, CocoaError(.userCancelled))
+            completionHandler(nil, EarlyExit.error(reason: .recoveryInProgress))
             return Progress()
         }
 
         tower.storage.reloadStoreIfReplacedByMainApp()
         Log.event(.fetchItem(.started(.init(itemID: identifier.logIdentifier, parentIDs: tower.parentIDFetcher.fetchParentIDs(for: identifier.logIdentifier), eventSource: .init(request)))))
-        Log.trace()
-        return fileProviderOperations.item(for: identifier,
-                                           request: request,
-                                           completionHandler: completionHandler)
+
+        // fetchedItemCount is only updated during a full resync; capture the flag once so the completion
+        // recording and the not-found behavior below stay consistent if it flips mid-call.
+        let fullResyncInProgress = resyncEnumerationService.fullResyncInProgress
+        return fileProviderOperations.item(
+            for: identifier, request: request, confirmItemNotFoundWithBackend: !fullResyncInProgress
+        ) { [weak self] item, error in
+            if fullResyncInProgress {
+                self?.resyncEnumerationService.recordFetchedItem()
+            }
+            completionHandler(item, error)
+        }
     }
-    
+
     func fetchContents(for itemIdentifier: NSFileProviderItemIdentifier,
                        version requestedVersion: NSFileProviderItemVersion?,
                        request: NSFileProviderRequest,
                        completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void) -> Progress {
+
+        guard resyncEnumerationService.fullResyncInProgress != true else {
+            Log.info("fetchContents: exited early due to fullResyncInProgress being true", domain: .syncing)
+            resyncEnumerationService.recordCannotSynchronizeEarlyExit()
+            completionHandler(nil, nil, EarlyExit.error(reason: .fullResyncInProgress))
+            return Progress()
+        }
+
         if RecoveryCoordination.isInProgress {
             Log.info("fetchContents call exited early due to recovery in progress", domain: .fileProvider)
-            completionHandler(nil, nil, CocoaError(.userCancelled))
+            completionHandler(nil, nil, EarlyExit.error(reason: .recoveryInProgress))
             return Progress()
         }
 
         tower.storage.reloadStoreIfReplacedByMainApp()
-        Log.trace()
+
         Log.event(.fetchContents(.started(.init(itemID: itemIdentifier.logIdentifier, parentIDs: tower.parentIDFetcher.fetchParentIDs(for: itemIdentifier.logIdentifier), expectedVersion: requestedVersion?.sha256))))
         return fileProviderOperations.fetchContents(itemIdentifier: itemIdentifier,
                                                     requestedVersion: requestedVersion,
@@ -711,7 +738,7 @@ extension FileProviderExtension {
 
 // swiftlint:disable function_parameter_count
 extension FileProviderExtension {
-    
+
     func createItem(basedOn itemTemplate: NSFileProviderItem,
                     fields: NSFileProviderItemFields,
                     contents url: URL?,
@@ -719,13 +746,21 @@ extension FileProviderExtension {
                     request: NSFileProviderRequest,
                     completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress
     {
+        guard resyncEnumerationService.fullResyncInProgress != true else {
+            Log.info("createItem: exited early due to fullResyncInProgress being true", domain: .syncing)
+            resyncEnumerationService.recordCannotSynchronizeEarlyExit()
+            completionHandler(nil, [], false, EarlyExit.error(reason: .fullResyncInProgress))
+            return Progress()
+        }
+
         if RecoveryCoordination.isInProgress {
             Log.info("createItem call exited early due to recovery in progress", domain: .fileProvider)
-            completionHandler(nil, [], false, CocoaError(.userCancelled))
+            completionHandler(nil, [], false, EarlyExit.error(reason: .recoveryInProgress))
             return Progress()
         }
 
         tower.storage.reloadStoreIfReplacedByMainApp()
+
         Log.event(.createItem(.started(.init(
             itemID: itemTemplate.itemIdentifier.logIdentifier,
             parentIDs: [itemTemplate.parentItemIdentifier.logIdentifier] + tower.parentIDFetcher.fetchParentIDs(for: itemTemplate.parentItemIdentifier.logIdentifier),
@@ -741,22 +776,30 @@ extension FileProviderExtension {
                                                  request: request,
                                                  completionHandler: completionHandler)
     }
-    
+
     func modifyItem(_ item: NSFileProviderItem,
                     baseVersion version: NSFileProviderItemVersion,
                     changedFields: NSFileProviderItemFields,
                     contents newContents: URL?,
                     options: NSFileProviderModifyItemOptions = [],
                     request: NSFileProviderRequest,
-                    completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress
-    {
+                    completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress {
+
+        guard resyncEnumerationService.fullResyncInProgress != true else {
+            Log.info("modifyItem: exited early due to fullResyncInProgress being true", domain: .syncing)
+            resyncEnumerationService.recordCannotSynchronizeEarlyExit()
+            completionHandler(nil, [], false, EarlyExit.error(reason: .fullResyncInProgress))
+            return Progress()
+        }
+
         if RecoveryCoordination.isInProgress {
             Log.info("modifyItem call exited early due to recovery in progress", domain: .fileProvider)
-            completionHandler(nil, [], false, CocoaError(.userCancelled))
+            completionHandler(nil, [], false, EarlyExit.error(reason: .recoveryInProgress))
             return Progress()
         }
 
         tower.storage.reloadStoreIfReplacedByMainApp()
+
         Log.event(.modifyItem(.started(.init(
             itemID: item.itemIdentifier.logIdentifier,
             parentIDs: tower.parentIDFetcher.fetchParentIDs(for: item.itemIdentifier.logIdentifier),
@@ -766,9 +809,10 @@ extension FileProviderExtension {
             options: .init(options),
             version: version.sha256
         ))))
+
         let customCompletionHandler: (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void = { item, fields, shouldFetchContent, error in
             completionHandler(item, fields, shouldFetchContent, error)
-            
+
             // Update keep downloaded if item moved
             if changedFields.contains(.parentItemIdentifier), let item {
                 self.updateKeepDownloaded(for: item)
@@ -787,15 +831,23 @@ extension FileProviderExtension {
                     baseVersion version: NSFileProviderItemVersion,
                     options: NSFileProviderDeleteItemOptions = [],
                     request: NSFileProviderRequest,
-                    completionHandler: @escaping (Error?) -> Void) -> Progress
-    {
+                    completionHandler: @escaping (Error?) -> Void) -> Progress {
+
+        guard resyncEnumerationService.fullResyncInProgress != true else {
+            Log.info("deleteItem: exited early due to fullResyncInProgress being true", domain: .syncing)
+            resyncEnumerationService.recordCannotSynchronizeEarlyExit()
+            completionHandler(EarlyExit.error(reason: .fullResyncInProgress))
+            return Progress()
+        }
+
         if RecoveryCoordination.isInProgress {
             Log.info("deleteItem call exited early due to recovery in progress", domain: .fileProvider)
-            completionHandler(CocoaError(.userCancelled))
+            completionHandler(EarlyExit.error(reason: .recoveryInProgress))
             return Progress()
         }
 
         tower.storage.reloadStoreIfReplacedByMainApp()
+
         Log.event(.deleteItem(.started(.init(
             itemID: identifier.logIdentifier,
             parentIDs: tower.parentIDFetcher.fetchParentIDs(for: identifier.logIdentifier),
@@ -803,24 +855,32 @@ extension FileProviderExtension {
             eventSource: .init(request),
             version: version.sha256
         ))))
+
         return fileProviderOperations.deleteItem(identifier: identifier,
                                                  baseVersion: version,
                                                  options: options,
                                                  request: request,
                                                  completionHandler: completionHandler)
     }
-    
+
     /// Called when the user triggers the "Refresh" action in Finder.
     func performAction(identifier actionIdentifier: NSFileProviderExtensionActionIdentifier,
                        onItemsWithIdentifiers itemIdentifiers: [NSFileProviderItemIdentifier],
                        completionHandler: @escaping (Error?) -> Void) -> Progress {
-        
+
+        guard resyncEnumerationService.fullResyncInProgress != true else {
+            Log.info("performAction: exited early due to fullResyncInProgress being true", domain: .syncing)
+            resyncEnumerationService.recordCannotSynchronizeEarlyExit()
+            completionHandler(EarlyExit.error(reason: .fullResyncInProgress))
+            return Progress()
+        }
+
         Log.trace(actionIdentifier.rawValue)
-        
+
         let completionBlockWrapper = CompletionBlockWrapper(completionHandler)
-        
+
         let moc = tower.storage.backgroundContext
-        
+
         switch actionIdentifier.rawValue {
         case "ch.protonmail.drive.fileprovider.action.keep_downloaded":
             Log.info("performAction keep_downloaded for \(itemIdentifiers.count) item(s)", domain: .offlineAvailable)
@@ -838,7 +898,7 @@ extension FileProviderExtension {
             return .init(totalUnitCount: 0)
         }
     }
-    
+
     private func enableKeepDownloaded(itemsWithIdentifiers itemIdentifiers: [NSFileProviderItemIdentifier],
                                       moc: NSManagedObjectContext,
                                       completionBlockWrapper: CompletionBlockWrapper<Error?, Void, Void, Void>) -> Progress {
@@ -847,7 +907,7 @@ extension FileProviderExtension {
                                  moc: moc,
                                  completionBlockWrapper: completionBlockWrapper)
     }
-    
+
     private func removeDownload(itemsWithIdentifiers itemIdentifiers: [NSFileProviderItemIdentifier],
                                 moc: NSManagedObjectContext,
                                 completionBlockWrapper: CompletionBlockWrapper<Error?, Void, Void, Void>) -> Progress {
@@ -856,17 +916,17 @@ extension FileProviderExtension {
                                  moc: moc,
                                  completionBlockWrapper: completionBlockWrapper)
     }
-    
+
     private func setKeepDownloaded(_ keepDownloaded: Bool,
                                    itemsWithIdentifiers itemIdentifiers: [NSFileProviderItemIdentifier],
                                    moc: NSManagedObjectContext,
                                    completionBlockWrapper: CompletionBlockWrapper<Error?, Void, Void, Void>? = nil) -> Progress {
         keepDownloadedManager.setKeepDownloadedState(to: keepDownloaded, for: itemIdentifiers, moc: moc)
-        
+
         completionBlockWrapper?(nil)
         return .init(totalUnitCount: 0)
     }
-    
+
     // Used to update keep downloaded state in response to non-direct action from the user
     // (e.g. moving a folder into another that has been marked available offline)
     private func updateKeepDownloaded(for item: NSFileProviderItem) {
@@ -879,38 +939,41 @@ extension FileProviderExtension {
         } else {
             nodeIdentifier = NodeIdentifier(item.itemIdentifier)
         }
-        
+
         guard let nodeIdentifier else { return }
-        
+
         guard let node = tower.fileSystemSlot.getNode(nodeIdentifier, moc: moc) else { return }
-        
+
         keepDownloadedManager.updateStateBasedOnParent(for: [node], moc: moc)
     }
-    
+
     func forceRefresh(identifier actionIdentifier: NSFileProviderExtensionActionIdentifier,
                       itemsWithIdentifiers itemIdentifiers: [NSFileProviderItemIdentifier],
                       moc: NSManagedObjectContext,
                       completionHandler: @escaping (Error?) -> Void) -> Progress {
         let completionBlockWrapper = CompletionBlockWrapper(completionHandler)
-        
-        guard !isForceRefreshing else {
+
+        guard !resyncEnumerationService.isForceRefreshing else {
             completionBlockWrapper(nil)
             return .init(unitsOfWork: 0)
         }
-        
+
         Log.info("Force refresh action handling started", domain: .enumerating)
-        
+
         syncReporter.refreshStarted()
-        
-        isForceRefreshing = true
-        
+
+        resyncEnumerationService.isForceRefreshing = true
+
         let foldersToScan = itemIdentifiers.compactMap { self.folderForItemIdentifier($0, moc: moc) }
-        
+
         let progress: Progress = .init(unitsOfWork: foldersToScan.count)
-        
+
         do {
-            let itemOperation = try tower.downloader.scanTrees(treesRootFolders: foldersToScan) { node in
-                Log.debug("Scanned node \(node.id)", domain: .enumerating)
+            let itemOperation = try tower.downloader.scanTrees(treesRootFolders: foldersToScan) { moc, nodes in
+                // Reading Node.id (@NSManaged) hits Core Data; keep it debug-only and on the context's queue.
+                #if DEBUG
+                moc.perform { nodes.forEach { Log.debug("Scanned node \($0.id)", domain: .enumerating) } }
+                #endif
             } completion: { [weak self] result in
                 self?.progresses.remove(progress)
                 guard progress.isCancelled != true else {
@@ -924,30 +987,30 @@ extension FileProviderExtension {
             progress.addChild(itemOperation.progress, pending: itemOperation.progress.pendingUnitsOfWork)
         } catch {
             if !itemIdentifiers.contains(.rootContainer) {
-                isForceRefreshing = false
+                resyncEnumerationService.isForceRefreshing = false
                 return performAction(identifier: actionIdentifier, onItemsWithIdentifiers: [.rootContainer], completionHandler: completionHandler)
             }
         }
-        
+
         progresses.add(progress)
         return progress
     }
-    
+
     func openInBrowser(identifier actionIdentifier: NSFileProviderExtensionActionIdentifier,
                        itemsWithIdentifiers itemIdentifiers: [NSFileProviderItemIdentifier],
                        moc: NSManagedObjectContext,
                        completionHandler: @escaping (Error?) -> Void) -> Progress {
         let completionBlockWrapper = CompletionBlockWrapper(completionHandler)
-        
+
         Log.debug("Open in browser: \(itemIdentifiers)", domain: .enumerating)
-        
+
         let itemIdentifiersToOpen: [String] = itemIdentifiers.compactMap {
             // find node for identifier
             guard let nodeIdentifier = NodeIdentifier($0),
                   let node = tower.fileSystemSlot.getNode(nodeIdentifier, moc: moc) else {
                 return nil
             }
-            
+
             if node.isFolder == true {
                 // for folders, return identifier directly
                 return node.identifier.id
@@ -956,10 +1019,10 @@ extension FileProviderExtension {
                 return node.parentNode?.identifier.id
             }
         }
-        
+
         // Updating UserDefault observed by the app.
         self.openItemsInBrowser = itemIdentifiersToOpen.joined(separator: ",")
-        
+
         completionBlockWrapper(nil)
         return Progress(unitsOfWork: 0)
     }
@@ -996,9 +1059,8 @@ extension FileProviderExtension: NSFileProviderCustomAction {
                     completionBlockWrapper(CocoaError(.userCancelled))
                     return
                 }
-                self.isForceRefreshing = false
-
-                self.shouldReenumerateItems = true
+                self.resyncEnumerationService.isForceRefreshing = false
+                self.resyncEnumerationService.startFinderActionRefresh()
                 Log.event(.signalEnumerator(.started(.init(containerType: .workingSet, reason: .forceRefresh))))
                 self.manager.signalEnumerator(for: .workingSet) { error in
                     if let error {
@@ -1015,13 +1077,13 @@ extension FileProviderExtension: NSFileProviderCustomAction {
                 }
             }
         case .failure(let error):
-            isForceRefreshing = false
-            shouldReenumerateItems = false
+            resyncEnumerationService.isForceRefreshing = false
+            resyncEnumerationService.clearEnumerationMode()
             Log.info("Force refresh action ended", domain: .enumerating)
             completionBlockWrapper(error)
         }
     }
-    
+
     private func folderForItemIdentifier(_ itemIdentifier: NSFileProviderItemIdentifier, moc: NSManagedObjectContext) -> Folder? {
         let nodeIdentifier: PDCore.NodeIdentifier
         if let nodeId = NodeIdentifier(rawValue: itemIdentifier.rawValue) {

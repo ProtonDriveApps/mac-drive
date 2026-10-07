@@ -19,21 +19,34 @@ import Combine
 import Foundation
 import CoreData
 
+#if os(iOS)
 // MARK: - New trash APIs
+@available(iOS 16, *)
 public protocol TrashListing: AnyObject {
     var tower: Tower! { get }
+    var pendingTrashDeletions: PendingTrashDeletionRegistryProtocol { get }
     var childrenObserver: FetchedObjectsObserver<Node> { get }
     var sorting: SortPreference { get }
 }
 
+@available(iOS 16, *)
 extension TrashListing {
     public func childrenTrash() -> AnyPublisher<([Node]), Never> {
-        self.childrenObserver.objectWillChange
-        .map {
-            let trash = self.childrenObserver.fetchedObjects
-            return self.sorting.sort(trash)
-        }
-        .eraseToAnyPublisher()
+        let updates = Publishers.Merge(
+            childrenObserver.objectWillChange.map { _ in () },
+            pendingTrashDeletions.changes
+        ).eraseToAnyPublisher()
+
+        return updates
+            .map { [self] in
+                childrenObserver.fetchedObjects
+                    .filter { !pendingTrashDeletions.contains($0.genericIdentifier) }
+            }
+            .removeDuplicates(by: { old, new in
+                old.map(\.genericIdentifier.id).sorted() == new.map(\.genericIdentifier.id).sorted()
+            })
+            .map { return self.sorting.sort($0) }
+            .eraseToAnyPublisher()
     }
     
     public func switchSorting(_ sort: SortPreference) {
@@ -45,11 +58,13 @@ extension TrashListing {
     }
 }
 
-public final class TrashModel: FinderModel, TrashListing, NodesListing, ThumbnailLoader  {
+@available(iOS 16, *)
+public final class TrashModel: FinderModel, TrashListing, NodesListing  {
     private let volumeIDs: [String]
     private let restorer: TrashedNodeRestorer
     private let deleter: TrashedNodeDeleter
     private let trashCleaner: TrashCleaner
+    public let pendingTrashDeletions: PendingTrashDeletionRegistryProtocol
 
     @Published public private(set) var sorting: SortPreference
 
@@ -57,12 +72,14 @@ public final class TrashModel: FinderModel, TrashListing, NodesListing, Thumbnai
         tower: Tower,
         restorer: TrashedNodeRestorer,
         deleter: TrashedNodeDeleter,
-        trashCleaner: TrashCleaner
+        trashCleaner: TrashCleaner,
+        pendingTrashDeletions: PendingTrashDeletionRegistryProtocol
     ) {
         self.tower = tower
         self.restorer = restorer
         self.deleter = deleter
         self.trashCleaner = trashCleaner
+        self.pendingTrashDeletions = pendingTrashDeletions
         volumeIDs = tower.uiSlot.getOwnVolumeIds()
         assert(!volumeIDs.isEmpty, "A volume must always exist")
         Log.info("Initialized TrashModel with volumeIds: \(volumeIDs)", domain: .scenes)
@@ -109,16 +126,43 @@ public final class TrashModel: FinderModel, TrashListing, NodesListing, Thumbnai
         self.didFetchAllTrash = true
     }
 
+    private var sdkTrashOperationsPerformer: SDKNodeOperationPerformer? {
+        guard tower.featureFlags.isEnabled(flag: .driveiOSSDKTrashOperations) else { return nil }
+        return tower.sdkObjects.nodeOperationPerformer
+    }
+
     public func deleteTrashed(nodes: [NodeIdentifier]) async throws {
-        try await deleter.deletePerVolume(nodes)
+        if let performer = sdkTrashOperationsPerformer {
+            Log.debug("Delete \(nodes.count) nodes via SDK", domain: .sdk)
+            let (_, error) = try await performer.delete(nodes: nodes.map { $0.any() }).collectCompletion()
+            if let error { throw error }
+            await pendingTrashDeletions.markRecursively(nodeIdentifiers: nodes, storage: tower.storage)
+        } else {
+            Log.debug("Delete \(nodes.count) nodes via legacy", domain: .nodeOperation)
+            try await deleter.deletePerVolume(nodes)
+        }
     }
 
     public func emptyTrash(nodes: [NodeIdentifier]) async throws {
-        try await trashCleaner.emptyTrashPerVolume(nodes)
+        if let performer = sdkTrashOperationsPerformer {
+            // Intentionally not injecting nodes
+            // since semantically for empty trash, the function doesn't need to know which nodes are in the trash
+            try await performer.emptyTrash()
+            await pendingTrashDeletions.markRecursively(nodeIdentifiers: nodes, storage: tower.storage)
+        } else {
+            try await trashCleaner.emptyTrashPerVolume(nodes)
+        }
     }
 
     public func restoreTrashed(_ nodes: [NodeIdentifier]) async throws {
-        try await restorer.restoreVolume(nodes: nodes)
+        if let performer = sdkTrashOperationsPerformer {
+            Log.debug("Restore \(nodes.count) nodes via SDK", domain: .sdk)
+            let (_, error) = try await performer.restore(nodes: nodes.map { $0.any() }).collectCompletion()
+            if let error { throw error }
+        } else {
+            Log.debug("Restore \(nodes.count) nodes via legacy", domain: .nodeOperation)
+            try await restorer.restoreVolume(nodes: nodes)
+        }
         await MainActor.run {
             // To immediately refresh nodes' states
             // Special case for photos - we need to get update event to recreate CoreDataPhotoListing objects
@@ -126,13 +170,4 @@ public final class TrashModel: FinderModel, TrashListing, NodesListing, Thumbnai
         }
     }
 }
-
-extension TrashModel {
-    public func loadThumbnail(with id: Identifier) {
-        return tower.loadThumbnail(with: id)
-    }
-
-    public func cancelThumbnailLoading(_ id: Identifier) {
-        tower.cancelThumbnailLoading(id)
-    }
-}
+#endif

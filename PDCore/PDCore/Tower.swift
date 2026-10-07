@@ -33,10 +33,8 @@ typealias ResponseError = ProtonCoreNetworking.ResponseError
 public class Tower: NSObject {
     typealias CoreEventLoopManager = EventPeriodicScheduler<GeneralEventsLoopWithProcessor, DriveEventsLoop>
 
-    public let fileUploader: FileUploader
     public let fileImporter: FileImporter
     public let revisionImporter: RevisionImporter
-    public let uploadVerifierFactory: UploadVerifierFactory
     public let downloader: Downloader!
     public let refresher: RefreshingNodesServiceProtocol
     public let uiSlot: UISlot!
@@ -50,19 +48,17 @@ public class Tower: NSObject {
     public let performanceMetricsController: PerformanceMetricsControllerProtocol?
     public let parentIDFetcher: NodeParentIDFetcher
 
-    public var photoUploader: FileUploader?
-
     public let api: PDClient.APIService
     public let storage: StorageManager
     public let syncStorage: SyncStorageManager?
     public let client: PDClient.Client
     public let rateLimitGate: RateLimitGate
+    public let upgradeRequirementsParser: UpgradeRequirementsParser
     public let addressManager: AddressManager
-    internal var thumbnailLoader: CancellableThumbnailLoader
     public let generalSettings: GeneralSettings
-    public let featureFlags: FeatureFlagsRepository
-    public let parallelEncryption: Bool
+    public let featureFlags: DriveFeatureFlagsProvider
     public let entitlementsManager: EntitlementsManagerProtocol
+    private let resyncMetadataRepositoryStoreURL: URL
     private var cancellables = Set<AnyCancellable>()
     public let uploadedBytesCounterResource: BytesCounterResource
     public let clientConfiguration: PDClient.APIService.Configuration
@@ -89,14 +85,17 @@ public class Tower: NSObject {
     @ThreadSafe private var isStopped = false
 
     // SDK
+    private var _sdkObjects: SDKObjectsProtocol?
+    public var sdkObjects: SDKObjectsProtocol {
+        guard let object = _sdkObjects else { fatalError() }
+        return object
+    }
+    private var _fpSDKObjects: FPSDKObjectsProtocol?
+    public var fpSDKObjects: FPSDKObjectsProtocol {
+        guard let object = _fpSDKObjects else { fatalError() }
+        return object
+    }
     private var sdkNodeOperationPerformer: SDKNodeOperationPerformer?
-    private var sdkFileUploader: SDKFileUploaderProtocol?
-    private var sdkFileDownloader: SDKFileDownloaderProtocol?
-    private var sdkThumbnailsDownloaderForFiles: SDKThumbnailsDownloaderProtocol?
-    private var sdkThumbnailsDownloaderForPhotos: SDKThumbnailsDownloaderProtocol?
-    private var sdkPhotoDownloader: SDKFileDownloaderProtocol?
-    private var sdkPhotoUploader: SDKFileUploaderProtocol?
-    public private(set) var sdkRevisionUploader: SDKRevisionUploaderProtocol?
     public private(set) var sdkCacheProvider: SDKCacheProvider
     public private(set) var sdkEncryptionKeyProvider: SDKEncryptionKeyProvider?
 
@@ -123,7 +122,6 @@ public class Tower: NSObject {
     }
     private let cleanUpStartController: CleanUpStartController
 
-    // swiftlint:disable:next function_body_length
     public init(storage: StorageManager,
                 syncStorage: SyncStorageManager? = nil,
                 eventStorage: EventStorageManager,
@@ -138,10 +136,11 @@ public class Tower: NSObject {
                 eventProcessingMode: DriveEventsLoopMode,
                 eventLoopInterval: Double,
                 networkSpy: DriveAPIService? = nil,
-                uploadVerifierFactory: UploadVerifierFactory,
                 localSettings: LocalSettings,
+                featureFlags: DriveFeatureFlagsProvider? = nil,
                 populatedStateController: PopulatedStateControllerProtocol,
-                connectionStateResource: ConnectionStateResource
+                connectionStateResource: ConnectionStateResource,
+                scanEngineV2TestOverride: @escaping () -> Bool? = { nil }
     ) {
         Log.trace("eventLoopInterval: \(eventLoopInterval)")
 
@@ -159,11 +158,15 @@ public class Tower: NSObject {
         self.sessionVault = sessionVault
         self.sessionCommunicator = sessionCommunicator
         clientConfiguration = clientConfig
-        self.featureFlags = FeatureFlagsRepositoryFactory().makeRepository(
-           configuration: clientConfig,
-           networking: network,
-           store: localSettings
-       )
+
+        // Use the injected repository (the single instance owned by InitialServices) when provided;
+        // fall back to building one for contexts that construct a Tower directly (e.g. tests).
+        let featureFlags = featureFlags ?? DriveFeatureFlagsProviderFactory().makeProvider(
+            configuration: clientConfig,
+            networking: network,
+            cache: localSettings
+        )
+        self.featureFlags = featureFlags
         self.api = APIServiceFactory().makeService(configuration: clientConfig, featureFlags: featureFlags)
 
         self.networking = network
@@ -172,19 +175,35 @@ public class Tower: NSObject {
 
         let rateLimitGate = RateLimitGate()
         self.rateLimitGate = rateLimitGate
-        let client = Client(credentialProvider: self.sessionVault, service: api, networking: networkSpy ?? network, rateLimitGate: rateLimitGate)
+        self.upgradeRequirementsParser = UpgradeRequirementsParser()
+        #if os(iOS)
+        // Mac doesn't implement yet
+        upgradeRequirementsParser.upgradeRequirementsPublisher
+            .sink(receiveValue: { [weak localSettings] result in
+                localSettings?.upgradeRequirementResult = result
+            })
+            .store(in: &cancellables)
+        #endif
+        let client = Client(
+            credentialProvider: self.sessionVault,
+            service: api,
+            networking: networkSpy ?? network,
+            rateLimitGate: rateLimitGate,
+            upgradeRequirementsParser: upgradeRequirementsParser
+        )
         client.errorMonitor = ErrorMonitor(Log.deserializationErrors)
         self.client = client
         self.connectionStateResource = connectionStateResource
 
         self.parentIDFetcher = NodeParentIDFetcher(storage: storage)
 
+        let cloudSlot = CloudSlot(client: client, storage: storage, sessionVault: sessionVault, parentIDFetcher: parentIDFetcher)
         #if os(macOS)
-        self.cloudSlot = CloudSlot(client: client, storage: storage, sessionVault: sessionVault, parentIDFetcher: parentIDFetcher)
+        self.cloudSlot = cloudSlot
         self.performanceMetricsController = nil
         #else
-        let legacyCloudSlot = CloudSlot(client: client, storage: storage, sessionVault: sessionVault, parentIDFetcher: parentIDFetcher)
-        self.cloudSlot = VolumeDBCloudSlot(storage: storage, apiService: api, client: client, cloudSlot: legacyCloudSlot)
+        let volumeCloudSlot = VolumeDBCloudSlot(storage: storage, apiService: api, client: client, cloudSlot: cloudSlot)
+        self.cloudSlot = volumeCloudSlot
         self.performanceMetricsController = PerformanceMetricsController()
         #endif
 
@@ -199,14 +218,6 @@ public class Tower: NSObject {
         self.entitlementsManager = EntitlementsManager(
             client: client,
             store: EntitlementsStore(localSettings: localSettings)
-        )
-
-        self.thumbnailLoader = ThumbnailLoaderFactory().makeFileThumbnailLoader(
-            tower: nil,
-            storage: storage,
-            cloudSlot: cloudSlot,
-            client: client,
-            performanceMetricsController: performanceMetricsController
         )
 
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last!
@@ -229,40 +240,42 @@ public class Tower: NSObject {
         self.coreEventManager = eventsFactory.makeCoreEventsSystem(appGroup: appGroup, sessionVault: sessionVault, generalSettings: generalSettings, paymentsSecureStorage: paymentsStorage, network: network, timingController: eventsTimingController, contactAdapter: contactAdapter, entitlementsManager: entitlementsManager)
         eventStorageManager = eventStorage
 
-        self.uploadVerifierFactory = uploadVerifierFactory
-
         // Files
         self.fileImporter = CoreDataFileImporter(moc: storage.backgroundContext, signersKitFactory: sessionVault, uploadClientUIDProvider: sessionVault)
         self.revisionImporter = CoreDataRevisionImporter(signersKitFactory: sessionVault, uploadClientUIDProvider: sessionVault)
 
         uploadedBytesCounterResource = ThreadSafeBytesCounterResource()
-        #if os(macOS)
-        parallelEncryption = true
-        self.fileUploader = FileUploader(
-            fileUploadFactory: DiscreteFileUploadOperationsProviderFactory(storage: storage, cloudSlot: cloudSlot, sessionVault: sessionVault, verifierFactory: uploadVerifierFactory, apiService: api, client: client, parallelEncryption: parallelEncryption, uploadedBytesCounterResource: uploadedBytesCounterResource).make(),
-            filecleaner: cloudSlot,
-            moc: storage.backgroundContext
-        )
-        #else
-        parallelEncryption = false
-        if Constants.runningInExtension {
-            self.fileUploader = FileUploader(
-                fileUploadFactory: StreamFileUploadOperationsProviderFactory(storage: storage, cloudSlot: cloudSlot, sessionVault: sessionVault, verifierFactory: uploadVerifierFactory, apiService: api, client: client, parallelEncryption: parallelEncryption, uploadedBytesCounterResource: uploadedBytesCounterResource).make(),
-                filecleaner: cloudSlot,
-                moc: storage.backgroundContext
-            )
-        } else {
-            self.fileUploader = MyFilesFileUploader(
-                fileUploadFactory: iOSFileUploadOperationsProviderFactory(storage: storage, cloudSlot: cloudSlot, sessionVault: sessionVault, verifierFactory: uploadVerifierFactory, apiService: api, client: client, parallelEncryption: parallelEncryption, uploadedBytesCounterResource: uploadedBytesCounterResource).make(),
-                filecleaner: cloudSlot,
-                moc: storage.backgroundContext
-            )
-        }
-        #endif
 
         cleanUpStartController = CleanUpController()
 
-        refresher = RefreshingNodesService(downloader: downloader, coreEventManager: coreEventManager, storage: storage, sessionVault: sessionVault)
+        // v2 sync scan engine (opt-in via the DriveSyncMetadataScanV2Enabled flag; v1 default).
+        // Both engines are always built; RefreshingNodesService picks between them per scan (test override >
+        // QA override > flag). v2 only runs on macOS, where the full-resync path lives — not because of
+        // any cast. The engine builds a fresh work queue per scan, backed by an on-disk store in the app group.
+        let resyncMetadataRepositoryStoreURL = appGroup.directoryUrl.appendingPathComponent("ResyncMetadataRepository.sqlite")
+        self.resyncMetadataRepositoryStoreURL = resyncMetadataRepositoryStoreURL
+        // One reporter shared by both engines; mac_-named events only fire on the macOS full-resync path.
+        let fullResyncMetricsReporter = FullResyncObservabilityMonitor()
+        let scanV1Engine = MetadataScanEngineV1(
+            downloader: downloader,
+            reporter: fullResyncMetricsReporter
+        )
+        let scanV2Engine = MetadataScanEngineV2(
+            childrenListerDataSource: client,
+            metadataDataSource: client,
+            cloudUpdater: cloudSlot,
+            ancestorResolver: cloudSlot,
+            makeWorkQueue: { try CoreDataResyncMetadataRepository(storeURL: resyncMetadataRepositoryStoreURL, inMemory: false) },
+            storage: storage,
+            reporter: fullResyncMetricsReporter
+        )
+        refresher = RefreshingNodesService(
+            downloader: downloader,
+            featureFlags: featureFlags,
+            v1ScanEngine: scanV1Engine,
+            v2ScanEngine: scanV2Engine,
+            scanEngineV2TestOverride: scanEngineV2TestOverride
+        )
 
         sdkCacheProvider = SDKCacheProvider(groupContainerDirectory: appGroup.directoryUrl)
 
@@ -290,53 +303,55 @@ public class Tower: NSObject {
     public func cleanUpLockedVolumeIfNeeded(using domainManager: DomainOperationsServiceProtocol) async throws {
         try await Self.cleanUpLockedVolumeIfNeeded(coreEventManager: coreEventManager,
                                                    storage: storage,
+                                                   syncStorage: syncStorage,
                                                    cloudSlot: cloudSlot,
-                                                   sessionVault: sessionVault,
                                                    domainManager: domainManager)
     }
 
     static func cleanUpLockedVolumeIfNeeded(coreEventManager: CoreEventLoopManager,
                                             storage: StorageManager,
+                                            syncStorage: SyncStorageManager?,
                                             cloudSlot: CloudSlotProtocol,
-                                            sessionVault: SessionVault,
                                             domainManager: DomainOperationsServiceProtocol) async throws {
-        func onVolumeBeingLocked() async throws {
+        let inputs = try await fetchVolumeLockStateInputs(storage: storage, cloudSlot: cloudSlot)
+        switch VolumeLockState.resolve(from: inputs) {
+        case .noCachedVolume, .cachedVolumeActive, .cachedVolumeStale, .cachedVolumeUnlisted:
+            // Stale/foreign trees under an active volume are the login flow's job; wiping here would
+            // remove the domains and defeat domain reconnection.
+            return
+        case .noActiveMainVolume:
+            // No active main volume to rebuild from: wipe so bootstrap can reactivate the volume.
             try await domainManager.removeAllDomains()
-            await Self.cleanUpEventsAndMetadata(cleanupStrategy: .cleanEverything, coreEventManager: coreEventManager, storage: storage)
+            await Self.cleanUpEventsAndMetadata(cleanupStrategy: .cleanEverything,
+                                                coreEventManager: coreEventManager,
+                                                storage: storage,
+                                                syncStorage: syncStorage)
         }
+    }
 
-        // How we identify the volume we have in the DB is locked on BE:
-        // 1. There is a root in the DB — if there's no root, we will bootstrap later and learn whether the volume is locked or not this way
-        // 2. There is root is impossible to decrypt — this is an indicator there was a password reset.
-        //    We double-check it by fetching volumes, shares and root from the BE.
-        // If there is no share, no root or no volume on BE, we need to clean up the local state.
-        // Alternatively, if the root returned by BE is different than our local DB root, we must clean up the local state as well.
-        // We'll fetch it later, during bootstrap.
+    public func fetchVolumeLockStateInputs() async throws -> VolumeLockStateInputs {
+        try await Self.fetchVolumeLockStateInputs(storage: storage, cloudSlot: cloudSlot)
+    }
+
+    static func fetchVolumeLockStateInputs(storage: StorageManager,
+                                           cloudSlot: CloudSlotProtocol) async throws -> VolumeLockStateInputs {
         let moc = storage.backgroundContext
-        guard let root = Self.fetchRootFolder(sessionVault: sessionVault, storage: storage, in: moc) else { return }
-        do {
-            _ = try await moc.perform { try root.decryptName() }
-        } catch {
-            //  The default value was false
-            guard let mainShare = try await cloudSlot.scanRootsAsync(isPhotosEnabled: false, moc: moc) else {
-                // no volume, no main share returned from BE
-                try await onVolumeBeingLocked()
-                return
-            }
 
-            var volumeIsLocked: Bool = false
-            await moc.perform {
-                if let fetchedRoot = mainShare.root,
-                   let volume = mainShare.volume,
-                   fetchedRoot.identifierWithinManagedObjectContext == root.identifierWithinManagedObjectContext {
-                    volumeIsLocked = volume.state == .locked
-                } else {
-                    volumeIsLocked = true
-                }
+        // Not getMainShareAndVolume: it folds store failures into not-found, and while locked that
+        // misreading would trigger a wipe-and-rebuild.
+        let cachedTree: (shareID: String, volumeID: String)? = try moc.performAndWait {
+            let volumes = try moc.fetch(storage.requestVolumes())
+            guard let volume = volumes.first(where: { $0.shares.contains(where: { $0.type == .main }) }),
+                  let mainShare = volume.shares.first(where: { $0.type == .main }) else {
+                return nil
             }
-            guard volumeIsLocked else { return }
-            try await onVolumeBeingLocked()
+            return (shareID: mainShare.id, volumeID: volume.id)
         }
+        // Nothing to compare against — skip the network round-trip.
+        guard cachedTree != nil else { return (cachedTree: nil, volumes: []) }
+
+        let volumes = try await cloudSlot.scanVolumes(in: moc)
+        return (cachedTree: cachedTree, volumes: volumes)
     }
 
     public func bootstrap() async throws {
@@ -356,24 +371,70 @@ public class Tower: NSObject {
     }
 
     public func cleanUpEventsAndMetadata(cleanupStrategy: CacheCleanupStrategy) async {
-        await Self.cleanUpEventsAndMetadata(cleanupStrategy: cleanupStrategy, coreEventManager: coreEventManager, storage: storage)
+        await Self.cleanUpEventsAndMetadata(cleanupStrategy: cleanupStrategy, coreEventManager: coreEventManager, storage: storage, syncStorage: syncStorage)
     }
 
     static func cleanUpEventsAndMetadata(
-        cleanupStrategy: CacheCleanupStrategy, coreEventManager: CoreEventLoopManager, storage: StorageManager
+        cleanupStrategy: CacheCleanupStrategy, coreEventManager: CoreEventLoopManager, storage: StorageManager, syncStorage: SyncStorageManager?
     ) async {
         if cleanupStrategy.shouldCleanEvents {
             discardEventsPolling(for: coreEventManager)
         }
         if cleanupStrategy.shouldCleanMetadata {
             await storage.cleanUp()
+            // Sync items reference the tree being discarded; keeping them leaves the sync UI pointing at
+            // dead nodes (and lets rows encrypted under a rotated MainKey error forever).
+            await syncStorage?.cleanUp()
 
             let groupContainerDirectory = SettingsStorageSuite.group(named: Constants.appGroup).directoryUrl
             SDKCacheProvider(groupContainerDirectory: groupContainerDirectory).cleanUp()
         }
     }
 
+    /// Guarantees a clean slate for a brand-new sync folder: destroys and recreates the metadata, event,
+    /// and sync stores as empty — deleting the DB files, not just emptying rows — and removes any resync
+    /// recovery/backup leftovers. Throws if a store cannot be reset, so the caller aborts instead of
+    /// building the new domain on top of stale data (unlike `cleanUpEventsAndMetadata`, whose row-emptying
+    /// is best-effort and can fail silently).
+    @MainActor
+    public func recreateEmptyStoresForFreshStart() async throws {
+        // Quiesce the event loop before destroying the event store, so an in-flight fetch/save can't fault
+        // on a removed store (or re-populate the freshly-emptied one). Mirrors the resync, which stops
+        // events before swapping the event DB.
+        Self.discardEventsPolling(for: coreEventManager)
+        // resetToEmptyStore copies each store to a backup file before destroying it; for a large metadata
+        // DB that is a multi-second operation, so run the three swaps off the main actor to keep the tray
+        // responsive. NSPersistentStoreCoordinator is thread-safe, and the sole caller is @MainActor.
+        let storage = self.storage
+        let eventStorageManager = self.eventStorageManager
+        let syncStorage = self.syncStorage
+        let failure: Error? = await Task.detached {
+            // Every store is attempted even if an earlier one fails: stopping at the first failure would
+            // pair a fresh metadata store with the old event store and its cursor, so the event loop would
+            // replay events against nodes that no longer exist — worse than the stale-but-consistent cache
+            // this method exists to avoid. The first failure is rethrown below so the caller still aborts.
+            var firstFailure: Error?
+            func reset(_ store: RecoverableStorage?) {
+                guard let store else { return }
+                do {
+                    try store.resetToEmptyStore()
+                } catch {
+                    Log.error("Failed to reset a store for a fresh start: \(error.localizedDescription)", domain: .storage)
+                    firstFailure = firstFailure ?? error
+                }
+            }
+            reset(storage)
+            reset(eventStorageManager)
+            reset(syncStorage)
+            return firstFailure
+        }.value
+        // Unconditional: the SDK cache belongs to the same slate, so it must not survive a partial reset.
+        sdkCacheProvider.cleanUp()
+        if let failure { throw failure }
+    }
+
     #if os(iOS)
+    // Handles sign out logic for File Provider, the app itself uses DriveSignOutManager
     @MainActor
     public func signOut(cacheCleanupStrategy: CacheCleanupStrategy) async {
         if let userId = sessionVault.userInfo?.ID {
@@ -387,95 +448,44 @@ public class Tower: NSObject {
         sessionCommunicator.clearStateOnSignOut()
     }
 
-    public func set(sdkFileUploader: SDKFileUploaderProtocol?) {
-        self.sdkFileUploader = sdkFileUploader
-    }
-
-    public func set(sdkFileDownloader: SDKFileDownloaderProtocol) {
-        self.sdkFileDownloader = sdkFileDownloader
-    }
-
-    public func set(sdkNodeOperationPerformer: SDKNodeOperationPerformer) {
-        self.sdkNodeOperationPerformer = sdkNodeOperationPerformer
-    }
-
     public func set(treeTrashHandler: NodeTreeTrashHandlerProtocol?) {
         if let slot = cloudSlot as? VolumeDBCloudSlot {
             slot.set(nodeTreeTrashHandler: treeTrashHandler)
         }
     }
 
-    public func set(sdkThumbnailsDownloaderForFiles: SDKThumbnailsDownloaderProtocol) {
-        self.sdkThumbnailsDownloaderForFiles = sdkThumbnailsDownloaderForFiles
-        thumbnailLoader = ThumbnailLoaderFactory().makeFileThumbnailLoader(
-            tower: self,
-            storage: storage,
-            cloudSlot: cloudSlot,
-            client: client,
-            performanceMetricsController: performanceMetricsController
-        )
+    public func set(sdkObjects: SDKObjectsProtocol) {
+        self._sdkObjects = sdkObjects
     }
 
-    public func set(sdkThumbnailsDownloaderForPhotos: SDKThumbnailsDownloaderProtocol) {
-        self.sdkThumbnailsDownloaderForPhotos = sdkThumbnailsDownloaderForPhotos
+    public func set(fpSDKObjects: FPSDKObjectsProtocol) {
+        self._fpSDKObjects = fpSDKObjects
     }
 
-    public func set(sdkRevisionUploader: SDKRevisionUploaderProtocol) {
-        self.sdkRevisionUploader = sdkRevisionUploader
-    }
-
-    public func set(sdkPhotoDownloader: SDKFileDownloaderProtocol) {
-        self.sdkPhotoDownloader = sdkPhotoDownloader
-    }
-
-    public func set(sdkPhotoUploader: SDKFileUploaderProtocol) {
-        self.sdkPhotoUploader = sdkPhotoUploader
+    public func subscribe(isLockedPublisher: AnyPublisher<Bool, Never>) {
+        isLockedPublisher
+            .removeDuplicates()
+            .sink { [weak self] isLocked in
+                if isLocked {
+                    self?.stop()
+                } else {
+                    self?.resume()
+                }
+            }
+            .store(in: &cancellables)
     }
     #endif // os(iOS)
 
-    public func getSdkThumbnailsDownloaderForFiles() -> SDKThumbnailsDownloaderProtocol? {
-        guard featureFlags.isEnabled(flag: .driveiOSSDKDownloadMain) else { return nil }
-        return sdkThumbnailsDownloaderForFiles
-    }
-
-    public func getSdkThumbnailsDownloaderForPhotos() -> SDKThumbnailsDownloaderProtocol? {
-        guard featureFlags.isEnabled(flag: .driveiOSSDKDownloadPhoto) else { return nil }
-        return sdkThumbnailsDownloaderForPhotos
-    }
-
-    public func getSdkFileDownloader() -> SDKFileDownloaderProtocol? {
-        guard featureFlags.isEnabled(flag: .driveiOSSDKDownloadMain) else { return nil }
-        return sdkFileDownloader
-    }
-
-    public func getSdkFileUploader() -> SDKFileUploaderProtocol? {
-        guard featureFlags.isEnabled(flag: .driveiOSSDKUploadMain) else { return nil }
-        return sdkFileUploader
-    }
-
-    public func getSdkNodeOperationPerformer() -> SDKNodeOperationPerformer? {
-        guard featureFlags.isEnabled(flag: .driveiOSSDKNodeOperations) else { return nil }
-        return sdkNodeOperationPerformer
-    }
-
-    public func getSdkPhotoDownloader() -> SDKFileDownloaderProtocol? {
-        guard featureFlags.isEnabled(flag: .driveiOSSDKDownloadPhoto) else { return nil }
-        return sdkPhotoDownloader
-    }
-
-    public func getSdkPhotoUploader() -> SDKFileUploaderProtocol? {
-        // Feature flag is not checked here to avoid disrupting the backup flow
-        // PhotoFeederPreprocessor handles feature flag logic
-        return sdkPhotoUploader
+    // Removes the sync v2 work-queue store (transient scan scratch). The engine deletes it after a
+    // successful scan, so this only matters for a store left behind by an interrupted or cancelled one.
+    public func discardResyncMetadataRepository() {
+        for suffix in ["", "-wal", "-shm"] {
+            try? FileManager.default.removeItem(at: URL(fileURLWithPath: resyncMetadataRepositoryStoreURL.path + suffix))
+        }
     }
 
     @MainActor
     public func destroyCache(strategy cacheCleanupStrategy: CacheCleanupStrategy) async {
-        photoUploader?.didSignOut = true
-        photoUploader?.cancelAllOperations()
-        fileUploader.didSignOut = true
-        fileUploader.cancelAllOperations()
-        await sdkFileUploader?.cancelAll()
         performanceMetricsController?.reset()
 
         if cacheCleanupStrategy.shouldCleanEvents {
@@ -488,23 +498,28 @@ public class Tower: NSObject {
         cleanUpStartController.start()
 
         downloader.cancelAll()
-        sdkFileDownloader?.cancelAll()
         sdkCacheProvider.cleanUp()
         sdkEncryptionKeyProvider?.removeEncryptionKey()
 #if os(iOS)
+        // `sdkObjects` might be nil in some race conditions during invalidated BE session (couldn't figure out exact repro)
+        await _sdkObjects?.fileUploader.cancelAll()
+        _sdkObjects?.fileDownloader.cancelAll()
+        await _sdkObjects?.photoUploader.cancelAll()
+        _sdkObjects?.photoDownloader.cancelAll()
         offlineSavers.forEach { $0.cleanUp() }
         // To break retain cycle, Downloader -> VolumeDBCloudSlot -> trashHandler -> Downloader
         set(treeTrashHandler: nil)
+
+        await _sdkObjects?.thumbnailDownloader.cancelAll()
 #endif
 
-
-        thumbnailLoader.cancelAll()
         fileSystemSlot.clear()
         localSettings.cleanUp(cleanUserSpecificSettings: cacheCleanupStrategy.shouldCleanUserSpecificSettings)
         generalSettings.cleanUp()
 
         if cacheCleanupStrategy.shouldCleanMetadata {
             await storage.cleanUp()
+            discardResyncMetadataRepository()
         }
         await syncStorage?.cleanUp()
 
@@ -620,6 +635,15 @@ public class Tower: NSObject {
         }
     }
 
+    /// Refreshes only the user info (GET /users) and stores it, correcting the
+    /// cached quota (including usedDriveSpace). Lighter than refreshUserInfoAndAddresses.
+    public func refreshUserInfo() async throws {
+        let user = try await withCheckedThrowingContinuation { continuation in
+            self.addressManager.fetchUserInfo(continuation.resume(with:))
+        }
+        self.sessionVault.storeUser(user)
+    }
+
     @available(*, deprecated, message: "Only used in tests")
     public func updateUserInfo(_ handler: @escaping (Result<UserInfo, Error>) -> Void) {
         self.addressManager.fetchUserInfo { [weak self] in
@@ -714,6 +738,7 @@ extension Tower {
 
 // MARK: - Notification
 extension Tower {
+    #if os(iOS)
     public func subscribeToCleanUpNotifications() {
         NotificationCenter.default.publisher(for: .nukeCache)
             .receive(on: DispatchQueue.main)
@@ -734,6 +759,7 @@ extension Tower {
             }
             .store(in: &cancellables)
     }
+    #endif
 
     /// Clears local cache without clearing the user session
     @objc private func reloadCache(notification: Notification) {

@@ -714,9 +714,11 @@ extension SessionVault: UploadClientUIDProvider {
         guard let uploadClientUID else {
             guard let user = userInfo else {
                 let message = "Upload client UID requested when no userInfo available"
-                assertionFailure(message)
+                if !Constants.isUITest {
+                    assertionFailure(message)
+                }
                 Log.error(message, error: nil, domain: .storage)
-                return ""
+                return UUID().uuidString
             }
             let rawUID = user.ID + getDeviceUUID()
             let hashedUID = clientPrefix() + rawUID.sha256

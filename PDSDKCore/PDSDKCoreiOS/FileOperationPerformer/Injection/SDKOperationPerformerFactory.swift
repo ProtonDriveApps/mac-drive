@@ -25,7 +25,6 @@ public struct SDKOperationPerformerFactory {
 
     public func makeFilePerformer(tower: Tower) async throws -> FileOperationPerformer {
         do {
-            let featureFlags = tower.featureFlags
             let observabilityReporter = makeReporter(sessionVault: tower.sessionVault)
             let sdkOperationPerformer = try await FileOperationPerformer(
                 protonDriveClientConfiguration: makeConfiguration(tower: tower),
@@ -36,7 +35,8 @@ public struct SDKOperationPerformerFactory {
                 urlCacheCleaner: URLCacheCleaner(session: tower.networking),
                 fileVerifier: FileVerifier(observabilityReporter: observabilityReporter),
                 observabilityReporter: observabilityReporter,
-                featureFlagProviderCallback: defaultFeatureFlagProviderCallback(featureFlags: tower.featureFlags)
+                featureFlagProviderCallback: defaultFeatureFlagProviderCallback(featureFlags: tower.featureFlags),
+                metadataUpdater: MetadataUpdater(storage: tower.storage)
             )
             Log.info("Initialized SDK operation performer", domain: .sdk)
             return sdkOperationPerformer
@@ -48,7 +48,6 @@ public struct SDKOperationPerformerFactory {
 
     public func makePhotoPerformer(tower: Tower) async throws -> PhotosOperationPerformer {
         do {
-            let featureFlags = tower.featureFlags
             let observabilityReporter = makeReporter(sessionVault: tower.sessionVault)
             let photosPerformer = try await PhotosOperationPerformer(
                 protonDriveClientConfiguration: makeConfiguration(tower: tower),
@@ -59,7 +58,8 @@ public struct SDKOperationPerformerFactory {
                 urlCacheCleaner: URLCacheCleaner(session: tower.networking),
                 fileVerifier: FileVerifier(observabilityReporter: observabilityReporter),
                 observabilityReporter: observabilityReporter,
-                featureFlagProviderCallback: defaultFeatureFlagProviderCallback(featureFlags: tower.featureFlags)
+                featureFlagProviderCallback: defaultFeatureFlagProviderCallback(featureFlags: tower.featureFlags),
+                metadataUpdater: MetadataUpdater(storage: tower.storage)
             )
             return photosPerformer
         } catch {
@@ -76,8 +76,8 @@ extension SDKOperationPerformerFactory {
     }
 
     private func makeConfiguration(tower: Tower) -> ProtonDriveClientConfiguration {
-        ProtonDriveClientConfiguration(
-            baseURL: tower.clientConfiguration.driveApiBase,
+        return ProtonDriveClientConfiguration(
+            baseURL: tower.clientConfiguration.driveApiHost,
             clientUID: tower.sessionVault.getUploadClientUID(),
             downloadOperationalResilience: BasicOperationalResilience.default,
             uploadOperationalResilience: BasicOperationalResilience.default

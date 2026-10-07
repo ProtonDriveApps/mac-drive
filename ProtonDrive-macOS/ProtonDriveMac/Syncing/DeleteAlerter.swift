@@ -24,6 +24,10 @@ class DeleteAlerter {
 
     private var displaying = false
 
+    /// Sheet host. Held strongly with `isReleasedWhenClosed` off, or AppKit releases it a second time
+    /// on close and the over-release crashes at the next autorelease pool drain.
+    private var alertWindow: NSWindow?
+
     private let onlineTrashURL: URL = URL(string: "https://drive.proton.me/trash")!
 
 #if DEBUG && !canImport(XCTest)
@@ -64,12 +68,14 @@ class DeleteAlerter {
                               backing: .buffered,
                               defer: false,
                               screen: NSScreen.main!)
+        window.isReleasedWhenClosed = false
         window.isOpaque = false
         window.backgroundColor = .clear
         window.level = .popUpMenu
         window.makeKeyAndOrderFront(nil)
         NSRunningApplication.current.activate(options: [.activateIgnoringOtherApps])
 
+        alertWindow = window
         displaying = true
 
         alert.beginSheetModal(for: window) { [weak self] response in
@@ -82,7 +88,13 @@ class DeleteAlerter {
             }
 
             self?.displaying = false
+            self?.dismissAlertWindow()
         }
+    }
+
+    private func dismissAlertWindow() {
+        alertWindow?.close()
+        alertWindow = nil
     }
 
     private func openTrashOnline(for email: String?) {

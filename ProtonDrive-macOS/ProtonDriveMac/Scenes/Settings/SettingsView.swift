@@ -24,7 +24,7 @@ import PDCore
 struct SettingsView<ViewModel: SettingsViewModelProtocol>: View {
 
     let minimalSize = CGSize(width: 500.0, height: 500)
-    let idealSize = CGSize(width: 680.0, height: 860)
+    let idealSize = CGSize(width: 680.0, height: 780)
     let maxSize = CGSize(width: 800, height: 900)
 
     private var viewModel: ViewModel
@@ -52,20 +52,20 @@ struct SettingsView<ViewModel: SettingsViewModelProtocol>: View {
                     SettingsGetHelpSection(viewModel: viewModel)
                 }
 
-                if viewModel.isFullResyncEnabled {
-                    HideableView(modifier: .option, defaultView: {
-                        EmptyView()
-                    }, pressedView: {
-                        SettingsSectionView(headline: Localization.setting_fix_syncing_issues) {
-                            SettingsFullResyncSection(viewModel: viewModel)
-                        }
-                    })
-                }
+                HideableView(modifier: .option,
+                             alwaysVisible: .constant(viewModel.isFullResyncAlwaysVisible),
+                             defaultView: {
+                    EmptyView()
+                }, pressedView: {
+                    SettingsSectionView(headline: Localization.setting_fix_syncing_issues) {
+                        SettingsFullResyncSection(viewModel: viewModel)
+                    }
+                })
 
                 SettingsFooterView(viewModel: viewModel)
             }
             .padding([.leading, .trailing], 100)
-            .padding(.bottom, 32)
+            .padding(.bottom, 20)
         }
         .tint(ColorProvider.LinkNorm)
         .frame(minWidth: minimalSize.width, idealWidth: idealSize.width, maxWidth: maxSize.width,
@@ -94,7 +94,7 @@ private struct SettingsSectionView<Content: View>: View {
         }
         .groupBoxStyle(.automatic)
         .frame(minWidth: 350, idealWidth: 400, maxWidth: 600)
-        .padding(.top, 32)
+        .padding(.top, 16)
         .padding(.trailing, 10)
         .padding([.leading, .bottom], 0)
     }
@@ -124,6 +124,8 @@ private struct SettingsAccountSection: View {
 
             Spacer()
 
+            signOutControl()
+
             Button(Localization.setting_account_manage_account) {
                 viewModel.actions.links.manageAccount(email: viewModel.emailAddress)
             }
@@ -132,6 +134,48 @@ private struct SettingsAccountSection: View {
         .frame(maxWidth: .infinity)
         .padding([.top, .bottom], 6)
         .padding([.leading, .trailing], 8)
+    }
+
+    @ViewBuilder
+    private func signOutControl() -> some View {
+        if viewModel.offersDomainRemovalOnSignOut {
+            // Default = disconnect & keep cache; Option-pressed = remove the sync location entirely.
+            HideableView(modifier: .option, defaultView: {
+                signOutButton(
+                    title: Localization.menu_text_logout,
+                    identifier: "SettingsView.Button.signOut",
+                    action: viewModel.actions.account.userRequestedSignOut
+                )
+            }, pressedView: {
+                signOutButton(
+                    title: Localization.menu_text_logout_remove_domain,
+                    identifier: "SettingsView.Button.signOutRemovingDomain",
+                    action: viewModel.actions.account.userRequestedSignOutRemovingDomain
+                )
+            })
+        } else {
+            signOutButton(
+                title: Localization.menu_text_logout,
+                identifier: "SettingsView.Button.signOut",
+                action: viewModel.actions.account.userRequestedSignOut
+            )
+        }
+    }
+
+    private func signOutButton(title: String, identifier: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label {
+                Text(title)
+            } icon: {
+                IconProvider.arrowOutFromRectangle
+                    .resizable()
+                    .frame(width: 16, height: 16)
+            }
+            .foregroundColor(ColorProvider.LinkNorm)
+        }
+        .disabled(viewModel.isSignoutInProgress)
+        .buttonStyle(.link)
+        .accessibilityIdentifier(identifier)
     }
 }
 
@@ -230,8 +274,8 @@ private struct SettingsSystemSection<ViewModel: SettingsViewModelProtocol>: View
                     Text(Localization.setting_system_checking_update)
                 case .downloading, .extracting:
                     Text(Localization.setting_system_downloading)
-                case .upToDate(let version):
-                    Text(Localization.setting_system_up_to_date(version: version))
+                case .upToDate:
+                    Text(Localization.setting_system_up_to_date)
                 case .errored(let userFacingMessage):
                     Text(userFacingMessage)
                         .fixedSize(horizontal: false, vertical: true)
@@ -244,6 +288,8 @@ private struct SettingsSystemSection<ViewModel: SettingsViewModelProtocol>: View
                     }
                 }
             }
+
+            SettingsVersionRow(viewModel: viewModel)
             #endif
         }
         .onAppear {
@@ -258,27 +304,54 @@ private struct SettingsSystemSection<ViewModel: SettingsViewModelProtocol>: View
 }
 
 private struct SettingsFullResyncSection: View {
-    
+
     private let viewModel: any SettingsViewModelProtocol
+
+    @State private var isAboutResyncPresented = false
 
     init(viewModel: any SettingsViewModelProtocol) {
         self.viewModel = viewModel
     }
-    
+
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
-            Text("If your app is not syncing correctly, click to automatically refresh your data. It may take a few minutes depending on how many files you have.")
-                
-            Spacer(minLength: 4)
-            
-            Button("Refresh") {
-                viewModel.actions.resync.performFullResync()
-                viewModel.actions.windows.closeSettingsAndShowMainWindow()
+        HStack(alignment: .top) {
+            Text(Localization.setting_fix_syncing_issues_description)
+
+            Spacer(minLength: 16)
+
+            VStack(alignment: .trailing, spacing: 16) {
+                Button(Localization.setting_fix_syncing_issues_button) {
+                    guard viewModel.actions.resync.confirmFullResync() else { return }
+                    viewModel.actions.resync.performFullResync()
+                    viewModel.actions.windows.closeSettingsAndShowMainWindow()
+                }
+                .buttonStyle(.bordered)
+
+                Button(Localization.setting_fix_syncing_issues_learn_more) {
+                    isAboutResyncPresented = true
+                }
+                .buttonStyle(.bordered)
+                .popover(isPresented: $isAboutResyncPresented, arrowEdge: .top) {
+                    aboutResyncPopover
+                }
             }
-            .buttonStyle(.bordered)
         }
         .padding([.top, .bottom], 12)
         .padding([.leading, .trailing], 8)
+    }
+
+    /// "About resync" explanation, same copy as the tray's ⓘ popover.
+    private var aboutResyncPopover: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(Localization.full_resync_info_title)
+                .font(.headline)
+                .foregroundColor(ColorProvider.TextNorm)
+            Text(Localization.full_resync_info_body)
+                .foregroundColor(ColorProvider.TextWeak)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(16)
+        .frame(width: 300, alignment: .leading)
     }
 }
 
@@ -342,6 +415,44 @@ private struct SettingsGetHelpSection: View {
     }
 }
 
+private struct SettingsVersionRow: View {
+
+    let viewModel: any SettingsViewModelProtocol
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+            Button(Localization.setting_mac_version(version: viewModel.version)) {
+                viewModel.actions.links.showReleaseNotes()
+            }
+            .foregroundColor(ColorProvider.LinkNorm)
+            .buttonStyle(.link)
+            .accessibilityIdentifier("SettingsView.Button.version")
+
+            Button {
+                let stringToCopy = "\(viewModel.version), \(viewModel.buildDetails)"
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(stringToCopy, forType: .string)
+            } label: {
+                Image(systemName: "clipboard")
+                    .imageScale(.small)
+                    .foregroundColor(ColorProvider.LinkNorm)
+            }
+            .buttonStyle(.plain)
+            .help("Copy the version number to the clipboard")
+            .accessibilityIdentifier("SettingsView.Button.copyVersion")
+
+            HideableView(modifier: .command, defaultView: {
+                EmptyView()
+            }, pressedView: {
+                HStack(alignment: .bottom) {
+                    Text("\(viewModel.buildDetails)")
+                }
+                .foregroundColor(ColorProvider.TextWeak)
+            })
+        }
+    }
+}
+
 private struct SettingsFooterView: View {
 
     private let viewModel: any SettingsViewModelProtocol
@@ -352,22 +463,6 @@ private struct SettingsFooterView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Button {
-                viewModel.actions.account.userRequestedSignOut()
-            } label: {
-                Label {
-                    Text(Localization.menu_text_logout)
-                } icon: {
-                    IconProvider.arrowOutFromRectangle
-                        .resizable()
-                        .frame(width: 16, height: 16)
-                }
-                .foregroundColor(ColorProvider.LinkNorm)
-            }
-            .disabled(viewModel.isSignoutInProgress)
-            .buttonStyle(.link)
-            .accessibilityIdentifier("SettingsView.Button.signOut")
-
             Button(Localization.setting_terms_and_condition) {
                 viewModel.actions.links.showTermsAndConditions()
             }
@@ -375,36 +470,9 @@ private struct SettingsFooterView: View {
             .buttonStyle(.link)
             .accessibilityIdentifier("SettingsView.Button.termsAndConditions")
             
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Button(Localization.setting_mac_version(version: viewModel.version)) {
-                    viewModel.actions.links.showReleaseNotes()
-                }
-                .foregroundColor(ColorProvider.LinkNorm)
-                .buttonStyle(.link)
-                .accessibilityIdentifier("SettingsView.Button.version")
-
-                Button {
-                    let stringToCopy = "\(viewModel.version), \(viewModel.buildDetails)"
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(stringToCopy, forType: .string)
-                } label: {
-                    Image(systemName: "clipboard")
-                        .imageScale(.small)
-                        .foregroundColor(ColorProvider.LinkNorm)
-                }
-                .buttonStyle(.plain)
-                .help("Copy the version number to the clipboard")
-                .accessibilityIdentifier("SettingsView.Button.copyVersion")
-
-                HideableView(modifier: .command, defaultView: {
-                    EmptyView()
-                }, pressedView: {
-                    HStack(alignment: .bottom) {
-                        Text("\(viewModel.buildDetails)")
-                    }
-                    .foregroundColor(ColorProvider.TextWeak)
-                })
-            }
+            #if !HAS_BUILTIN_UPDATER
+            SettingsVersionRow(viewModel: viewModel)
+            #endif
         }
         .padding(.leading)
         .padding(.top)
@@ -430,7 +498,8 @@ struct SettingsViewPreview: PreviewProvider {
         var isStorageWarning: Bool = false
         var isStorageFull: Bool = false
         var isLaunchOnBootEnabled: Bool = true
-        var isFullResyncEnabled: Bool = true
+        var isFullResyncAlwaysVisible: Bool = true
+        var offersDomainRemovalOnSignOut: Bool = true
         var isSignoutInProgress: Bool = false
         var launchOnBootUserFacingMessage: String?
         var buildCommitSHA: String = "12345678"

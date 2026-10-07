@@ -29,6 +29,7 @@ final class LoginViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var username = ""
     @Published var password = ""
+    @Published var createFreshSyncLocation = false
     @Published var usernameValidationFailureMessage: String?
     @Published var passwordValidationFailureMessage: String?
     @Published var loginButtonTitle: String = "Sign in"
@@ -42,10 +43,16 @@ final class LoginViewModel: ObservableObject {
 
     private let login: Login
     private let domain: String
-    
-    init(login: Login, domain: String) {
+    private let shouldShowCreateFreshSyncLocationOptionProvider: () -> Bool
+
+    /// Evaluated live: the capability may not be known when the login window is built (feature flags
+    /// not loaded yet), so a snapshot would go stale. Reading the provider each time reflects current state.
+    var shouldShowCreateFreshSyncLocationOption: Bool { shouldShowCreateFreshSyncLocationOptionProvider() }
+
+    init(login: Login, domain: String, offersCreateFreshSyncLocation: @escaping () -> Bool) {
         self.login = login
         self.domain = domain
+        self.shouldShowCreateFreshSyncLocationOptionProvider = offersCreateFreshSyncLocation
 
         subscribeToLoadingStatus()
     }

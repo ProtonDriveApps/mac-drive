@@ -71,11 +71,9 @@ extension ProtonDriveSDKError {
             return NSFileProviderError.create(.serverUnreachable, from: self)
         case .businessLogic, .interop:
             return NSFileProviderError.create(.serverUnreachable, from: self)
-        case .serialization, .cryptography, .dataIntegrity, .undefined:
-            guard let innerError else {
-                return NSFileProviderError.create(.cannotSynchronize, from: self)
-            }
-            return innerError.asFileProviderCompatibleError()
+        case .serialization, .cryptography, .dataIntegrity, .unknownIo, .fileSystem, .undefined:
+            return innerError?.asFileProviderCompatibleError() ??
+                NSFileProviderError.create(.cannotSynchronize, from: self)
         }
     }
 }
@@ -86,22 +84,9 @@ extension Swift.Error {
         if let limitError = self as? FolderRateLimitedError {
             return limitError.reason
         }
-        if let sdkError = self as? ProtonDriveSDKError {
-            if sdkError.isTooManyChildrenError { return .tooManyChildren }
-            if sdkError.isNestingTooDeepError { return .nestingTooDeep }
-            return nil
-        }
-        if let responseError = self as? ResponseError {
-            switch responseError.responseCode {
-            case ResponseCode.tooManyChildren.rawValue: return .tooManyChildren
-            case ResponseCode.nestingTooDeep.rawValue: return .nestingTooDeep
-            default: return nil
-            }
-        }
-        let nsError = self as NSError
-        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? Error {
-            return underlying.folderLimitReason
-        }
+        let codes = candidateErrorCodes()
+        if codes.contains(ResponseCode.tooManyChildren.rawValue) { return .tooManyChildren }
+        if codes.contains(ResponseCode.nestingTooDeep.rawValue) { return .nestingTooDeep }
         return nil
     }
 }
@@ -112,22 +97,77 @@ extension Swift.Error {
         if let quotaError = self as? QuotaExceededError {
             return quotaError.reason
         }
+        let codes = candidateErrorCodes()
+        if codes.contains(ResponseCode.insufficientQuota.rawValue) { return .insufficientQuota }
+        if codes.contains(ResponseCode.insufficientSpace.rawValue) { return .insufficientSpace }
+        return nil
+    }
+}
+
+private extension Swift.Error {
+
+    /// Walks the error tree and collects candidate backend/error codes, so quota
+    /// (200001/200002) and folder (200300/200301) limits are detected regardless
+    /// of how the error is wrapped or nested. Bounded by `depth` to guard against cycles.
+    func candidateErrorCodes(depth: Int = 6) -> Set<Int> {
+        guard depth > 0 else { return [] }
+        var codes: Set<Int> = []
+
+        if let quotaError = self as? QuotaExceededError {
+            codes.insert(quotaError.reason.responseCode)
+            return codes
+        }
+
+        if let folderError = self as? FolderRateLimitedError {
+            codes.insert(folderError.reason.responseCode)
+            return codes
+        }
+
         if let sdkError = self as? ProtonDriveSDKError {
-            if sdkError.isInsufficientQuotaError { return .insufficientQuota }
-            if sdkError.isInsufficientSpaceError { return .insufficientSpace }
-            return nil
-        }
-        if let responseError = self as? ResponseError {
-            switch responseError.responseCode {
-            case ResponseCode.insufficientQuota.rawValue: return .insufficientQuota
-            case ResponseCode.insufficientSpace.rawValue: return .insufficientSpace
-            default: return nil
+            if let primaryCode = sdkError.primaryCode { codes.insert(primaryCode) }
+            if let secondaryCode = sdkError.secondaryCode { codes.insert(secondaryCode) }
+            if let inner = sdkError.innerError {
+                codes.formUnion(inner.candidateErrorCodes(depth: depth - 1))
             }
+            return codes
         }
+
+        if let responseError = self as? ResponseError {
+            if let responseCode = responseError.responseCode { codes.insert(responseCode) }
+            if let httpCode = responseError.httpCode { codes.insert(httpCode) }
+            if let underlying = responseError.underlyingError {
+                codes.formUnion(underlying.candidateErrorCodes(depth: depth - 1))
+            }
+            return codes
+        }
+
+        // A bare `NSError.code` from an arbitrary domain isn't trusted: an unrelated code could equal a
+        // quota/folder response code (200001/200002/200300/200301) and wrongly arm the limiter.
         let nsError = self as NSError
         if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? Error {
-            return underlying.quotaLimitReason
+            codes.formUnion(underlying.candidateErrorCodes(depth: depth - 1))
         }
-        return nil
+        for underlying in nsError.underlyingErrors {
+            codes.formUnion(underlying.candidateErrorCodes(depth: depth - 1))
+        }
+        return codes
+    }
+}
+
+private extension QuotaLimitReason {
+    var responseCode: Int {
+        switch self {
+        case .insufficientQuota: return ResponseCode.insufficientQuota.rawValue
+        case .insufficientSpace: return ResponseCode.insufficientSpace.rawValue
+        }
+    }
+}
+
+private extension FolderLimitReason {
+    var responseCode: Int {
+        switch self {
+        case .tooManyChildren: return ResponseCode.tooManyChildren.rawValue
+        case .nestingTooDeep: return ResponseCode.nestingTooDeep.rawValue
+        }
     }
 }

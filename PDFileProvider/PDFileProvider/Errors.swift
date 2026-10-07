@@ -141,6 +141,9 @@ extension Errors {
             return NSFileProviderError(.noSuchItem)
 #endif
             
+        case OutOfSyncRecoveryError.nodeRemoved:
+            return NSFileProviderError.create(.noSuchItem, from: error)
+
         case let responseError as ResponseError
             where responseError.responseCode == APIErrorCodes.protonDocumentCannotBeCreatedFromMacOSAppErrorCode.rawValue:
             return NSFileProviderError.create(.excludedFromSync, from: error)
@@ -172,6 +175,16 @@ public extension NSFileProviderError {
                 NSDebugDescriptionErrorKey: "FP error code: \(status). Original error: \(error.localizedDescription)",
                 NSUnderlyingErrorKey: error,
                 NSLocalizedDescriptionKey: error.localizedDescription
+            ]
+        )
+    }
+    
+    static func create(_ status: NSFileProviderError.Code, userFacingDescription: String) -> Self {
+        return NSFileProviderError(
+            status,
+            userInfo: [
+                NSDebugDescriptionErrorKey: "FP error code: \(status). UserFacingDescription: \(userFacingDescription)",
+                NSLocalizedDescriptionKey: userFacingDescription
             ]
         )
     }

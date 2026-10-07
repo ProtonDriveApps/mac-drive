@@ -21,20 +21,17 @@ import PDCore
 import ProtonDriveSDK
 
 extension SessionVault: @retroactive AccountClientProtocol, @unchecked Sendable {
-    public func getAddress(addressId: String) -> Address? {
-        let address = getAddress(withId: addressId)
-        if address == nil {
-            Log.warning("There is no address for \(addressId)", domain: .sdk)
-        }
-        return address
+    public func getAddress(addressId: String) -> AccountClientAddress? {
+        let address = getProtonCoreAddress(addressId: addressId)
+        return address?.mapToSDK()
     }
 
-    public func getDefaultAddress() -> Address? {
-        return currentAddress()
+    public func getDefaultAddress() -> AccountClientAddress? {
+        return currentAddress()?.mapToSDK()
     }
 
     public func getAddressPrimaryPrivateKey(addressId: String) -> Data? {
-        guard let address = getAddress(addressId: addressId) else { return nil }
+        guard let address = getProtonCoreAddress(addressId: addressId) else { return nil }
         guard let primaryKey = address.activeKeys.first(where: { $0.primary == 1 }) else {
             Log.warning("There is no associated primary key for the \(addressId)", domain: .sdk)
             return nil
@@ -48,7 +45,7 @@ extension SessionVault: @retroactive AccountClientProtocol, @unchecked Sendable 
     }
 
     public func getAddressPrivateKeys(addressId: String) -> [Data]? {
-        guard let address = getAddress(addressId: addressId) else { return nil }
+        guard let address = getProtonCoreAddress(addressId: addressId) else { return nil }
         do {
             return try address.activeKeys.map { key in
                 try unlockedAddressPrivateKeyData(for: key)
@@ -62,5 +59,54 @@ extension SessionVault: @retroactive AccountClientProtocol, @unchecked Sendable 
     public func getAddressPublicKeysRequest(emailAddress: String) -> [Data] {
         return getPublicKeys(for: emailAddress)
             .map { Data($0.utf8) }
+    }
+
+    // MARK: - Private
+
+    private func getProtonCoreAddress(addressId: String) -> Address? {
+        let address = getAddress(withId: addressId)
+        if address == nil {
+            Log.warning("There is no address for \(addressId)", domain: .sdk)
+        }
+        return address
+    }
+}
+
+fileprivate extension Address {
+    func mapToSDK() -> AccountClientAddress {
+        let status: AccountClientAddress.Status = {
+            switch self.status {
+            case .disabled:
+                return .disabled
+            case .enabled:
+                return .enabled
+            }
+        }()
+        return AccountClientAddress(
+            addressID: addressID,
+            order: Int32(order),
+            emailAddress: email,
+            status: status,
+            primaryKeyIndex: Int32(keys.firstIndex(where: { $0.primary == 1 }) ?? 0),
+            keys: keys.map { key in
+                AccountClientAddress.Key(
+                    addressID: addressID,
+                    addressKeyID: key.keyID,
+                    isActive: key.active == 1,
+                    isAllowedForEncryption: key.isAllowedForEncryption,
+                    isAllowedForVerification: key.isAllowedForVerification
+                )
+            }
+        )
+    }
+}
+
+fileprivate extension Key {
+    var isAllowedForEncryption: Bool {
+        KeyFlags(rawValue: UInt8(truncating: keyFlags as NSNumber)).contains(.encryptNewData)
+    }
+
+    var isAllowedForVerification: Bool {
+        KeyFlags(rawValue: UInt8(truncating: keyFlags as NSNumber)).contains(.verifySignatures)
     }
 }

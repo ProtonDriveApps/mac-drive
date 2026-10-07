@@ -463,11 +463,22 @@ extension Log {
 }
 
 extension Thread {
-    var number: String {
-        guard let match = Thread.current.description.firstMatch(of: #/number = (\d+)/#) else {
-            return ""
+    private static let numberKey = "PDCore.threadNumber"
+    
+    /// NSThread's own thread ordinal — the `number = N` in its description, as shown in log prefixes.
+    static var currentNumber: String {
+        let storage = Thread.current.threadDictionary
+        if let cached = storage[numberKey] as? String {
+            return cached
         }
-        return String(match.output.1)
+        
+        let description = Thread.current.description
+        let number = description.range(of: "number = ").map {
+            String(description[$0.upperBound...].prefix(while: \.isNumber))
+        } ?? ""
+        
+        storage[numberKey] = number
+        return number
     }
 }
 

@@ -24,11 +24,14 @@ public enum ActionBarButtonViewModel: Int {
     case createFolder
     case cancel
     case deleteMultiple
+    case deleteMultipleNew // for refactored trash view, should be removed after view being rolled out
     case trashMultiple
     case removeFromAlbum
     case restoreMultiple
+    case restoreMultipleNew // for refactored trash view
     case moveMultiple
     case offlineAvailableMultiple
+    case downloadMultiple
     case share
     case shareNative
     case newShare
@@ -50,10 +53,13 @@ public enum ActionBarButtonViewModel: Int {
         case .trashMultiple: return IconProvider.trash
         case .moveMultiple: return IconProvider.folderArrowIn
         case .offlineAvailableMultiple: return IconProvider.arrowDownCircle
+        case .downloadMultiple: return IconProvider.arrowDownLine
         case .createFolder: return nil
         case .restoreMultiple: return nil
+        case .restoreMultipleNew: return IconProvider.arrowsRotate
         case .cancel: return nil
         case .deleteMultiple: return nil
+        case .deleteMultipleNew: return IconProvider.trash
         case .share: return IconProvider.link
         case .shareNative: return IconProvider.arrowUpFromSquare
         case .removeMe: return .init("ic_user_cross")
@@ -77,9 +83,12 @@ public enum ActionBarButtonViewModel: Int {
         case .cancel: return "ActionBar.Button.Cancel"
         case .trashMultiple: return "ActionBar.Button.TrashMultiple"
         case .restoreMultiple: return "ActionBar.Button.RestoreMultiple"
+        case .restoreMultipleNew: return "ActionBar.Button.RestoreMultiple"
         case .moveMultiple: return "ActionBar.Button.MoveMultiple"
         case .offlineAvailableMultiple: return "ActionBar.Button.OfflineAvailableMultiple"
+        case .downloadMultiple: return "ActionBar.Button.DownloadMultiple"
         case .deleteMultiple: return "ActionBar.Button.DeleteMultiple"
+        case .deleteMultipleNew: return "ActionBar.Button.DeleteMultiple"
         case .share: return "ActionBar.Button.Share"
         case .shareNative: return "ActionBar.Button.ShareNative"
         case .removeMe: return "ActionBar.Button.RemoveMe"
@@ -101,10 +110,13 @@ public enum ActionBarButtonViewModel: Int {
         switch self {
         case .trashMultiple: return Localization.edit_section_remove
         case .deleteMultiple: return Localization.general_delete
+        case .deleteMultipleNew: return Localization.general_delete
         case .restoreMultiple: return Localization.general_restore
+        case .restoreMultipleNew: return Localization.general_restore
         case .createFolder: return "New folder"
         case .cancel: return Localization.general_cancel
         case .offlineAvailableMultiple: return Localization.edit_section_make_available_offline
+        case .downloadMultiple: return Localization.more_action_download
         case .info: return Localization.file_detail_title
         case .setAsAlbumCover: return Localization.action_set_as_album_cover
         case .createAlbum: return Localization.empty_albums_action
@@ -136,7 +148,7 @@ public enum ActionBarButtonViewModel: Int {
     var isBold: Bool {
         switch self {
         case .trashMultiple, .cancel, .removeMe, .setAsAlbumCover, .createAlbum, .shareMultiple, .save, .removeFromAlbum: return false
-        case .deleteMultiple, .restoreMultiple, .createFolder, .moveMultiple, .offlineAvailableMultiple, .share, .newShare, .shareNative, .info, .toggleFavorite, .more, .favorite, .unFavorite: return true
+        case .deleteMultiple, .restoreMultiple, .deleteMultipleNew, .restoreMultipleNew, .createFolder, .moveMultiple, .offlineAvailableMultiple, .downloadMultiple, .share, .newShare, .shareNative, .info, .toggleFavorite, .more, .favorite, .unFavorite: return true
         }
     }
 

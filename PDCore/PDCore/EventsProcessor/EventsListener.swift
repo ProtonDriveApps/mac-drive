@@ -24,4 +24,14 @@ public typealias EventID = PDClient.EventID
 public protocol EventsListener: AnyObject {
     func processorReceivedEvents()
     func processorAppliedEvents(affecting: [NodeIdentifier])
+
+    func rootMetadataMayHaveChanged(volumeID: String)
+
+    /// Backend answered the poll with `Refresh == 1`: the cursor is unusable and the tree must be
+    /// rebuilt. Only the macOS app reacts, hence the default no-op.
+    func volumeRequiresFullRefresh(volumeID: String)
+}
+
+public extension EventsListener {
+    func volumeRequiresFullRefresh(volumeID: String) {}
 }

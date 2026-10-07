@@ -51,7 +51,6 @@ public final class ItemActionsOutlet {
     let fileCreationProvider: CreateFilePerformerProvider
     let newRevisionUploadPerformerProvider: NewRevisionUploadPerformerProvider
     public let providersPipeline: DriveObservabilityPipeline
-    private(set) var validNameDiscoverer: ValidNameDiscoverer?
     
     private let folderRateLimiter: FolderRateLimiting
 
@@ -66,8 +65,8 @@ public final class ItemActionsOutlet {
 #endif
 
     public init(fileProviderManager: NSFileProviderManager,
-                fileCreationProvider: @escaping CreateFilePerformerProvider = { DefaultCreateFilePerformer() },
-                newRevisionUploadPerformProvider: @escaping NewRevisionUploadPerformerProvider = { DefaultNewRevisionUploadPerformer() },
+                fileCreationProvider: @escaping CreateFilePerformerProvider,
+                newRevisionUploadPerformProvider: @escaping NewRevisionUploadPerformerProvider,
                 providersPipeline: DriveObservabilityPipeline = .legacy,
                 folderRateLimiter: FolderRateLimiting = NoOpFolderRateLimiter()) {
         self.fileProviderManager = fileProviderManager
@@ -80,10 +79,6 @@ public final class ItemActionsOutlet {
 
     deinit {
         Log.info("ItemActionsOutlet deinit: \(instanceIdentifier.uuidString)", domain: .syncing)
-    }
-
-    public func set(validNameDiscoverer: ValidNameDiscoverer) {
-        self.validNameDiscoverer = validNameDiscoverer
     }
 
     public func deleteItem(tower: Tower,
@@ -132,7 +127,6 @@ public final class ItemActionsOutlet {
             return
         }
     }
-
 
     @discardableResult
     // swiftlint:disable:next function_parameter_count
@@ -208,7 +202,12 @@ public final class ItemActionsOutlet {
 
                 // Delete the draft if it already exists before creating a new one
                 if let existingDraft = await tower.draft(for: itemTemplate, moc: moc) {
-                    existingDraft.delete()
+                    if let moc = existingDraft.moc {
+                        moc.performAndWait {
+                            moc.delete(existingDraft)
+                            try? moc.saveIfNeeded()
+                        }
+                    }
                 }
 
                 // We do not support creating proton doc files from the macOS client.
@@ -336,7 +335,7 @@ extension ItemActionsOutlet {
         _ key: ItemActionsOutlet.TrashBucketKey,
         _ linkIDs: [String],
         _ tower: Tower
-    ) async -> [String : Result<Void, any Error>] {
+    ) async -> [String: Result<Void, any Error>] {
         Log.info(
             "Trash batch flush degrading to legacy per-item (share=\(key.shareID), parent=\(key.parentID), \(linkIDs.count) links)",
             domain: .fileProvider
@@ -723,6 +722,7 @@ extension ItemActionsOutlet {
     }
 }
 
+#if os(iOS)
 public final class DefaultCreateFilePerformer: CreateFilePerformer {
 
     public init() {}
@@ -739,45 +739,35 @@ public final class DefaultCreateFilePerformer: CreateFilePerformer {
         guard let url else {
             throw Errors.urlForUploadIsNil
         }
-
+        
         guard let fileSize = url.fileSize else {
             throw Errors.urlForUploadHasNoSize
         }
-
+        
         guard let copy = try? ItemActionsOutlet.prepare(forUpload: item, from: url) else {
             throw Errors.urlForUploadFailedCopying
         }
-
+        
         defer { try? FileManager.default.removeItem(at: copy.deletingLastPathComponent()) }
-
+        
         let draft = try tower.fileImporter.importFile(from: copy, to: parent, with: item.itemIdentifier.rawValue)
         guard fileSize == copy.fileSize else {
-            tower.fileUploader.deleteUploadingFile(draft, error: .accessFileFailed)
+            try await tower.fpSDKObjects.fileUploader.deleteUploadingFile(identifier: draft.genericIdentifier)
             throw URLConsistencyError.urlSizeMismatch
         }
-
-        #if os(iOS)
         do {
-            if let uploader = tower.getSdkFileUploader() {
-                let fileIdentifier = try await uploader.upload(identifier: draft.identifier.any())
-                let uploadedFile: File = try File.fetchOrThrow(identifier: fileIdentifier, in: moc)
-                return uploadedFile
-            } else {
-                return try await tower.fileUploader.upload(draft)
-            }
+            let fileIdentifier: AnyVolumeIdentifier
+            #if os(iOS)
+            fileIdentifier = try await tower.fpSDKObjects.fileUploader.upload(identifier: draft.identifier.any(), duplicateAction: .keepBoth)
+            #else
+            fatalError("Mac shouldn't use this function")
+            fileIdentifier = try await tower.fpSDKObjects.fileUploader.upload(identifier: draft.identifier.any())
+            #endif
+            let uploadedFile: File = try File.fetchOrThrow(identifier: fileIdentifier, in: moc)
+            return uploadedFile
         } catch {
-           tower.fileUploader.deleteUploadingFile(draft, error: nil)
-           throw error
-       }
-        #else
-        let fileUploader = SuspendableFileUploader(uploader: tower.fileUploader, progress: progress, networkMonitor: tower.connectionStateResource)
-        do {
-            return try await fileUploader.upload(draft)
-        } catch {
-            fileUploader.deleteUploadingFile(draft)
             throw error
         }
-        #endif
     }
 }
 
@@ -786,19 +776,34 @@ public final class DefaultNewRevisionUploadPerformer: NewRevisionUploadPerformer
     public init() {}
 
     // swiftlint:disable:next function_parameter_count
-    public func uploadNewRevision(item: NSFileProviderItem, file: File, tower: Tower, copy: URL, fileSize: Int, pendingFields: NSFileProviderItemFields, progress: Progress?, moc: NSManagedObjectContext) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool) {
-        if let uploadID = file.uploadIDIfUploadingNewRevision() {
-            tower.fileUploader.cancelOperation(id: uploadID)
+    public func uploadNewRevision(
+        item: NSFileProviderItem,
+        file: File,
+        tower: Tower,
+        copy: URL,
+        fileSize: Int,
+        pendingFields: NSFileProviderItemFields,
+        progress: Progress?,
+        moc: NSManagedObjectContext
+    ) async throws -> (NSFileProviderItem?, NSFileProviderItemFields, Bool) {
+        if file.uploadIDIfUploadingNewRevision() != nil {
+            await tower.fpSDKObjects.fileUploader.cancel(identifier: file.genericIdentifier)
             file.prepareForNewUpload()
         }
-
+        
         let fileWithNewRevision = try tower.revisionImporter.importNewRevision(from: copy, into: file)
         guard fileSize == copy.fileSize else {
             throw URLConsistencyError.urlSizeMismatch
         }
-
+        
         // TODO: add progress reporting here, maybe by using SuspendableFileUploader instead of tower.fileUploader?
-        let fileWithUploadedRevision = try await tower.fileUploader.upload(fileWithNewRevision)
+        let uploadedIdentifier = try await tower.fpSDKObjects.fileUploader.upload(identifier: file.genericIdentifier)
+        let fileWithUploadedRevision = try await moc.perform { [moc] in
+            let node: Node = try Node.fetchOrThrow(identifier: uploadedIdentifier, allowSubclasses: true, in: moc)
+            return node
+        }
         return (try NodeItem(node: fileWithUploadedRevision), pendingFields, false)
     }
 }
+
+#endif

@@ -57,12 +57,48 @@ public final class RecoveryCoordination {
 public protocol RecoverableStorage: AnyObject {
     func disconnectExistingDB() throws -> PersistentStoreInfo
     func createRecoveryDB(nextTo backup: PersistentStoreInfo) throws -> PersistentStoreInfo
-    func reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: PersistentStoreInfo, recovery: PersistentStoreInfo?) throws
+    func reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: PersistentStoreInfo, recovery: PersistentStoreInfo?, discardRecovery: Bool) throws
     func replaceExistingDBWithRecovery(existing: PersistentStoreInfo, recovery: PersistentStoreInfo) throws
     @discardableResult func cleanupLeftoversFromPreviousRecoveryAttempt() -> Bool
     func moveExistingDBToBackup(existing: PersistentStoreInfo) throws -> PersistentStoreInfo
     func restoreFromBackup() throws
     var previousRunWasInterrupted: Bool { get }
+    /// Whether the backing store is in-memory (test-only). In-memory stores have no file to delete, so
+    /// `resetToEmptyStore()` skips the on-disk swap for them.
+    var isInMemoryStore: Bool { get }
+}
+
+public extension RecoverableStorage {
+    /// Destroys the live database and installs a fresh, empty store, removing any leftover
+    /// `Recovery_`/`Backup_` files. Reuses the same swap a successful resync performs
+    /// (`disconnectExistingDB` → `createRecoveryDB` → `replaceExistingDBWithRecovery`), so the old
+    /// `.sqlite`/`-shm`/`-wal` are destroyed on disk — not merely emptied. Throws on any failure so the
+    /// caller can abort rather than continue on stale data. No-op for in-memory (test-only) stores.
+    func resetToEmptyStore() throws {
+        guard !isInMemoryStore else {
+            Log.debug("resetToEmptyStore skipped for in-memory store", domain: .storage)
+            return
+        }
+        cleanupLeftoversFromPreviousRecoveryAttempt()
+        let existing = try disconnectExistingDB()
+        var recovery: PersistentStoreInfo?
+        do {
+            let empty = try createRecoveryDB(nextTo: existing)
+            recovery = empty
+            try replaceExistingDBWithRecovery(existing: existing, recovery: empty)
+        } catch {
+            // disconnectExistingDB detached the live store; a failure now would leave the container with no
+            // store attached, so later Core Data work (e.g. the caller's sign-out/destroyCache) would fault.
+            // Reconnect the original before rethrowing so the caller aborts against a healthy container,
+            // discarding the half-made recovery. Fall back to clearing recovery leftovers if reconnect fails.
+            do {
+                try reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: existing, recovery: recovery, discardRecovery: true)
+            } catch {
+                cleanupLeftoversFromPreviousRecoveryAttempt()
+            }
+            throw error
+        }
+    }
 }
 
 public enum BackupAndRestoreDBErrors: LocalizedError {
@@ -174,12 +210,13 @@ extension RecoverableStorage {
     public static func reconnectExistingDBAndDiscardRecoveryIfNeeded(
         existing: PersistentStoreInfo,
         recovery: PersistentStoreInfo?,
+        discardRecovery: Bool = true,
         using persistentContainer: PersistentContainerProtocol,
         contexts: Atomic<[WeakReference<NSManagedObjectContext>]>
     ) throws {
         resetAllContexts(contexts)
 
-        // 1. Remove recovery if needed
+        // 1. Remove the recovery store from the container if present (so it's never left as a second store)
         if let recovery {
             try remove(store: recovery.store, from: persistentContainer)
         }
@@ -187,8 +224,8 @@ extension RecoverableStorage {
         // 2. Bring back existing
         _ = try addStore(at: existing.url, type: existing.type, description: existing.description, using: persistentContainer)
 
-        // 3. Delete recovery if needed
-        if let recovery {
+        // 3. Delete the recovery file, unless it should be preserved on disk for a later resume
+        if let recovery, discardRecovery {
             try delete(store: recovery, using: persistentContainer)
         }
     }

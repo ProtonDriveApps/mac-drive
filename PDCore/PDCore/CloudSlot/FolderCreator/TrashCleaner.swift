@@ -17,14 +17,17 @@
 
 import PDClient
 
+@available(iOS 16, *)
 public final class TrashCleaner {
 
     private let client: Client
     private let storage: StorageManager
+    private let pendingTrashDeletions: PendingTrashDeletionRegistryProtocol
 
-    public init(client: Client, storage: StorageManager) {
+    public init(client: Client, storage: StorageManager, pendingTrashDeletions: PendingTrashDeletionRegistryProtocol) {
         self.client = client
         self.storage = storage
+        self.pendingTrashDeletions = pendingTrashDeletions
     }
 
     public func emptyTrash(_ nodes: [NodeIdentifier]) async throws {
@@ -35,7 +38,7 @@ public final class TrashCleaner {
         for group in nodes.splitIntoChunks() {
             let task = Task {
                 try await client.emptyTrash(shareID: group.share)
-                try await setToBeDeleted(group.links.map { AnyVolumeIdentifier(id: $0, volumeID: group.volume) })
+                await markPendingDeletion(group.links.map { AnyVolumeIdentifier(id: $0, volumeID: group.volume) })
             }
             tasks.append(task)
         }
@@ -53,7 +56,7 @@ public final class TrashCleaner {
         for group in nodes.splitIntoChunksByVolume() {
             let task = Task {
                 try await client.emptyVolumeTrash(volumeId: group.volumeId)
-                try await setToBeDeleted(group.nodeIds.map { AnyVolumeIdentifier(id: $0, volumeID: group.volumeId) })
+                await markPendingDeletion(group.nodeIds.map { AnyVolumeIdentifier(id: $0, volumeID: group.volumeId) })
             }
             tasks.append(task)
         }
@@ -63,15 +66,11 @@ public final class TrashCleaner {
         }
     }
 
-    private func setToBeDeleted(_ nodes: [AnyVolumeIdentifier]) async throws {
-        let context = storage.mainContext
-
-        try await context.perform {
+    private func markPendingDeletion(_ nodes: [AnyVolumeIdentifier]) async {
+        let context = storage.backgroundContext
+        await context.perform {
             let nodes = Node.fetch(identifiers: Set(nodes), allowSubclasses: true, in: context)
-            nodes.forEach {
-                $0.setToBeDeletedRecursivelly()
-            }
-            try context.saveOrRollback()
+            self.pendingTrashDeletions.markRecursivelyWithinContext(nodes: nodes)
         }
     }
 }

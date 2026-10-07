@@ -66,26 +66,15 @@ public final class NetworkOfflineDetector {
 public class SyncReporter {
     private let tower: Tower
     private let manager: NSFileProviderManager
+    private let syncStorage: SyncStorageManager
     private let syncStateMapper = SyncStateMapper()
-    private let itemTasksLock = NSLock()
-    private var itemTasks: [String: Task<Void, Never>] = [:]
 
     /// Enqueues an async operation for the given item, guaranteeing that operations
     /// for the same `itemId` execute in the order they were enqueued.
-    /// Operations for different items run concurrently.
+    /// Operations for different items run concurrently. Delegates to the shared per-id serializer
+    /// so every SyncItem writer shares one ordering.
     private func enqueue(for itemId: String, operation: @escaping @Sendable () async -> Void) {
-        itemTasksLock.lock()
-        let previous = itemTasks[itemId]
-        let newTask = Task {
-            await previous?.value
-            await operation()
-        }
-        itemTasks[itemId] = newTask
-        itemTasksLock.unlock()
-    }
-
-    private var syncStorage: SyncStorageManager {
-        tower.syncStorage ?? SyncStorageManager(suite: .group(named: Constants.appGroup))
+        syncStorage.enqueueWrite(for: itemId, operation)
     }
 
     // must be called within NSManagedObject
@@ -97,6 +86,7 @@ public class SyncReporter {
     ) {
         self.tower = tower
         self.manager = manager
+        self.syncStorage = tower.syncStorage ?? SyncStorageManager(suite: .group(named: Constants.appGroup))
     }
 
     // MARK: File operations
@@ -268,7 +258,7 @@ public class SyncReporter {
             state: .inProgress,
             progress: 0,
             errorDescription: nil)
-        Task {
+        enqueue(for: ItemEnumerationObserver.enumerationSyncItemIdentifier) { [self] in
             await syncStorage.backgroundContextPool.withContext { context in
                 syncStorage.upsert(item, in: context)
             }
@@ -288,7 +278,7 @@ public class SyncReporter {
             state: .finished,
             progress: 100,
             errorDescription: nil)
-        Task {
+        enqueue(for: ItemEnumerationObserver.enumerationSyncItemIdentifier) { [self] in
             await syncStorage.backgroundContextPool.withContext { context in
                 syncStorage.upsert(item, in: context)
             }

@@ -103,9 +103,7 @@ public typealias NoShare = Void
 
 public typealias XAttrs = String
 
-public typealias CloudFileDraftCreatorCompletion = (Result<RemoteUploadedNewFile, Error>) -> Void
 public typealias AvailableHashCheckerCompletion = (Result<[String], Error>) -> Void
-public typealias CloudContentCreatorCompletion = (Result<FullUploadableRevision, Error>) -> Void
 
 public class CloudSlot: CloudSlotProtocol {
     public typealias Errors = CloudSlotErrors
@@ -168,15 +166,8 @@ public protocol CloudSlotProtocol: AnyObject,
     CloudEventProvider,
     ThumbnailCloudClient,
     CloudAsyncVolumeCreatorProtocol,
-    CloudFileDraftCreator,
-    AvailableHashChecker,
-    CloudContentCreator,
-    CloudRevisionCommitter,
-    UploadedRevisionChecker,
-    CloudRevisionCreator,
     CloudUpdaterProtocol,
-    CloudTrasherProtocol,
-    ThumbnailsUpdateRepository
+    CloudTrasherProtocol
 {
 }
 
@@ -187,6 +178,7 @@ public protocol CloudShareScannerProtocol {
 public protocol CloudRootScannerProtocol {
     func scanRoots(isPhotosEnabled: Bool, moc: NSManagedObjectContext, onFoundMainShare: @escaping (Result<Share, Error>) -> Void, onMainShareNotFound: @escaping () -> Void)
     func scanRootsAsync(isPhotosEnabled: Bool, moc: NSManagedObjectContext) async throws -> Share?
+    func scanVolumes(in moc: NSManagedObjectContext) async throws -> [VolumeMeta]
 }
 
 public protocol CloudShareAndRootFolderScannerProtocol {
@@ -252,30 +244,6 @@ public protocol ThumbnailCloudClient {
     func downloadThumbnailURL(parameters: RevisionThumbnailParameters, completion: @escaping (Result<URL, Error>) -> Void)
 }
 
-public protocol CloudFileDraftCreator {
-    func createNewFileDraft(_ draft: UploadableFileDraft, completion: @escaping CloudFileDraftCreatorCompletion)
-}
-
-public protocol AvailableHashChecker {
-    func checkAvailableHashes(among nameHashPairs: [NameHashPair], onFolder folder: NodeIdentifier, completion: @escaping AvailableHashCheckerCompletion)
-}
-
-public protocol CloudContentCreator {
-    func create(from revision: UploadableRevision, onCompletion: @escaping CloudContentCreatorCompletion)
-}
-
-public protocol CloudRevisionCommitter {
-    func commit(_ revision: CommitableRevision, completion: @escaping (Result<Void, Error>) -> Void)
-}
-
-public protocol UploadedRevisionChecker {
-    func checkUploadedRevision(_ id: RevisionIdentifier, completion: @escaping (Result<XAttrs, Error>) -> Void)
-}
-
-public protocol CloudRevisionCreator {
-    func createRevision(for file: NodeIdentifier, onCompletion: @escaping (Result<RevisionIdentifier, Error>) -> Void)
-}
-
 extension CloudSlot {
     private func updateShare(shareMeta: ShareMeta,
                              moc: NSManagedObjectContext,
@@ -325,19 +293,24 @@ extension CloudSlot {
         }
     }
 
+    public func scanVolumes(in moc: NSManagedObjectContext) async throws -> [VolumeMeta] {
+        // getShares() first — the BE updates volume state as a hidden side effect (see scanRootsAsync).
+        _ = try await client.getShares()
+        let volumes = try await client.getVolumes()
+        try moc.performAndWait {
+            update(volumes, in: moc)
+            try moc.saveOrRollback()
+        }
+        return volumes
+    }
+
     public func scanRootsAsync(isPhotosEnabled: Bool = false,
                                moc: NSManagedObjectContext) async throws -> Share? {
-        // we cannot rely on volume state being properly updated before we call for shares first.
-        // call for shares updates the volume state as a hidden side effect. this is a BE quirk.
-        _ = try await client.getShares()
-
-        let volumes = try await client.getVolumes()
+        let volumes = try await scanVolumes(in: moc)
 
         guard let volume = volumes.first(where: { $0.state == .active }) else {
             return nil
         }
-
-        update(volumes, in: moc)
 
         let mainShare = try await scanRootShare(volume.share.shareID, moc: moc)
         if isPhotosEnabled {
@@ -694,15 +667,28 @@ extension CloudSlot {
     }
 
     public func rename(_ node: Node, to newName: String, mimeType: String?, moc: NSManagedObjectContext) async throws {
-        let renamer = NodeRenamer(cloudNodeRenamer: client.renameEntry, signersKitFactory: signersKitFactory)
+        let renamer = NodeRenamer(cloudNodeRenamer: client.renameEntry, signersKitFactory: signersKitFactory, metadataRefresher: makeMetadataRefresher())
 
         return try await renamer.rename(node, to: newName, mimeType: mimeType, moc: moc)
     }
 
     public func move(node: Node, to newParent: Folder, name: String, moc: NSManagedObjectContext) async throws {
-        let mover = NodeMover(cloudNodeMover: client.moveEntry, signersKitFactory: signersKitFactory, parentIDFetcher: parentIDFetcher)
+        let mover = NodeMover(cloudNodeMover: client.moveEntry, signersKitFactory: signersKitFactory, parentIDFetcher: parentIDFetcher, metadataRefresher: makeMetadataRefresher())
 
         return try await mover.move(node, to: newParent, name: name, moc: moc)
+    }
+
+    // 2000 ("item out of sync") recovery is macOS-only. On iOS this is nil, so move/rename get no detection, refresh, re-check, or retry.
+    // scanNodes resolves the parent chain up to the first folder already in the DB (so a node moved into a
+    // locally-unknown folder lands correctly) and removes any node the backend no longer returns.
+    private func makeMetadataRefresher() -> NodeMetadataRefreshing? {
+        #if os(macOS)
+        return { [self] id, moc in
+            try await scanNodes(linkIDs: [id.nodeID], shareID: id.shareID, moc: moc)
+        }
+        #else
+        return nil
+        #endif
     }
 
     private func createVolume(signersKit: SignersKit,
@@ -817,132 +803,6 @@ extension CloudSlot {
 extension CloudSlot {
     public func downloadThumbnailURL(parameters: RevisionThumbnailParameters, completion: @escaping (Result<URL, Error>) -> Void) {
         client.getRevisionThumbnailURL(parameters: parameters, completion: completion)
-    }
-}
-
-// MARK: - CloudFileDraftCreator
-extension CloudSlot {
-    public func createNewFileDraft(_ draft: UploadableFileDraft, completion: @escaping CloudFileDraftCreatorCompletion) {
-        let parameters = NewFileParameters(
-            name: draft.armoredName,
-            hash: draft.nameHash,
-            parentLinkID: draft.parentLinkID,
-            nodeKey: draft.nodeKey,
-            nodePassphrase: draft.nodePassphrase,
-            nodePassphraseSignature: draft.nodePassphraseSignature,
-            signatureAddress: draft.signatureAddress,
-            contentKeyPacket: draft.contentKeyPacket,
-            contentKeyPacketSignature: draft.contentKeyPacketSignature,
-            mimeType: draft.mimeType,
-            clientUID: draft.clientUID
-        )
-
-        client.postFile(
-            draft.shareID,
-            parameters: parameters,
-            completion: { [weak self] result in
-                self?.completionQueue.async {
-                    completion(result.map { RemoteUploadedNewFile(fileID: $0.ID, revisionID: $0.revisionID) })
-                }
-            }
-        )
-    }
-}
-
-// MARK: - AvailableHashChecker
-extension CloudSlot {
-    public func checkAvailableHashes(among nameHashPairs: [NameHashPair], onFolder folder: NodeIdentifier, completion: @escaping AvailableHashCheckerCompletion) {
-        let parameters = AvailableHashesParameters(hashes: nameHashPairs.map(\.hash))
-        client.postAvailableHashes(shareID: folder.shareID, folderID: folder.nodeID, parameters: parameters, completion: completion)
-    }
-}
-
-// MARK: - CloudContentCreator
-extension CloudSlot {
-    public func create(from revision: UploadableRevision, onCompletion: @escaping CloudContentCreatorCompletion) {
-        let parameters = NewPhotoBlocksParameters(
-            addressID: revision.addressID,
-            shareID: revision.shareID,
-            linkID: revision.nodeID,
-            revisionID: revision.revisionID,
-            blockList: revision.blocks.map { .init(size: $0.size, index: $0.index, encSignature: $0.encryptedSignature, hash: $0.hash, verificationToken: $0.verificationToken) },
-            thumbnailList: revision.thumbnails.map { .init(size: $0.size, type: $0.type, hash: $0.hash) }
-        )
-
-        client.postBlocks(
-            parameters: parameters,
-            completion: { [weak self] response in
-                self?.completionQueue.async {
-                    onCompletion(response.map { revision.makeFull(blockLinks: $0.blocks, thumbnailLinks: $0.thumbnails) })
-                }
-            }
-        )
-    }
-}
-
-// MARK: - CloudRevisionCommitter
-extension CloudSlot {
-    public func commit(_ revision: CommitableRevision, completion: @escaping (Result<Void, Error>) -> Void) {
-        // Client platform and version
-        var photoParameter: UpdateRevisionParameters.Photo?
-        if let photo = revision.photo {
-            photoParameter = UpdateRevisionParameters.Photo(
-                captureTime: photo.captureTime,
-                mainPhotoLinkID: photo.mainPhotoLinkID,
-                exif: nil,
-                contentHash: photo.contentHash,
-                tags: photo.tags
-            ) // We don't upload exif until the format is aligned.
-        }
-        let parameters = UpdateRevisionParameters(
-            manifestSignature: revision.manifestSignature,
-            signatureAddress: revision.signatureAddress,
-            extendedAttributes: revision.xAttributes,
-            photo: photoParameter
-        )
-
-        client.putRevision(
-            shareID: revision.shareID,
-            fileID: revision.fileID,
-            revisionID: revision.revisionID,
-            parameters: parameters,
-            completion: { [weak self] result in
-                self?.completionQueue.async {
-                    completion(result)
-                }
-            }
-        )
-    }
-}
-
-// MARK: - UploadedRevisionChecker
-extension CloudSlot {
-    public func checkUploadedRevision(_ id: RevisionIdentifier, completion: @escaping (Result<XAttrs, Error>) -> Void) {
-        client.getRevision(id.shareID, fileID: id.fileID, revisionID: id.revisionID) { result in
-            switch result {
-            case .success(let revision) where revision.state == .active:
-                if let unwrappedXAttr = revision.XAttr {
-                    completion(.success(unwrappedXAttr))
-                } else {
-                    completion(.failure(UploadedRevisionCheckerError.noXAttrsInActiveRevision))
-                }
-            case .success:
-                completion(.failure(UploadedRevisionCheckerError.revisionNotCommitedFakeNews))
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
-    }
-}
-
-// MARK: - CloudRevisionCreator
-extension CloudSlot {
-    public func createRevision(for file: NodeIdentifier, onCompletion: @escaping (Result<RevisionIdentifier, Error>) -> Void) {
-        client.postRevision(file.nodeID, shareID: file.shareID) { [weak self] result in
-            self?.completionQueue.async {
-                onCompletion(result.map { RevisionIdentifier(shareID: file.shareID, fileID: file.nodeID, revisionID: $0.ID, volumeID: file.volumeID) })
-            }
-        }
     }
 }
 
@@ -1163,6 +1023,8 @@ extension CloudSlot {
                 (nodeObj as? FolderObj)?.fulfillFolder(with: link)
                 (nodeObj as? Photo)?.fulfillPhoto(with: link)
 
+                nodeObj?.setValue(link.sharingDetails?.shareUrl != nil, forKey: #keyPath(Node.isShared))
+
                 directShares.forEach { share in
                     share.setValue(nodeObj, forKey: #keyPath(ShareObj.root))
                     nodeObj?.directShares.insert(share)
@@ -1195,20 +1057,6 @@ extension CloudSlot {
             return localThumbnail
         } else {
             return Thumbnail.make(id: id, downloadURL: nil, revision: revision, type: type, hash: hash, in: moc)
-        }
-    }
-
-    private func updateThumbnails(with urls: [ThumbnailURL], in moc: NSManagedObjectContext) {
-        let ids = Set(urls.map(\.id))
-        let thumbnails: [Thumbnail] = self.storage.existing(with: ids, in: moc)
-        for thumbnail in thumbnails {
-            guard let info = urls.first(where: { $0.id == thumbnail.id }) else {
-                continue
-            }
-            guard thumbnail.downloadURL != info.url.absoluteString else {
-                continue
-            }
-            thumbnail.downloadURL = info.url.absoluteString
         }
     }
 
@@ -1314,13 +1162,6 @@ extension CloudSlot {
         try managedObjectContext.performAndWait {
             update(links, of: shareId, in: managedObjectContext)
             try managedObjectContext.saveOrRollback()
-        }
-    }
-
-    public func update(thumbnails: [ThumbnailURL], moc: NSManagedObjectContext) throws {
-        try moc.performAndWait {
-            updateThumbnails(with: thumbnails, in: moc)
-            try moc.saveOrRollback()
         }
     }
 }

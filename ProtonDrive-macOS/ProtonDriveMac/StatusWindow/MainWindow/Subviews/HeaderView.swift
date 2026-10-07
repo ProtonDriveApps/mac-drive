@@ -62,14 +62,16 @@ struct HeaderView: View {
                 Menu {
                     VStack {
                         if state.isLoggedIn, !state.fullResyncState.isHappening {
+                            // A locked volume reads as paused: "Resume" then runs the manual recovery check.
+                            let showsResume = state.isPaused || state.isVolumeLocked
                             Button(action: {
-                                if state.isPaused {
+                                if showsResume {
                                     actions.sync.resumeSyncing()
                                 } else {
                                     actions.sync.pauseSyncing()
                                 }
                             }, label: {
-                                Text(state.isPaused ? Localization.sync_resume : Localization.sync_pause)
+                                Text(showsResume ? Localization.sync_resume : Localization.sync_pause)
                             })
                             
                             Button(Localization.general_settings, action: actions.windows.showSettings)

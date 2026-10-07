@@ -17,100 +17,87 @@
 
 import Foundation
 import PDCore
+import PDFileProvider
 
-enum GlobalProgressDescription {
+/// Formats active progress for `GlobalProgressObserver` to apply to application presentation.
+struct GlobalProgressDescription {
+    private let activeTransfer: GlobalProgress.ActiveTransfer
+    private let locale: Locale
 
-    case upload(GlobalSyncState)
-    case download(GlobalSyncState)
-    case both(GlobalSyncState)
-
-    init?(downloadProgress: Progress?, uploadProgress: Progress?) {
-        let downloadState = GlobalSyncState(progress: downloadProgress)
-        let uploadState = GlobalSyncState(progress: uploadProgress)
-
-        switch (downloadState, uploadState) {
-        case (nil, nil):
-            return nil
-        case(let dl, nil):
-            self = .download(dl!)
-        case (nil, let ul):
-            self = .upload(ul!)
-        case (let dl, let ul):
-            self = .both(GlobalSyncState(byMerging: dl!, with: ul!))
-        }
+    init?(progress: GlobalProgress, locale: Locale = .current) {
+        guard case .active(let activeTransfer) = progress else { return nil }
+        self.activeTransfer = activeTransfer
+        self.locale = locale
     }
 
     var fullDescription: String {
-        return "\(direction) \(formattedFileCount) (\(formattedByteCount)) \(formattedPercentage)"
+        guard let fileCount = formattedFileCount else {
+            return direction
+        }
+        return "\(direction) \(fileCount) (\(formattedByteCount)) \(formattedPercentage)"
     }
 
     var direction: String {
-        switch self {
+        switch activeTransfer {
         case .upload:
             "Uploading"
         case .download:
             "Downloading"
-        case .both:
+        case .bidirectional:
             "Syncing"
         }
     }
 
-    var syncState: GlobalSyncState {
-        switch self {
-        case .upload(let globalSyncState):
-            globalSyncState
-        case .download(let globalSyncState):
-            globalSyncState
-        case .both(let globalSyncState):
-            globalSyncState
-        }
-    }
-
     var formattedPercentage: String {
-        let currentState = self.syncState
-
-        var percentText: String
-        let percentFormat = "%.2f%%"
-        percentText = String(format: percentFormat, currentState.fractionCompleted * 100)
-        if currentState.fractionCompleted < 1, percentText.starts(with: "100") {
-            // We don't want to show 100% unless we really are at the end.
+        var percentText = String(format: "%.2f%%", activeTransfer.fractionCompleted * 100)
+        if percentText.starts(with: "100") {
             percentText = "99%"
         }
-
         return percentText
     }
 
     var formattedByteCount: String {
-        let doneBytesText = Int(syncState.completedByteCount).formattedFileSize
-        let toDoBytesText = Int(syncState.totalByteCount).formattedFileSize
-        let byteCountText = "\(doneBytesText) of \(toDoBytesText)"
-
-        return byteCountText
+        let doneBytesText = activeTransfer.completedByteCount.formattedFileSize
+        let toDoBytesText = activeTransfer.totalByteCount.formattedFileSize
+        return "\(doneBytesText) of \(toDoBytesText)"
     }
 
-    var formattedFileCount: String {
-        let currentState = syncState
-
-        // For a single file it makes no sense to do "x of y" files.
-        if currentState.totalFileCount == 1 {
-            return "\(NumberFormatter.localizedString(from: 1, number: .decimal)) file"
+    var formattedFileCount: String? {
+        guard let totalFileCount = activeTransfer.totalFileCount,
+              let currentFileIndex = activeTransfer.currentFileIndex else {
+            return nil
         }
-
-        let currentFile = NumberFormatter.localizedString(from: currentState.currentFileIndex as NSNumber, number: .decimal)
-        let totalFiles = NumberFormatter.localizedString(from: currentState.totalFileCount as NSNumber, number: .decimal)
+        if totalFileCount == 1 {
+            return "\(formattedDecimal(1)) file"
+        }
+        let currentFile = formattedDecimal(currentFileIndex)
+        let totalFiles = formattedDecimal(totalFileCount)
         return "file \(currentFile) of \(totalFiles)"
     }
 
-    var totalFileCount: Int {
-        syncState.totalFileCount - syncState.currentFileIndex
+    private func formattedDecimal(_ number: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.locale = locale
+        return formatter.string(from: number as NSNumber) ?? "\(number)"
+    }
+
+    var remainingFileCount: Int {
+        max(activeTransfer.knownRemainingFileCount, activeTransfer.containsUncounted ? 1 : 0)
     }
 }
 
 extension Int {
     var formattedFileSize: String {
-        let GB = 1_073_741_824
-        let MB = 1_048_576
-        let kB = 1024
+        Int64(self).formattedFileSize
+    }
+}
+
+extension Int64 {
+    var formattedFileSize: String {
+        let GB: Int64 = 1_073_741_824
+        let MB: Int64 = 1_048_576
+        let kB: Int64 = 1024
 
         return if self > GB {
             "\(self / GB) GB"

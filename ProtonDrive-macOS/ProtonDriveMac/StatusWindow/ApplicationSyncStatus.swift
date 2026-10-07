@@ -32,6 +32,8 @@ enum ApplicationSyncStatus: Sendable, Equatable {
     case launching
     // Source: User action
     case signedOut
+    // Source: BE volume state (locked volume)
+    case volumeLocked
     // Source: User action
     case paused
     // Source: Network
@@ -55,6 +57,7 @@ enum ApplicationSyncStatus: Sendable, Equatable {
         switch self {
         case .launching: Localization.menu_status_sync_launching
         case .signedOut, .signedOutAndUpdateAvailable: Localization.menu_status_signed_out
+        case .volumeLocked: Localization.notification_volume_locked
         case .paused: Localization.menu_status_sync_paused
         case .offline: Localization.menu_status_offline
         case .enumerating(let itemEnumerationDescription): itemEnumerationDescription ?? Localization.enumerating_after_resuming

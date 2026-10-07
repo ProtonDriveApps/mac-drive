@@ -144,7 +144,7 @@ public class JSONLogger: FileLogger {
                 "dom": AnyEncodable(domain.name),
                 "file": AnyEncodable("\(file):\(line)"),
                 "func": AnyEncodable(function),
-                "thr": AnyEncodable(Thread.current.number.description),
+                "thr": AnyEncodable(Thread.currentNumber),
                 "v": AnyEncodable(Constants.clientVersion ?? "n/a"),
                 "payload": AnyEncodable(jsonPayload),
                 "name": AnyEncodable(jsonPayload.eventName),

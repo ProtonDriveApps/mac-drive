@@ -30,7 +30,7 @@ final class QASettingsWindowCoordinator: NSObject, NSWindowDelegate {
     private let sessionStore: SessionVault
     private let mainKeyProvider: MainKeyProvider
     private let eventLoopManager: EventLoopManager?
-    private let featureFlags: PDCore.FeatureFlagsRepository?
+    private let featureFlags: PDCore.DriveFeatureFlagsProvider?
     private let appUpdateService: AppUpdateServiceProtocol?
     private let applicationEventObserver: ApplicationEventObserver
     private let metadataStorage: StorageManager?
@@ -46,7 +46,7 @@ final class QASettingsWindowCoordinator: NSObject, NSWindowDelegate {
          mainKeyProvider: MainKeyProvider,
          appUpdateService: AppUpdateServiceProtocol?,
          eventLoopManager: EventLoopManager?,
-         featureFlags: PDCore.FeatureFlagsRepository?,
+         featureFlags: PDCore.DriveFeatureFlagsProvider?,
          dumperDependencies: DumperDependencies?,
          userActions: UserActions,
          applicationEventObserver: ApplicationEventObserver,

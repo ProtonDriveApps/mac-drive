@@ -24,6 +24,13 @@ import ProtonCoreServices
 import ProtonCoreUIFoundations
 import ProtonCoreEnvironment
 
+/// A closure called upon completion of the login flow.
+/// - Parameters:
+///   - loginResult: dismissed, loggedIn or signedUp
+///   - createFreshSyncLocation: whether the user chose to create a fresh sync location (removing the
+///     existing one) instead of reconnecting it
+public typealias LoginCompletionCallback = (_ loginResult: LoginResult, _ createFreshSyncLocation: Bool) async -> Void
+
 @MainActor
 public protocol LoginManager {
     func presentLoginFlow(with initialError: LoginError?)
@@ -41,13 +48,15 @@ public final class ConcreteLoginManager: LoginManager {
                 apiServiceDelegate: APIServiceDelegate,
                 forceUpgradeDelegate: ForceUpgradeDelegate,
                 minimumAccountType: AccountType,
-                loginCompletion: @escaping (LoginResult) async -> Void) {
+                offersCreateFreshSyncLocation: @escaping () -> Bool,
+                loginCompletion: @escaping LoginCompletionCallback) {
         self.loginCoordinatorDelegate = LoginManagerCoordinatorDelegate(loginCompletion)
         let container = Container(clientApp: clientApp,
                                   environment: environment,
                                   apiServiceDelegate: apiServiceDelegate,
                                   forceUpgradeDelegate: forceUpgradeDelegate,
-                                  minimumAccountType: minimumAccountType)
+                                  minimumAccountType: minimumAccountType,
+                                  offersCreateFreshSyncLocation: offersCreateFreshSyncLocation)
 
         loginCoordinator = LoginCoordinator(container: container,
                                             delegate: loginCoordinatorDelegate,
@@ -64,17 +73,17 @@ public final class ConcreteLoginManager: LoginManager {
 }
 
 private final class LoginManagerCoordinatorDelegate: LoginCoordinatorDelegate {
-    private let loginCompletion: (LoginResult) async -> Void
+    private let loginCompletion: LoginCompletionCallback
 
-    init(_ loginCompletion: @escaping (LoginResult) async -> Void) {
+    init(_ loginCompletion: @escaping LoginCompletionCallback) {
         self.loginCompletion = loginCompletion
     }
 
     func userDidDismissLoginCoordinator(loginCoordinator: LoginCoordinator) async {
-        await loginCompletion(.dismissed)
+        await loginCompletion(.dismissed, false)
     }
-    
-    func loginCoordinatorDidFinish(loginCoordinator: LoginCoordinator, data: LoginData) async {
-        await loginCompletion(.loggedIn(data))
+
+    func loginCoordinatorDidFinish(loginCoordinator: LoginCoordinator, data: LoginData, createFreshSyncLocation: Bool) async {
+        await loginCompletion(.loggedIn(data), createFreshSyncLocation)
     }
 }

@@ -82,6 +82,27 @@ struct RuntimeConfiguration: PlistSaveable {
         Set(excludedLogDomainNames.compactMap { LogDomain(name: $0) })
     }
 
+    private static let forceDomainReconnectionKey = "forceDomainReconnection"
+    private static let forceSyncMetadataScanV2Key = "forceSyncMetadataScanV2"
+
+    /// Test-automation override for domain reconnection, honored only while `enableTestAutomation` is on.
+    /// Read live from the plist (not cached) so the TestRunner can change it during a running session.
+    /// `nil` means no override — defer to the backend feature flag.
+    var forceDomainReconnection: Bool? {
+        guard enableTestAutomation else { return nil }
+        guard let url = try? configFileURL() else { return nil }
+        return loadFromPlist(url: url)?[Self.forceDomainReconnectionKey] as? Bool
+    }
+
+    /// Test-automation override for the sync scan engine, honored only while `enableTestAutomation`
+    /// is on. Read live from the plist so the TestRunner can change it during a running session.
+    /// `true` forces the v2 engine, `false` forces v1, `nil` means no override (defer to the feature flag).
+    var forceSyncMetadataScanV2: Bool? {
+        guard enableTestAutomation else { return nil }
+        guard let url = try? configFileURL() else { return nil }
+        return loadFromPlist(url: url)?[Self.forceSyncMetadataScanV2Key] as? Bool
+    }
+
     public static let shared = RuntimeConfiguration()
 
     private init() {
@@ -179,6 +200,30 @@ struct RuntimeConfiguration: PlistSaveable {
         var dictionary = self.loadFromPlist(url: try configFileURL()) ?? [:]
         for (key, value) in settings {
             dictionary[key] = value
+        }
+        self.saveToPlist(url: try configFileURL(), data: dictionary)
+    }
+
+    /// Persists the domain-reconnection override consumed by `forceDomainReconnection`.
+    /// Pass `nil` to clear it (defer to the backend feature flag).
+    func setForceDomainReconnection(_ value: Bool?) throws {
+        var dictionary = self.loadFromPlist(url: try configFileURL()) ?? [:]
+        if let value {
+            dictionary[Self.forceDomainReconnectionKey] = value
+        } else {
+            dictionary.removeValue(forKey: Self.forceDomainReconnectionKey)
+        }
+        self.saveToPlist(url: try configFileURL(), data: dictionary)
+    }
+
+    /// Persists the scan-engine override consumed by `forceSyncMetadataScanV2`.
+    /// Pass `nil` to clear it (defer to the backend feature flag).
+    func setForceSyncMetadataScanV2(_ value: Bool?) throws {
+        var dictionary = self.loadFromPlist(url: try configFileURL()) ?? [:]
+        if let value {
+            dictionary[Self.forceSyncMetadataScanV2Key] = value
+        } else {
+            dictionary.removeValue(forKey: Self.forceSyncMetadataScanV2Key)
         }
         self.saveToPlist(url: try configFileURL(), data: dictionary)
     }

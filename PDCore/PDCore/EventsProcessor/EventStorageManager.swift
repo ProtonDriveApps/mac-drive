@@ -160,14 +160,19 @@ public class EventStorageManager: NSObject, RecoverableStorage {
     private static let recoveryDatabaseName = "Recovery_\(databaseName)"
     static let backupDatabaseName = "Backup_\(databaseName)"
     let contexts: Atomic<[WeakReference<NSManagedObjectContext>]> = .init([])
+    public var isInMemoryStore: Bool {
+        persistentContainer.persistentStoreCoordinator.persistentStores.contains {
+            $0.type == NSPersistentStore.StoreType.inMemory.rawValue
+        }
+    }
     public func disconnectExistingDB() throws -> PersistentStoreInfo {
         try Self.disconnectExistingDB(named: Self.databaseName, using: persistentContainer, contexts: contexts)
     }
     public func createRecoveryDB(nextTo backup: PersistentStoreInfo) throws -> PersistentStoreInfo {
         try Self.createRecoveryDB(named: Self.recoveryDatabaseName, nextTo: backup, using: persistentContainer)
     }
-    public func reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: PersistentStoreInfo, recovery: PersistentStoreInfo?) throws {
-        try Self.reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: existing, recovery: recovery, using: persistentContainer, contexts: contexts)
+    public func reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: PersistentStoreInfo, recovery: PersistentStoreInfo?, discardRecovery: Bool = true) throws {
+        try Self.reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: existing, recovery: recovery, discardRecovery: discardRecovery, using: persistentContainer, contexts: contexts)
     }
     public func replaceExistingDBWithRecovery(existing: PersistentStoreInfo, recovery: PersistentStoreInfo) throws {
         try Self.replaceExistingDBWithRecovery(
@@ -240,7 +245,7 @@ extension EventStorageManager {
     
     public func disregard(_ objectID: NSManagedObjectID) {
         self.backgroundContext.performAndWait {
-            guard let object: PersistedEvent = try? self.backgroundContext.typedObject(with: objectID) else { return }
+            guard let object: PersistedEvent = try? self.backgroundContext.typedObject(id: objectID) else { return }
             object.isProcessed = true
             object.isEnumerated = true
             try? self.backgroundContext.saveOrRollback()
@@ -250,7 +255,7 @@ extension EventStorageManager {
     public func discard(_ objectID: NSManagedObjectID) {
         self.backgroundContext.performAndWait {
             do {
-                let object: PersistedEvent? = try self.backgroundContext.typedObject(with: objectID)
+                let object: PersistedEvent? = try self.backgroundContext.typedObject(id: objectID)
                 // we need to keep events for EventListeners
                 object?.isProcessed = true
                 try self.backgroundContext.saveOrRollback()
@@ -263,7 +268,7 @@ extension EventStorageManager {
     public func setEnumerated(_ objectIDs: [NSManagedObjectID]) {
         self.backgroundContext.performAndWait {
             objectIDs.forEach { objectID in
-                let object: PersistedEvent? = try? self.backgroundContext.typedObject(with: objectID)
+                let object: PersistedEvent? = try? self.backgroundContext.typedObject(id: objectID)
                 object?.isEnumerated = true
             }
             try? self.backgroundContext.saveOrRollback()
@@ -464,11 +469,16 @@ extension EventStorageManager {
     public func eventsAwaitingEnumeration(since anchorID: EventID?, volumeId: String) throws -> [Entry] {
         var anchorTimestamp: TimeInterval?
         if let anchorID = anchorID {
-            guard let event = try self.event(with: anchorID) else {
-                return []
-            }
-            anchorTimestamp = self.backgroundContext.performAndWait {
-                event.eventEmittedAt
+            if let event = try self.event(with: anchorID) {
+                anchorTimestamp = self.backgroundContext.performAndWait {
+                    event.eventEmittedAt
+                }
+            } else {
+                // A full resync seeds the cursor from a server event ID that is never recorded, so the
+                // anchor has no row. No lower bound: reporting no events would let the caller advance
+                // its sync anchor past events it never delivered.
+                Log.info("Events anchor not found in the store; returning all events awaiting enumeration",
+                         domain: .events)
             }
         }
         

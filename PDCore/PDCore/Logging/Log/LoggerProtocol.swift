@@ -78,7 +78,7 @@ extension StructuredLogger {
                 level: level,
                 message: message,
                 timestamp: Log.formattedTime,
-                threadNumber: Thread.current.number.description,
+                threadNumber: Thread.currentNumber,
                 system: system,
                 domain: domain,
                 context: context,

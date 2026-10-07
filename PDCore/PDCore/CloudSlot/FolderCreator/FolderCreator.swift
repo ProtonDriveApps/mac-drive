@@ -49,7 +49,7 @@ public class FolderCreator {
 
         let parentObjectID = parent.objectID
         let (parentFolder, signersKit) = try await moc.perform { [moc, signersKitFactory] in
-            let parent: CoreDataFolder = try moc.typedObject(with: parentObjectID)
+            let parent: CoreDataFolder = try moc.typedObject(id: parentObjectID)
 #if os(macOS)
             let signersKit = try parent.getContextShareAddressBasedSignersKit(signersKitFactory: signersKitFactory,
                                                                               fallbackSigner: .main)
@@ -91,7 +91,7 @@ public class FolderCreator {
         let newFolderID = try await cloudFolderCreator(parentFolder.shareID, parameters).ID
 
         return try await moc.perform { [moc] in
-            let parent: CoreDataFolder = try moc.typedObject(with: parentObjectID)
+            let parent: CoreDataFolder = try moc.typedObject(id: parentObjectID)
             let newFolder = Folder.make(from: createdFolder, id: newFolderID, parent: parent, moc: moc)
             newFolder.parentFolder = parent.in(moc: moc)
 

@@ -16,6 +16,8 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import Combine
+import FileProvider
+import PDFileProvider
 import SwiftUI
 import PDCore
 import PDLocalization
@@ -36,6 +38,7 @@ extension InitialServices: LoggedInStateReporter { }
 /// The `MenuBarCoordinator` and SwiftUI observe changes to the ApplicationState, and update the menu and window view respectively.
 ///
 
+@MainActor
 class ApplicationEventObserver: ObservableObject {
 #if HAS_QA_FEATURES
     @Published private(set) var state: ApplicationState
@@ -63,8 +66,8 @@ class ApplicationEventObserver: ObservableObject {
     /// Fires whenever there is a file to sync
     private var syncObserver: SyncDBObserver?
 
-    /// Fires when there is a global progress update
-    private var globalProgressObserver: GlobalProgressObserver?
+    /// Owns the domain's progress observation and presentation.
+    private let globalProgressObserver: GlobalProgressObserver
 
     /// Fires whenever a user logs in, and passes an `AccountInfo` object
     private var sessionVault: SessionVault?
@@ -73,7 +76,7 @@ class ApplicationEventObserver: ObservableObject {
     private var elapsedTimeService: ElapsedTimeService?
 
     /// Fires whenever there's a change to feature flags for the user
-    private var featureFlagsRepository: FeatureFlagsRepository?
+    private var featureFlagProvider: DriveFeatureFlagsProvider?
 
     /// Fires whenever there's a change to active promo campaigns for the user.
     private var promoCampaignInteractor: PromoCampaignInteractorProtocol?
@@ -81,7 +84,7 @@ class ApplicationEventObserver: ObservableObject {
     /// Responsible for fetching user config
     private var generalSettingsService: GeneralSettings?
 
-    private let resyncUpdateSubject = PassthroughSubject<Int, Never>()
+    private let resyncUpdateSubject = PassthroughSubject<(Int, Int?), Never>()
 
     /// Always-on
     private var globalCancellables = Set<AnyCancellable>()
@@ -93,9 +96,14 @@ class ApplicationEventObserver: ObservableObject {
         logoutStateService: LoggedInStateReporter?,
         networkStateService: NetworkStateInteractor?,
         appUpdateService: AppUpdateServiceProtocol?,
-        promoCampaignInteractor: PromoCampaignInteractorProtocol?
+        promoCampaignInteractor: PromoCampaignInteractorProtocol?,
+        progressSource: any GlobalProgressSource
     ) {
         self.state = state
+        self.globalProgressObserver = GlobalProgressObserver(
+            state: state,
+            progressSource: progressSource
+        )
         self.logoutStateService = logoutStateService
         self.networkStateService = networkStateService
         self.appUpdateService = appUpdateService
@@ -106,13 +114,19 @@ class ApplicationEventObserver: ObservableObject {
         #if HAS_QA_FEATURES
         self._hasPromoBannerDisabledInQASettings.configure(with: Constants.appGroup)
         #endif
-
-        setUpObservers()
     }
 
     deinit {
         Log.trace()
-        stopMonitoring(dueToSignOut: false)
+        // Cancel subscriptions here; live teardown also resets main-actor UI state.
+        userCancellables.removeAll()
+        globalCancellables.removeAll()
+    }
+
+    /// Starts the network/logout/update observations. Separate from `init` so the observer can be
+    /// created without side effects until the app starts.
+    func startObserving() {
+        setUpObservers()
     }
 
     // MARK: - Public
@@ -125,22 +139,19 @@ class ApplicationEventObserver: ObservableObject {
     /// observations are cancelled in `stopMonitoring` as needed.
     public func configurePostLoginServices(
         syncObserver: SyncDBObserver,
-        globalProgressObserver: GlobalProgressObserver?,
         sessionVault: SessionVault?,
         settingsService: GeneralSettings?,
-        featureFlagsRepository: FeatureFlagsRepository?
-    ) async {
+        featureFlagProvider: DriveFeatureFlagsProvider?
+    ) {
         Log.trace()
 
         self.syncObserver = syncObserver
-        self.globalProgressObserver = globalProgressObserver
         self.elapsedTimeService = ElapsedTimeService(state: state)
 
         self.sessionVault = sessionVault
 
-        self.globalProgressObserver?.startMonitoring()
-        self.subscribeToSyncChanges()
-        await self.subscribeToPassageOfTime()
+        syncObserver.startSyncMonitoring()
+        elapsedTimeService?.startTimer()
 
         self.subscribetoLogin()
         self.subscribetoUserInfo()
@@ -155,7 +166,7 @@ class ApplicationEventObserver: ObservableObject {
             }
             .store(in: &userCancellables)
 
-        self.featureFlagsRepository = featureFlagsRepository
+        self.featureFlagProvider = featureFlagProvider
     }
 
     /// - Parameters:
@@ -164,11 +175,11 @@ class ApplicationEventObserver: ObservableObject {
         Log.trace()
 
         self.syncObserver = nil
-        self.globalProgressObserver = nil
+        stopObservingProgress()
         self.elapsedTimeService = nil
         self.sessionVault = nil
         self.generalSettingsService = nil
-        self.featureFlagsRepository = nil
+        self.featureFlagProvider = nil
         self.userCancellables.removeAll()
 
         didReceiveLogoutState(isSignedIn: false)
@@ -178,7 +189,20 @@ class ApplicationEventObserver: ObservableObject {
         }
     }
 
-    @MainActor
+    func startObservingProgress(for domain: NSFileProviderDomain) {
+        globalProgressObserver.startObservingProgress(for: domain)
+    }
+
+    func stopObservingProgress() {
+        globalProgressObserver.stopObservingProgress()
+    }
+
+#if HAS_QA_FEATURES
+    func toggleGlobalProgressQaStatusItemVisibility() {
+        globalProgressObserver.toggleQaStatusItemVisibility()
+    }
+#endif
+
     public func pauseSyncing() async throws {
         Log.trace()
 
@@ -186,11 +210,10 @@ class ApplicationEventObserver: ObservableObject {
 
         try await syncObserver?.updateSyncState(paused: true,
                                                 offline: state.isOffline,
-                                                fullResyncInProgress: state.fullResyncState.isHappening)
+                                                fullResync: state.fullResyncState.syncStateModifications)
         state.isPaused = true
     }
 
-    @MainActor
     public func resumeSyncing() async throws {
         Log.trace()
         
@@ -198,7 +221,7 @@ class ApplicationEventObserver: ObservableObject {
 
         try await syncObserver?.updateSyncState(paused: false,
                                                 offline: state.isOffline,
-                                                fullResyncInProgress: state.fullResyncState.isHappening)
+                                                fullResync: state.fullResyncState.syncStateModifications)
         state.isPaused = false
 
         // When the user resumes syncing after a pause, the application state immediately switches
@@ -235,7 +258,6 @@ class ApplicationEventObserver: ObservableObject {
         }
     }
 
-    @MainActor
     public func togglePausedStatus() async throws {
         Log.trace()
 
@@ -256,48 +278,138 @@ class ApplicationEventObserver: ObservableObject {
         try await syncObserver?.fetchItems()
     }
 
-    @MainActor
-    public func fullResyncStarted() async throws {
-        try await syncObserver?.updateSyncState(paused: state.isPaused, offline: state.isOffline, fullResyncInProgress: true)
-        state.fullResyncState = .inProgress(0)
-    }
-    
-    @MainActor
-    public func fullResyncItemCountUpdated(_ count: Int) {
-        Log.trace()
-        resyncUpdateSubject.send(count)
+    public func fullResyncStarted(isAutomatic: Bool) async throws {
+        try await syncObserver?.updateSyncState(
+            paused: state.isPaused,
+            offline: state.isOffline,
+            fullResync: (shouldDisconnectDomain: true, shouldPauseEvents: true)
+        )
+        state.resyncIsAutomatic = isAutomatic
+        // Resume and retry re-enter this hook for the same run, so a dismissal there must stick.
+        if !state.fullResyncState.isHappening {
+            state.automaticResyncReasonDismissed = false
+        }
+        // Prep phase: no Pause/Cancel yet. fullResyncScanStarted(variant:) promotes this to .inProgress once
+        // the service can actually honor them.
+        state.fullResyncState = .starting
     }
 
-    private func throttledFullResyncItemCountUpdated(_ count: Int) {
+    public func fullResyncScanStarted(variant: ApplicationState.FullResyncVariant) {
+        // The service is now cancellable; allow Pause/Cancel. Guard so a late signal can't revive a resync
+        // that already moved past .starting. Sync state is unchanged since .starting already froze the domain.
+        guard case .starting = state.fullResyncState else { return }
+        // Set the variant before .inProgress so the step list is picked from the first render.
+        state.setFullResyncVariant(variant)
+        state.fullResyncState = .inProgress(saved: 0, total: nil)
+    }
+
+    /// Advances `state.furthestResyncStep` to the index of `kind` within the current variant's step list,
+    /// so the step-list UI can mark where a terminal resync stopped. Monotonic (see the state method).
+    private func advanceFurthestResyncStep(to kind: FullResyncStepKind) {
+        guard let index = FullResyncStepList.kinds(for: state.fullResyncVariant).firstIndex(of: kind) else { return }
+        state.advanceFurthestResyncStep(to: index)
+    }
+
+    public func fullResyncItemCountUpdated(saved: Int, total: Int?) {
         Log.trace()
-        state.fullResyncState = .inProgress(count)
+        resyncUpdateSubject.send((saved, total))
+        // Downloading begins only once at least one item is actually saved (saved > 0) — not at the mere
+        // discovery→download boundary (saved == 0), so a failure there stays attributed to discovery. Publish
+        // this one transition immediately (bypassing the throttle) together with the marker advance, so the
+        // marker never leads the rendered step: an error arriving in the throttle window would otherwise mark
+        // Downloading as failed while the UI still showed Discovering. Later progress stays throttled, and the
+        // monotonic marker won't move again.
+        guard state.fullResyncVariant == .v2, total != nil, saved > 0,
+              case .inProgress = state.fullResyncState,
+              let downloadingIndex = FullResyncStepList.kinds(for: state.fullResyncVariant).firstIndex(of: .downloading),
+              state.furthestResyncStep < downloadingIndex else { return }
+        state.fullResyncState = .inProgress(saved: saved, total: total)
+        advanceFurthestResyncStep(to: .downloading)
+    }
+
+    private func throttledFullResyncItemCountUpdated(_ saved: Int, _ total: Int?) {
+        Log.trace()
+        // Drop throttled counts that land after downloading ends, so a stale one can't resurrect the UI.
+        guard case .inProgress = state.fullResyncState else { return }
+        state.fullResyncState = .inProgress(saved: saved, total: total)
     }
     
-    @MainActor
     public func fullResyncReenumerationStarted() async throws {
-        try await syncObserver?.updateSyncState(paused: state.isPaused, offline: state.isOffline, fullResyncInProgress: false)
-        state.fullResyncState = .enumerating
+        // The domain must be reconnected so the file provider can enumerate the changes
+        // applied during the recovery — do not reapply a prior user pause here.
+        state.isPaused = false
+        try await syncObserver?.updateSyncState(
+            paused: false,
+            offline: state.isOffline,
+            fullResync: (shouldDisconnectDomain: false, shouldPauseEvents: true)
+        )
+        state.fullResyncState = .enumerating(.waitingForTheWorkingSetEnumerationToFinish(seconds: 0, enumerated: 0, total: nil))
+        // Enumeration has begun: the resync has reached the "Applying updates" phase.
+        advanceFurthestResyncStep(to: .applyingUpdates)
     }
     
-    @MainActor
-    public func fullResyncCompleted(hasFileProviderResponded: Bool) {
-        state.fullResyncState = .completed(hasFileProviderResponded: hasFileProviderResponded)
+    func fullResyncReenumerationProgresses(enumerationState: ApplicationState.FullResyncState.EnumeratingState) {
+        // Only advance while still enumerating; a terminal transition (e.g. .idle from cancel) raised
+        // concurrently with the poll loop must not be clobbered back to .enumerating by a late tick.
+        guard case .enumerating = state.fullResyncState else { return }
+        state.fullResyncState = .enumerating(enumerationState)
+        // The fetch-item pass means the resync has reached "Refreshing item details".
+        if case .fetchItemPassInProgress = enumerationState {
+            advanceFurthestResyncStep(to: .refreshingDetails)
+        }
     }
     
-    @MainActor
+    public func fullResyncCompleted(hasFileProviderResponded: Bool, warning: String?) {
+        state.fullResyncState = .completed(hasFileProviderResponded: hasFileProviderResponded, warning: warning)
+    }
+    
     public func fullResyncFinished()  {
         state.fullResyncState = .idle
+        state.resyncIsAutomatic = false
     }
     
-    @MainActor
     public func fullResyncErrored(message: String) {
         state.fullResyncState = .errored(message)
     }
 
-    @MainActor
     public func fullResyncCancelled() async throws {
         state.fullResyncState = .idle
-        try await syncObserver?.updateSyncState(paused: state.isPaused, offline: state.isOffline, fullResyncInProgress: false)
+        state.resyncIsAutomatic = false
+        try await syncObserver?.updateSyncState(
+            paused: state.isPaused,
+            offline: state.isOffline,
+            fullResync: (shouldDisconnectDomain: false, shouldPauseEvents: false)
+        )
+    }
+
+    public func fullResyncPaused(count: Int) async throws {
+        // Pause freezes the app like an in-progress scan: domain disconnected, events paused, file
+        // operations deferred. The recovery DB is kept so Resume can continue it.
+        state.fullResyncState = .paused(count)
+        try await syncObserver?.updateSyncState(
+            paused: state.isPaused,
+            offline: state.isOffline,
+            fullResync: (shouldDisconnectDomain: true, shouldPauseEvents: true)
+        )
+    }
+
+    @MainActor
+    public func fullResyncPauseRequested() {
+        // Optimistic: reflect the pause the instant the user taps it, before the engine winds down (it
+        // finishes its in-flight metadata request first, which can take seconds). Once .paused, the
+        // progress writers drop the winding-down updates so the percentage stops climbing. The engine's
+        // own fullResyncPaused does the authoritative pause (events/domain) when it settles.
+        guard case .inProgress(let saved, _) = state.fullResyncState else { return }
+        state.fullResyncState = .paused(saved)
+    }
+
+    @MainActor
+    public func fullResyncResumeRequested() {
+        // Optimistic resume while the paused engine is still winding down: show the preparing screen now
+        // (as a normal resume does) so Resume feels responsive. The coordinator restarts the scan once
+        // the engine settles.
+        guard case .paused = state.fullResyncState else { return }
+        state.fullResyncState = .starting
     }
 
     // MARK: - Private
@@ -316,7 +428,7 @@ class ApplicationEventObserver: ObservableObject {
         self.resyncUpdateSubject
             .throttle(for: .seconds(1), scheduler: RunLoop.main, latest: true)
             .sink { [weak self] in
-                self?.throttledFullResyncItemCountUpdated($0)
+                self?.throttledFullResyncItemCountUpdated($0.0, $0.1)
             }
             .store(in: &globalCancellables)
 
@@ -374,11 +486,11 @@ class ApplicationEventObserver: ObservableObject {
         )
         .receive(on: DispatchQueue.main)
         .sink { [weak self] campaign, userInfo, userSettings in
-            guard let self, let featureFlagsRepository else {
+            guard let self, let featureFlagProvider else {
                 return
             }
 
-            guard !featureFlagsRepository.isEnabled(flag: .driveMacPromoBannerDisabled) else {
+            guard !featureFlagProvider.isEnabled(flag: .driveMacPromoBannerDisabled) else {
                 Log.trace("Promo campaign filtered out because killswitch is active")
                 return self.state.setVisibleCampaign(nil)
             }
@@ -483,6 +595,7 @@ class ApplicationEventObserver: ObservableObject {
         assert(logoutStateService != nil)
         logoutStateService?.isLoggedInPublisher
             .removeDuplicates()
+            .receive(on: DispatchQueue.main)
             .sink(receiveValue: { [unowned self] in self.didReceiveLogoutState(isSignedIn: $0) })
             .store(in: &globalCancellables)
     }
@@ -494,14 +607,6 @@ class ApplicationEventObserver: ObservableObject {
         state.setUserInfo(nil)
     }
 
-// MARK: - File sync (syncObserver)
-    private func subscribeToSyncChanges() {
-        Log.trace()
-
-        assert(syncObserver != nil)
-        syncObserver?.startSyncMonitoring()
-    }
-
 // MARK: - Network state (networkStateService)
 
     private func subscribeToNetworkState() {
@@ -510,6 +615,7 @@ class ApplicationEventObserver: ObservableObject {
         assert(networkStateService != nil)
         networkStateService?.state
             .removeDuplicates()
+            .receive(on: DispatchQueue.main)
             .sink(receiveValue: { [unowned self] in self.didReceiveNetworkState(networkState: $0) })
             .store(in: &globalCancellables)
     }
@@ -521,19 +627,11 @@ class ApplicationEventObserver: ObservableObject {
                 state.setOffline(networkState == .unreachable)
                 try await syncObserver?.updateSyncState(paused: state.isPaused,
                                                         offline: state.isOffline,
-                                                        fullResyncInProgress: state.fullResyncState.isHappening)
+                                                        fullResync: state.fullResyncState.syncStateModifications)
             } catch {
                 Log.error("updateSyncState failed", error: error, domain: .application)
             }
         }
-    }
-
-// MARK: - ElapsedTimeService
-
-    private func subscribeToPassageOfTime() async {
-        Log.trace()
-
-        await self.elapsedTimeService?.startTimer()
     }
 }
 

@@ -15,12 +15,10 @@ let package = Package(
     ],
     dependencies: [
 
-        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "37.0.1"),
+        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "37.3.0"),
         .package(url: "https://github.com/ProtonMail/apple-fusion.git", exact: "2.1.5"),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "PDContacts",
             dependencies: [

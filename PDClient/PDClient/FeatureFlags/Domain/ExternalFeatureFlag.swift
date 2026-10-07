@@ -24,16 +24,18 @@ public enum ExternalFeatureFlag: String, CaseIterable, Codable {
     case driveiOSDebugMode = "DriveiOSDebugMode"
     case oneDollarPlanUpsellEnabled = "DriveOneDollarPlanUpsell"
     case driveDisablePhotosForB2B = "DriveDisablePhotosForB2B"
-    case driveMacSyncRecoveryDisabled = "DriveMacSyncRecoveryDisabled"
+    case driveMacFullResyncAlwaysVisibleDisabled = "DriveMacFullResyncAlwaysVisibleDisabled"
     case driveMacPromoBannerDisabled = "DriveMacPromoBannerDisabled"
     case driveMacGradualRolloutChannelEnabled = "DriveMacGradualRolloutChannelEnabled"
     case driveMacAbnormalExitRelaunchDisabled = "DriveMacAbnormalExitRelaunchDisabled"
+    case driveMacRefreshEventResyncDisabled = "DriveMacRefreshEventResyncDisabled"
 
     // Sharing
     case driveSharingMigration = "DriveSharingMigration"
     case driveSharingExternalInvitations = "DriveSharingExternalInvitations"
     case driveSharingDisabled = "DriveSharingDisabled"
     case driveSharingExternalInvitationsDisabled = "DriveSharingExternalInvitationsDisabled"
+    case driveSharingAdminPermissions = "DriveSharingAdminPermissions"
     case drivePublicShareEditMode = "DrivePublicShareEditMode"
     case drivePublicShareEditModeDisabled = "DrivePublicShareEditModeDisabled"
     case driveShareURLBookmarking = "DriveShareURLBookmarking"
@@ -58,16 +60,33 @@ public enum ExternalFeatureFlag: String, CaseIterable, Codable {
 
     // Payments
     case driveiOSPaymentsV2 = "DriveiOSPaymentsV2"
+    case driveMobileUpsellPlan = "DriveMobileUpsellPlan"
 
     // SDK
-    case driveiOSSDKUploadMain = "DriveiOSSDKUploadMain"
-    case driveiOSSDKUploadPhoto = "DriveiOSSDKUploadPhoto"
-    case driveiOSSDKDownloadMain = "DriveiOSSDKDownloadMain"
-    case driveiOSSDKDownloadPhoto = "DriveiOSSDKDownloadPhoto"
     case driveCryptoEncryptBlocksWithPgpAead = "DriveCryptoEncryptBlocksWithPgpAead"
+    case driveSmallFileUpload = "DriveSmallFileUpload"
     case driveMacFileProviderBatchingDisabled = "DriveMacFileProviderBatchingDisabled"
     case driveMacDecryptPassphraseIterativeDisabled = "DriveMacDecryptPassphraseIterativeDisabled"
     case driveiOSSDKNodeOperations = "DriveiOSSDKNodeOperations"
     case driveDownloadVerificationDisabled = "DriveDownloadVerificationDisabled"
     case driveUploadVerificationDisabled = "DriveUploadVerificationDisabled"
+    case driveiOSSDKCreateFolder = "DriveiOSSDKCreateFolder"
+    case driveiOSSDKTrashNode = "DriveiOSSDKTrashNode"
+    case driveiOSSDKTrashOperations = "DriveiOSSDKTrashOperations" // delete, restore, empty trash
+    case driveiOSSDKDevicesOperations = "DriveiOSSDKDevicesOperations" // rename, delete device
+    case driveiOSSDKLeaveSharedNode = "DriveiOSSDKLeaveSharedNode" // file and photo
+
+    // Full resync
+    case driveSyncMetadataScanV2Enabled = "DriveSyncMetadataScanV2Enabled"
+
+    case driveClientTestsEnabled = "DriveClientTestsEnabled"
+    case driveiOSUnlimitedPickerSelection = "DriveiOSUnlimitedPickerSelection"
+    case driveiOSDownloadMultiple = "DriveiOSDownloadMultiple"
+    case driveiOSPhotosGridZoom = "DriveiOSPhotosGridZoom"
+}
+
+public extension ExternalFeatureFlag {
+    var hasPayload: Bool {
+        self == .driveMobileUpsellPlan
+    }
 }

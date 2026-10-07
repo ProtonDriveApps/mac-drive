@@ -30,6 +30,7 @@ public class Share: NSManagedObject, GloballyUnique {
     @NSManaged public var state: ShareState
     @NSManaged public var creator: String? // Encrypted by `DriveStringCryptoTransformer`
     @NSManaged public var locked: Bool
+    @NSManaged public var editorsCanShare: Bool
     @NSManaged public var createTime: Date?
     @NSManaged public var modifyTime: Date?
     @NSManaged public var linkID: String?
@@ -59,7 +60,7 @@ public class Share: NSManagedObject, GloballyUnique {
         type == .standard
     }
 
-    func getAddressID() throws -> String {
+    public func getAddressID() throws -> String {
         if let member = members.first {
             return member.addressID
         } else {
@@ -193,6 +194,7 @@ public extension Share {
         self.state = ShareState(rawValue: Int16(share.state)) ?? .active
         self.creator = share.creator
         self.locked = share.locked ?? false
+        self.editorsCanShare = share.editorsCanShare ?? false
         self.createTime = share.createTime.map { Date(timeIntervalSince1970: TimeInterval($0)) }
         self.modifyTime = share.modifyTime.map { Date(timeIntervalSince1970: TimeInterval($0)) }
         self.linkID = share.linkID
@@ -233,17 +235,17 @@ extension StorageManager {
     }
 
     @discardableResult
-    public func updateLinks(_ links: [PDClient.Link], in moc: NSManagedObjectContext) -> [Node] {
+    public func updateLinks(_ links: [PDClient.Link], isRootNodeOptional: Bool = false, updatesSharingState: Bool = true, in moc: NSManagedObjectContext) -> [Node] {
         var nodes: [Node] = []
         for link in links {
-            nodes.append(updateLink(link, using: moc))
+            nodes.append(updateLink(link, isRootNodeOptional: isRootNodeOptional, updatesSharingState: updatesSharingState, using: moc))
 
         }
         return nodes
     }
 
     @discardableResult
-    public func updateLink(_ link: PDClient.Link, fetchingSharedWithMeRoot: Bool = false, using moc: NSManagedObjectContext) -> Node {
+    public func updateLink(_ link: PDClient.Link, isRootNodeOptional: Bool = false, updatesSharingState: Bool = true, using moc: NSManagedObjectContext) -> Node {
         let node: Node
         switch link.type {
         case .file:
@@ -318,34 +320,27 @@ extension StorageManager {
             node = album
         }
 
-        if let sharingDetails = link.sharingDetails {
-            let share = Share.fetchOrCreate(id: sharingDetails.shareID, in: moc)
-            share.volumeID = link.volumeID
-            share.type = getShareType(share)
-            node.addToDirectShares(share)
-
-            let types: [Share.ShareType] = [.main, .photos, .device]
-            if types.contains(share.type) {
-                node.setShareID(share.id)
-            }
-
-            if let shareURLMeta = sharingDetails.shareUrl {
-                updateShareURL(shareURLMeta, in: moc)
-                node.isShared = true
-            } else {
-                share.shareUrls.forEach(moc.delete)
-                node.isShared = false
-            }
-        } else {
-            node.directShares.forEach(moc.delete)
-            node.isShared = false
+        // Sharing state is authoritative only from events, explicit share operations and fresh
+        // fetches (bootstrap, folder listing, pull-to-refresh). Opportunistic/replayed metadata
+        // (e.g. the SDK's cached link details on thumbnail download) passes `false` so it can't
+        // clobber sharing with stale data — see MetadataUpdater.
+        if updatesSharingState {
+            updateSharingDetails(link, to: node, moc: moc)
+        }
+        // Only write when the response carries ownership, so a partial/omitting response can't null out
+        // a known-good owner.
+        if let ownerEmail = link.ownedBy?.email {
+            node.ownerEmail = ownerEmail
+        }
+        if let ownerOrganization = link.ownedBy?.organization {
+            node.ownerOrganization = ownerOrganization
         }
 
         if let parentLinkID = link.parentLinkID {
             if let photo = node as? Photo {
-                updatePhotoParent(link: link, photo: photo, parentLinkID: parentLinkID, isRootNodeOptional: fetchingSharedWithMeRoot, moc: moc)
+                updatePhotoParent(link: link, photo: photo, parentLinkID: parentLinkID, isRootNodeOptional: isRootNodeOptional, moc: moc)
             } else {
-                updateParent(link: link, node: node, parentLinkID: parentLinkID, isRootNodeOptional: fetchingSharedWithMeRoot, moc: moc)
+                updateParent(link: link, node: node, parentLinkID: parentLinkID, isRootNodeOptional: isRootNodeOptional, moc: moc)
             }
         } else {
             node.setShareID(node.directShares.first?.id ?? "")
@@ -425,6 +420,48 @@ extension StorageManager {
             let thumbnail = Thumbnail.make(id: id, downloadURL: nil, revision: revision, type: type, hash: hash, in: moc)
             thumbnail.volumeID = revision.volumeID
             return thumbnail
+        }
+    }
+}
+
+// MARK: - update sharingDetails
+extension StorageManager {
+    /// Applies the sharing state carried by `link` to `node`.
+    ///
+    /// This is authoritative and destructive: an absent `sharingDetails`/`shareUrl` deletes the local
+    /// share/shareURLs. It must therefore only run for callers that pass fresh, authoritative metadata —
+    /// events, explicit share operations and fresh fetches (bootstrap, folder listing, pull-to-refresh).
+    /// Opportunistic/replayed metadata skips it via `updateLink(updatesSharingState:)`, so a stale
+    /// response can no longer wipe a freshly-created share/link (the "Missing shareURL due to data race"
+    /// bug) — which is why no per-artifact `createTime`/`modifyTime` staleness guard is needed here.
+    private func updateSharingDetails(
+        _ link: PDClient.Link,
+        to node: CoreDataNode,
+        moc: NSManagedObjectContext
+    ) {
+        guard let sharingDetails = link.sharingDetails else {
+            node.directShares.forEach(moc.delete)
+            node.directShares.removeAll()
+            node.isShared = false
+            return
+        }
+
+        let share = Share.fetchOrCreate(id: sharingDetails.shareID, in: moc)
+        share.volumeID = link.volumeID
+        share.type = getShareType(share)
+        node.addToDirectShares(share)
+
+        let types: [Share.ShareType] = [.main, .photos, .device]
+        if types.contains(share.type) {
+            node.setShareID(share.id)
+        }
+
+        if let shareURLMeta = sharingDetails.shareUrl {
+            updateShareURL(shareURLMeta, in: moc)
+            node.isShared = true
+        } else {
+            share.shareUrls.forEach(moc.delete)
+            node.isShared = false
         }
     }
 }

@@ -25,58 +25,168 @@ import ProtonCoreUIFoundations
 /// Encapsulates the state of the entire app, driving the UI by publishing updates.
 class ApplicationState: ObservableObject {
     /// State of the NotificationView (cases are listed in order of priority)
-    enum NotificationState: CustomStringConvertible {
+    enum NotificationState: CustomStringConvertible, Equatable {
         case error(Int)
         case update
+        case volumeLocked
         case resyncFinished
+        /// Why an app-initiated resync is running. Dismissible.
+        case automaticResyncReason
         case none
 
         var description: String {
             switch self {
             case .error(let count): "Errors (\(count)"
             case .update: "Update"
+            case .volumeLocked: "Volume locked"
             case .resyncFinished: "Resync finished"
+            case .automaticResyncReason: "Automatic resync reason"
             case .none: "None"
             }
         }
     }
 
+    /// Which scan engine drives the current resync. Picks the step list (v1: 3 steps, v2: 4) and
+    /// disambiguates the indeterminate `.inProgress(_, nil)` phase (v1 download vs v2 discovery).
+    enum FullResyncVariant: Equatable {
+        case v1, v2
+        
+        init(scanEngineVersion: ScanEngineVersion) {
+            switch scanEngineVersion {
+            case .v1: self = .v1
+            case .v2: self = .v2
+            }
+        }
+    }
+
     enum FullResyncState: CustomStringConvertible, Equatable {
+
+        enum EnumeratingState: Equatable {
+            case waitingForTheWorkingSetEnumerationToFinish(seconds: Double, enumerated: Int, total: Int?)
+            case waitingForTheFetchItemPass(seconds: Double)
+            case fetchItemPassInProgress(seconds: Double, fetched: Int, expected: Int)
+        }
+        
         case idle
-        case inProgress(Int)
-        case enumerating
-        case completed(hasFileProviderResponded: Bool?)
+        // Prep phase before the scan is cancellable. Looks in-progress but offers no Pause/Cancel yet
+        // (see isCancellable).
+        case starting
+        case inProgress(saved: Int, total: Int?)
+        case enumerating(EnumeratingState)
+        case completed(hasFileProviderResponded: Bool?, warning: String?)
         case errored(String)
+        case paused(Int)
+
+        var syncStateModifications: (shouldDisconnectDomain: Bool, shouldPauseEvents: Bool) {
+            switch self {
+            case .idle, .completed: (false, false)
+            // Paused freezes like an in-progress scan: domain disconnected, events paused, operations deferred.
+            case .starting, .inProgress, .errored, .paused: (true, true)
+            case .enumerating: (false, true)
+            }
+        }
 
         var isHappening: Bool {
             switch self {
             case .idle, .completed: false
-            case .inProgress, .enumerating, .errored: true
+            case .starting, .inProgress, .enumerating, .errored, .paused: true
             }
         }
 
-        /// Displayed in SyncStateView
+        /// Cancellable only during the download/refresh phase — not while `.starting` (too early) or once
+        /// enumerating (DBs already swapped).
+        var isCancellable: Bool {
+            if case .inProgress = self { return true }
+            return false
+        }
+
+        /// The case identity, without the associated values. Lets callers compare "still the same phase?"
+        /// across value changes (an `.inProgress` progress tick keeps the same phase), which `Equatable` on
+        /// the state itself cannot express. Adding a case to `FullResyncState` fails to compile here until
+        /// it is mapped, so the discriminant can't silently drift from the state.
+        enum Phase: String, Equatable {
+            case idle, starting, inProgress, enumerating, completed, errored, paused
+        }
+
+        var phase: Phase {
+            switch self {
+            case .idle: .idle
+            case .starting: .starting
+            case .inProgress: .inProgress
+            case .enumerating: .enumerating
+            case .completed: .completed
+            case .errored: .errored
+            case .paused: .paused
+            }
+        }
+
+        /// Stable machine-readable case name for the TestRunner (distinct from the localized `description`).
+        /// Derived from `phase`, but comparisons must use `phase` — this is display/diagnostics output.
+        var statusName: String { phase.rawValue }
+
+        /// User-initiated wording. The UI goes through `description(isAutomatic:)`; this serves the QA
+        /// diagnostics dump and the didSet trace.
         var description: String {
+            description(isAutomatic: false)
+        }
+
+        /// - Parameter isAutomatic: app-initiated; names the refresh instead of the step labels.
+        func description(isAutomatic: Bool) -> String {
             switch self {
             case .idle:
                 "Idle"
+            case .starting:
+                // Nothing downloaded yet, so no step number.
+                isAutomatic ? Localization.full_resync_auto_title : "Resync in progress: preparing…"
             case .inProgress:
-                "Full resync in progress: downloading data..."
-            case .enumerating:
-                "Full resync in progress: refreshing directories..."
-            case .completed(let hasFileProviderResponded):
-#if HAS_QA_FEATURES
-                if let hasFileProviderResponded {
-                    hasFileProviderResponded ? "Full resync completed" : "Full resync completed (File provider has not responded)"
+                isAutomatic
+                    ? Localization.full_resync_auto_status_downloading
+                    : "Resync step 1/2: downloading file information..."
+            case .enumerating(let state):
+                (isAutomatic
+                    ? Localization.full_resync_auto_status_applying
+                    : "Resync step 2/2: applying updates") + Self.enumeratingQADetail(for: state)
+            case .completed(let hasFileProviderResponded, let warning):
+                if let warning {
+                    "Full resync completed with issues: \(warning)"
+                } else if isAutomatic {
+                    Localization.full_resync_auto_completed + Self.completedQADetail(hasFileProviderResponded: hasFileProviderResponded)
                 } else {
-                    "Full resync completed"
+                    "Full resync completed" + Self.completedQADetail(hasFileProviderResponded: hasFileProviderResponded)
                 }
-#else
-                "Full resync completed"
-#endif
             case .errored(let message):
                 "Full resync error: \(message)"
+            case .paused(let count):
+                isAutomatic
+                    ? Localization.full_resync_auto_status_paused(itemsProcessed: count)
+                    : "Full resync paused — \(count) files so far"
             }
+        }
+
+        /// QA-only detail appended to the completed label when the file provider never confirmed.
+        private static func completedQADetail(hasFileProviderResponded: Bool?) -> String {
+#if HAS_QA_FEATURES
+            hasFileProviderResponded == false ? " (File provider has not responded)" : ""
+#else
+            ""
+#endif
+        }
+
+        /// QA-only detail appended to the step-2 label: distinguishes enumeration from the item-fetch pass and shows the counter.
+        private static func enumeratingQADetail(for state: EnumeratingState) -> String {
+#if HAS_QA_FEATURES
+            switch state {
+            case .waitingForTheWorkingSetEnumerationToFinish(let seconds, let enumerated, let total):
+                return " (enumeration \(enumerated)/\(total.map { "\($0)" } ?? "?"), \(seconds)s)"
+            case .waitingForTheFetchItemPass(let seconds):
+                return " (waiting for item fetch, \(seconds)s)"
+            case .fetchItemPassInProgress(let seconds, let fetched, let expected):
+                return " (item fetch \(fetched)/\(expected), \(seconds)s)"
+            }
+#else
+            _ = state // Silences the unused-parameter warning when the QA detail is compiled out.
+            return ""
+#endif
         }
     }
 
@@ -111,6 +221,7 @@ class ApplicationState: ObservableObject {
     @Published private(set) var canGetMoreStorage = true
     @Published private(set) var isOffline = false
     @Published private(set) var isUpdateAvailable = false
+    @Published private(set) var isVolumeLocked = false
     /// Percentage of launch sequence that has been completed
     @Published private(set) var launchCompletion = 0
     @Published private(set) var visibleCampaign: PromoCampaignConfiguration?
@@ -138,8 +249,55 @@ class ApplicationState: ObservableObject {
     @Published var fullResyncState: FullResyncState = .idle {
         didSet {
             Log.trace("Resync did set fullResyncState to \(fullResyncState)")
+            // Reset the resync-scoped signals once the resync leaves an active phase.
+            switch fullResyncState {
+            case .idle, .completed:
+                fullResyncVariant = .v1
+                furthestResyncStep = 0
+                resyncStepDetails = [:]
+            case .starting:
+                // A fresh attempt (including retry/resume after an error or pause) restarts at the first step.
+                furthestResyncStep = 0
+                resyncStepDetails = [:]
+            default:
+                break
+            }
+            // Retain the active step's latest detail, so a finished step keeps showing its final progress.
+            if let active = FullResyncStepList.activeStep(variant: fullResyncVariant, state: fullResyncState) {
+                resyncStepDetails[active.kind] = active.detail
+                // Once downloading is active, discovery is complete and found `total` items. Keep the
+                // "Discovering files" tally in sync with that total (never shrinking) so a resume — which
+                // doesn't re-emit discovery progress — shows the real found count instead of a stale 0.
+                if active.kind == .downloading, case let .determinate(_, total) = active.detail {
+                    let previousFound: Int
+                    if case let .indeterminate(count)? = resyncStepDetails[.discovering] {
+                        previousFound = count
+                    } else {
+                        previousFound = 0
+                    }
+                    resyncStepDetails[.discovering] = .indeterminate(count: max(previousFound, total))
+                }
+            }
         }
     }
+
+    /// True while the current resync was app-initiated. Survives `.completed`, which still describes it.
+    @Published var resyncIsAutomatic = false
+
+    /// In-memory on purpose: a relaunch restarts the resync, so the reason is restated once per session.
+    @Published var automaticResyncReasonDismissed = false
+
+    /// Scan engine of the current resync; set at scan start, reset when the resync ends.
+    @Published private(set) var fullResyncVariant: FullResyncVariant = .v1
+
+    /// Index (into the current variant's step list) of the furthest phase the resync has reached. The
+    /// step-list UI reads it to mark where a terminal (errored/paused) resync stopped. Monotonic while a
+    /// resync runs; reset when it ends.
+    @Published private(set) var furthestResyncStep: Int = 0
+
+    /// Each resync phase's last-seen inline detail, so a finished phase keeps showing its final progress
+    /// (grayed) in the step list. Updated as the active phase advances; reset when the resync ends.
+    @Published private(set) var resyncStepDetails: [FullResyncStepKind: FullResyncStep.StepDetail] = [:]
 
     @Published var lastSyncTime: TimeInterval?
     @Published var formattedTimeSinceLastSync: String = ApplicationSyncStatus.synced.displayLabel
@@ -161,6 +319,10 @@ class ApplicationState: ObservableObject {
     var overallStatus: ApplicationSyncStatus {
         if launchCompletion < 100 {
             return .launching
+        }
+        if isVolumeLocked, accountInfo != nil {
+            // Nothing can sync against a locked volume: outranks resync, pause, offline, and errors.
+            return .volumeLocked
         }
         if fullResyncState.isHappening {
             return .fullResyncInProgress
@@ -205,18 +367,29 @@ class ApplicationState: ObservableObject {
         case .syncing where globalSyncStateDescription?.isEmpty == false:
             return globalSyncStateDescription ?? self.overallStatus.displayLabel
         case .fullResyncInProgress, .fullResyncCompleted:
-            return fullResyncState.description
+            return fullResyncState.description(isAutomatic: resyncIsAutomatic)
         default:
             return status.displayLabel
         }
     }
 
     var notificationState: NotificationState {
+        if isVolumeLocked {
+            return .volumeLocked
+        }
         if case .completed = fullResyncState {
             return .resyncFinished
         }
         if fullResyncState.isHappening {
-            return .none
+            // An app-initiated resync explains itself until dismissed; error/update stay suppressed.
+            guard resyncIsAutomatic, !automaticResyncReasonDismissed else { return .none }
+            switch fullResyncState {
+            case .starting, .inProgress, .paused:
+                return .automaticResyncReason
+            case .enumerating, .errored, .idle, .completed:
+                // Enumeration reconnects the domain; the error view carries its own copy.
+                return .none
+            }
         }
 
         if isUpdateAvailable {
@@ -244,6 +417,16 @@ class ApplicationState: ObservableObject {
         self.launchCompletion = percentage
     }
 
+    func setFullResyncVariant(_ variant: FullResyncVariant) {
+        self.fullResyncVariant = variant
+    }
+
+    /// Advances the furthest-reached resync step. Monotonic: never rewinds, so a late or out-of-order
+    /// phase signal can't move the marker backwards.
+    func advanceFurthestResyncStep(to index: Int) {
+        self.furthestResyncStep = max(self.furthestResyncStep, index)
+    }
+
     func setAccountInfo(_ accountInfo: AccountInfo?) {
         self.accountInfo = accountInfo
     }
@@ -258,6 +441,10 @@ class ApplicationState: ObservableObject {
 
     func setUpdateAvailable(_ isUpdateAvailable: Bool) {
         self.isUpdateAvailable = isUpdateAvailable
+    }
+
+    func setVolumeLocked(_ isVolumeLocked: Bool) {
+        self.isVolumeLocked = isVolumeLocked
     }
 
     func setCanGetMoreStorage(_ canGetMoreStorage: Bool) {
@@ -312,11 +499,13 @@ extension ApplicationState: CustomDebugStringConvertible {
             Property("isEnumerating", self.isEnumerating.description),
             Property("itemEnumerationProgress", itemEnumerationProgress ?? "n/a"),
             Property("isUpdateAvailable", self.isUpdateAvailable.description),
+            Property("isVolumeLocked", self.isVolumeLocked.description),
             Property("notificationState", notificationState.description),
             Property("userInfo.usedSpace", userInfo?.usedSpace.description ?? "n/a"),
             Property("userInfo.maxSpace", userInfo?.maxSpace.description ?? "n/a"),
             Property("canGetMoreStorage", canGetMoreStorage.description),
-            Property("fullResyncState.description", fullResyncState.description),
+            Property("fullResyncState", fullResyncState.statusName),
+            Property("fullResyncState.description", fullResyncState.description(isAutomatic: resyncIsAutomatic)),
             Property("deleteCount", deleteCount.description),
             Property("globalSyncStateDescription", globalSyncStateDescription ?? self.overallStatus.displayLabel),
         ]
@@ -363,6 +552,7 @@ extension ApplicationState {
         isSyncing: Bool = false,
         isPaused: Bool = false,
         isUpdateAvailable: Bool = false,
+        isVolumeLocked: Bool = false,
         isOffline: Bool = false,
         isLaunching: Bool = false,
         secondsAgo: Int = 0,
@@ -378,6 +568,7 @@ extension ApplicationState {
         state.isSyncing = isSyncing
         state.isPaused = isPaused
         state.isUpdateAvailable = isUpdateAvailable
+        state.isVolumeLocked = isVolumeLocked
         state.isOffline = isOffline
         state.launchCompletion = isLaunching ? 50 : 100
 

@@ -59,6 +59,10 @@ class VolumeDBCloudSlot: CloudSlotProtocol {
         fatalError("Just used by macOS")
     }
 
+    func scanVolumes(in moc: NSManagedObjectContext) async throws -> [VolumeMeta] {
+        fatalError("Just used by macOS")
+    }
+
     func scanShareAndRootFolder(shareID: String, moc: NSManagedObjectContext, handler: @escaping (Result<Share, any Error>) -> Void) {
         fatalError("Just used by macOS")
     }
@@ -232,30 +236,6 @@ class VolumeDBCloudSlot: CloudSlotProtocol {
         fatalError("Just used by macOS")
     }
 
-    func createNewFileDraft(_ draft: UploadableFileDraft, completion: @escaping CloudFileDraftCreatorCompletion) {
-        cloudSlot.createNewFileDraft(draft, completion: completion)
-    }
-
-    func checkAvailableHashes(among nameHashPairs: [NameHashPair], onFolder folder: NodeIdentifier, completion: @escaping AvailableHashCheckerCompletion) {
-        cloudSlot.checkAvailableHashes(among: nameHashPairs, onFolder: folder, completion: completion)
-    }
-
-    func create(from revision: UploadableRevision, onCompletion: @escaping CloudContentCreatorCompletion) {
-        cloudSlot.create(from: revision, onCompletion: onCompletion)
-    }
-
-    func commit(_ revision: CommitableRevision, completion: @escaping (Result<Void, any Error>) -> Void) {
-        cloudSlot.commit(revision, completion: completion)
-    }
-
-    func checkUploadedRevision(_ id: RevisionIdentifier, completion: @escaping (Result<XAttrs, any Error>) -> Void) {
-        cloudSlot.checkUploadedRevision(id, completion: completion)
-    }
-
-    func createRevision(for file: NodeIdentifier, onCompletion: @escaping (Result<RevisionIdentifier, any Error>) -> Void) {
-        cloudSlot.createRevision(for: file, onCompletion: onCompletion)
-    }
-
     func update(_ links: [LinkMeta], of shareID: ShareMeta.ShareID, in moc: NSManagedObjectContext) -> [NodeObj] {
         var nodes: [Node] = []
         for link in links {
@@ -304,25 +284,5 @@ class VolumeDBCloudSlot: CloudSlotProtocol {
 
     func removeMember(shareID: String, memberID: String) async throws {
         try await client.removeMember(shareID: shareID, memberID: memberID)
-    }
-
-    func update(thumbnails: [ThumbnailURL],
-                moc: NSManagedObjectContext) throws {
-        let thumbnailsDictionary = Dictionary(uniqueKeysWithValues: thumbnails.map { (AnyVolumeIdentifier(id: $0.id, volumeID: $0.volumeID), $0.url.absoluteString) })
-        let identifiers = Set(thumbnailsDictionary.keys)
-
-        try moc.performAndWait {
-            let thumbnails: [Thumbnail] = Thumbnail.fetch(identifiers: identifiers, in: moc)
-            for thumbnail in thumbnails {
-                guard let url = thumbnailsDictionary[AnyVolumeIdentifier(id: thumbnail.id, volumeID: thumbnail.volumeID)] else {
-                    continue
-                }
-                guard thumbnail.downloadURL != url else {
-                    continue
-                }
-                thumbnail.downloadURL = url
-            }
-            try moc.saveOrRollback()
-        }
     }
 }

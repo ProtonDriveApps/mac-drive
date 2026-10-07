@@ -20,45 +20,74 @@ import FileProvider
 import PDCore
 
 public protocol SyncStateDelegateProtocol {
-    /// Called when either isPaused or isOffline or fullResync status changes.
-    func updateState(paused: Bool, offline: Bool, fullResyncInProgress: Bool) async throws
+    /// Called when isPaused, isOffline, the volume lock, or the fullResync status changes.
+    /// Callers report the current facts; deriving the effective state (and its priority) is this delegate's job.
+    func updateState(paused: Bool, offline: Bool, volumeLocked: Bool, fullResync: (shouldDisconnectDomain: Bool, shouldPauseEvents: Bool)) async throws
 }
 
-/// Propagates changes in `isPaused` and `isOffline` to `EventsSystemManager` and `DomainOperationsService`.
+/// A protocol so the priority resolution is testable.
+protocol SyncStateDomainOperations: AnyObject {
+    func syncWasPaused() async throws
+    func performingFullResync() async throws
+    func networkConnectionLost() async throws
+    func syncWasResumed() async throws
+}
+
+extension DomainOperationsService: SyncStateDomainOperations {}
+
+/// Propagates changes in `isPaused`, `isOffline` and the volume lock to `EventsSystemManager` and `DomainOperationsService`.
 public final class SyncStateDelegate: SyncStateDelegateProtocol {
-    
+        private enum EffectiveSyncState {
+        case volumeLocked
+        case fullResync
+        case paused
+        case offline
+        case active
+
+        init(volumeLocked: Bool, fullResync: Bool, paused: Bool, offline: Bool) {
+            if volumeLocked {
+                self = .volumeLocked
+            } else if fullResync {
+                self = .fullResync
+            } else if paused {
+                self = .paused
+            } else if offline {
+                self = .offline
+            } else {
+                self = .active
+            }
+        }
+    }
+
     private let eventsProcessor: EventsSystemManager
-    private let domainOperationsService: DomainOperationsService
-    
-    public init(eventsProcessor: EventsSystemManager, domainOperationsService: DomainOperationsService) {
+    private let domainOperationsService: SyncStateDomainOperations
+
+    init(eventsProcessor: EventsSystemManager, domainOperationsService: SyncStateDomainOperations) {
         self.eventsProcessor = eventsProcessor
         self.domainOperationsService = domainOperationsService
         Log.info("Sync Monitor: initialized", domain: .syncing)
     }
-    
-    public func updateState(paused: Bool, offline: Bool, fullResyncInProgress: Bool) async throws {
-        Log.info("SyncMonitor: Syncing state updated to (paused: \(paused), offline: \(offline))", domain: .syncing)
-        updateEventsProcessor(paused: paused, offline: offline)
-        try await notifyFileProvider(paused: paused, offline: offline, fullResyncInProgress: fullResyncInProgress)
-    }
-    
-    private func updateEventsProcessor(paused: Bool, offline: Bool) {
-        if !paused && !offline {
+
+    public func updateState(paused: Bool, offline: Bool, volumeLocked: Bool, fullResync: (shouldDisconnectDomain: Bool, shouldPauseEvents: Bool)) async throws {
+        Log.info("SyncMonitor: Syncing state updated to (paused: \(paused), offline: \(offline), volumeLocked: \(volumeLocked))", domain: .syncing)
+
+        let shouldRunEvents = !volumeLocked && !fullResync.shouldPauseEvents && !paused && !offline
+        if shouldRunEvents {
             eventsProcessor.runEventsSystem()
         } else {
             eventsProcessor.pauseEventsSystem()
         }
-    }
-    
-    private func notifyFileProvider(paused: Bool, offline: Bool, fullResyncInProgress: Bool) async throws {
-        switch (paused, offline, fullResyncInProgress) {
-        case (_, _, true):
-            try await domainOperationsService.performingFullResync()
-        case (true, _, false):
+
+        let domainState = EffectiveSyncState(volumeLocked: volumeLocked, fullResync: fullResync.shouldDisconnectDomain, paused: paused, offline: offline)
+
+        switch domainState {
+        case .volumeLocked, .paused:
             try await domainOperationsService.syncWasPaused()
-        case (false, true, false):
+        case .fullResync:
+            try await domainOperationsService.performingFullResync()
+        case .offline:
             try await domainOperationsService.networkConnectionLost()
-        case (false, false, false):
+        case .active:
             try await domainOperationsService.syncWasResumed()
         }
     }

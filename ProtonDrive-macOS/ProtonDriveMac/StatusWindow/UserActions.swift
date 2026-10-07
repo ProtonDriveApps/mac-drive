@@ -31,6 +31,7 @@ import PDCore
 
     // Account
     func userRequestedSignOut() async
+    func userRequestedSignOutRemovingDomain() async
     func refreshUserInfo()
     func signInUsingTestCredentials(login: String, password: String)
 
@@ -44,10 +45,24 @@ import PDCore
     func cleanUpErrors() async
 
     // Resync
+    @MainActor
     func performFullResync(onlyIfPreviouslyInterrupted: Bool)
+    func confirmFullResync() -> Bool
     func finishFullResync()
+    @MainActor
     func retryFullResync()
     func cancelFullResync()
+    func pauseFullResync()
+    @MainActor
+    func resumeFullResync()
+    func cancelPausedResync()
+    func createNewDomainAfterFailedResync()
+    /// Hides the reason banner. UI state only.
+    func dismissAutomaticResyncReason()
+#if HAS_QA_FEATURES
+    /// Enters the refresh-event path without waiting for a backend `Refresh == 1`.
+    func simulateRefreshEventResync()
+#endif
 
     // Windows
     func showLogin()
@@ -69,7 +84,7 @@ import PDCore
     // Debugging
 #if HAS_QA_FEATURES
     func showQASettings()
-    func toggleGlobalProgressStatusItem()
+    func toggleGlobalProgressQaStatusItemVisibility()
 #endif
 }
 
@@ -179,6 +194,14 @@ class UserActions {
             }
         }
 
+        @objc func userRequestedSignOutRemovingDomain() {
+            Log.userAction()
+            assert(delegate != nil)
+            Task {
+                await delegate?.userRequestedSignOutRemovingDomain()
+            }
+        }
+
         func signInUsingTestCredentials(login: String, password: String) {
             assert(delegate != nil)
             delegate?.signInUsingTestCredentials(login: login, password: password)
@@ -245,9 +268,16 @@ class UserActions {
             self.delegate = delegate
         }
 
+        @MainActor
         func performFullResync(onlyIfPreviouslyInterrupted: Bool = false) {
             Log.userAction(["onlyIfPreviouslyInterrupted": onlyIfPreviouslyInterrupted])
             delegate?.performFullResync(onlyIfPreviouslyInterrupted: onlyIfPreviouslyInterrupted)
+        }
+
+        /// Presents a confirmation prompt and returns true only if the user confirms. Gates user-initiated resyncs.
+        func confirmFullResync() -> Bool {
+            Log.userAction()
+            return delegate?.confirmFullResync() ?? false
         }
 
         func finishFullResync() {
@@ -255,6 +285,7 @@ class UserActions {
             delegate?.finishFullResync()
         }
 
+        @MainActor
         func retryFullResync() {
             Log.userAction()
             delegate?.retryFullResync()
@@ -264,6 +295,39 @@ class UserActions {
             Log.userAction()
             delegate?.cancelFullResync()
         }
+
+        @objc func pauseFullResync() {
+            Log.userAction()
+            delegate?.pauseFullResync()
+        }
+
+        @MainActor
+        @objc func resumeFullResync() {
+            Log.userAction()
+            delegate?.resumeFullResync()
+        }
+
+        @objc func cancelPausedResync() {
+            Log.userAction()
+            delegate?.cancelPausedResync()
+        }
+
+        @objc func createNewDomainAfterFailedResync() {
+            Log.userAction()
+            delegate?.createNewDomainAfterFailedResync()
+        }
+
+        func dismissAutomaticResyncReason() {
+            Log.userAction()
+            delegate?.dismissAutomaticResyncReason()
+        }
+
+#if HAS_QA_FEATURES
+        @MainActor @objc func simulateRefreshEventResync() {
+            Log.userAction()
+            delegate?.simulateRefreshEventResync()
+        }
+#endif
     }
 
     class WindowActions {
@@ -345,6 +409,11 @@ class UserActions {
             open(url: SettingsViewModel.supportWebsiteURL)
         }
 
+        func openVolumeLockedHelp(email: String?) {
+            Log.userAction()
+            open(url: driveWebsiteURL.appending(email: email))
+        }
+
         func manageAccount(email: String?) {
             Log.userAction()
             open(url: manageAccountURL.appending(email: email))
@@ -403,9 +472,9 @@ class UserActions {
             delegate?.showQASettings()
         }
 
-        @MainActor @objc func toggleGlobalProgressStatusItem() {
+        @MainActor @objc func toggleGlobalProgressQaStatusItemVisibility() {
             Log.userAction()
-            delegate?.toggleGlobalProgressStatusItem()
+            delegate?.toggleGlobalProgressQaStatusItemVisibility()
         }
     }
 
@@ -416,23 +485,28 @@ class UserActions {
             self.observer = observer
         }
 
+        @MainActor
         func mockLogout() {
             observer?.mockLogout()
         }
 
+        @MainActor
         func mockLogin() {
             observer?.mockLogin()
         }
 
+        @MainActor
         func mockErrorState() {
             observer?.mockErrorState()
         }
 
+        @MainActor
         func mockOfflineStatus(offline: Bool) {
             observer?.mockOfflineStatus(offline: offline)
         }
 
 #if HAS_BUILTIN_UPDATER
+        @MainActor
         func mockUpdateAvailability(available: Bool) {
             observer?.mockUpdateAvailability(available: available)
         }

@@ -52,6 +52,7 @@ enum SupportedLanguage: String, CaseIterable {
 
 public class Localization {
     public static var isUITest = false
+    public static var bundlePreferredLocalization: String? { Bundle.main.preferredLocalizations.first }
     private static let defaultLanguage = "en"
     private static let availableLanguages = SupportedLanguage.allCases.map { $0.rawValue }
     private static let preferredLanguages: [String] = {
@@ -106,12 +107,147 @@ public class Localization {
     /// "Looking for files to sync…"
     public static var enumerating_after_resuming: String { localized(key: "enumerating_after_resuming", table: "Mac-Localizable") }
 
-    /// "%d items processed"
-    public static func full_resync_progress(itemsProcessed: Int) -> String { String(format: localized(key: "full_resync_progress", table: "Mac-Localizable"), itemsProcessed) }
+    /// "Banner shown after an automatic refresh of the file list finishes."
+    /// "Your file list is up to date"
+    public static var full_resync_auto_completed: String { localized(key: "full_resync_auto_completed", table: "Mac-Localizable") }
+
+    /// "Status row in the menu bar dropdown while updates are applied during an automatic refresh of the file list."
+    /// "Refreshing your file list (step 2 of 2)…"
+    public static var full_resync_auto_status_applying: String { localized(key: "full_resync_auto_status_applying", table: "Mac-Localizable") }
+
+    /// "Status row in the menu bar dropdown while file information is downloaded during an automatic refresh of the file list."
+    /// "Refreshing your file list (step 1 of 2)…"
+    public static var full_resync_auto_status_downloading: String { localized(key: "full_resync_auto_status_downloading", table: "Mac-Localizable") }
+
+    /// "Status row in the menu bar dropdown when an automatic refresh of the file list is paused. The number is how many files were processed so far."
+    /// "Refresh paused — %d files so far"
+    public static func full_resync_auto_status_paused(itemsProcessed: Int) -> String { String(format: localized(key: "full_resync_auto_status_paused", table: "Mac-Localizable"), itemsProcessed) }
+
+    /// "Title in the tray window while Proton Drive refreshes its file list because the server reported the local one is out of date. Not started by the user."
+    /// "Refreshing your file list"
+    public static var full_resync_auto_title: String { localized(key: "full_resync_auto_title", table: "Mac-Localizable") }
+
+    /// "Cancel resync"
+    public static var full_resync_cancel_confirm_action: String { localized(key: "full_resync_cancel_confirm_action", table: "Mac-Localizable") }
+
+    /// "Are you sure you want to cancel? You will lose the progress you have so far."
+    public static var full_resync_cancel_confirm_body: String { localized(key: "full_resync_cancel_confirm_body", table: "Mac-Localizable") }
+
+    /// "Cancel resync"
+    public static var full_resync_cancel_confirm_title: String { localized(key: "full_resync_cancel_confirm_title", table: "Mac-Localizable") }
+
+    /// "Resync was cancelled before it finished. Retry, or create a new sync folder."
+    public static var full_resync_cancelled_recovery: String { localized(key: "full_resync_cancelled_recovery", table: "Mac-Localizable") }
+
+    /// "Pre-resync confirmation dialog action button"
+    /// "Resync"
+    public static var full_resync_confirm_action: String { localized(key: "full_resync_confirm_action", table: "Mac-Localizable") }
+
+    /// "Pre-resync confirmation dialog body"
+    /// "Resyncing may take some time, depending on how many files you have."
+    public static var full_resync_confirm_body: String { localized(key: "full_resync_confirm_body", table: "Mac-Localizable") }
+
+    /// "Pre-resync confirmation dialog title"
+    /// "Resync your Drive?"
+    public static var full_resync_confirm_title: String { localized(key: "full_resync_confirm_title", table: "Mac-Localizable") }
+
+    /// "Continue resyncing"
+    public static var full_resync_continue: String { localized(key: "full_resync_continue", table: "Mac-Localizable") }
+
+    /// "Confirmation dialog body before rebuilding the local sync folder"
+    /// "Proton Drive will be set up again on this Mac. The previous copy on this Mac will remain unchanged."
+    public static var full_resync_create_new_confirm_body: String { localized(key: "full_resync_create_new_confirm_body", table: "Mac-Localizable") }
+
+    /// "Confirmation dialog title before rebuilding the local sync folder"
+    /// "Create new sync folder"
+    public static var full_resync_create_new_confirm_title: String { localized(key: "full_resync_create_new_confirm_title", table: "Mac-Localizable") }
+
+    /// "Create new sync folder"
+    public static var full_resync_create_new_location: String { localized(key: "full_resync_create_new_location", table: "Mac-Localizable") }
+
+    /// "Dismiss"
+    public static var full_resync_dismiss: String { localized(key: "full_resync_dismiss", table: "Mac-Localizable") }
+
+    /// "You have completed the resync."
+    public static var full_resync_finished: String { localized(key: "full_resync_finished", table: "Mac-Localizable") }
+
+    /// "Resync brings your Mac up to date with Proton Drive. Use it if your files don\'t appear to be syncing correctly.\n\nDuring resync, Proton Drive checks your files and makes any needed changes on your Mac.\n\nYour files stay available, and you can keep using your Mac while resync runs."
+    public static var full_resync_info_body: String { localized(key: "full_resync_info_body", table: "Mac-Localizable") }
+
+    /// "Retry continues the resync from where it stopped.\n\nCreate a new sync folder rebuilds your local folder from scratch.\n\nCancel stops the resync and returns to normal syncing."
+    public static var full_resync_info_error_body: String { localized(key: "full_resync_info_error_body", table: "Mac-Localizable") }
+
+    /// "Resume continues the resync from where it stopped.\n\nCancel stops the resync and returns to normal syncing."
+    public static var full_resync_info_paused_body: String { localized(key: "full_resync_info_paused_body", table: "Mac-Localizable") }
+
+    /// "About resync"
+    public static var full_resync_info_title: String { localized(key: "full_resync_info_title", table: "Mac-Localizable") }
+
+    /// "%@ found"
+    public static func full_resync_items_found(count: String) -> String { String(format: localized(key: "full_resync_items_found", table: "Mac-Localizable"), count) }
+
+    /// "Learn more"
+    public static var full_resync_learn_more: String { localized(key: "full_resync_learn_more", table: "Mac-Localizable") }
+
+    /// "Pause"
+    public static var full_resync_pause: String { localized(key: "full_resync_pause", table: "Mac-Localizable") }
+
+    /// "%d%%"
+    public static func full_resync_percent(percent: Int) -> String { String(format: localized(key: "full_resync_percent", table: "Mac-Localizable"), percent) }
+
+    /// "Setting things up…"
+    public static var full_resync_preparing: String { localized(key: "full_resync_preparing", table: "Mac-Localizable") }
+
+    /// "Resume"
+    public static var full_resync_resume: String { localized(key: "full_resync_resume", table: "Mac-Localizable") }
+
+    /// "Hint shown during the resync phases that cannot be paused or cancelled"
+    /// "You can safely leave this window during the resync"
+    public static var full_resync_safe_to_leave: String { localized(key: "full_resync_safe_to_leave", table: "Mac-Localizable") }
 
     /// "Shown in Settings view"
     /// "Full resync"
     public static var full_resync_state_description: String { localized(key: "full_resync_state_description", table: "Mac-Localizable") }
+
+    /// "Resync step label (idle/done): apply-updates phase"
+    /// "Sync changes"
+    public static var full_resync_step_apply: String { localized(key: "full_resync_step_apply", table: "Mac-Localizable") }
+
+    /// "Syncing changes…"
+    public static var full_resync_step_applying: String { localized(key: "full_resync_step_applying", table: "Mac-Localizable") }
+
+    /// "Resync step label (idle/done): discovery phase"
+    /// "Find your files"
+    public static var full_resync_step_discover: String { localized(key: "full_resync_step_discover", table: "Mac-Localizable") }
+
+    /// "Finding your files…"
+    public static var full_resync_step_discovering: String { localized(key: "full_resync_step_discovering", table: "Mac-Localizable") }
+
+    /// "Resync step label (idle/done): download phase"
+    /// "Check what\'s changed"
+    public static var full_resync_step_download: String { localized(key: "full_resync_step_download", table: "Mac-Localizable") }
+
+    /// "Checking what\'s changed…"
+    public static var full_resync_step_downloading: String { localized(key: "full_resync_step_downloading", table: "Mac-Localizable") }
+
+    /// "Step %1$d: %2$@"
+    public static func full_resync_step_label(number: Int, title: String) -> String { String(format: localized(key: "full_resync_step_label", table: "Mac-Localizable"), number, title) }
+
+    /// "Resync step label (idle/done): refresh phase"
+    /// "Finish up"
+    public static var full_resync_step_refresh: String { localized(key: "full_resync_step_refresh", table: "Mac-Localizable") }
+
+    /// "Finishing up…"
+    public static var full_resync_step_refreshing: String { localized(key: "full_resync_step_refreshing", table: "Mac-Localizable") }
+
+    /// "Resync in progress…"
+    public static var full_resync_title: String { localized(key: "full_resync_title", table: "Mac-Localizable") }
+
+    /// "Resync failed"
+    public static var full_resync_title_failed: String { localized(key: "full_resync_title_failed", table: "Mac-Localizable") }
+
+    /// "Resync paused"
+    public static var full_resync_title_paused: String { localized(key: "full_resync_title_paused", table: "Mac-Localizable") }
 
     /// "Shown in tray app"
     /// "Get more storage"
@@ -171,6 +307,9 @@ public class Localization {
     /// "Sign out"
     public static var menu_text_logout: String { localized(key: "menu_text_logout", table: "Mac-Localizable") }
 
+    /// "Remove sync folder & sign out"
+    public static var menu_text_logout_remove_domain: String { localized(key: "menu_text_logout_remove_domain", table: "Mac-Localizable") }
+
     /// "Button to expand text view for error deteail"
     /// "Details"
     public static var notification_details: String { localized(key: "notification_details", table: "Mac-Localizable") }
@@ -179,9 +318,21 @@ public class Localization {
     /// "There is %d issue"
     public static func notification_issues(num: Int) -> String { String(format: localized(key: "notification_issues", table: "Mac-Localizable"), num) }
 
+    /// "Dismissible banner in the tray window during an automatic refresh of the file list, explaining that syncing is suspended until the refresh finishes. Wraps to at most two lines in a 360pt-wide window."
+    /// "Syncing suspended until the refresh finishes."
+    public static var notification_resync_auto_reason: String { localized(key: "notification_resync_auto_reason", table: "Mac-Localizable") }
+
     /// "Button to restart application"
     /// "Update available — click to restart and install."
     public static var notification_update_available: String { localized(key: "notification_update_available", table: "Mac-Localizable") }
+
+    /// "Notification shown when the user\'s volume is locked on the backend"
+    /// "Your files are locked and can\'t sync"
+    public static var notification_volume_locked: String { localized(key: "notification_volume_locked", table: "Mac-Localizable") }
+
+    /// "Banner inviting the user to restore access to their locked volume via the web recovery flow"
+    /// "Restore access to your locked files"
+    public static var notification_volume_locked_restore: String { localized(key: "notification_volume_locked_restore", table: "Mac-Localizable") }
 
     /// "Message shown in the mac onboarding view"
     /// "Open your folder and click Enable to finish setting up Proton Drive on your Mac."
@@ -206,6 +357,18 @@ public class Localization {
     /// "Fix syncing issues section title"
     /// "Fix syncing issues"
     public static var setting_fix_syncing_issues: String { localized(key: "setting_fix_syncing_issues", table: "Mac-Localizable") }
+
+    /// "Fix syncing issues section button title"
+    /// "Resync"
+    public static var setting_fix_syncing_issues_button: String { localized(key: "setting_fix_syncing_issues_button", table: "Mac-Localizable") }
+
+    /// "Fix syncing issues section description"
+    /// "If you\'re having trouble syncing, try resyncing to make sure your data is up to date. This may take some time, depending on how many files you have."
+    public static var setting_fix_syncing_issues_description: String { localized(key: "setting_fix_syncing_issues_description", table: "Mac-Localizable") }
+
+    /// "Settings resync section: opens the About resync popover"
+    /// "Learn more"
+    public static var setting_fix_syncing_issues_learn_more: String { localized(key: "setting_fix_syncing_issues_learn_more", table: "Mac-Localizable") }
 
     /// "Get help section title"
     /// "Get help"
@@ -265,8 +428,8 @@ public class Localization {
     public static var setting_system_new_version_available: String { localized(key: "setting_system_new_version_available", table: "Mac-Localizable") }
 
     /// "Information text"
-    /// "Proton Drive is up to date: v%@"
-    public static func setting_system_up_to_date(version: String) -> String { String(format: localized(key: "setting_system_up_to_date", table: "Mac-Localizable"), version) }
+    /// "Proton Drive is up to date"
+    public static var setting_system_up_to_date: String { localized(key: "setting_system_up_to_date", table: "Mac-Localizable") }
 
     /// "Button title"
     /// "Update now"
@@ -378,6 +541,10 @@ public class Localization {
     /// "Button to move item to trash"
     /// "Move to trash"
     public static var edit_section_remove: String { localized(key: "edit_section_remove", table: "shared-Localizable") }
+
+    /// "Error message displayed when the user attempts to access a permanently deleted file or folder"
+    /// "File or folder not found"
+    public static var error_not_found: String { localized(key: "error_not_found", table: "shared-Localizable") }
 
     /// "Concat with other string, e.g. Restore 4 files, Delete 1 file"
     /// "%d File"
@@ -523,42 +690,6 @@ public class Localization {
     /// "Label for button which opens a file"
     /// "Open"
     public static var open: String { localized(key: "open", table: "shared-Localizable") }
-
-    /// "Error message displayed on the photo backup issue page"
-    /// "Unable to connect to iCloud"
-    public static var retry_error_explainer_cannot_connect_icloud: String { localized(key: "retry_error_explainer_cannot_connect_icloud", table: "shared-Localizable") }
-
-    /// "Error message displayed on the photo backup issue page"
-    /// "Network connection error"
-    public static var retry_error_explainer_connection_error: String { localized(key: "retry_error_explainer_connection_error", table: "shared-Localizable") }
-
-    /// "Error message displayed on the photo backup issue page"
-    /// "Device storage full"
-    public static var retry_error_explainer_device_storage_full: String { localized(key: "retry_error_explainer_device_storage_full", table: "shared-Localizable") }
-
-    /// "Error message displayed on the photo backup issue page"
-    /// "Encryption failed"
-    public static var retry_error_explainer_encryption_error: String { localized(key: "retry_error_explainer_encryption_error", table: "shared-Localizable") }
-
-    /// "Error message displayed on the photo backup issue page"
-    /// "Failed to load resource"
-    public static var retry_error_explainer_failed_to_load_resource: String { localized(key: "retry_error_explainer_failed_to_load_resource", table: "shared-Localizable") }
-
-    /// "Error message displayed on the photo backup issue page"
-    /// "Can\'t access the original file."
-    public static var retry_error_explainer_invalid_asset: String { localized(key: "retry_error_explainer_invalid_asset", table: "shared-Localizable") }
-
-    /// "Error message displayed on the photo backup issue page"
-    /// "Missing permissions"
-    public static var retry_error_explainer_missing_permissions: String { localized(key: "retry_error_explainer_missing_permissions", table: "shared-Localizable") }
-
-    /// "Error message displayed on the photo backup issue page"
-    /// "Name validation failed"
-    public static var retry_error_explainer_name_validation: String { localized(key: "retry_error_explainer_name_validation", table: "shared-Localizable") }
-
-    /// "Error message displayed on the photo backup issue page"
-    /// "Drive storage full"
-    public static var retry_error_explainer_quote_exceeded: String { localized(key: "retry_error_explainer_quote_exceeded", table: "shared-Localizable") }
 
     /// "Add selected photos to shared album"
     /// "Add to shared album"

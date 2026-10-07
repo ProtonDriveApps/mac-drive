@@ -24,7 +24,6 @@ import PDLocalization
 struct ItemRowView: View {
     let item: ReportableSyncItem
     let actions: UserActions
-    let synchronizedProgress: Double
     let isHovering: Bool
     
     var body: some View {
@@ -103,7 +102,7 @@ struct ItemRowView: View {
                         .frame(width: 16, height: 16)
                 case .inProgress:
                     if item.shouldShowIndeterminateProgress {
-                        SpinningProgressView(progress: synchronizedProgress, isIndeterminate: item.shouldShowIndeterminateProgress)
+                        SpinningProgressView(progress: item.progress, isIndeterminate: item.shouldShowIndeterminateProgress)
                     } else {
                         SpinningProgressView(progress: item.progress)
                     }
@@ -152,14 +151,12 @@ struct ItemRowView_Previews: PreviewProvider {
                 ItemRowView(
                     item: $0,
                     actions: UserActions(delegate: nil),
-                    synchronizedProgress: 33,
                     isHovering: false
                 )
                 .frame(width: 360, height: 48)
                 ItemRowView(
                     item: $0,
                     actions: UserActions(delegate: nil),
-                    synchronizedProgress: 75,
                     isHovering: true
                 )
                 .frame(width: 360, height: 48)

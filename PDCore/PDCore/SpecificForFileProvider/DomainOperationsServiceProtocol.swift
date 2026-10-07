@@ -31,10 +31,10 @@ public struct CacheCleanupStrategy: OptionSet {
     public static let cleanOnlyMetadataDB: CacheCleanupStrategy = [.cleanMetadata]
     public static let doNotCleanAnything: CacheCleanupStrategy = []
 
-    var shouldCleanEvents: Bool { contains(.cleanEvents) }
-    var shouldCleanMetadata: Bool { contains(.cleanMetadata) }
-    var shouldCleanUserSpecificSettings: Bool { contains(.cleanUserSpecificSettings) }
-    var shouldCleanBackupCache: Bool { contains(.cleanBackupCache) }
+    public var shouldCleanEvents: Bool { contains(.cleanEvents) }
+    public var shouldCleanMetadata: Bool { contains(.cleanMetadata) }
+    public var shouldCleanUserSpecificSettings: Bool { contains(.cleanUserSpecificSettings) }
+    public var shouldCleanBackupCache: Bool { contains(.cleanBackupCache) }
 
     public let rawValue: Int
     
@@ -45,10 +45,14 @@ public struct CacheCleanupStrategy: OptionSet {
 
 public protocol DomainOperationsServiceProtocol {
     var cacheCleanupStrategy: CacheCleanupStrategy { get }
+    /// true while the cache/metadata rebuild has not finished; see DomainOperationsService for lifecycle.
+    var keepDomainDisconnectedForCacheRebuild: Bool? { get set }
     func tearDownConnectionToAllDomains() async throws
     func signalEnumerator(reason: FileOperationEvent.SignalEnumeratorReason) async throws
     func removeAllDomains() async throws
     func groupContainerMigrationStarted() async throws
+    func tryResolvingErrors() async
+    func tryResolvingCannotSynchronizeErrorIfDeferred() async
 }
 
 public enum DomainOperationErrors: Error {

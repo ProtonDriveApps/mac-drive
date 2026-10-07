@@ -54,6 +54,8 @@ public final class ObservabilityReporter: ObservabilityReporterProtocol {
                 await reportDownloadEvent(payload: payload)
             case .upload(let payload):
                 await reportUploadEvent(payload: payload)
+            case .uploadPerformance(let payload):
+                await reportUploadPerformanceEvent(payload: payload)
             case .verificationError(let payload):
                 await reportVerificationError(payload: payload)
             case .other(let name):
@@ -119,22 +121,61 @@ public final class ObservabilityReporter: ObservabilityReporterProtocol {
             if isAborted { return }
             await dependencies.uploadMonitor.reportError(volumeType: volumeType, type: error.stringValue)
 
-            // Exclusive network error
-            if error == .networkError { return }
+            // Exclude network_error and validation_error from success rate and erroring users metrics
+            if error == .networkError || error == .validationError { return }
             await dependencies.uploadMonitor.reportSuccess(
                 volumeType: volumeType,
                 status: DriveObservabilityStatus.failure.rawValue
             )
             await dependencies.uploadMonitor.reportErroringUser(volumeType: volumeType, userPlan: userPlan)
 
-            if error == .unknown, let message = payload.originalError {
-                Log.error(message, domain: .sdk)
+            if error == .unknown {
+                let message = payload.originalError ?? error.stringValue
+                Log.error(message, domain: .sdk, context: LogContext("upload_unknown_error", forKey: "tag"))
             }
         } else {
             await dependencies.uploadMonitor.reportSuccess(
                 volumeType: volumeType,
                 status: DriveObservabilityStatus.success.rawValue
             )
+        }
+    }
+
+    private func reportUploadPerformanceEvent(
+        payload: UploadPerformanceEventPayload
+    ) async {
+        switch payload.metric {
+        case .smallFileThroughput:
+            guard let route = DriveObservabilityUploadRoute(payload.uploadRoute) else {
+                Log.warning("Upload performance event carried an unrecognized upload route", domain: .metrics)
+                return
+            }
+            await dependencies.uploadPerformanceMonitor.reportSmallFileUploadThroughput(
+                payload.value,
+                route: route
+            )
+        case .largeFileThroughput:
+            guard let blockCount = DriveObservabilityBlockCount(payload.blockCount) else {
+                Log.warning("Upload performance event carried an unrecognized block count", domain: .metrics)
+                return
+            }
+            await dependencies.uploadPerformanceMonitor.reportLargeFileUploadThroughput(
+                payload.value,
+                blockCount: blockCount
+            )
+        case .largeRouteActiveTimeShare:
+            guard let sizeClass = DriveObservabilitySizeClass(payload.sizeClass) else {
+                Log.warning("Upload performance event carried an unrecognized size class", domain: .metrics)
+                return
+            }
+            await dependencies.uploadPerformanceMonitor.reportLargeRouteActiveTimeShare(
+                percentage: payload.value,
+                sizeClass: sizeClass
+            )
+        case .smallRouteActiveTimeShare:
+            await dependencies.uploadPerformanceMonitor.reportSmallRouteActiveTimeShare(percentage: payload.value)
+        case .unspecified, .unrecognized:
+            Log.warning("Upload performance event carried an unrecognized metric", domain: .metrics)
         }
     }
 
@@ -148,16 +189,17 @@ public final class ObservabilityReporter: ObservabilityReporterProtocol {
             if isAborted { return }
             await dependencies.downloadMonitor.reportError(volumeType: volumeType, type: error.stringValue)
 
-            // Exclusive network error
-            if error == .networkError { return }
+            // Exclude network_error and validation_error from success rate and erroring users metrics
+            if error == .networkError || error == .validationError { return }
             await dependencies.downloadMonitor.reportSuccess(
                 volumeType: volumeType,
                 status: DriveObservabilityStatus.failure.rawValue
             )
             await dependencies.downloadMonitor.reportErroringUser(volumeType: volumeType, userPlan: userPlan)
 
-            if error == .unknown, let message = payload.originalError {
-                Log.error(message, domain: .sdk)
+            if error == .unknown {
+                let message = payload.originalError ?? error.stringValue
+                Log.error(message, domain: .sdk, context: LogContext("download_unknown_error", forKey: "tag"))
             }
         } else {
             await dependencies.downloadMonitor.reportSuccess(
@@ -179,6 +221,7 @@ extension ObservabilityReporter {
         let apiMonitor = DriveSDKAPIObservabilityMonitor()
         let integrityErrorMonitor = DriveSDKIntegrityErrorMonitor()
         let uploadMonitor = DriveSDKUploadObservabilityMonitor()
+        let uploadPerformanceMonitor = DriveSDKUploadPerformanceObservabilityMonitor()
         let downloadMonitor = DriveSDKDownloadObservabilityMonitor()
         let fileVerificationMonitor = FileVerificationMonitor()
         let userInfoController: UserInfoController
@@ -246,6 +289,8 @@ extension UploadError {
             return "4xx"
         case .unknown:
             return "unknown"
+        case .validationError:
+            return "validation_error"
         }
     }
 }
@@ -267,6 +312,51 @@ extension DownloadError {
             return "4xx"
         case .unknown:
             return "unknown"
+        case .validationError:
+            return "validation_error"
+        }
+    }
+}
+
+private extension DriveObservabilityUploadRoute {
+    init?(_ sdkUploadRoute: UploadRoute) {
+        switch sdkUploadRoute {
+        case .small:
+            self = .small
+        case .block:
+            self = .block
+        case .unspecified, .unrecognized:
+            return nil
+        }
+    }
+}
+
+private extension DriveObservabilitySizeClass {
+    init?(_ sdkSizeClass: UploadSizeClass) {
+        switch sdkSizeClass {
+        case .small:
+            self = .small
+        case .single:
+            self = .single
+        case .multi:
+            self = .multi
+        case .unspecified, .unrecognized:
+            return nil
+        }
+    }
+}
+
+private extension DriveObservabilityBlockCount {
+    init?(_ sdkBlockCount: UploadBlockCount) {
+        switch sdkBlockCount {
+        case .single:
+            self = .single
+        case .few:
+            self = .few
+        case .many:
+            self = .many
+        case .unspecified, .unrecognized:
+            return nil
         }
     }
 }

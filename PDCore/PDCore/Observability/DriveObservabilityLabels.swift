@@ -46,6 +46,26 @@ enum DriveSDKObservabilityLabelKey: String {
     case type
     case userPlan
     case retryHelped
+    case uploadRoute
+    case sizeClass
+    case blockCount
+}
+
+public enum DriveObservabilityUploadRoute: String, Encodable, Equatable {
+    case small
+    case block
+}
+
+public enum DriveObservabilitySizeClass: String, Encodable, Equatable {
+    case small
+    case single
+    case multi
+}
+
+public enum DriveObservabilityBlockCount: String, Encodable, Equatable {
+    case single
+    case few
+    case many
 }
 
 enum DriveSDKObservabilityLabelValue: String {

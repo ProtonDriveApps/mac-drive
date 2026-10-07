@@ -336,6 +336,12 @@ extension GenericStorageManager: RecoverableStorage {
     private var recoveryDatabaseName: String { "Recovery_\(databaseName)" }
     private var backupDatabaseName: String { "Backup_\(databaseName)" }
 
+    public var isInMemoryStore: Bool {
+        persistentContainer.persistentStoreCoordinator.persistentStores.contains {
+            $0.type == NSPersistentStore.StoreType.inMemory.rawValue
+        }
+    }
+
     public func disconnectExistingDB() throws -> PersistentStoreInfo {
         try Self.disconnectExistingDB(named: databaseName, using: persistentContainer, contexts: contexts)
     }
@@ -344,8 +350,8 @@ extension GenericStorageManager: RecoverableStorage {
         try Self.createRecoveryDB(named: recoveryDatabaseName, nextTo: backup, using: persistentContainer)
     }
 
-    public func reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: PersistentStoreInfo, recovery: PersistentStoreInfo?) throws {
-        try Self.reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: existing, recovery: recovery, using: persistentContainer, contexts: contexts)
+    public func reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: PersistentStoreInfo, recovery: PersistentStoreInfo?, discardRecovery: Bool = true) throws {
+        try Self.reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: existing, recovery: recovery, discardRecovery: discardRecovery, using: persistentContainer, contexts: contexts)
     }
 
     public func replaceExistingDBWithRecovery(existing: PersistentStoreInfo, recovery: PersistentStoreInfo) throws {

@@ -24,6 +24,7 @@ public extension Volume {
         self.usedSpace = meta.usedSpace ?? 0
         let typeValue = Int16(meta.type.rawValue)
         self.type = PDCore.Volume.VolumeType(rawValue: typeValue) ?? .undetermined
+        self.state = meta.state
     }
 }
 
@@ -64,7 +65,9 @@ public extension Node {
         self.mimeType = meta.MIMEType
         self.createdDate = Date(timeIntervalSince1970: meta.createTime)
         self.modifiedDate = Date(timeIntervalSince1970: meta.modifyTime)
-        self.isShared = meta.sharingDetails?.shareUrl != nil
+        // `isShared` is intentionally NOT set here. It is owned by the sharing-reconciliation paths
+        // (`updateSharingDetails` on the StorageManager path — which is gated by `updatesSharingState`
+        // — and `CloudSlot.update`), so opportunistic/replayed metadata can't clobber it via node fill.
         self.volumeID = meta.volumeID
     }
 }

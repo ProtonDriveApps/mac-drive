@@ -46,11 +46,13 @@ public struct InitializationFailure {
     }
 }
 
+@MainActor
 final class InitializationCoordinator: ObservableObject {
     
     @Published var initializationViewState: Either<InitializationProgress, InitializationFailure> = .left(.init())
 
     private weak var window: NSWindow?
+    private var pendingRetry: (id: UUID, continuation: AsyncStream<Void>.Continuation)?
     
     init(window: NSWindow) {
         self.window = window
@@ -63,22 +65,33 @@ final class InitializationCoordinator: ObservableObject {
     }
     
     func update(progress: InitializationProgress) {
-        Task { @MainActor in
-            initializationViewState = .left(progress)
-        }
+        initializationViewState = .left(progress)
     }
-    
-    func showFailure(error: Error, retry: @escaping () async throws -> Void) {
-        Task { @MainActor in
-            initializationViewState = .right(InitializationFailure(error: error, retry: {
-                Task { [weak self] in
-                    do {
-                        try await retry()
-                    } catch {
-                        self?.showFailure(error: error, retry: retry)
-                    }
-                }
-            }))
+
+    /// Waits for one Retry tap; cancellation or a replacement failure ends the wait.
+    func waitForRetry(after error: Error) async -> Bool {
+        guard !Task.isCancelled else { return false }
+        cancelPendingRetry()
+        let id = UUID()
+        let signal = AsyncStream<Void>.makeStream(bufferingPolicy: .bufferingNewest(1))
+        pendingRetry = (id: id, continuation: signal.continuation)
+        initializationViewState = .right(InitializationFailure(error: error, retry: { [weak self] in
+            guard let self, self.pendingRetry?.id == id else { return }
+            self.pendingRetry = nil
+            self.update(progress: .init())
+            signal.continuation.yield(())
+            signal.continuation.finish()
+        }))
+        defer {
+            if pendingRetry?.id == id { cancelPendingRetry() }
         }
+        var iterator = signal.stream.makeAsyncIterator()
+        let tapped = await iterator.next() != nil
+        return tapped && !Task.isCancelled
+    }
+
+    func cancelPendingRetry() {
+        pendingRetry?.continuation.finish()
+        pendingRetry = nil
     }
 }

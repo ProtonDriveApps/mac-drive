@@ -38,9 +38,10 @@ public final class PhotosOperationPerformer: PhotosOperationPerformerProtocol, A
         urlCacheCleaner: URLCacheCleanerProtocol,
         fileVerifier: FileVerificationProtocol,
         observabilityReporter: ObservabilityReporterProtocol,
-        featureFlagProviderCallback: @escaping FeatureFlagProviderCallback
+        featureFlagProviderCallback: @escaping FeatureFlagProviderCallback,
+        metadataUpdater injectedMetadataUpdater: MetadataUpdaterProtocol? = nil
     ) async throws {
-        self.metadataUpdater = MetadataUpdater(storage: storage)
+        self.metadataUpdater = injectedMetadataUpdater ?? MetadataUpdater(storage: storage)
         self.observabilityReporter = observabilityReporter
         self.fileVerifier = fileVerifier
         self.featureFlagProviderCallback = featureFlagProviderCallback
@@ -66,9 +67,17 @@ public final class PhotosOperationPerformer: PhotosOperationPerformerProtocol, A
     }
 
     /// Experimental
-    public func enumerateTimeline(in folderUid: SDKNodeUid) async throws -> [PhotoTimelineItem] {
+    public func enumerateTimeline(
+        in folderUid: SDKNodeUid,
+        cancellationToken: UUID,
+        onPhotoEnumerated: @escaping @Sendable (Result<PhotoTimelineItem, Error>) -> Void
+    ) async throws {
         // TODO(SDK): write to db?
-        try await client.enumerateTimeline(in: folderUid)
+        try await client.enumerateTimeline(
+            in: folderUid,
+            cancellationToken: cancellationToken,
+            onPhotoEnumerated: onPhotoEnumerated
+        )
     }
 }
 
@@ -120,7 +129,9 @@ extension PhotosOperationPerformer {
             do {
                 for try await thumbnail in buffer.0 {
                     if let thumbnail {
-                        try await self.metadataUpdater.finishPhotoThumbnailDownload(fileUid: thumbnail.fileUid, moc: moc)
+                        // Disabled due to repeated regressions in parsing/applying the changes to our encrypted DB.
+                        // Should be unnecessary once decrypted DB is implemented.
+                        // try await self.metadataUpdater.finishPhotoThumbnailDownload(fileUid: thumbnail.fileUid, moc: moc)
                     } else {
                         Log.warning("Get nil ThumbnailDataWithId", domain: .sdk)
                     }
@@ -135,7 +146,7 @@ extension PhotosOperationPerformer {
 
         continuation.onTermination = { @Sendable _ in
             task.cancel()
-            metadataUpdater.endOperation()
+            metadataUpdater.endOperation(context: .init())
         }
         return stream
     }
@@ -150,7 +161,7 @@ extension PhotosOperationPerformer {
         shouldThrowOnManifestVerificationIssues: Bool,
         moc: NSManagedObjectContext
     ) async throws -> VerificationIssue? {
-        try await metadataUpdater.withOperation {
+        try await metadataUpdater.withOperation { _ in
             do {
                 let potentialManifestVerificationIssue = try await self.client.download(
                     photoUid: photoUid,
@@ -280,9 +291,12 @@ extension PhotosOperationPerformer {
         thumbnailLocalCache: ThumbnailsUploadLocalCacheProtocol? = nil,
         onRetriableErrorReceived: @Sendable @escaping (any Error) -> Void
     ) async throws -> Node {
-        try await metadataUpdater.withOperation {
+        try await metadataUpdater.withOperation { endOperationContext in
             Log.debug("Starting upload: \(attributes.uploadID)", domain: .sdk)
             let result: UploadedFileIdentifiers
+            if try await operation.isPaused() {
+                endOperationContext.releasesPausedOperations = true
+            }
             do {
                 result = try await client.startUpload(
                     operation: operation,
@@ -297,6 +311,12 @@ extension PhotosOperationPerformer {
                     "Masked filename": attributes.name.maskFilename()
                 ]
                 logAdditionalDataInSDKError(error, context: context, file: #file, function: "startUpload", line: #line)
+                // TODO: DRVIOS-4269, SDK uses `UploadOperationResult` that has pause state
+                // Change SDK API to use UploadOperationResult` to prevent call `operation.isPaused()` twice
+                let isPaused = try await operation.isPaused()
+                if isPaused {
+                    endOperationContext.retainsPausedOperations = true
+                }
                 throw error
             }
             
@@ -334,7 +354,10 @@ extension PhotosOperationPerformer {
         }
     }
 
-    public func cancelUpload(cancellationToken: UUID) async throws {
+    public func cancelUpload(cancellationToken: UUID, isPausedOperation: Bool) async throws {
+        if isPausedOperation {
+            metadataUpdater.cancelPausedOperation()
+        }
         try await client.cancelUpload(with: cancellationToken)
     }
 
@@ -364,6 +387,91 @@ extension PhotosOperationPerformer {
                 }
             }
         }
+    }
+}
+
+extension PhotosOperationPerformer {
+    public func trash(
+        nodes: [SDKNodeUid],
+        cancellationToken: UUID,
+        moc: NSManagedObjectContext
+    ) -> AsyncThrowingStream<NodeOperationStreamEvent, Error> {
+        nodeOperationStream(operation: .trash, nodes: nodes, cancellationToken: cancellationToken, moc: moc)
+    }
+
+    public func restore(
+        nodes: [SDKNodeUid],
+        cancellationToken: UUID,
+        moc: NSManagedObjectContext
+    ) -> AsyncThrowingStream<NodeOperationStreamEvent, Error> {
+        nodeOperationStream(operation: .restore, nodes: nodes, cancellationToken: cancellationToken, moc: moc)
+    }
+
+    public func delete(
+        nodes: [SDKNodeUid],
+        cancellationToken: UUID,
+        moc: NSManagedObjectContext
+    ) -> AsyncThrowingStream<NodeOperationStreamEvent, Error> {
+        nodeOperationStream(operation: .delete, nodes: nodes, cancellationToken: cancellationToken, moc: moc)
+    }
+
+    public func nodeOperationStream(
+        operation: NodeBatchOperation,
+        nodes: [SDKNodeUid],
+        cancellationToken: UUID,
+        moc: NSManagedObjectContext
+    ) -> AsyncThrowingStream<NodeOperationStreamEvent, Error> {
+        NodeOperationStreamBuilder.makeNodeOperationStream(
+            metadataUpdater: metadataUpdater,
+            client: client,
+            operation: operation,
+            nodes: nodes,
+            cancellationToken: cancellationToken,
+            moc: moc
+        )
+    }
+
+    public func emptyTrash(cancellationToken: UUID, moc: NSManagedObjectContext) async throws {
+        try await client.emptyTrash(cancellationToken: cancellationToken)
+    }
+}
+
+extension PhotosOperationPerformer: NodeBatchStreamPerforming {}
+
+extension PhotosOperationPerformer: LeaveSharedNodePerforming {
+    public func leaveSharedNode(nodeUid: SDKNodeUid, cancellationToken: UUID, moc: NSManagedObjectContext) async throws {
+        try await metadataUpdater.withOperation { _ in
+            try await client.leaveSharedNode(nodeUid: nodeUid, cancellationToken: cancellationToken)
+            try await metadataUpdater.finishLeaveSharedNode(nodeID: nodeUid.any, moc: moc)
+        }
+    }
+
+    public func cancelLeaveSharedNode(cancellationToken: UUID) async throws {
+        try await client.cancelLeaveSharedNode(cancellationToken: cancellationToken)
+    }
+}
+
+extension PhotosOperationPerformer {
+    public func findPhotoDuplicates(name: String, sha1: Data, cancellationToken: UUID) async throws -> [SDKNodeUid] {
+        assertionFailure("not test yet")
+        throw NSError(domain: "SDK", code: -999, localizedDescription: "findPhotoDuplicates is not tested yet")
+        try await client.findPhotoDuplicates(name: name, sha1: sha1, cancellationToken: cancellationToken)
+    }
+
+    public func cancelFindPhotoDuplicates(cancellationToken: UUID) async throws {
+        try await client.cancelFindPhotoDuplicates(cancellationToken: cancellationToken)
+    }
+
+    public func updatePhotos(
+        _ updates: [PhotoTagsUpdate],
+        moc: NSManagedObjectContext
+    ) -> AsyncThrowingStream<NodeOperationStreamEvent, Error> {
+        PhotoUpdateOperationStreamBuilder.makeUpdatePhotosStream(
+            metadataUpdater: metadataUpdater,
+            client: client,
+            updates: updates,
+            moc: moc
+        )
     }
 }
 

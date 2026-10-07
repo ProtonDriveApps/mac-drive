@@ -18,9 +18,11 @@
 import PDClient
 import PDCore
 
-public func defaultFeatureFlagProviderCallback(featureFlags: FeatureFlagsRepository) -> @Sendable (String, (Bool) -> Void) -> Void {
+public func defaultFeatureFlagProviderCallback(featureFlags: DriveFeatureFlagsProvider) -> @Sendable (String, (Bool) -> Void) -> Void {
     { flagName, callback in
         switch flagName {
+        case ExternalFeatureFlag.driveSmallFileUpload.rawValue:
+            callback(featureFlags.isEnabled(flag: .driveSmallFileUpload))
         case ExternalFeatureFlag.driveCryptoEncryptBlocksWithPgpAead.rawValue:
             callback(featureFlags.isEnabled(flag: .driveCryptoEncryptBlocksWithPgpAead))
         case ExternalFeatureFlag.driveDownloadVerificationDisabled.rawValue:

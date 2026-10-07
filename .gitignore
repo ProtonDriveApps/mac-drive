@@ -58,6 +58,18 @@ xcuserdata/
 Carthage/
 .vscode
 .air
+# .claude/ is personal, local Claude Code state and is NOT committed — drop your
+# own private skills in .claude/skills/ and they stay local. Team skills live in
+# the committed top-level skills/ directory; each is exposed to Claude Code's
+# discovery by a committed symlink under .claude/skills/ (-> ../../skills/<name>).
+# Tracked exceptions: the deny-policy settings and those per-skill symlinks.
+.claude/*
+!.claude/settings.json
+!.claude/skills/
+.claude/skills/*
+# Shared-skill symlinks. Add a line here when you share a new skill:
+!.claude/skills/analyze-logs
+!.claude/skills/safe-logging
 
 ### Xcode Patch ###
 *.xcodeproj/*
@@ -97,3 +109,9 @@ ProtonDrive-iOS/ProtonDrive-iOS.xcodeproj
 
 # xcode-build-server
 buildServer.json
+
+### Local logs & sanitization (never commit — may contain personal data)
+Logs/
+SanitizedLogs/
+*.sanitized.log
+sanitize_mapping.json

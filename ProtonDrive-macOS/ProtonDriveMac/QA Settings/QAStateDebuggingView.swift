@@ -63,7 +63,8 @@ struct QAStateDebuggingView_Previews: PreviewProvider {
             logoutStateService: nil,
             networkStateService: nil,
             appUpdateService: nil,
-            promoCampaignInteractor: nil
+            promoCampaignInteractor: nil,
+            progressSource: GlobalProgressStreamSource()
         )
 
         QAStateDebuggingView(

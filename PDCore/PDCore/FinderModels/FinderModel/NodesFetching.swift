@@ -23,6 +23,8 @@ import Foundation
 public enum NodesFetchingErrors: Error {
     case noCloudInjected
     case objectIsReleased
+    /// Previous task execution is incomplete
+    case busy
 }
 
 public protocol NodesFetching: AnyObject {
@@ -31,7 +33,6 @@ public protocol NodesFetching: AnyObject {
     var currentNodeID: NodeIdentifier! { get set }
     var pageSize: Int { get }
     var lastFetchedPage: Int { get set }
-    var isUsingSDKForThumbnails: Bool { get }
 }
 
 extension NodesFetching {
@@ -62,9 +63,6 @@ extension NodesFetching where Self: NodesSorting {
                 .page(self.lastFetchedPage),
                 .pageSize(self.pageSize),
             ]
-            if !isUsingSDKForThumbnails { // When using SDK, we don't want the metadata to include thumbnail params
-                params.append(.thumbnails)
-            }
 
             if let sort = self.sorting.apiSorting {
                 params.append(.sortBy(sort))

@@ -28,12 +28,12 @@
       }
     },
     {
-      "identity" : "lottie-ios",
+      "identity" : "lottie-spm",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/airbnb/lottie-ios",
+      "location" : "https://github.com/airbnb/lottie-spm.git",
       "state" : {
-        "revision" : "45517c3cfec9469bbdd4f86e32393c28ae9df0bc",
-        "version" : "4.3.3"
+        "revision" : "0aff16288f8dc1e3dab35cbf5cf45979673fd3df",
+        "version" : "4.6.1"
       }
     },
     {
@@ -50,8 +50,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ProtonMail/protoncore_ios.git",
       "state" : {
-        "revision" : "fba5d74457c885c79692e0d5b08038a213456815",
-        "version" : "34.2.2"
+        "revision" : "b095b4efed08c9560481d56a3bf0565cc7e3e2f0",
+        "version" : "37.3.0"
       }
     },
     {
@@ -66,10 +66,10 @@
     {
       "identity" : "sdk-swift",
       "kind" : "remoteSourceControl",
-      "location" : "git@gitlab.protontech.ch:drive/sdk-swift.git",
+      "location" : "https://github.com/ProtonDriveApps/sdk-swift.git",
       "state" : {
-        "branch" : "0.7.0-alpha.10",
-        "revision" : "566363ec3c4c835fbd5b65af2c877e974d0af018"
+        "branch" : "0.29.0",
+        "revision" : "c8bd5e09fe206d645610c7b7ae3cba5d4b208c74"
       }
     },
     {
@@ -86,8 +86,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/getsentry/sentry-cocoa.git",
       "state" : {
-        "revision" : "ca92efeb24b10052cd2a79e5205f42c5a16770ec",
-        "version" : "8.53.2"
+        "revision" : "cef29e94feb00b1b712514443d6d70b09ef20355",
+        "version" : "9.15.0"
       }
     },
     {

@@ -167,7 +167,7 @@ enum Constants {
             }
         default:
             Log.error("Failed to load environment setting: \(host). Defaulting to \(environment.doh.getCurrentlyUsedHostUrl())",
-                      domain: .application)
+                      domain: .application, sendToSentryIfPossible: false)
         }
 #endif
 

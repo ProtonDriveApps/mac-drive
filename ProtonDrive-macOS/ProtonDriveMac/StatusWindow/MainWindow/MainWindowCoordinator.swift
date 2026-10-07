@@ -27,10 +27,14 @@ final class MainWindowCoordinator: NSObject, NSWindowDelegate {
 
     let state: ApplicationState
     let userActions: UserActions
+    private let resyncButtonContext: () -> FullResyncButtons.Context
 
-    init(_ state: ApplicationState, userActions: UserActions) {
+    init(_ state: ApplicationState,
+         userActions: UserActions,
+         resyncButtonContext: @escaping () -> FullResyncButtons.Context = { .userInitiated }) {
         self.state = state
         self.userActions = userActions
+        self.resyncButtonContext = resyncButtonContext
     }
 
     private var globalMouseAndKeyboardEventMonitor: Any?
@@ -74,7 +78,9 @@ final class MainWindowCoordinator: NSObject, NSWindowDelegate {
     }
 
     private func configureWindow(from button: NSButton) {
-        let mainWindow = MainWindow(state: state, actions: userActions)
+        let mainWindow = MainWindow(state: state,
+                                    actions: userActions,
+                                    resyncButtonContext: resyncButtonContext)
         let hostingController = NSHostingController(rootView: mainWindow)
 
         let screen = NSScreen.main!

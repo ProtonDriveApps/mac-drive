@@ -24,38 +24,59 @@ public struct ContextMenuView<Label: View, Content: View, Modifier: ViewModifier
     private let labelView: Label
     private let color: Color?
     private let viewModifier: Modifier
+    private let accessibilityIdentifier: String?
     private let content: Content
 
     public init(
         icon: Image,
         color: Color = ColorProvider.TextNorm,
         viewModifier: Modifier,
+        accessibilityIdentifier: String? = nil,
         @ViewBuilder content: () -> Content
     ) where Label == Image {
         self.color = color
         self.labelView = icon // The Label is an Image
         self.viewModifier = viewModifier
+        self.accessibilityIdentifier = accessibilityIdentifier
         self.content = content()
     }
     
     public init(
         color: Color = ColorProvider.TextNorm,
+        accessibilityIdentifier: String? = nil,
         @ViewBuilder label: () -> Label,
         @ViewBuilder content: () -> Content
     ) where Modifier == EmptyModifier {
         self.color = color
         self.labelView = label()
         self.viewModifier = EmptyModifier()
+        self.accessibilityIdentifier = accessibilityIdentifier
         self.content = content()
     }
 
     public var body: some View {
-        Menu {
-            content
-        } label: {
-            labelView
-                .tint(color)       // Remove if you don’t need automatic coloring
-                .modifier(viewModifier)
+        menuView()
+    }
+
+    @ViewBuilder
+    private func menuView() -> some View {
+        if let accessibilityIdentifier {
+            Menu {
+                content
+            } label: {
+                labelView
+                    .tint(color)
+                    .modifier(viewModifier)
+                    .accessibilityIdentifier(accessibilityIdentifier)
+            }
+        } else {
+            Menu {
+                content
+            } label: {
+                labelView
+                    .tint(color)
+                    .modifier(viewModifier)
+            }
         }
     }
 }
@@ -63,12 +84,12 @@ public struct ContextMenuView<Label: View, Content: View, Modifier: ViewModifier
 struct ContextMenuView_Previews: PreviewProvider {
     static var previews: some View {
         ContextMenuView(icon: IconProvider.plus, viewModifier: EmptyModifier()) {
-            Button(action: {}) {
+            Button(action: {}, label: {
                 Label(Localization.general_rename, image: "ic-text-font")
-            }
-            Button(action: {}) {
+            })
+            Button(action: {}, label: {
                 Label(Localization.edit_section_remove, image: "ic-trash")
-            }
+            })
         }
     }
 }

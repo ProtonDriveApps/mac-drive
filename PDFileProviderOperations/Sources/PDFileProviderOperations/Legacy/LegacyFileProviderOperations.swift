@@ -35,7 +35,7 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
                          syncReporter: SyncReporter,
                          itemProvider: ItemProvider,
                          manager: NSFileProviderManager,
-                         itemActionsOutlet: ItemActionsOutlet? = nil,
+                         itemActionsOutlet: ItemActionsOutlet,
                          progresses: FileOperationProgresses,
                          enableRegressionTestHelpers: Bool = false,
                          downloadCollector: ProgressPerformanceCollector,
@@ -44,9 +44,7 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
         self.tower = tower
         self.syncReporter = syncReporter
         self.itemProvider = itemProvider
-        self.itemActionsOutlet = itemActionsOutlet ?? ItemActionsOutlet(
-            fileProviderManager: manager, newRevisionUploadPerformProvider: { DefaultNewRevisionUploadPerformer() }
-        )
+        self.itemActionsOutlet = itemActionsOutlet
         self.progresses = progresses
         if enableRegressionTestHelpers {
             self.regressionTestHelpers = RegressionTestHelpers()
@@ -66,6 +64,7 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
 
     public func item(for identifier: NSFileProviderItemIdentifier,
                      request: NSFileProviderRequest,
+                     confirmItemNotFoundWithBackend: Bool,
                      completionHandler: @escaping (NSFileProviderItem?, Error?) -> Void) -> Progress {
 
         var itemProgress: Progress?
@@ -85,6 +84,7 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
             cloudSlot: tower.cloudSlot!,
             pool: tower.storage.backgroundContextPool,
             featureFlags: tower.featureFlags,
+            confirmItemNotFoundWithBackend: confirmItemNotFoundWithBackend
         ) { [weak self] item, error in
             itemProgress?.clearOneTimeCancellationHandler()
             self?.progresses.remove(itemProgress)
@@ -133,7 +133,7 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
         // early exit so that the request is not restarted when the session is still not available
         // otherwise it might fail and cause another session forking
         guard !earlyExitAndCallCompletionHandlerIfNoChildSession(
-            tower, "fetchContents", completionHandler(nil, nil, CocoaError(.userCancelled))
+            tower, "fetchContents", completionHandler(nil, nil, EarlyExit.error(reason: .noChildSession))
         ) else {
             Log.event(.fetchContents(.failed(.init(id: itemIdentifier.logIdentifier, errorMessage: "No child session"))))
             return Progress()
@@ -153,9 +153,9 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
             useRefreshableDownloadOperation: false
         ) { [weak self] url, item, error in
             defer { pool.relinquish(moc) }
-            
+
             self?.didFinishFileDownloadOperation(with: fetchContentsProgress)
-            
+
             fetchContentsProgress?.clearOneTimeCancellationHandler()
             self?.progresses.remove(fetchContentsProgress)
             guard fetchContentsProgress?.isCancelled != true else {
@@ -205,7 +205,7 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
                                                          _ stillPendingFields: NSFileProviderItemFields,
                                                          _ shouldFetchContent: Bool,
                                                          _ error: Error?) -> Void) -> Progress {
-        
+
 #if os(macOS)
         guard itemTemplate.isFolder else {
             fatalError("macOS app uses SDK for file creation and upload")
@@ -234,7 +234,7 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
         // early exit so that the request is not restarted when the session is still not available
         // otherwise it might fail and cause another session forking
         guard !earlyExitAndCallCompletionHandlerIfNoChildSession(
-            tower, "createItem", completionHandler(nil, [], false, CocoaError(.userCancelled))
+            tower, "createItem", completionHandler(nil, [], false, EarlyExit.error(reason: .noChildSession))
         ) else {
             Log.event(.createItem(.failed(.init(id: itemTemplate.itemIdentifier.logIdentifier,
                                                 errorMessage: "No child session"))))
@@ -246,15 +246,15 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
             operation: .create,
             changedFields: fields,
             withoutLocation: withoutLocation)
-        
+
         let pipeline = itemActionsOutlet.providersPipeline
 
         let progress = itemActionsOutlet.createItem(
             tower: tower, basedOn: itemTemplate, fields: fields, contents: url, options: options, request: request, pool: tower.storage.backgroundContextPool
         ) { [weak self] item, fields, needUpload, error in
-            
+
             self?.didFinishFileUploadOperation(with: createItemProgress, using: pipeline)
-            
+
             createItemProgress?.clearOneTimeCancellationHandler()
             self?.progresses.remove(createItemProgress)
             guard createItemProgress?.isCancelled != true else {
@@ -310,7 +310,7 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
         guard !tower.sessionCommunicator.isWaitingforNewChildSessionAvailability.value else {
             Log.event(.modifyItem(.failed(.init(id: item.itemIdentifier.logIdentifier,
                                                 errorMessage: "No child session"))))
-            completionHandler(nil, [], false, CocoaError(.userCancelled))
+            completionHandler(nil, [], false, EarlyExit.error(reason: .noChildSession))
             return Progress()
         }
 
@@ -328,7 +328,7 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
         syncReporter.didStartFileOperation(item: item, operation: fileProviderOperation, changedFields: changedFields, withoutLocation: withoutLocation)
 
         let parentIDFetcher = tower.parentIDFetcher
-        
+
         let pipeline = itemActionsOutlet.providersPipeline
 
         let progress = itemActionsOutlet.modifyItem(
@@ -340,7 +340,7 @@ public final class LegacyFileProviderOperations: FileProviderOperationsProtocol 
             if contentsChanged {
                 self?.didFinishFileUploadOperation(with: modifyItemProgress, using: pipeline)
             }
-            
+
             modifyItemProgress?.clearOneTimeCancellationHandler()
             self?.progresses.remove(modifyItemProgress)
             guard modifyItemProgress?.isCancelled != true else {

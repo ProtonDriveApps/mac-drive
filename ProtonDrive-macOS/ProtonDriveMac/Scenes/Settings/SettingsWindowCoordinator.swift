@@ -30,18 +30,21 @@ final class SettingsWindowCoordinator: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     private let launchOnBootService: any LaunchOnBootServiceProtocol
     private let userActions: UserActions
-    private let isFullResyncEnabled: () -> Bool
+    private let isFullResyncAlwaysVisible: () -> Bool
+    private let offersDomainRemovalOnSignOut: () -> Bool
 
     init(sessionVault: SessionVault,
          launchOnBootService: any LaunchOnBootServiceProtocol,
          userActions: UserActions,
          appUpdateService: AppUpdateServiceProtocol?,
-         isFullResyncEnabled: @escaping () -> Bool) {
+         isFullResyncAlwaysVisible: @escaping () -> Bool,
+         offersDomainRemovalOnSignOut: @escaping () -> Bool) {
         self.sessionVault = sessionVault
         self.launchOnBootService = launchOnBootService
         self.userActions = userActions
         self.appUpdateService = appUpdateService
-        self.isFullResyncEnabled = isFullResyncEnabled
+        self.isFullResyncAlwaysVisible = isFullResyncAlwaysVisible
+        self.offersDomainRemovalOnSignOut = offersDomainRemovalOnSignOut
     }
 
     fileprivate func showPopupInformingAboutSettingsWindowUnavailability() {
@@ -76,7 +79,8 @@ final class SettingsWindowCoordinator: NSObject, NSWindowDelegate {
                                           launchOnBootService: launchOnBootService,
                                           appUpdateService: appUpdateService,
                                           userActions: userActions,
-                                          isFullResyncEnabled: isFullResyncEnabled())
+                                          isFullResyncAlwaysVisible: isFullResyncAlwaysVisible(),
+                                          offersDomainRemovalOnSignOut: offersDomainRemovalOnSignOut())
         guard let viewModel else { return false }
         let view = SettingsView(viewModel: viewModel)
         let window = NSWindow(contentViewController: NSHostingController(rootView: view))

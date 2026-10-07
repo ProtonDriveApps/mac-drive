@@ -78,8 +78,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 #if !HAS_QA_FEATURES
         let executablePath = Bundle.main.executablePath ?? ""
         if executablePath.hasPrefix("/Applications/") == false {
-            Task {
-                await handleError(NSError(domain: "", code: -1, responseDictionary: nil, localizedDescription: "This application must be run from the /Applications folder. \n  Please move it there and run it again."))
+            Task { @MainActor in
+                handleError(NSError(domain: "", code: -1, responseDictionary: nil, localizedDescription: "This application must be run from the /Applications folder. \n  Please move it there and run it again."))
             }
         }
 #endif
@@ -264,16 +264,11 @@ extension AppDelegate {
     @MainActor
     func handleError(_ error: Error) {
 
-        let window = coordinator?.window ?? {
-            let window = NSWindow()
-            window.makeKeyAndOrderFront(nil)
-            window.close()
-            return window
-        }()
+        let window = coordinator?.window
 
         guard let domainOperationError = error as? DomainOperationErrors
         else {
-            window.presentError(error)
+            present(error, in: window)
             return
         }
         
@@ -348,12 +343,33 @@ extension AppDelegate {
         if showCustomerSupportButton {
             presentErrorWithCustomerSupportButton(error: errorToPresent)
         } else {
-            window.presentError(errorToPresent)
+            present(errorToPresent, in: window)
         }
 
         guard recoveryAttempter == nil else { return }
         isTerminatingDueToAppCoordinatorError = true
         NSApp.terminate(self)
+    }
+
+    /// Presents `error` on `window`, or as a standalone modal alert when there is no window.
+    @MainActor
+    private func present(_ error: Error, in window: NSWindow?) {
+        if let window {
+            window.presentError(error)
+            return
+        }
+
+        let alert = NSAlert(error: error)
+        let response = alert.runModal()
+
+        // NSAlert(error:) creates buttons from NSLocalizedRecoveryOptionsErrorKey; route the
+        // choice back to the recovery attempter, as NSResponder.presentError would.
+        if let attempter = (error as NSError).userInfo[NSRecoveryAttempterErrorKey] as? RecoveryAttempter {
+            let optionIndex = response.rawValue - NSApplication.ModalResponse.alertFirstButtonReturn.rawValue
+            if attempter.localizedRecoveryOptions.indices.contains(optionIndex) {
+                _ = attempter.attemptRecovery(fromError: error, optionIndex: optionIndex)
+            }
+        }
     }
 
     private func presentErrorWithCustomerSupportButton(error: Error) {

@@ -51,6 +51,8 @@ private extension ProtonDriveSDKError.Domain {
         case .dataIntegrity: return "dataIntegrity"
         case .businessLogic: return "businessLogic"
         case .interop: return "interop"
+        case .unknownIo: return "unknownIo"
+        case .fileSystem: return "fileSystem"
         }
     }
 }

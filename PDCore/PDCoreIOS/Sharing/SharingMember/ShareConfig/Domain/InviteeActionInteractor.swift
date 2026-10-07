@@ -47,6 +47,9 @@ final class InviteeActionInteractor: InviteeActionHandler {
         }
 
         if invitation.isInviteeAccept {
+            // TODO: SDK — Intentionally left as-is.
+            // Note: `leaveSharedNode` removes the current user
+            // but this function is also used by the owner to remove another user's access.
             try await client.removeMember(shareID: shareID, memberID: invitation.invitationID)
         } else if invitation.isInternal {
             try await client.deleteInvitation(shareID: shareID, invitationID: invitation.invitationID)

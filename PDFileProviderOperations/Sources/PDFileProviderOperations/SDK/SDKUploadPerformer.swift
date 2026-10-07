@@ -26,13 +26,13 @@ import ProtonDriveSDK
 
 // swiftlint:disable function_parameter_count large_tuple
 
-final class SDKUploadPerformer: CreateFilePerformer, NewRevisionUploadPerformer {
+public final class SDKUploadPerformer: CreateFilePerformer, NewRevisionUploadPerformer {
 
     private let fileOperationPerformer: FileOperationPerformer
     private let thumbnailProvider: SynchronizedThumbnailProviderProtocol
     private let quotaLimiter: QuotaLimiter
 
-    init(
+    public init(
         fileOperationPerformer: FileOperationPerformer,
         thumbnailProvider: SynchronizedThumbnailProviderProtocol,
         quotaLimiter: QuotaLimiter
@@ -183,7 +183,7 @@ final class SDKUploadPerformer: CreateFilePerformer, NewRevisionUploadPerformer 
         }
         progress.cancellationHandler = {
             Task {
-                try await self.fileOperationPerformer.cancelUpload(cancellationToken: cancellationToken)
+                try await self.fileOperationPerformer.cancelUpload(cancellationToken: cancellationToken, isPausedOperation: false)
             }
         }
         let volumeID = try storage.getMyVolumeId(in: moc)

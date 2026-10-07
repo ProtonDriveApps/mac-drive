@@ -16,16 +16,16 @@ let package = Package(
         .package(name: "PDClient", path: "../PDClient"),
         .package(name: "PDCore", path: "../PDCore"),
         .package(name: "PDLocalization", path: "../PDLocalization"),
-        .package(name: "PDUploadVerifier", path: "../PDUploadVerifier"),
         .package(name: "PMEventsManager", path: "../PMEventsManager"),
 
         .package(url: "https://github.com/AliSoftware/OHHTTPStubs", exact: "9.1.0"),
-        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "37.0.1"),
+        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "37.3.0"),
     ],
     targets: [
         .target(
             name: "PDFileProvider",
             dependencies: [
+                .product(name: "PDClient", package: "PDClient"),
                 .product(name: "PDCore", package: "PDCore"),
                 .product(name: "PDLocalization", package: "PDLocalization"),
                 .product(name: "PMEventsManager", package: "PMEventsManager"),

@@ -18,14 +18,17 @@
 import PDClient
 import CoreData
 
+@available(iOS 16, *)
 public final class TrashedNodeDeleter {
 
     private let client: Client
     private let storage: StorageManager
+    private let pendingTrashDeletions: PendingTrashDeletionRegistryProtocol
 
-    public init(client: Client, storage: StorageManager) {
+    public init(client: Client, storage: StorageManager, pendingTrashDeletions: PendingTrashDeletionRegistryProtocol) {
         self.client = client
         self.storage = storage
+        self.pendingTrashDeletions = pendingTrashDeletions
     }
 
     public func delete(_ nodes: [NodeIdentifier]) async throws {
@@ -35,7 +38,7 @@ public final class TrashedNodeDeleter {
             for chunk in nodes.splitIntoChunks() {
                 tasksGroup.addTask {
                     let result = try await self.deleteTrashed(volumeID: chunk.volume, shareID: chunk.share, linkIDs: chunk.links)
-                    try await self.setToBeDeleted(result.deleted)
+                    await self.markPendingDeletion(result.deleted)
                     return result.failed
                 }
             }
@@ -57,7 +60,7 @@ public final class TrashedNodeDeleter {
             for chunk in ids.splitIntoChunksByVolume() {
                 tasksGroup.addTask {
                     let result = try await self.deleteTrashed(volumeId: chunk.volumeId, linkIds: chunk.nodeIds)
-                    try await self.setToBeDeleted(result.deleted)
+                    await self.markPendingDeletion(result.deleted)
                     return result.failed
                 }
             }
@@ -80,12 +83,11 @@ public final class TrashedNodeDeleter {
         return (deletedLinks, partialFailures)
     }
 
-    private func setToBeDeleted(_ ids: [AnyVolumeIdentifier]) async throws {
-        let context = storage.mainContext
-        try await context.perform {
+    private func markPendingDeletion(_ ids: [AnyVolumeIdentifier]) async {
+        let context = storage.backgroundContext
+        await context.perform {
             let nodes = Node.fetch(identifiers: Set(ids), allowSubclasses: true, in: context)
-            nodes.forEach { $0.setToBeDeletedRecursivelly() }
-            try context.saveOrRollback()
+            self.pendingTrashDeletions.markRecursivelyWithinContext(nodes: nodes)
         }
     }
 

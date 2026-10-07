@@ -36,6 +36,7 @@ class ElapsedTimeService {
     /// Start a timer and pass the updated formatted string to the caller every minute.
     @MainActor
     public func startTimer() {
+        Log.trace()
         stopTimer()
 
         tick()

@@ -41,7 +41,8 @@ protocol SettingsViewModelProtocol: ObservableObject {
     var buildDetails: String { get }
     var isSignoutInProgress: Bool { get }
     var isLaunchOnBootEnabled: Bool { get set }
-    var isFullResyncEnabled: Bool { get }
+    var isFullResyncAlwaysVisible: Bool { get }
+    var offersDomainRemovalOnSignOut: Bool { get }
     var launchOnBootUserFacingMessage: String? { get }
     var actions: UserActions { get }
     #if HAS_BUILTIN_UPDATER
@@ -86,7 +87,8 @@ final class SettingsViewModel: SettingsViewModelProtocol {
 
     @Published var isLaunchOnBootEnabled: Bool
     @Published var launchOnBootUserFacingMessage: String?
-    @Published var isFullResyncEnabled: Bool
+    @Published var isFullResyncAlwaysVisible: Bool
+    let offersDomainRemovalOnSignOut: Bool
     private var cancellables: Set<AnyCancellable> = []
 
     let actions: UserActions
@@ -95,7 +97,8 @@ final class SettingsViewModel: SettingsViewModelProtocol {
           launchOnBootService: LaunchOnBootServiceProtocol,
           appUpdateService: AppUpdateServiceProtocol?,
           userActions: UserActions,
-          isFullResyncEnabled: Bool) {
+          isFullResyncAlwaysVisible: Bool,
+          offersDomainRemovalOnSignOut: Bool) {
         self.launchOnBootService = launchOnBootService
         self.appUpdateService = appUpdateService
         self.actions = userActions
@@ -114,7 +117,8 @@ final class SettingsViewModel: SettingsViewModelProtocol {
         self.isLaunchOnBootEnabled = launchOnBootService.isLaunchOnBootEnabled
         self.launchOnBootUserFacingMessage = launchOnBootService.launchOnBootUserFacingMessage
         
-        self.isFullResyncEnabled = isFullResyncEnabled
+        self.isFullResyncAlwaysVisible = isFullResyncAlwaysVisible
+        self.offersDomainRemovalOnSignOut = offersDomainRemovalOnSignOut
 
 #if HAS_BUILTIN_UPDATER
         self.updateAvailability = appUpdateService?.updateAvailability ?? .upToDate(version: "")

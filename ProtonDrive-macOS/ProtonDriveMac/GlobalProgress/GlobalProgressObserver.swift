@@ -15,115 +15,83 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
-import Foundation
-import PDCore
-import AppKit
+import FileProvider
+import PDFileProvider
 
-/// Observes updates to the File Provider's global progress and propagates them to the `state` object.
-/// See more: https://developer.apple.com/documentation/fileprovider/nsfileprovidermanager/globalprogress(for:)
-class GlobalProgressObserver {
-    private var state: ApplicationState
+/// Owned by `ApplicationEventObserver`; consumes a `GlobalProgressSource` and updates `ApplicationState`.
+@MainActor
+final class GlobalProgressObserver {
+    private let state: ApplicationState
+    private let progressSource: any GlobalProgressSource
+    private var task: Task<Void, Never>?
 
-    private var globalDownloadProgress: Progress?
-    private var globalUploadProgress: Progress?
-    private var globalProgressObservers: [NSKeyValueObservation] = []
-
-    private let domainOperationsService: DomainOperationsService
-
-    // Debug only code to show the current download/upload state in the menu bar.
-    // This is independent from the code that shows the real state in statusItem's menu.
 #if HAS_QA_FEATURES
-    private var statusItem: GlobalProgressStatusItem
+    private(set) var qaStatusItem: GlobalProgressStatusItem?
 #endif
 
-    init(state: ApplicationState, domainOperationsService: DomainOperationsService) async {
-        Log.trace()
+    init(
+        state: ApplicationState,
+        progressSource: any GlobalProgressSource
+    ) {
         self.state = state
-        self.domainOperationsService = domainOperationsService
-#if HAS_QA_FEATURES
-        self.statusItem = await GlobalProgressStatusItem()
-#endif
+        self.progressSource = progressSource
     }
 
     deinit {
+        task?.cancel()
 #if HAS_QA_FEATURES
-        let statusItem = self.statusItem
+        let qaStatusItem = qaStatusItem
         Task { @MainActor in
-            statusItem.remove()
+            qaStatusItem?.remove()
         }
 #endif
-        Log.trace()
-        stopMonitoring()
     }
 
-    func startMonitoring() {
-        Log.trace()
-        // Configure the global progress observers
-        globalDownloadProgress = domainOperationsService.globalProgress(for: .downloading)
-        globalUploadProgress = domainOperationsService.globalProgress(for: .uploading)
-        for progress in [globalDownloadProgress, globalUploadProgress] {
-            guard let progress else {
-                assertionFailure("No global progress mean no status updates")
-                continue
+    func startObservingProgress(for domain: NSFileProviderDomain) {
+        task?.cancel()
+        apply(.idle)
+        let progressUpdates = progressSource.makeProgressStream(for: domain)
+        task = Task { [weak self] in
+            for await progress in progressUpdates {
+                // A cancelled consumer may already have dequeued a value.
+                guard let self, !Task.isCancelled else { return }
+                self.apply(progress)
             }
-            var observer = progress.observe(\.description) { [weak self] progress, change in
-                Log.trace("description")
-                self?.didUpdateGlobalProgress()
-            }
-            globalProgressObservers.append(observer)
-
-            observer = progress.observe(\.localizedAdditionalDescription) { [weak self] progress, change in
-                Log.trace("localizedAdditionalDescription")
-                self?.didUpdateGlobalProgress()
-            }
-            globalProgressObservers.append(observer)
-
-            observer = progress.observe(\.fractionCompleted) { [weak self] progress, change in
-                Log.trace("fractionCompleted")
-                self?.didUpdateGlobalProgress()
-            }
-            globalProgressObservers.append(observer)
         }
     }
-    
-    func stopMonitoring() {
-        globalProgressObservers.forEach { $0.invalidate() }
-        globalProgressObservers.removeAll()
-        globalDownloadProgress = nil
-        globalUploadProgress = nil
-        resetApplicationState()
-    }
-    
-    private func resetApplicationState() {
+
+    func stopObservingProgress() {
+        task?.cancel()
+        task = nil
         state.globalSyncStateDescription = nil
         state.totalFilesLeftToSync = 0
+#if HAS_QA_FEATURES
+        qaStatusItem?.remove()
+        qaStatusItem = nil
+#endif
+    }
+
+    private func apply(_ progress: GlobalProgress) {
+        let description = GlobalProgressDescription(progress: progress)
+        state.globalSyncStateDescription = description?.fullDescription
+        state.totalFilesLeftToSync = description?.remainingFileCount ?? 0
+#if HAS_QA_FEATURES
+        getOrCreateQaStatusItem().update(from: progress)
+#endif
     }
 
 #if HAS_QA_FEATURES
-    @MainActor
-    func toggleGlobalProgressStatusItem() {
-        statusItem.toggleGlobalProgressStatusItem()
+    func toggleQaStatusItemVisibility() {
+        getOrCreateQaStatusItem().toggleQaStatusItemVisibility()
+    }
+
+    private func getOrCreateQaStatusItem() -> GlobalProgressStatusItem {
+        if let qaStatusItem {
+            return qaStatusItem
+        }
+        let item = GlobalProgressStatusItem()
+        qaStatusItem = item
+        return item
     }
 #endif
-
-    private func didUpdateGlobalProgress() {
-        guard let globalProgressDescription = GlobalProgressDescription(
-            downloadProgress: self.globalDownloadProgress,
-            uploadProgress: self.globalUploadProgress) else {
-
-            resetApplicationState()
-            return
-        }
-
-        state.globalSyncStateDescription = globalProgressDescription.fullDescription
-        state.totalFilesLeftToSync = globalProgressDescription.totalFileCount
-
-#if HAS_QA_FEATURES
-        DispatchQueue.main.async {
-            self.statusItem
-                .updateProgress(downloadProgress: self.globalDownloadProgress,
-                                uploadProgress: self.globalUploadProgress)
-        }
-#endif
-    }
 }

@@ -95,6 +95,47 @@ extension Tower: EventsSystemManager {
     }
 
     #if os(macOS)
+    /// Fetches the current head of the main volume's event stream. Called at the start of a full resync,
+    /// before the metadata snapshot, so the post-resync replay starts from a point that precedes the snapshot.
+    public func captureMainVolumeEventCursorForFullResync() async throws -> (id: EventID, date: Date) {
+        Log.trace()
+        let mainVolumeId = try self.storage.getVolumeIDs(in: storage.backgroundContext).main
+        let eventID = try await cloudSlot.fetchInitialEvent(ofVolumeID: mainVolumeId)
+        return (eventID, Date())
+    }
+
+    public func intializeEventsDuringFullResync(referenceID: EventID, referenceDate: Date) throws {
+        Log.trace()
+        let mainVolumeId = try self.storage.getVolumeIDs(in: storage.backgroundContext).main
+        initializeSingleVolumeEventLoop(volumeId: mainVolumeId)
+        // Apply the cursor captured before the snapshot rather than fetching the current latest event now,
+        // which would skip events that occurred during the snapshot.
+        mainVolumeEventsConveyor?.referenceID = referenceID
+        mainVolumeEventsConveyor?.referenceDate = referenceDate
+        mainVolumeEventsConveyor?.latestFetchedEventID = referenceID
+        mainVolumeEventsConveyor?.latestEventFetchTime = referenceDate
+    }
+
+    /// Drops the events cursor and the queued events that outlive a sign-out. `destroyAnchors()` only
+    /// covers enabled loops, so a Tower built after sign-out keeps the previous session's cursor and
+    /// would poll the new volume from a foreign event ID.
+    public func discardPersistedEventsState() {
+        Self.discardPersistedEventsState(referenceStorage: LegacyEventsReferenceStorage(suite: storageSuite),
+                                         eventStorageManager: eventStorageManager)
+    }
+
+    static func discardPersistedEventsState(referenceStorage: LegacyEventsReferenceStorage,
+                                            eventStorageManager: EventStorageManager) {
+        let discardedCursor = referenceStorage.latestFetchedEventID ?? "none"
+        let discardedEvents = (try? eventStorageManager.unprocessedEventCount(volumeId: "")) ?? 0
+        referenceStorage.clear()
+        // Only the rows the legacy conveyor reads; ones carrying a real volume ID are left to
+        // `periodicalCleanup`.
+        eventStorageManager.clearUp(volumeId: "")
+        Log.info("Discarded persisted events state (cursor: \(discardedCursor), queued events: \(discardedEvents))",
+                 domain: .events)
+    }
+
     private func initializeSingleVolumeEventLoop(volumeId: String) {
         Log.trace()
         let factory = EventsFactory()

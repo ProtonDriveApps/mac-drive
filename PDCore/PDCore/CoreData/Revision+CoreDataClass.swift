@@ -38,11 +38,6 @@ public class Revision: NSManagedObject {
         super.init(entity: entity, insertInto: context)
         self._state.configure(with: self)
     }
-
-    override public func prepareForDeletion() {
-        super.prepareForDeletion()
-        clearUnencryptedContents()
-    }
 }
 
 public extension Revision {
@@ -105,7 +100,7 @@ public extension CoreDataRevision {
         
         let volumeBasedIdentifier = identifier.volumeBasedIdentifier
         let newURLs = ThumbnailType.allCases.compactMap {
-            PDFileManager.thumbnailURL(for: volumeBasedIdentifier, type: $0)
+            PDFileManager.getThumbnailURL(for: volumeBasedIdentifier, type: $0)
         }
         urls.append(contentsOf: newURLs)
         return urls

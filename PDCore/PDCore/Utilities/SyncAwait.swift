@@ -110,53 +110,6 @@ public enum SyncAwait {
             fatalError("SyncAwait.run(timeout:): non-throwing operation produced an error: \(error)")
         }
     }
-
-    /// Same as `run(timeout:)` but spins the current run loop instead of blocking it.
-    /// Use from `@MainActor` callers that must remain responsive (Apple Event handler).
-    @MainActor
-    public static func runOnMainLoop<T: Sendable>(
-        timeout: DispatchTimeInterval,
-        pollInterval: TimeInterval = 0.05,
-        runLoopMode: RunLoop.Mode = .default,
-        _ operation: @escaping @Sendable () async throws -> T
-    ) throws -> T? {
-        let box = Box<T>()
-        let done = NSLock()
-        var isDone = false
-        Task.detached {
-            do {
-                let value = try await operation()
-                box.set(.success(value))
-            } catch {
-                box.set(.failure(error))
-            }
-            done.lock()
-            isDone = true
-            done.unlock()
-        }
-
-        let deadline = Date(timeIntervalSinceNow: timeout.seconds)
-        let runLoop = RunLoop.current
-        while true {
-            done.lock()
-            let finished = isDone
-            done.unlock()
-            if finished { break }
-            if Date() >= deadline { return nil }
-            let nextPoll = Date(timeIntervalSinceNow: pollInterval)
-            let pollLimit = min(nextPoll, deadline)
-            runLoop.run(mode: runLoopMode, before: pollLimit)
-        }
-
-        switch box.take() {
-        case .success(let value):
-            return value
-        case .failure(let error):
-            throw error
-        case .none:
-            fatalError("SyncAwait.runOnMainLoop: completion flagged with no result stored")
-        }
-    }
 }
 
 private extension DispatchTimeInterval {

@@ -224,6 +224,12 @@ public final class SyncStorageManager: NSObject, ManagedStorage, RecoverableStor
         )
     }()
 
+    // Per-id write serialization shared by all SyncItem writers.
+    // See SyncStorageManager+WriteSerialization.swift.
+    let writeChainLock = NSLock()
+    var writeChains: [String: Task<Void, Never>] = [:]
+    var writeChainTokens: [String: UUID] = [:]
+
     private func newBackgroundContext(mergePolicy: NSMergePolicy = .mergeByPropertyStoreTrump) -> NSManagedObjectContext {
         let context = persistentContainer.newBackgroundContext()
         context.automaticallyMergesChangesFromParent = true
@@ -237,14 +243,19 @@ public final class SyncStorageManager: NSObject, ManagedStorage, RecoverableStor
     private static let recoveryDatabaseName = "Recovery_\(databaseName)"
     private static let backupDatabaseName = "Backup_\(databaseName)"
     let contexts: Atomic<[WeakReference<NSManagedObjectContext>]> = .init([])
+    public var isInMemoryStore: Bool {
+        persistentContainer.persistentStoreCoordinator.persistentStores.contains {
+            $0.type == NSPersistentStore.StoreType.inMemory.rawValue
+        }
+    }
     public func disconnectExistingDB() throws -> PersistentStoreInfo {
         try Self.disconnectExistingDB(named: Self.databaseName, using: persistentContainer, contexts: contexts)
     }
     public func createRecoveryDB(nextTo backup: PersistentStoreInfo) throws -> PersistentStoreInfo {
         try Self.createRecoveryDB(named: Self.recoveryDatabaseName, nextTo: backup, using: persistentContainer)
     }
-    public func reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: PersistentStoreInfo, recovery: PersistentStoreInfo?) throws {
-        try Self.reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: existing, recovery: recovery, using: persistentContainer, contexts: contexts)
+    public func reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: PersistentStoreInfo, recovery: PersistentStoreInfo?, discardRecovery: Bool = true) throws {
+        try Self.reconnectExistingDBAndDiscardRecoveryIfNeeded(existing: existing, recovery: recovery, discardRecovery: discardRecovery, using: persistentContainer, contexts: contexts)
     }
     public func replaceExistingDBWithRecovery(existing: PersistentStoreInfo, recovery: PersistentStoreInfo) throws {
         try Self.replaceExistingDBWithRecovery(

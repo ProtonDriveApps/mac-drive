@@ -21,7 +21,6 @@ import Combine
 
 public final class FetchedObjectsObserver<ResultType: NSFetchRequestResult&Equatable>: NSObject, NSFetchedResultsControllerDelegate, ObservableObject {
     public var objectWillChange = ObservableObjectPublisher()
-    private var cache: [ResultType] = []
     private var fetchedResultsController: NSFetchedResultsController<ResultType>?
     private let onDeinit: () -> Void
     
@@ -40,10 +39,7 @@ public final class FetchedObjectsObserver<ResultType: NSFetchRequestResult&Equat
     }
     
     public func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        let oldCache = self.cache
-        if oldCache != self.fetchedObjects {
-            objectWillChange.send()
-        }
+        objectWillChange.send()
     }
     
     public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
@@ -79,12 +75,22 @@ public final class FetchedObjectsObserver<ResultType: NSFetchRequestResult&Equat
     
     public var fetchedObjects: [ResultType] {
         // Use with caution, needs to be called on the moc's queue
-        self.cache = fetchedResultsController?.fetchedObjects ?? []
-        return self.cache
+        fetchedResultsController?.fetchedObjects ?? []
     }
     
     deinit {
         fetchedResultsController = nil
         onDeinit()
+    }
+}
+
+extension FetchedObjectsObserver where ResultType: NSManagedObject {
+    public func getFetchedObjectIDs() async -> [NSManagedObjectID] {
+        guard let context = fetchedResultsController?.managedObjectContext else {
+            return []
+        }
+        return await context.perform {
+            self.fetchedResultsController?.fetchedObjects?.map(\.objectID) ?? []
+        }
     }
 }

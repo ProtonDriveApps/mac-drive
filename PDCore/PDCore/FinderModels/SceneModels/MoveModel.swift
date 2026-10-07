@@ -48,9 +48,6 @@ public final class MoveModel: FinderModel, NodesListing, NodesFetching, NodesSor
     private var moveCancellable: AnyCancellable?
     public var nodeIdsToMove: [NodeIdentifier]
     public var nodeToMoveParentId: NodeIdentifier
-    public var isUsingSDKForThumbnails: Bool {
-        tower.getSdkThumbnailsDownloaderForFiles() != nil
-    }
 
     public init(tower: Tower, node: Folder, nodeID: NodeIdentifier, nodesToMoveID: [NodeIdentifier], nodeToMoveParentID: NodeIdentifier) {
         self.tower = tower
@@ -116,15 +113,5 @@ extension MoveModel {
             self?.nodeIdsToMove = nodeIds.filter { $0.nodeID != nodeIdentifier.nodeID }
             Log.info("Moved node: \(node.identifier)", domain: .networking)
         })
-    }
-}
-
-extension MoveModel: ThumbnailLoader {
-    public func loadThumbnail(with id: Identifier) {
-        return tower.loadThumbnail(with: id)
-    }
-
-    public func cancelThumbnailLoading(_ id: Identifier) {
-        tower.cancelThumbnailLoading(id)
     }
 }

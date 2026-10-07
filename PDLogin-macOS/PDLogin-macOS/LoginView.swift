@@ -18,6 +18,8 @@
 import SwiftUI
 import ProtonCoreUIFoundations
 import ProtonCoreLogin
+import PDUIComponents
+import PDLocalization
 
 struct LoginView: View {
     @ObservedObject private var vm: LoginViewModel
@@ -46,6 +48,18 @@ struct LoginView: View {
                 LoginButton(title: vm.loginButtonTitle, isLoading: $vm.isLoading, action: vm.logIn)
                     .padding(.top, 8)
                     .accessibility(identifier: "LoginView.LoginButton.signIn")
+
+                if vm.shouldShowCreateFreshSyncLocationOption {
+                    // Hidden by default; hold Option to reveal the choice to start with a fresh sync location.
+                    // Once the toggle is ON it stays visible after Option is released (alwaysVisible).
+                    HideableView(modifier: .option, alwaysVisible: $vm.createFreshSyncLocation, defaultView: {
+                        EmptyView()
+                    }, pressedView: {
+                        Toggle(Localization.full_resync_create_new_location, isOn: $vm.createFreshSyncLocation)
+                            .padding(.top, 8)
+                            .accessibility(identifier: "LoginView.Toggle.createFreshSyncLocation")
+                    })
+                }
             }
             .frame(width: PDLoginMacOS.contentWidth)
 

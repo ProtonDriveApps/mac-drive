@@ -1,4 +1,3 @@
-
 // Copyright (c) 2024 Proton AG
 //
 // This file is part of Proton Drive.
@@ -37,6 +36,13 @@ public protocol MetadataUpdaterProtocol {
         responseHeaders: [(String, [String])],
         responseBody: JSONDictionary
     )
+
+    func handleSmallUploadResponse(
+        path: String,
+        requestBody: JSONDictionary,
+        responseStatusCode: Int,
+        responseBody: JSONDictionary
+    ) throws
 
     #if os(macOS)
     func finishFileUpload(
@@ -113,33 +119,70 @@ public protocol MetadataUpdaterProtocol {
     /// Marks the end of an operation. When the in-flight count returns to zero, every cache
     /// is emptied — orphaned entries from cancellations or thrown operations are cleared
     /// at the next quiescence point.
-    func endOperation()
-    func finishTrashMacNodes(nodes: [SDKNodeUid], moc: NSManagedObjectContext) async throws
-    func finishTrashIOSNodes(nodes: [SDKNodeUid], results: [TrashNodeResult], moc: NSManagedObjectContext) async throws -> ([AnyVolumeIdentifier], Error?)
+    func endOperation(context: EndOperationContext)
+    /// Releases one paused-upload cache hold when a paused upload is cancelled.
+    /// May wipe caches if no operations are in flight and no holds remain.
+    func cancelPausedOperation()
+    func finishRenameDevice(identifier: DeviceIdentifier, moc: NSManagedObjectContext) async throws
+    func applyTrashResults(_ results: [TrashNodeResult], moc: NSManagedObjectContext) async throws -> [AnyVolumeIdentifier]
+    func finishRestoreIOSNodes(results: [SDKNodeResult], moc: NSManagedObjectContext) async throws
+    func finishLeaveSharedNode(nodeID: AnyVolumeIdentifier, moc: NSManagedObjectContext) async throws
 }
 
 extension MetadataUpdaterProtocol {
     /// Brackets `body` with `beginOperation()` / `endOperation()`. Decrements run on every exit
     /// path, including thrown errors.
-    public func withOperation<T>(_ body: () async throws -> T) async rethrows -> T {
+    public func withOperation<T>(
+        _ body: (EndOperationContext) async throws -> T
+    ) async rethrows -> T {
+        let context = EndOperationContext()
         beginOperation()
-        defer { endOperation() }
-        return try await body()
+        defer { endOperation(context: context) }
+        return try await body(context)
     }
+}
+
+/// Outcome flags for a `withOperation` / `endOperation` bracket.
+///
+/// Upload pause/resume spans multiple brackets. Performers set these before
+/// `endOperation` runs so `MetadataUpdater` can retain or release cached HTTP
+/// responses when `inFlightOperations` returns to zero.
+public final class EndOperationContext {
+    /// Upload was paused (`successfulCancellation`). Retain cached HTTP responses
+    /// until the upload is resumed or cancelled.
+    public var retainsPausedOperations = false
+    /// Set when servicing a previously paused upload (`operation.isPaused()` at bracket start).
+    /// Releases the hold taken at pause when this bracket ends. Re-pause in the same
+    /// bracket sets `retainsPausedOperations`, netting to zero (+1 −1).
+    public var releasesPausedOperations = false
+
+    // Meaning of (retainsPausedOperations, releasesPausedOperations):
+    // (false, false): Normal operation; no pause or resume involved.
+    // (false, true): Resuming a previously paused operation.
+    // (true, false): Pausing the current operation.
+    // (true, true): Operation is resumed and then paused again within the same bracket.
 }
 
 public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable {
 
+    private struct SmallFileMetadata {
+        let volumeID: String
+        let nodeID: String
+        let revisionID: String
+        let isNewFile: Bool
+        let requestBody: JSONDictionary
+    }
+
     private typealias CreateFileCall = (volumeID: String, requestBody: JSONDictionary, responseBody: JSONDictionary)
     private typealias CommitRevisionCall = (volumeID: String, nodeID: String, revisionID: String, requestBody: JSONDictionary, responseBody: JSONDictionary)
     private typealias RevisionMetadataCall = (volumeID: String, nodeID: String, revisionID: String, responseBody: JSONDictionary)
-    private typealias RenameNodeCall = (volumeID: String, nodeID: String, requestBody: JSONDictionary)
+    private typealias RenameDeviceCall = (volumeID: String, nodeID: String, requestBody: JSONDictionary)
     private typealias CreateFolderCall = (volumeID: String, requestBody: JSONDictionary, responseBody: JSONDictionary)
     private typealias LoadLinkDetailCall = (volumeID: String, requestLinkIDs: [String], responseBody: JSONDictionary)
 
     /// All caches consolidated under a single lock to minimise synchronisation overhead.
     ///
-    /// Cache growth is bounded by `inFlightOperations`: every public operation on
+    /// Cache growth is bounded by `inFlightOperations` and `pausedCacheHoldCount` : every public operation on
     /// `MetadataUpdater` brackets itself with `enterOperation()` / `exitOperation()`,
     /// and when the counter returns to zero `exitOperation` nukes every cache. The counter
     /// and the arrays share the same `Atomic` lock, so the decrement-and-clear is atomic
@@ -155,11 +198,13 @@ public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable
         /// Number of operations currently bracketed by `enterOperation` / `exitOperation`.
         /// Caches are emptied whenever this returns to zero.
         var inFlightOperations: Int = 0
+        /// Number of paused operations, to prevent caches are emptied unexpectedly
+        var pausedOperations = 0
 
         var createFile: [CacheEntry<CreateFileCall>] = []
         var commitRevision: [CacheEntry<CommitRevisionCall>] = []
         var revisionMetadata: [CacheEntry<RevisionMetadataCall>] = []
-        var renameNode: [CacheEntry<RenameNodeCall>] = []
+        var renameDevice: [CacheEntry<RenameDeviceCall>] = []
         var createFolder: [CacheEntry<CreateFolderCall>] = []
         var loadFileLinkDetail: [CacheEntry<LoadLinkDetailCall>] = []
         var loadPhotoLinkDetail: [CacheEntry<LoadLinkDetailCall>] = []
@@ -173,14 +218,25 @@ public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable
             inFlightOperations += 1
         }
 
-        mutating func exitOperation() {
+        mutating func exitOperation(context: EndOperationContext) {
             assert(inFlightOperations > 0, "exitOperation() called without a matching enterOperation()")
             inFlightOperations -= 1
-            if inFlightOperations == 0 {
+            if context.retainsPausedOperations {
+                pausedOperations += 1
+            }
+            if context.releasesPausedOperations {
+                pausedOperations -= 1
+            }
+            assert(pausedOperations >= 0)
+            removeCacheIfNeeded()
+        }
+
+        mutating func removeCacheIfNeeded() {
+            if inFlightOperations == 0, pausedOperations == 0 {
                 createFile.removeAll()
                 commitRevision.removeAll()
                 revisionMetadata.removeAll()
-                renameNode.removeAll()
+                renameDevice.removeAll()
                 createFolder.removeAll()
                 loadFileLinkDetail.removeAll()
                 loadPhotoLinkDetail.removeAll()
@@ -222,7 +278,7 @@ public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable
                 describe("createFile", createFile),
                 describe("commitRevision", commitRevision),
                 describe("revisionMetadata", revisionMetadata),
-                describe("renameNode", renameNode),
+                describe("renameNode", renameDevice),
                 describe("createFolder", createFolder),
                 describe("loadFileLinkDetail", loadFileLinkDetail),
                 describe("loadPhotoLinkDetail", loadPhotoLinkDetail),
@@ -242,8 +298,16 @@ public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable
         caches.mutate { $0.enterOperation() }
     }
 
-    public func endOperation() {
-        caches.mutate { $0.exitOperation() }
+    public func endOperation(context: EndOperationContext) {
+        caches.mutate { $0.exitOperation(context: context) }
+    }
+
+    public func cancelPausedOperation() {
+        caches.mutate { store in
+            store.pausedOperations -= 1
+            assert(store.pausedOperations >= 0)
+            store.removeCacheIfNeeded()
+        }
     }
 
     #if os(macOS)
@@ -362,6 +426,7 @@ public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable
             }
 
             let node = self.storage.updateLink(link, using: moc)
+            node.state = .active
             let parentFolder = try node.parentFolder ?! "Uploaded files should always have a parent folder"
 
             // Intentionally don't use `parentFolder.isAvailableOffline` here
@@ -590,7 +655,7 @@ public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable
         }
 
         try await moc.perform {
-            _ = self.storage.updateLinks(links, in: moc)
+            _ = self.storage.updateLinks(links, isRootNodeOptional: true, updatesSharingState: false, in: moc)
             try moc.saveIfNeeded()
         }
     }
@@ -622,7 +687,7 @@ public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable
         }
 
         try await moc.perform {
-            _ = self.storage.updateLinks(links, in: moc)
+            _ = self.storage.updateLinks(links, isRootNodeOptional: true, updatesSharingState: false, in: moc)
             try moc.saveIfNeeded()
         }
     }
@@ -689,7 +754,7 @@ public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable
     }
 
     public func finishRename(nodeUid: SDKNodeUid, moc: NSManagedObjectContext) async throws {
-        let renameNodeCall = try consumeRenameNodeCall(nodeUid: nodeUid)
+        let renameNodeCall = try consumeRenameDeviceCall(nodeUid: nodeUid)
 
         let renameNodeCallRequestContext = "renameNodeCall.requestBody"
         let name: String = try obtain("Name", from: renameNodeCall.requestBody, context: renameNodeCallRequestContext)
@@ -700,6 +765,7 @@ public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable
             let node = Node.fetch(identifier: nodeUid.any, allowSubclasses: true, in: moc)
             node?.name = name
             node?.nodeHash = hash
+            node?.modifiedDate = Date()
             if let mimeType, !mimeType.isEmpty {
                 node?.mimeType = mimeType
             }
@@ -784,9 +850,26 @@ public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable
 
     }
 
-    public func finishTrashMacNodes(nodes: [SDKNodeUid], moc: NSManagedObjectContext) async throws {
+    #if os(iOS)
+    public func applyTrashResults(
+        _ results: [TrashNodeResult],
+        moc: NSManagedObjectContext
+    ) async throws -> [AnyVolumeIdentifier] {
+        let trashedLinks = results
+            .filter(Self.shouldApplyLocalTrash)
+            .map { $0.nodeUid.any }
+        if trashedLinks.isEmpty { return [] }
+        let affectedFiles = try await NodeTreeTrashPerformer().performAndSave(to: trashedLinks, in: moc)
+        return affectedFiles.map { $0.identifier.any() }
+    }
+    #else
+    public func applyTrashResults(
+        _ results: [TrashNodeResult],
+        moc: NSManagedObjectContext
+    ) async throws -> [AnyVolumeIdentifier] {
+        let nodeIDs = results.map(\.nodeUid.nodeID)
+        if nodeIDs.isEmpty { return [] }
         try await moc.perform { [moc] in
-            let nodeIDs = nodes.map(\.nodeID)
             let trashedNodes = self.storage.fetchNodes(ids: nodeIDs, moc: moc)
             trashedNodes.forEach { node in
                 node.state = .deleted
@@ -794,26 +877,165 @@ public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable
             }
             try moc.saveOrRollback()
         }
+        return []
+    }
+    #endif
+
+    public func finishRenameDevice(identifier: DeviceIdentifier, moc: NSManagedObjectContext) async throws {
+        let uid = SDKNodeUid(volumeID: identifier.volumeID, nodeID: identifier.nodeID)
+        let renameDeviceCall = try consumeRenameDeviceCall(nodeUid: uid)
+
+        let renameDeviceCallRequestContext = "renameDeviceCall.requestBody"
+        let name: String = try obtain("Name", from: renameDeviceCall.requestBody, context: renameDeviceCallRequestContext)
+        let nameSignatureEmail: String = try obtain("NameSignatureEmail", from: renameDeviceCall.requestBody, context: renameDeviceCallRequestContext)
+
+        try await moc.perform { [moc] in
+            let device: CoreDataDevice = try CoreDataDevice.fetchOrThrow(identifier: identifier, in: moc)
+            guard let root = device.share.root else {
+                throw CoreDataShare.InvalidState(message: "Renaming roots is only valid for Devices")
+            }
+            root.name = name
+            root.nameSignatureEmail = nameSignatureEmail
+            try moc.saveIfNeeded()
+            // To trigger computer view update
+            moc.refresh(device, mergeChanges: true)
+        }
     }
 
-    public func finishTrashIOSNodes(
-        nodes: [SDKNodeUid],
-        results: [TrashNodeResult],
-        moc: NSManagedObjectContext
-    ) async throws -> ([AnyVolumeIdentifier], Error?) {
-        let failedLinks = Set(
-            results.compactMap { result -> String? in
-                guard let errorCode = result.error?.primaryCode else { return nil }
-                return errorCode == APIErrorCodes.itemOrItsParentDeletedErrorCode.rawValue ? nil : result.nodeUid.nodeID
+    public func finishRestoreIOSNodes(results: [SDKNodeResult], moc: NSManagedObjectContext) async throws {
+        let successfulRestores = results.filter { $0.error == nil }
+        try await moc.perform {
+            let nodeIDs = successfulRestores.map { $0.nodeUid.any }
+            let nodes = Node.fetch(identifiers: Set(nodeIDs), allowSubclasses: true, in: moc)
+            nodes.forEach { $0.state = .active }
+            try moc.saveOrRollback()
+        }
+
+        let failedRestores = results.filter { $0.error != nil }
+        if let error = failedRestores.first?.error {
+            throw error
+        }
+    }
+
+    public func handleSmallUploadResponse(
+        path: String,
+        requestBody: JSONDictionary,
+        responseStatusCode: Int,
+        responseBody: JSONDictionary
+    ) throws {
+        let now = Date()
+        var result: Result<Void, Error> = .success(())
+        caches.mutate { store in
+            #if DEBUG
+            store.recordedRequests.append(
+                RecordedRequest(method: .post, path: path, statusCode: responseStatusCode, timestamp: now)
+            )
+            #endif
+
+            guard (200..<300).contains(responseStatusCode) else { return }
+            result = Result {
+                let metadata = try extractSmallFileMetadata(
+                    path: path,
+                    requestBody: requestBody,
+                    responseBody: responseBody
+                )
+                guard store.inFlightOperations > 0 else {
+                    throw MetadataUpdateError.noCachedResponse(missingResponse: "smallUpload operation bracket")
+                }
+
+                if metadata.isNewFile {
+                    // adapt the file creation response to the cache's expected format
+                    store.createFile.append(.init(
+                        value: (
+                            volumeID: metadata.volumeID,
+                            requestBody: metadata.requestBody,
+                            responseBody: [
+                                "File": [
+                                    "ID": metadata.nodeID,
+                                    "RevisionID": metadata.revisionID
+                                ]
+                            ]
+                        ),
+                        timestamp: now
+                    ))
+                }
+                store.commitRevision.append(.init(
+                    value: (
+                        volumeID: metadata.volumeID,
+                        nodeID: metadata.nodeID,
+                        revisionID: metadata.revisionID,
+                        requestBody: metadata.requestBody,
+                        responseBody: responseBody
+                    ),
+                    timestamp: now
+                ))
             }
+        }
+        try result.get()
+    }
+
+    public func finishLeaveSharedNode(nodeID: AnyVolumeIdentifier, moc: NSManagedObjectContext) async throws {
+        try await moc.perform {
+            guard let node: CoreDataNode = CoreDataNode.fetch(identifier: nodeID, allowSubclasses: true, in: moc) else { return }
+            if let folder = node as? CoreDataFolder {
+                folder.isolateChildrenToPreventCascadeDeletion()
+            }
+            if let share = node.directShares.first {
+                moc.delete(share)
+            }
+            if let album = node as? CoreDataAlbum {
+                album.photos.forEach(moc.delete)
+            }
+            moc.delete(node)
+            try moc.saveIfNeeded()
+        }
+    }
+
+    private func extractSmallFileMetadata(
+        path: String,
+        requestBody: JSONDictionary,
+        responseBody: JSONDictionary
+    ) throws -> SmallFileMetadata {
+        let pathComponents = path.split(separator: "/", omittingEmptySubsequences: false)
+        guard let volumeIndex = pathComponents.firstIndex(of: "volumes"),
+              let volumeComponent = pathComponents.dropFirst(volumeIndex + 1).first,
+              !volumeComponent.isEmpty else {
+            throw MetadataUpdateError.fieldMissing(missingField: "smallUpload.path.volumeID")
+        }
+        let volumeID = String(volumeComponent)
+        let responseContext = "smallUpload.responseBody"
+        let nodeID: String = try obtain("LinkID", from: responseBody, context: responseContext)
+        let revisionID: String = try obtain("RevisionID", from: responseBody, context: responseContext)
+        guard !nodeID.isEmpty, !revisionID.isEmpty else {
+            throw MetadataUpdateError.unexpectedFieldValue(field: responseContext, value: "empty upload identifier")
+        }
+
+        let requestContext = "smallUpload.requestBody"
+        let parentID: String? = try obtainOptional("ParentLinkID", from: requestBody, context: requestContext)
+        let currentRevisionID: String? = try obtainOptional("CurrentRevisionID", from: requestBody, context: requestContext)
+        guard let identifier = parentID ?? currentRevisionID, !identifier.isEmpty,
+              (parentID == nil) != (currentRevisionID == nil) else {
+            throw MetadataUpdateError.unexpectedFieldValue(
+                field: requestContext,
+                value: "expected one nonempty ParentLinkID or CurrentRevisionID"
+            )
+        }
+        let isNewFile = parentID != nil
+
+        var metadata = requestBody
+        if metadata["Hash"] == nil {
+            metadata["Hash"] = metadata["NameHash"]
+        }
+        if metadata["SignatureAddress"] == nil {
+            metadata["SignatureAddress"] = metadata["SignatureEmail"]
+        }
+        return SmallFileMetadata(
+            volumeID: volumeID,
+            nodeID: nodeID,
+            revisionID: revisionID,
+            isNewFile: isNewFile,
+            requestBody: metadata
         )
-
-        let trashedLinks = nodes.filter { !failedLinks.contains($0.nodeID) }.map(\.any)
-
-        let performer = NodeTreeTrashPerformer()
-        let affectedFiles = try await performer.performAndSave(to: trashedLinks, in: moc)
-        let error = results.first(where: { $0.error != nil && $0.error?.primaryCode != APIErrorCodes.itemOrItsParentDeletedErrorCode.rawValue })?.error
-        return (affectedFiles.map { $0.identifier.any() }, error)
     }
 
     public func handleRequestAndResponse(
@@ -853,9 +1075,9 @@ public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable
                     append: { $0.revisionMetadata.append(.init(value: (volumeID: volumeID, nodeID: nodeID, revisionID: revisionID, responseBody: responseBody), timestamp: now)) },
                     warnIfNotInOperation: true
                 )
-            } else if let (volumeID, nodeID, requestBody) = self.identifyRenameNodeCall(path: path, method: method, requestBody: requestBody) {
+            } else if let (volumeID, nodeID, requestBody) = self.identifyRenameDeviceCall(path: path, method: method, requestBody: requestBody) {
                 match = (
-                    append: { $0.renameNode.append(.init(value: (volumeID: volumeID, nodeID: nodeID, requestBody: requestBody), timestamp: now)) },
+                    append: { $0.renameDevice.append(.init(value: (volumeID: volumeID, nodeID: nodeID, requestBody: requestBody), timestamp: now)) },
                     warnIfNotInOperation: true
                 )
             } else if let (volumeID, requestBody) = self.identifyCreateFolderCall(path: path, method: method, requestBody: requestBody) {
@@ -894,13 +1116,6 @@ public final class MetadataUpdater: MetadataUpdaterProtocol, @unchecked Sendable
             match.append(&store)
         }
 
-        #if DEBUG
-        print("""
-              [CALL] \(method.rawValue) \(path)
-              [REQUEST] \(requestBody?.description ?? "none")
-              [RESPONSE] \(responseBody)
-              """)
-        #endif
     }
 }
 
@@ -963,7 +1178,7 @@ extension MetadataUpdater {
         return (volumeID, nodeID, revisionID)
     }
 
-    private func identifyRenameNodeCall(
+    private func identifyRenameDeviceCall(
         path: String, method: HTTPMethod, requestBody: JSONDictionary?
     ) -> (String, String, JSONDictionary)? {
         guard
@@ -1126,7 +1341,7 @@ extension MetadataUpdater {
     }
 
     private func renameNodeMatches(
-        _ entry: CacheStore.CacheEntry<RenameNodeCall>,
+        _ entry: CacheStore.CacheEntry<RenameDeviceCall>,
         nodeUid: SDKNodeUid
     ) -> Bool {
         let (volumeID, nodeID, _) = entry.value
@@ -1208,7 +1423,9 @@ extension MetadataUpdater {
                 consumeResult = .failure(error)
             }
         }
-        guard let createFileCall = try consumeResult.get() else { throw makeNoCachedResponseError("createFileCallCache") }
+        guard let createFileCall = try consumeResult.get() else {
+            throw makeNoCachedResponseError("createFileCallCache")
+        }
         return createFileCall
     }
 
@@ -1225,10 +1442,10 @@ extension MetadataUpdater {
     }
 
     /// Finds and removes all matching rename node calls from the cache, returning the most recent.
-    private func consumeRenameNodeCall(nodeUid: SDKNodeUid) throws -> RenameNodeCall {
-        var result: RenameNodeCall?
+    private func consumeRenameDeviceCall(nodeUid: SDKNodeUid) throws -> RenameDeviceCall {
+        var result: RenameDeviceCall?
         caches.mutate { store in
-            result = CacheStore.splitConsume(&store.renameNode) { entry in
+            result = CacheStore.splitConsume(&store.renameDevice) { entry in
                 self.renameNodeMatches(entry, nodeUid: nodeUid)
             }
         }
@@ -1313,6 +1530,11 @@ extension MetadataUpdater {
         }
     }
     #endif
+
+    private static func shouldApplyLocalTrash(_ result: NodeResult) -> Bool {
+        guard let error = result.error else { return true }
+        return error.primaryCode == APIErrorCodes.itemOrItsParentDeletedErrorCode.rawValue
+    }
 }
 
 // MARK: - Parse link details
@@ -1438,7 +1660,7 @@ extension MetadataUpdater {
     var createFileCallCacheCount: Int { caches.value.createFile.count }
     var commitRevisionCallCacheCount: Int { caches.value.commitRevision.count }
     var revisionMetadataCallCacheCount: Int { caches.value.revisionMetadata.count }
-    var renameNodeCallCacheCount: Int { caches.value.renameNode.count }
+    var renameNodeCallCacheCount: Int { caches.value.renameDevice.count }
     var createFolderCallCacheCount: Int { caches.value.createFolder.count }
     var loadFileLinkDetailCallCacheCount: Int { caches.value.loadFileLinkDetail.count }
     var loadPhotoLinkDetailCallCacheCount: Int { caches.value.loadPhotoLinkDetail.count }

@@ -22,7 +22,9 @@ import ProtonDriveSDK
 
 public extension ProtonDriveSDKError {
     var isConflictError: Bool {
-        self.innerError?.primaryCode == APIErrorCodes.alreadyExists.rawValue
+        guard primaryCode != APIErrorCodes.alreadyExists.rawValue else { return true }
+        guard let innerError else { return false }
+        return innerError.isConflictError
     }
 
     var isTooManyChildrenError: Bool {

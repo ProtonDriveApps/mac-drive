@@ -58,7 +58,7 @@
 	<key>DEFAULT_API_HOST</key>
 	<string>$(DEFAULT_API_HOST)</string>
 	<key>DRIVE_SDK_VERSION</key>
-	<string></string>
+	<string>0.29.1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<true/>
 	<key>ITSEncryptionExportComplianceCode</key>

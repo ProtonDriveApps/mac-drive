@@ -73,7 +73,8 @@ public final class SDKFileProviderOperations: FileProviderOperationsProtocol {
             ),
             quotaLimiter: QuotaLimiter(
                 storage: UserDefaultsQuotaLimiterStorage(),
-                quotaResource: tower.sessionVault
+                quotaResource: tower.sessionVault,
+                quotaRefresher: TowerQuotaRefresher(tower: tower)
             )
         )
     }
@@ -92,13 +93,12 @@ public final class SDKFileProviderOperations: FileProviderOperationsProtocol {
         quotaLimiter: QuotaLimiter
     ) async throws {
         let protonDriveClientConfiguration = ProtonDriveClientConfiguration(
-            baseURL: tower.clientConfiguration.driveApiBase,
+            baseURL: tower.clientConfiguration.driveApiHost,
             clientUID: tower.sessionVault.getUploadClientUID(),
             downloadOperationalResilience: BasicOperationalResilience.default,
             uploadOperationalResilience: BasicOperationalResilience.default,
-            entityCachePath: tower.sdkCacheProvider.entityCacheURL.path(percentEncoded: false),
-            secretCachePath: tower.sdkCacheProvider.secretCacheURL.path(percentEncoded: false),
-            secretCacheEncryptionKey: tower.sdkEncryptionKeyProvider?.getOrCreateEncryptionKey()
+            cachePath: tower.sdkCacheProvider.secretCacheURL.path(percentEncoded: false),
+            cacheEncryptionKey: tower.sdkEncryptionKeyProvider?.getOrCreateEncryptionKey()
         )
         let fileOperationPerformer = try await FileOperationPerformer(
             protonDriveClientConfiguration: protonDriveClientConfiguration,
@@ -155,7 +155,7 @@ public final class SDKFileProviderOperations: FileProviderOperationsProtocol {
 
         syncReporter.nodeInformationExtractor = { node in
             do {
-                let filename = try node.decryptNameWithCryptoGo()
+                let filename = try node.decryptNameWithCryptoGo(signatureKeys: [])
                 let mimeType = try NodeItem(node: node).mimeType ?? node.mimeType
                 return (filename: filename, mimeType: mimeType, size: node.presentableNodeSize)
             } catch {
@@ -170,10 +170,11 @@ public final class SDKFileProviderOperations: FileProviderOperationsProtocol {
     public func item(
         for identifier: NSFileProviderItemIdentifier,
         request: NSFileProviderRequest,
+        confirmItemNotFoundWithBackend: Bool,
         completionHandler: @escaping (_ item: NSFileProviderItem?,
                                       _ error: Swift.Error?) -> Void
     ) -> Progress {
-        return legacyFileProviderOperations.item(for: identifier, request: request, completionHandler: completionHandler)
+        return legacyFileProviderOperations.item(for: identifier, request: request, confirmItemNotFoundWithBackend: confirmItemNotFoundWithBackend, completionHandler: completionHandler)
     }
 
     public func fetchContents(
@@ -195,7 +196,7 @@ public final class SDKFileProviderOperations: FileProviderOperationsProtocol {
             try await tower.storage.backgroundContextPool.withContext { moc in
 
                 guard !earlyExitAndCallCompletionHandlerIfNoChildSession(
-                    tower, "fetchContents", completionHandler(nil, nil, CocoaError(.userCancelled))
+                    tower, "fetchContents", completionHandler(nil, nil, EarlyExit.error(reason: .noChildSession))
                 ) else {
                     Log.event(.fetchContents(.failed(.init(id: itemIdentifier.logIdentifier,
                                                            errorMessage: "No child session"))))
@@ -383,7 +384,7 @@ public final class SDKFileProviderOperations: FileProviderOperationsProtocol {
 
         let progress = Progress(totalUnitCount: url.fileSize.map(Int64.init) ?? itemTemplate.documentSize??.int64Value ?? 0) { progress in
             Task {
-                try await self.fileOperationPerformer.cancelUpload(cancellationToken: operationToken)
+                try await self.fileOperationPerformer.cancelUpload(cancellationToken: operationToken, isPausedOperation: false)
             }
         }
         progresses.add(progress)
@@ -391,7 +392,7 @@ public final class SDKFileProviderOperations: FileProviderOperationsProtocol {
         Task {
             await tower.storage.backgroundContextPool.withContext { moc in
                 guard !earlyExitAndCallCompletionHandlerIfNoChildSession(
-                    tower, "createItem", completionHandler(nil, [], false, CocoaError(.userCancelled))
+                    tower, "createItem", completionHandler(nil, [], false, EarlyExit.error(reason: .noChildSession))
                 ) else {
                     Log.event(.createItem(.failed(.init(id: itemTemplate.itemIdentifier.logIdentifier,
                                                             errorMessage: "No child session"))))
@@ -462,7 +463,7 @@ public final class SDKFileProviderOperations: FileProviderOperationsProtocol {
                             url: url,
                             fileAttributes: fileAttributes,
                             shareID: shareID,
-                            mediaType: itemTemplate.mimeType ?? "",
+                            mediaType: itemTemplate.mimeType ?? "application/octet-stream",
                             cancellationToken: operationToken,
                             progressCallback: { [weak syncReporter, weak progress] callbackProgress in
                                 if let progress,

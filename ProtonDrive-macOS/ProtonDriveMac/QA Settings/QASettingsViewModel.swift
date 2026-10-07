@@ -36,6 +36,8 @@ struct QASettingsConstants {
     static let overrideDateForPromoCampaign = "overrideDateForPromoCampaign"
     static let driveMacPromoBannerDisabled = "driveMacPromoBannerDisabled"
     static let simulateNetworkOffline = "simulateNetworkOffline"
+    // Must match the @SettingsStorage key read by RefreshingNodesService (PDCore).
+    static let syncMetadataScanEngineOverride = "SyncMetadataScanV2EnabledQAOverride"
 }
 
 protocol EventLoopManager: AnyObject {
@@ -137,11 +139,19 @@ class QASettingsViewModel: ObservableObject {
     var domainReconnectionFeatureFlagValue: Bool {
         featureFlags?.isEnabled(flag: .domainReconnectionEnabled) ?? false
     }
-    @Published var domainDisconnected: Bool = false
     @Published var disconnectDomainOnSignOut: String = FeatureFlagOptions.useFF.rawValue {
         didSet { disconnectDomainOnSignOutStorage = FeatureFlagOptions(rawValue: disconnectDomainOnSignOut)?.toBool }
     }
     @SettingsStorage(QASettingsConstants.disconnectDomainOnSignOut) var disconnectDomainOnSignOutStorage: Bool?
+
+    var syncMetadataScanV2EnabledFeatureFlagValue: Bool {
+        featureFlags?.isEnabled(flag: .driveSyncMetadataScanV2Enabled) ?? false
+    }
+    // Engine override: enabled = use v2, disabled = use v1, useFF = follow the flag (v1 default, v2 opt-in).
+    @Published var syncMetadataScanEngine: String = FeatureFlagOptions.useFF.rawValue {
+        didSet { syncMetadataScanEngineStorage = FeatureFlagOptions(rawValue: syncMetadataScanEngine)?.toBool }
+    }
+    @SettingsStorage(QASettingsConstants.syncMetadataScanEngineOverride) var syncMetadataScanEngineStorage: Bool?
 
     var driveMacPromoBannerDisabledFeatureFlagValue: Bool {
         featureFlags?.isEnabled(flag: .driveMacPromoBannerDisabled) ?? false
@@ -168,7 +178,7 @@ class QASettingsViewModel: ObservableObject {
     private var cancellables: Set<AnyCancellable> = []
     private let dumper: Dumper?
     private let eventLoopManager: EventLoopManager?
-    private let featureFlags: PDCore.FeatureFlagsRepository?
+    private let featureFlags: PDCore.DriveFeatureFlagsProvider?
     private let signoutManager: SignoutManager?
     private let mainKeyProvider: MainKeyProvider
     private let metadataStorage: StorageManager?
@@ -184,7 +194,7 @@ class QASettingsViewModel: ObservableObject {
          mainKeyProvider: MainKeyProvider,
          appUpdateService: AppUpdateServiceProtocol?,
          eventLoopManager: EventLoopManager?,
-         featureFlags: PDCore.FeatureFlagsRepository?,
+         featureFlags: PDCore.DriveFeatureFlagsProvider?,
          dumperDependencies: DumperDependencies?,
          applicationEventObserver: ApplicationEventObserver,
          userActions: UserActions,
@@ -196,6 +206,7 @@ class QASettingsViewModel: ObservableObject {
         let suite = Constants.appGroup
         self._requiresPostMigrationCleanup.configure(with: suite)
         self._disconnectDomainOnSignOutStorage.configure(with: suite)
+        self._syncMetadataScanEngineStorage.configure(with: suite)
         self._driveMacPromoBannerDisabledStorage.configure(with: suite)
         self._simulateNetworkOfflineStorage.configure(with: suite)
 
@@ -225,6 +236,7 @@ class QASettingsViewModel: ObservableObject {
         self.shouldObfuscateDumps = shouldObfuscateDumpsStorage ?? false
         self.enablePostMigrationCleanup = requiresPostMigrationCleanup ?? false
         self.disconnectDomainOnSignOut = FeatureFlagOptions(bool: disconnectDomainOnSignOutStorage).rawValue
+        self.syncMetadataScanEngine = FeatureFlagOptions(bool: syncMetadataScanEngineStorage).rawValue
         self.driveMacPromoBannerDisabled = FeatureFlagOptions(bool: driveMacPromoBannerDisabledStorage).rawValue
         self.simulateNetworkOffline = simulateNetworkOfflineStorage ?? false
 
@@ -450,18 +462,6 @@ class QASettingsViewModel: ObservableObject {
         fatalError("macOS app: Forced crash to test Sentry crash reporting")
     }
 
-    func sendNotificationToDisconnectDomain() {
-        let userInfo = ["domainDisconnected": domainDisconnected ]
-        NotificationCenter.default.post(name: .fileProviderDomainStateDidChange, object: nil, userInfo: userInfo)
-        domainDisconnected = true
-    }
-
-    func sendNotificationToReconnectDomain() {
-        let userInfo = ["domainDisconnected": domainDisconnected ]
-        NotificationCenter.default.post(name: .fileProviderDomainStateDidChange, object: nil, userInfo: userInfo)
-        domainDisconnected = false
-    }
-
     func tellFileProviderToTestSendingErrorEventToTestSentry() {
         DarwinNotificationCenter.shared.postNotification(.SendErrorEventToTestSentry)
     }
@@ -551,10 +551,6 @@ class QASettingsViewModel: ObservableObject {
         CFNotificationCenterPostNotification(center, CFNotificationName(name as CFString), nil, nil, true)
     }
     #endif
-}
-
-extension Notification.Name {
-    static var fileProviderDomainStateDidChange = Notification.Name(rawValue: "ch.protonmail.drive.fileProviderDomainStateDidChange")
 }
 
 #endif

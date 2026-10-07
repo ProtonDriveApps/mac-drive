@@ -17,7 +17,6 @@
 
 import Foundation
 import PDCore
-import PDUploadVerifier
 
 protocol PostLoginServicesBuilder {
     func build(with observers: [EventsListener], activityObserver: @escaping ((NSUserActivity) -> Void)) -> PostLoginServices
@@ -27,11 +26,13 @@ class ConcretePostLoginServicesBuilder: PostLoginServicesBuilder {
     private let initialServices: InitialServices
     private let eventProcessingMode: DriveEventsLoopMode
     private let eventLoopInterval: Double
+    private let scanEngineV2TestOverride: () -> Bool?
 
-    init(initialServices: InitialServices, eventProcessingMode: DriveEventsLoopMode, eventLoopInterval: Double) {
+    init(initialServices: InitialServices, eventProcessingMode: DriveEventsLoopMode, eventLoopInterval: Double, scanEngineV2TestOverride: @escaping () -> Bool? = { nil }) {
         self.initialServices = initialServices
         self.eventProcessingMode = eventProcessingMode
         self.eventLoopInterval = eventLoopInterval
+        self.scanEngineV2TestOverride = scanEngineV2TestOverride
     }
 
     func build(with observers: [EventsListener], activityObserver: @escaping ((NSUserActivity) -> Void)) -> PostLoginServices {
@@ -40,7 +41,7 @@ class ConcretePostLoginServicesBuilder: PostLoginServicesBuilder {
                           eventObservers: observers,
                           eventProcessingMode: eventProcessingMode,
                           eventLoopInterval: eventLoopInterval,
-                          uploadVerifierFactory: ConcreteUploadVerifierFactory(),
+                          scanEngineV2TestOverride: scanEngineV2TestOverride,
                           activityObserver: activityObserver)
     }
 }

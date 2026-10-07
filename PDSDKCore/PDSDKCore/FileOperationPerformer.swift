@@ -87,7 +87,7 @@ public final class FileOperationPerformer: FileOperationCancelPerformerProtocol,
         conflictResolution: ConflictResolution,
         onUploadOperationChange: ((ProtonDriveSDK.UploadOperation?) async -> Void)? = nil
     ) async throws -> Node {
-        try await metadataUpdater.withOperation {
+        try await metadataUpdater.withOperation { endOperationContext in
             do {
                 let expectedSha1: Data?
                 if await !self.isUploadVerificationDisabled {
@@ -130,7 +130,7 @@ public final class FileOperationPerformer: FileOperationCancelPerformerProtocol,
                 // Notify caller that the upload registered new operation (this can be invoked multiple times in case of name conflicts resolution)
                 await onUploadOperationChange?(operation)
 
-                return try await self.startUpload(
+                return try await performStartUpload(
                     operation: operation,
                     parentFolderUid: parentFolderUid,
                     url: url,
@@ -138,14 +138,15 @@ public final class FileOperationPerformer: FileOperationCancelPerformerProtocol,
                     cancellationToken: cancellationToken,
                     moc: moc,
                     thumbnailLocalCache: thumbnailLocalCache,
-                    onRetriableErrorReceived: onRetriableErrorReceived
+                    onRetriableErrorReceived: onRetriableErrorReceived,
+                    endOperationContext: endOperationContext
                 )
             } catch let error as ProtonDriveSDKError {
                 if error.isConflictError, let nameError = error.additionalErrorData as? NodeNameConflictErrorData {
                     await onUploadOperationChange?(nil)
                     switch conflictResolution {
                     case .newFile:
-                        let newName = try await self.client.getAvailableName(
+                        let newName = try await getAvailableName(
                             parentFolderUid: parentFolderUid,
                             name: name,
                             cancellationToken: cancellationToken
@@ -192,7 +193,6 @@ public final class FileOperationPerformer: FileOperationCancelPerformerProtocol,
                 } else {
                     throw error
                 }
-                throw error
             }
         }
     }
@@ -207,50 +207,83 @@ public final class FileOperationPerformer: FileOperationCancelPerformerProtocol,
         thumbnailLocalCache: ThumbnailsUploadLocalCacheProtocol?,
         onRetriableErrorReceived: @Sendable @escaping (Error) -> Void
     ) async throws -> Node {
-        try await metadataUpdater.withOperation {
-            let result: UploadedFileIdentifiers
-            do {
-                result = try await self.client.startUpload(
-                    operation: operation,
-                    onRetriableErrorReceived: onRetriableErrorReceived
-                )
-            } catch {
-                let context = [
-                    "UploadID": cancellationToken.uuidString,
-                    "Expected file size in bytes": fileAttributes.fileSize.formatted(),
-                    "URL file size in bytes": url.fileSize?.formatted() ?? "Unknown",
-                    "Masked filename": url.maskFilename()
-                ]
-                self.logAdditionalDataInSDKError(error, context: context, file: #file, function: "StartUpload", line: #line)
-                throw error
-            }
-
-            self.moveTemporaryThumbnails(nodeUid: result.nodeUid, cancellationToken: cancellationToken, thumbnailLocalCache: thumbnailLocalCache)
-
-            #if os(macOS)
-            let node = try await self.metadataUpdater.finishFileUpload(
+        try await metadataUpdater.withOperation { context in
+            try await performStartUpload(
+                operation: operation,
                 parentFolderUid: parentFolderUid,
-                size: Int(fileAttributes.fileSize),
-                fileURL: url,
-                creationDate: fileAttributes.creationDate.timeIntervalSince1970,
-                modificationDate: fileAttributes.modificationDate.timeIntervalSince1970,
-                result: result,
-                moc: moc
+                url: url,
+                fileAttributes: fileAttributes,
+                cancellationToken: cancellationToken,
+                moc: moc,
+                thumbnailLocalCache: thumbnailLocalCache,
+                onRetriableErrorReceived: onRetriableErrorReceived,
+                endOperationContext: context
             )
-            #else
-            let node = try await self.metadataUpdater.finishIOSFileUpload(
-                parentFolderUid: parentFolderUid,
-                uploadID: cancellationToken,
-                size: Int(fileAttributes.fileSize),
-                fileURL: url,
-                creationDate: fileAttributes.creationDate.timeIntervalSince1970,
-                modificationDate: fileAttributes.modificationDate.timeIntervalSince1970,
-                result: result,
-                moc: moc
-            )
-            #endif
-            return node
         }
+    }
+
+    private func performStartUpload(
+        operation: ProtonDriveSDK.UploadOperation,
+        parentFolderUid: SDKNodeUid,
+        url: URL,
+        fileAttributes: FileAttributes,
+        cancellationToken: UUID,
+        moc: NSManagedObjectContext,
+        thumbnailLocalCache: ThumbnailsUploadLocalCacheProtocol?,
+        onRetriableErrorReceived: @Sendable @escaping (Error) -> Void,
+        endOperationContext: EndOperationContext
+    ) async throws -> Node {
+        let result: UploadedFileIdentifiers
+        if try await operation.isPaused() {
+            endOperationContext.releasesPausedOperations = true
+        }
+        do {
+            result = try await self.client.startUpload(
+                operation: operation,
+                onRetriableErrorReceived: onRetriableErrorReceived
+            )
+        } catch {
+            let context = [
+                "UploadID": cancellationToken.uuidString,
+                "Expected file size in bytes": fileAttributes.fileSize.formatted(),
+                "URL file size in bytes": url.fileSize?.formatted() ?? "Unknown",
+                "Masked filename": url.maskFilename()
+            ]
+            self.logAdditionalDataInSDKError(error, context: context, file: #file, function: "StartUpload", line: #line)
+            // TODO: DRVIOS-4269, SDK uses `UploadOperationResult` that has pause state
+            // Change SDK API to use UploadOperationResult` to prevent call `operation.isPaused()` twice
+            let isPaused = try await operation.isPaused()
+            if isPaused {
+                endOperationContext.retainsPausedOperations = true
+            }
+            throw error
+        }
+
+        self.moveTemporaryThumbnails(nodeUid: result.nodeUid, cancellationToken: cancellationToken, thumbnailLocalCache: thumbnailLocalCache)
+
+#if os(macOS)
+        let node = try await self.metadataUpdater.finishFileUpload(
+            parentFolderUid: parentFolderUid,
+            size: Int(fileAttributes.fileSize),
+            fileURL: url,
+            creationDate: fileAttributes.creationDate.timeIntervalSince1970,
+            modificationDate: fileAttributes.modificationDate.timeIntervalSince1970,
+            result: result,
+            moc: moc
+        )
+#else
+        let node = try await self.metadataUpdater.finishIOSFileUpload(
+            parentFolderUid: parentFolderUid,
+            uploadID: cancellationToken,
+            size: Int(fileAttributes.fileSize),
+            fileURL: url,
+            creationDate: fileAttributes.creationDate.timeIntervalSince1970,
+            modificationDate: fileAttributes.modificationDate.timeIntervalSince1970,
+            result: result,
+            moc: moc
+        )
+#endif
+        return node
     }
 
     public func uploadNewRevision(
@@ -265,7 +298,7 @@ public final class FileOperationPerformer: FileOperationCancelPerformerProtocol,
         onRetriableErrorReceived: @Sendable @escaping (Error) -> Void,
         moc: NSManagedObjectContext
     ) async throws -> Node {
-        try await metadataUpdater.withOperation {
+        try await metadataUpdater.withOperation { _ in
             let expectedSha1: Data?
             if await !self.isUploadVerificationDisabled {
                 do {
@@ -334,7 +367,7 @@ public final class FileOperationPerformer: FileOperationCancelPerformerProtocol,
         shouldThrowOnManifestVerificationIssues: Bool,
         moc: NSManagedObjectContext
     ) async throws -> (PDCore.Revision, VerificationIssue?) {
-        try await metadataUpdater.withOperation {
+        try await metadataUpdater.withOperation { _ in
             do {
                 let potentialManifestVerificationIssue = try await self.client.downloadFile(
                     revisionUid: revisionUid,
@@ -426,7 +459,9 @@ public final class FileOperationPerformer: FileOperationCancelPerformerProtocol,
             do {
                 for try await thumbnail in buffer.0 {
                     if let thumbnail {
-                        try await self.metadataUpdater.finishFileThumbnailDownload(fileUid: thumbnail.fileUid, moc: moc)
+                        // Disabled due to repeated regressions in parsing/applying the changes to our encrypted DB.
+                        // Should be unnecessary once decrypted DB is implemented.
+                        // try await self.metadataUpdater.finishFileThumbnailDownload(fileUid: thumbnail.fileUid, moc: moc)
                     } else {
                         Log.warning("Get nil ThumbnailDataWithId", domain: .sdk)
                     }
@@ -441,7 +476,7 @@ public final class FileOperationPerformer: FileOperationCancelPerformerProtocol,
 
         continuation.onTermination = { @Sendable _ in
             task.cancel()
-            metadataUpdater.endOperation()
+            metadataUpdater.endOperation(context: .init())
         }
         return stream
     }
@@ -450,8 +485,15 @@ public final class FileOperationPerformer: FileOperationCancelPerformerProtocol,
         try await client.cancelDownload(cancellationToken: cancellationToken)
     }
 
-    public func cancelUpload(cancellationToken: UUID) async throws {
+    public func cancelUpload(cancellationToken: UUID, isPausedOperation: Bool) async throws {
+        if isPausedOperation {
+            metadataUpdater.cancelPausedOperation()
+        }
         try await client.cancelUpload(cancellationToken: cancellationToken)
+    }
+
+    public func cancelTrash(cancellationToken: UUID) async throws {
+        try await client.cancelTrash(cancellationToken: cancellationToken)
     }
 }
 
@@ -464,15 +506,13 @@ extension FileOperationPerformer {
         cancellationToken: UUID,
         moc: NSManagedObjectContext
     ) async throws {
-        try await metadataUpdater.withOperation {
-            try await self.client.rename(
-                nodeUid: nodeUid,
-                newName: newName,
-                newMediaType: newMediaType,
-                cancellationToken: cancellationToken
-            )
-            try await self.metadataUpdater.finishRename(nodeUid: nodeUid, moc: moc)
-        }
+        // SDK 0.27 and later removed the standalone rename API in favor of moveNodes.
+        // The moveNodes-based rename flow is not yet integrated here, so rename remains unsupported.
+        throw NSError(
+            domain: "FileOperationPerformer",
+            code: -1,
+            userInfo: [NSLocalizedDescriptionKey: "Rename is not implemented yet"]
+        )
     }
 
     public func createFolder(
@@ -483,7 +523,7 @@ extension FileOperationPerformer {
         moc: NSManagedObjectContext,
         cancellationToken: UUID
     ) async throws -> CoreDataFolder {
-        try await metadataUpdater.withOperation {
+        try await metadataUpdater.withOperation { _ in
             do {
                 let result = try await self.client.createFolder(
                     parentFolderUid: parentFolderUid,
@@ -497,10 +537,9 @@ extension FileOperationPerformer {
                 guard error.isConflictError, resolveConflictByRenaming
                 else { throw error }
 
-                let newFolderName = try await self.client.getAvailableName(
+                let newFolderName = try await getAvailableName(
                     parentFolderUid: parentFolderUid,
-                    name: folderName,
-                    cancellationToken: UUID()
+                    name: folderName
                 )
                 return try await self.createFolder(
                     parentFolderUid: parentFolderUid,
@@ -515,34 +554,97 @@ extension FileOperationPerformer {
             }
         }
     }
+    
+    public func getAvailableName(
+        parentFolderUid: SDKNodeUid,
+        name: String,
+        cancellationToken: UUID = UUID()
+    ) async throws -> String {
+        try await client.getAvailableName(
+            parentFolderUid: parentFolderUid,
+            name: name,
+            cancellationToken: cancellationToken
+        )
+    }
 }
 
-#if os(macOS)
 extension FileOperationPerformer {
     public func trash(
         nodes: [SDKNodeUid],
+        cancellationToken: UUID,
+        moc: NSManagedObjectContext
+    ) -> AsyncThrowingStream<NodeOperationStreamEvent, Error> {
+        nodeOperationStream(operation: .trash, nodes: nodes, cancellationToken: cancellationToken, moc: moc)
+    }
+
+    public func restore(
+        nodes: [SDKNodeUid],
+        cancellationToken: UUID,
+        moc: NSManagedObjectContext
+    ) -> AsyncThrowingStream<NodeOperationStreamEvent, Error> {
+        nodeOperationStream(operation: .restore, nodes: nodes, cancellationToken: cancellationToken, moc: moc)
+    }
+
+    public func delete(
+        nodes: [SDKNodeUid],
+        cancellationToken: UUID,
+        moc: NSManagedObjectContext
+    ) -> AsyncThrowingStream<NodeOperationStreamEvent, Error> {
+        nodeOperationStream(operation: .delete, nodes: nodes, cancellationToken: cancellationToken, moc: moc)
+    }
+}
+
+extension FileOperationPerformer: NodeBatchStreamPerforming {}
+
+extension FileOperationPerformer: LeaveSharedNodePerforming {
+    public func leaveSharedNode(nodeUid: SDKNodeUid, cancellationToken: UUID, moc: NSManagedObjectContext) async throws {
+        try await metadataUpdater.withOperation { _ in
+            try await client.leaveSharedNode(nodeUid: nodeUid, cancellationToken: cancellationToken)
+            try await metadataUpdater.finishLeaveSharedNode(nodeID: nodeUid.any, moc: moc)
+        }
+    }
+
+    public func cancelLeaveSharedNode(cancellationToken: UUID) async throws {
+        try await client.cancelLeaveSharedNode(cancellationToken: cancellationToken)
+    }
+}
+
+extension FileOperationPerformer {
+    public func nodeOperationStream(
+        operation: NodeBatchOperation,
+        nodes: [SDKNodeUid],
+        cancellationToken: UUID,
+        moc: NSManagedObjectContext
+    ) -> AsyncThrowingStream<NodeOperationStreamEvent, Error> {
+        NodeOperationStreamBuilder.makeNodeOperationStream(
+            metadataUpdater: metadataUpdater,
+            client: client,
+            operation: operation,
+            nodes: nodes,
+            cancellationToken: cancellationToken,
+            moc: moc
+        )
+    }
+
+    public func emptyTrash(cancellationToken: UUID, moc: NSManagedObjectContext) async throws {
+        try await client.emptyTrash(cancellationToken: cancellationToken)
+    }
+}
+
+extension FileOperationPerformer {
+    public func renameDevice(
+        identifier: PDCore.DeviceIdentifier,
+        newName: String,
         cancellationToken: UUID,
         moc: NSManagedObjectContext
     ) async throws {
-        if nodes.isEmpty { return }
-        _ = try await client.trash(nodes: nodes, cancellationToken: cancellationToken)
-        try await metadataUpdater.finishTrashMacNodes(nodes: nodes, moc: moc)
+        try await metadataUpdater.withOperation { _ in
+            let _ = try await client.renameDevice(deviceUid: identifier.sdk, newName: newName, cancellationToken: cancellationToken)
+            // TODO: client returns `Device`, with new database we don't need metadataUpdater
+            try await metadataUpdater.finishRenameDevice(identifier: identifier, moc: moc)
+        }
     }
 }
-#else
-extension FileOperationPerformer {
-    public func trash(
-        nodes: [SDKNodeUid],
-        cancellationToken: UUID,
-        moc: NSManagedObjectContext
-    ) async throws -> ([AnyVolumeIdentifier], Error?) {
-        if nodes.isEmpty { return ([], nil) }
-        let results = try await client.trash(nodes: nodes, cancellationToken: cancellationToken)
-        let result = try await metadataUpdater.finishTrashIOSNodes(nodes: nodes, results: results, moc: moc)
-        return result
-    }
-}
-#endif
 
 // Helpers
 

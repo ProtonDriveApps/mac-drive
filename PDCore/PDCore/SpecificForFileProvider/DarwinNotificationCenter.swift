@@ -72,11 +72,16 @@ public final class DarwinNotificationCenter {
         /// The interested object
         weak var observer: AnyObject?
 
-        init(observer: AnyObject, name: DarwinNotification.Name, handler: @escaping NotificationHandler) {
+        private let removeCFObserver: (UnsafeRawPointer, CFNotificationName) -> Void
+
+        init(observer: AnyObject, name: DarwinNotification.Name, handler: @escaping NotificationHandler,
+             addCFObserver: (UnsafeRawPointer, CFNotificationCallback, CFString) -> Void,
+             removeCFObserver: @escaping (UnsafeRawPointer, CFNotificationName) -> Void) {
             self.observer = observer
             self.name = name
             self.handler = handler
-            observe()
+            self.removeCFObserver = removeCFObserver
+            observe(using: addCFObserver)
         }
 
     }
@@ -96,7 +101,26 @@ public final class DarwinNotificationCenter {
     /// A serial queue to sync all observation changes onto, to make the wrapper thread-safe.
     private let queue = DispatchQueue(label: "com.wetransfer.darwin-notificationcenter", qos: .default, attributes: [], autoreleaseFrequency: .workItem)
 
-    private init() {}
+    private let addCFObserver: (UnsafeRawPointer, CFNotificationCallback, CFString) -> Void
+    private let removeCFObserver: (UnsafeRawPointer, CFNotificationName) -> Void
+
+    private convenience init() {
+        self.init(
+            addCFObserver: { observer, callback, name in
+                CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), observer, callback, name, nil, .coalesce)
+            },
+            removeCFObserver: { observer, name in
+                CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(), observer, name, nil)
+            }
+        )
+    }
+
+    // Keep Core Foundation registration injectable without changing production callback routing.
+    init(addCFObserver: @escaping (UnsafeRawPointer, CFNotificationCallback, CFString) -> Void,
+         removeCFObserver: @escaping (UnsafeRawPointer, CFNotificationName) -> Void) {
+        self.addCFObserver = addCFObserver
+        self.removeCFObserver = removeCFObserver
+    }
 
     // MARK: -
     
@@ -122,10 +146,9 @@ public final class DarwinNotificationCenter {
     public func addObserver(_ observer: AnyObject, for name: DarwinNotification.Name, using handler: @escaping NotificationHandler) {
         cleanupObservers()
         queue.async {
-            let observation = Observation(observer: observer, name: name, handler: handler)
-            if !self.observations.contains(observation) {
-                self.observations.append(observation)
-            }
+            guard !self.observations.contains(where: { $0.observer === observer && $0.name == name }) else { return }
+            self.observations.append(Observation(observer: observer, name: name, handler: handler,
+                                                 addCFObserver: self.addCFObserver, removeCFObserver: self.removeCFObserver))
         }
     }
     
@@ -207,13 +230,10 @@ public final class DarwinNotificationCenter {
 
 // MARK: -
 
-extension DarwinNotificationCenter.Observation: Equatable {
+extension DarwinNotificationCenter.Observation {
     
     /// Start observing the notification.
-    fileprivate func observe() {
-        guard let cfCenter = DarwinNotificationCenter.shared.center else {
-                fatalError("Invalid Darwin observation info.")
-        }
+    fileprivate func observe(using addCFObserver: (UnsafeRawPointer, CFNotificationCallback, CFString) -> Void) {
         
         // A notification callback. Since this is a C function pointer, it can not have any ownership context.
         let callback: CFNotificationCallback = { (center, observer, name, object, userInfo) in
@@ -226,20 +246,14 @@ extension DarwinNotificationCenter.Observation: Equatable {
         }
         
         let observer = Unmanaged.passUnretained(self).toOpaque()
-        CFNotificationCenterAddObserver(cfCenter, observer, callback, name.rawValue, nil, .coalesce)
+        addCFObserver(observer, callback, name.rawValue)
     }
     
     /// Stop observing the notification. This should be done whenever the observation is going to be removed.
     fileprivate func unobserve() {
-        guard let cfCenter = DarwinNotificationCenter.shared.center else {
-                fatalError("Invalid Darwin observation info.")
-        }
         let notificationName = CFNotificationName(rawValue: name.rawValue)
-        var observer = self
-        CFNotificationCenterRemoveObserver(cfCenter, &observer, notificationName, nil)
+        let observer = Unmanaged.passUnretained(self).toOpaque()
+        removeCFObserver(observer, notificationName)
     }
 
-    static func == (lhs: DarwinNotificationCenter.Observation, rhs: DarwinNotificationCenter.Observation) -> Bool {
-        return lhs.observer === rhs.observer && lhs.name == rhs.name
-    }
 }

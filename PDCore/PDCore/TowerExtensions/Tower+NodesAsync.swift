@@ -59,7 +59,8 @@ extension Tower {
             }
         }
     }
-    
+
+    @available(iOS 16, *)
     public func delete(nodeID nodeIdentifier: NodeIdentifier, moc: NSManagedObjectContext) async throws {
         return try await withCheckedThrowingContinuation { continuation in
             delete([nodeIdentifier], moc: moc) { result in

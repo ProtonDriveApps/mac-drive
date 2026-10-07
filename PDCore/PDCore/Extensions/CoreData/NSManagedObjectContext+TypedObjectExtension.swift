@@ -18,7 +18,12 @@
 import CoreData
 
 extension NSManagedObjectContext {
-    public func typedObject<R: NSManagedObject>(with id: NSManagedObjectID) throws -> R {
+    public func typedObject<R: NSManagedObject>(id: NSManagedObjectID) throws -> R {
         try (existingObject(with: id) as? R) ?! "Incorrect cast type"
+    }
+    
+    public func typedObject<R: NSManagedObject>(url: URL) throws -> R {
+        let id = try persistentStoreCoordinator?.managedObjectID(forURIRepresentation: url) ?! "No object found"
+        return try typedObject(id: id)
     }
 }

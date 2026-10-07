@@ -34,12 +34,20 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
     private var syncStatusMenuItem = NSMenuItem()
 
     private let userActions: UserActions
+    private let isFullResyncPausable: () -> Bool
+    /// False for a refresh-event resync.
+    private let isFullResyncCancellable: () -> Bool
 
     private var cancellables: Set<AnyCancellable> = []
 
-    init(state: ApplicationState, userActions: UserActions) {
+    init(state: ApplicationState,
+         userActions: UserActions,
+         isFullResyncPausable: @escaping () -> Bool = { true },
+         isFullResyncCancellable: @escaping () -> Bool = { true }) {
         self.state = state
         self.userActions = userActions
+        self.isFullResyncPausable = isFullResyncPausable
+        self.isFullResyncCancellable = isFullResyncCancellable
         super.init()
         self.statusItem = self.makeStatusItem()
 
@@ -112,7 +120,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
             return "status-offline"
         case .syncing, .enumerating, .launching, .fullResyncInProgress:
             return "status-syncing"
-        case .errored:
+        case .errored, .volumeLocked:
             return "status-error"
         case .updateAvailable:
             return "status-update-available"
@@ -175,9 +183,18 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         if state.fullResyncState.isHappening {
             if case .completed = state.fullResyncState  {
                 menu.addItem(finishFullResyncMenuItem)
+            } else if case .paused = state.fullResyncState {
+                menu.addItem(syncStatusMenuItem)
+                menu.addItem(resumeFullResyncMenuItem)
+                if isFullResyncCancellable() { menu.addItem(cancelPausedResyncMenuItem) }
             } else {
                 menu.addItem(syncStatusMenuItem)
-                menu.addItem(cancelFullResyncMenuItem)
+                // Pause/Cancel are offered only while the resync is still cancellable (before the DBs are
+                // replaced); once enumerating, they would be ignored by the service, so don't show them.
+                if state.fullResyncState.isCancellable {
+                    if isFullResyncPausable() { menu.addItem(pauseFullResyncMenuItem) }
+                    if isFullResyncCancellable() { menu.addItem(cancelFullResyncMenuItem) }
+                }
             }
             menu.addItem(NSMenuItem.separator())
             menu.addItem(openDriveMenuItem)
@@ -231,8 +248,11 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         submenu.addItem(globalProgressVisibilityMenuItem)
         submenu.addItem(showLogsMenuItem)
         submenu.addItem(performFullResyncMenuItem)
+        submenu.addItem(simulateRefreshEventResyncMenuItem)
+        submenu.addItem(createNewDomainAfterFailedResyncMenuItem)
         if state.isLoggedIn {
             submenu.addItem(signoutMenuItem)
+            submenu.addItem(signoutRemovingDomainMenuItem)
         }
 
         let devOptionsMenuItem = NSMenuItem(title: "Developer options", action: nil, keyEquivalent: "d")
@@ -259,7 +279,10 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         Log.trace()
 
         let presentedStatus: ApplicationSyncStatus
-        if state.fullResyncState.isHappening {
+        if state.isVolumeLocked {
+            // "Synced" while nothing can sync would contradict the error tray icon above this menu.
+            presentedStatus = .volumeLocked
+        } else if state.fullResyncState.isHappening {
             presentedStatus = .fullResyncInProgress
         // If syncing and not paused, show "syncing", otherwise show "synced".
         } else if state.isSyncing && !state.isPaused {
@@ -267,7 +290,12 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         } else {
             presentedStatus = .synced
         }
-        let imageName = presentedStatus == .syncing || presentedStatus == .fullResyncInProgress ? "syncing" : "synced"
+        let imageName: String
+        switch presentedStatus {
+        case .syncing, .fullResyncInProgress: imageName = "syncing"
+        case .volumeLocked: imageName = "cross-circle"
+        default: imageName = "synced"
+        }
 
         syncStatusMenuItem.title = state.displayName(for: presentedStatus)
         syncStatusMenuItem.image = NSImage(named: imageName)
@@ -330,7 +358,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
     }
 
     private var eventSyncMenuItem: NSMenuItem {
-        let isPaused = state.overallStatus == .paused
+        let isPaused = state.overallStatus == .paused || state.overallStatus == .volumeLocked
         let title = isPaused ? Localization.sync_resume : Localization.sync_pause
         let selector = isPaused ? #selector(UserActions.SyncActions.resumeSyncing) : #selector(
             UserActions.SyncActions.pauseSyncing
@@ -362,6 +390,36 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         let menuItem = NSMenuItem(
             title: "Cancel full resync",
             action: #selector(UserActions.ResyncActions.cancelFullResync),
+            keyEquivalent: ""
+        )
+        menuItem.target = userActions.resync
+        return menuItem
+    }
+
+    private var pauseFullResyncMenuItem: NSMenuItem {
+        let menuItem = NSMenuItem(
+            title: "Pause full resync",
+            action: #selector(UserActions.ResyncActions.pauseFullResync),
+            keyEquivalent: ""
+        )
+        menuItem.target = userActions.resync
+        return menuItem
+    }
+
+    private var resumeFullResyncMenuItem: NSMenuItem {
+        let menuItem = NSMenuItem(
+            title: "Resume full resync",
+            action: #selector(UserActions.ResyncActions.resumeFullResync),
+            keyEquivalent: ""
+        )
+        menuItem.target = userActions.resync
+        return menuItem
+    }
+
+    private var cancelPausedResyncMenuItem: NSMenuItem {
+        let menuItem = NSMenuItem(
+            title: "Cancel full resync",
+            action: #selector(UserActions.ResyncActions.cancelPausedResync),
             keyEquivalent: ""
         )
         menuItem.target = userActions.resync
@@ -450,7 +508,7 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         let label = (hidden ? "Show" : "Hide") + " global progress"
         let menuItem = NSMenuItem(
             title: label,
-            action: #selector(UserActions.DebuggingActions.toggleGlobalProgressStatusItem),
+            action: #selector(UserActions.DebuggingActions.toggleGlobalProgressQaStatusItemVisibility),
             keyEquivalent: "g")
         menuItem.target = userActions.debugging
         return menuItem
@@ -467,8 +525,19 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
     }
     
     @objc private func performFullResyncAndOpenWindow() {
+        guard userActions.resync.confirmFullResync() else { return }
         userActions.resync.performFullResync()
         userActions.app.showStatusWindow()
+    }
+
+    private var simulateRefreshEventResyncMenuItem: NSMenuItem {
+        let menuItem = NSMenuItem(
+            title: "Simulate events refresh",
+            action: #selector(UserActions.ResyncActions.simulateRefreshEventResync),
+            keyEquivalent: ""
+        )
+        menuItem.target = userActions.resync
+        return menuItem
     }
 
     private var signoutMenuItem: NSMenuItem {
@@ -478,6 +547,26 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
             keyEquivalent: "s"
         )
         menuItem.target = userActions.account
+        return menuItem
+    }
+
+    private var signoutRemovingDomainMenuItem: NSMenuItem {
+        let menuItem = NSMenuItem(
+            title: Localization.menu_text_logout_remove_domain,
+            action: #selector(UserActions.AccountActions.userRequestedSignOutRemovingDomain),
+            keyEquivalent: ""
+        )
+        menuItem.target = userActions.account
+        return menuItem
+    }
+
+    private var createNewDomainAfterFailedResyncMenuItem: NSMenuItem {
+        let menuItem = NSMenuItem(
+            title: Localization.full_resync_create_new_location,
+            action: #selector(UserActions.ResyncActions.createNewDomainAfterFailedResync),
+            keyEquivalent: ""
+        )
+        menuItem.target = userActions.resync
         return menuItem
     }
 #endif
@@ -521,5 +610,13 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
 extension MenuBarCoordinator {
     var menuItemsForTesting: [NSMenuItem]? {
         self.statusItem.menu?.items
+    }
+
+    var syncStatusMenuItemForTesting: NSMenuItem {
+        syncStatusMenuItem
+    }
+
+    func makeStatusMenuForTesting() -> NSMenu {
+        makeStatusMenu()
     }
 }

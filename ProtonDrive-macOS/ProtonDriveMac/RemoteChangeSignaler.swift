@@ -16,10 +16,10 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import Foundation
-import FileProvider
 import PDCore
 
 class RemoteChangeSignaler: EventsListener {
+    
     let domainOperationsService: DomainOperationsServiceProtocol
 
     init(domainOperationsService: DomainOperationsServiceProtocol) {
@@ -42,4 +42,5 @@ class RemoteChangeSignaler: EventsListener {
     }
 
     func processorAppliedEvents(affecting: [NodeIdentifier]) { }
+    func rootMetadataMayHaveChanged(volumeID: String) { }
 }

@@ -21,14 +21,20 @@ public extension UserDefaults {
     enum FileProvider: String {
         case shouldReenumerateItemsKey = "shouldReenumerateItems"
         case workingSetEnumerationInProgressKey = "workingSetEnumerationInProgress"
+        case fullResyncInProgressKey = "fullResyncInProgressKey"
+        case cannotSynchronizeEarlyExitOccurredKey = "cannotSynchronizeEarlyExitOccurred"
+        case cannotSynchronizeEarlyExitCountKey = "cannotSynchronizeEarlyExitCount"
+        case fetchedItemCountKey = "fetchedItemCount"
+        case resyncEnumerationPageCountKey = "resyncEnumerationPageCount"
+        case resyncEnumeratedItemCountKey = "resyncEnumeratedItemCount"
+        case resyncEnumeratedItemTotalKey = "resyncEnumeratedItemTotal"
         case pathsMarkedAsKeepDownloadedKey = "pathsMarkedAsKeepDownloaded"
         case pathsMarkedAsOnlineOnlyKey = "pathsMarkedAsOnlineOnly"
         case openItemsInBrowserKey = "openItemsInBrowser"
         case extensionPathKey = "fileProviderExtensionPath"
-    }
-    
-    @objc dynamic var shouldReenumerateItems: Bool {
-        return bool(forKey: FileProvider.shouldReenumerateItemsKey.rawValue)
+        case forceRemoveDomainOnSignOutKey = "forceRemoveDomainOnSignOut"
+        case volumeLockCheckRequestedAtKey = "volumeLockCheckRequestedAt"
+        case refreshEventResyncPendingKey = "refreshEventResyncPending"
     }
     
     @objc dynamic var workingSetEnumerationInProgress: Bool {
@@ -49,5 +55,11 @@ public extension UserDefaults {
 
     @objc dynamic var fileProviderExtensionPath: String? {
         return string(forKey: FileProvider.extensionPathKey.rawValue)
+    }
+
+    /// Timestamp written by the File Provider extension at startup to ask the main app to validate whether
+    /// the volume is locked on the BE (and clean up if so). The app is the authority for that check.
+    @objc dynamic var volumeLockCheckRequestedAt: Double {
+        return double(forKey: FileProvider.volumeLockCheckRequestedAtKey.rawValue)
     }
 }

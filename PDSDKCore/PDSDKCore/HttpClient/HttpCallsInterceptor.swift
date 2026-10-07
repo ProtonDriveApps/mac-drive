@@ -56,7 +56,7 @@ public final class HttpClient: HttpClientProtocol, @unchecked Sendable {
             metadataUpdater: metadataUpdater,
             retryConfiguration: httpResilience.retryConfiguration(for: .regularApi),
             rateLimitGate: rateLimitGate
-        )
+        ).mapError { $0 as NSError }
     }
 
     /// Raw request (takes whole url) - should be storage request
@@ -73,7 +73,26 @@ public final class HttpClient: HttpClientProtocol, @unchecked Sendable {
             headers: headers,
             retryConfiguration: httpResilience.retryConfiguration(for: .storageUpload),
             rateLimitGate: rateLimitGate
-        )
+        ).mapError { $0 as NSError }
+    }
+
+    public func requestSmallUpload(
+        method: String,
+        url: String,
+        content: Data,
+        metadata: Data,
+        headers: [(String, [String])]
+    ) async -> Result<HttpClientResponse, NSError> {
+        urlCacheCleaner.cleanCacheIfNeeded()
+        return await apiService.requestSmallUpload(
+            method: method,
+            url: url,
+            content: content,
+            metadata: metadata,
+            headers: headers,
+            metadataUpdater: metadataUpdater,
+            rateLimitGate: rateLimitGate
+        ).mapError { $0 as NSError }
     }
 
     public func requestDownloadFromStorage(
@@ -91,6 +110,16 @@ public final class HttpClient: HttpClientProtocol, @unchecked Sendable {
             retryConfiguration: httpResilience.retryConfiguration(for: .storageDownload),
             rateLimitGate: rateLimitGate,
             downloadStreamCreator: downloadStreamCreator
+        ).mapError { $0 as NSError }
+    }
+}
+
+extension HttpClientResponse {
+    init(data: Data?, response: HTTPURLResponse) {
+        self.init(
+            data: data,
+            headers: extractHeaders(fromAllHeaderFields: response.allHeaderFields),
+            statusCode: response.statusCode
         )
     }
 }

@@ -54,8 +54,6 @@ public extension Tower {
     }
 
     private func setToBeDeleted(_ ids: [String], moc: NSManagedObjectContext) {
-        // should happen on a main context because changes a transient property relevant to main context only
-        // moc.saveWithSpecialCheck() is not needed by same reason
         let nodes = storage.fetchNodes(ids: ids, moc: moc)
         moc.performAndWait {
             nodes.forEach {
@@ -89,6 +87,7 @@ public extension Tower {
         try await cloudSlot.removeMember(shareID: shareID, memberID: memberID)
     }
 
+    @available(iOS 16, *)
     func delete(_ nodes: [NodeIdentifier], moc: NSManagedObjectContext, completion: @escaping (Result<Void, Error>) -> Void) {
         Task { [weak self] in
             var requestError: (any Error)?

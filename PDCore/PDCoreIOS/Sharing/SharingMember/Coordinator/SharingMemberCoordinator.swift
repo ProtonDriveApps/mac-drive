@@ -38,14 +38,16 @@ protocol SharingMemberCoordinatorProtocol: SharingStartCoordinator {
     func presentInviteeConfigSheet(
         for invitee: InviteeInfo,
         inviteeName: String?,
+        inviterPermissions: AccessPermission,
         handler: InviteeConfigSheetViewModel
     )
     func presentMessageSettingSheet(isIncludeMessage: Bool, handler: InvitationSheetHandler)
-    func presentMoreActionSheet()
+    func presentMoreActionSheet(inviteeViewModel: InviteeViewModel)
     func openLinkSettingView(sharedLink: SharedLink)
     func popViewController()
     func dismissViewController(completion: (() -> Void)?)
     func didStopSharing()
+    func dismissSharingConfiguration(completion: (() -> Void)?)
 }
 
 extension SharingMemberCoordinator {
@@ -57,12 +59,14 @@ extension SharingMemberCoordinator {
         let entitlementsManager: EntitlementsManagerProtocol
         let featureFlagsController: FeatureFlagsControllerProtocol
         let node: Node
+        let nodeOperationPerformer: SDKNodeOperationPerformer?
         let rootViewController: UIViewController?
         let remoteShareMetadataDataSource: RemoteShareMetadataDataSource
         let sessionVault: SessionVault
         let shareCreator: ShareCreatorProtocol
         let storage: StorageManager
         let invitationResultController: InvitationResultControllerProtocol?
+        let localSettings: LocalSettings
     }
 }
 
@@ -75,8 +79,8 @@ final class SharingMemberCoordinator: SharingMemberCoordinatorProtocol {
     init(dependencies: Dependencies) {
         self.rootViewController = dependencies.rootViewController
         self.invitationResultController = dependencies.invitationResultController
-        factory = .init(
-            dependencies: .init(
+        factory = SharingConfigViewFactory(
+            dependencies: SharingConfigViewFactory.Dependencies(
                 baseHost: dependencies.baseHost,
                 client: dependencies.client,
                 contactsController: ContactsController(contactsManager: dependencies.contactsManager),
@@ -90,11 +94,14 @@ final class SharingMemberCoordinator: SharingMemberCoordinatorProtocol {
                         managedObjectContext: dependencies.context,
                         remoteShareDataSource: dependencies.remoteShareMetadataDataSource,
                         shareCreator: dependencies.shareCreator,
-                        storage: dependencies.storage
+                        storage: dependencies.storage,
+                        sessionVault: dependencies.sessionVault
                     ),
                     nodeIdentifier: dependencies.node.identifier
                 ),
-                storage: dependencies.storage
+                storage: dependencies.storage,
+                localSettings: dependencies.localSettings,
+                node: dependencies.node
             )
         )
     }
@@ -146,13 +153,19 @@ final class SharingMemberCoordinator: SharingMemberCoordinatorProtocol {
     func presentInviteeConfigSheet(
         for invitee: InviteeInfo,
         inviteeName: String?,
+        inviterPermissions: AccessPermission,
         handler: InviteeConfigSheetViewModel
     ) {
         guard let configNavigation else {
             Log.error("ConfigNavigation is nil", error: nil, domain: .sharing)
             return
         }
-        let sheet = factory.makeConfigActionSheet(for: invitee, inviteeName: inviteeName, handler: handler)
+        let sheet = factory.makeConfigActionSheet(
+            for: invitee,
+            inviteeName: inviteeName,
+            inviterPermissions: inviterPermissions,
+            handler: handler
+        )
         sheet.presentAt(configNavigation, hasTopConstant: false, animated: true)
     }
     
@@ -165,15 +178,15 @@ final class SharingMemberCoordinator: SharingMemberCoordinatorProtocol {
         configNavigation.presentedViewController?.present(sheet, animated: false)
     }
     
-    func presentMoreActionSheet() {
+    func presentMoreActionSheet(inviteeViewModel: InviteeViewModel) {
         guard let configNavigation else {
             Log.error("ConfigNavigation is nil", error: nil, domain: .sharing)
             return
         }
-        let sheet = factory.makeMoreActionSheet(coordinator: self)
+        let sheet = factory.makeMoreActionSheet(coordinator: self, inviteeViewModel: inviteeViewModel)
         configNavigation.viewControllers.first?.present(sheet, animated: false)
     }
-    
+
     func openLinkSettingView(sharedLink: SharedLink) {
         guard let configNavigation else {
             Log.error("ConfigNavigation is nil", error: nil, domain: .sharing)
@@ -208,8 +221,16 @@ final class SharingMemberCoordinator: SharingMemberCoordinatorProtocol {
         invitationResultController?.inviteeListHasUpdated(to: [])
         // To dismiss share more action sheet
         configNavigation.viewControllers.first?.presentedViewController?.dismiss(animated: false, completion: {
-            // To dismiss share config view 
+            // To dismiss share config view
             configNavigation.dismiss(animated: true)
         })
+    }
+
+    func dismissSharingConfiguration(completion: (() -> Void)?) {
+        guard let navigationController = rootViewController?.navigationController else {
+            Log.error("Navigation controller is nil", error: nil, domain: .application)
+            return
+        }
+        navigationController.dismiss(animated: true, completion: completion)
     }
 }

@@ -40,25 +40,35 @@ public final class ItemProvider {
         fileSystemSlot: FileSystemSlot,
         cloudSlot: any CloudSlotProtocol,
         pool: AsyncManagedObjectContextPool,
-        featureFlags: FeatureFlagsRepository? = nil,
+        featureFlags: DriveFeatureFlagsProvider? = nil,
+        confirmItemNotFoundWithBackend: Bool,
         completionHandler: @escaping (NSFileProviderItem?, Error?) -> Void
     ) -> Progress {
         let task = Task { [weak self] in
             guard !Task.isCancelled else { return }
-            let itemOrError = await self?.localOrRemoteItem(
-                for: identifier,
-                creatorAddresses: creatorAddresses,
-                fileSystemSlot: fileSystemSlot,
-                cloudSlot: cloudSlot,
-                pool: pool,
-                featureFlags: featureFlags
-            )
-            guard let itemOrError else { return }
+            let getItemClosure: () async -> Result<NSFileProviderItem, Error>? = { [weak self] in
+                if confirmItemNotFoundWithBackend {
+                    return await self?.localOrRemoteItem(for: identifier,
+                                                         creatorAddresses: creatorAddresses,
+                                                         fileSystemSlot: fileSystemSlot,
+                                                         cloudSlot: cloudSlot,
+                                                         pool: pool,
+                                                         featureFlags: featureFlags)
+                } else {
+                    return await pool.withContext { moc in
+                        return self?.localItem(for: identifier,
+                                               creatorAddresses: creatorAddresses,
+                                               fileSystemSlot: fileSystemSlot,
+                                               moc: moc).mapError { $0 }
+                    }
+                }
+            }
+            guard let itemOrError = await getItemClosure() else { return }
             guard !Task.isCancelled else { return }
             switch itemOrError {
             case .success(let item):
                 completionHandler(item, nil)
-            
+
             case .failure(let error):
                 // According to comment in NSFileProviderReplicatedExtension.h, if this method return any other error than:
                 // * NSFileProviderErrorNoSuchItem (will not be retried)
@@ -71,12 +81,12 @@ public final class ItemProvider {
                 case let fpError as NSFileProviderError
                     where fpError.code == .notAuthenticated || fpError.code == .noSuchItem || fpError.code == .serverUnreachable:
                     completionHandler(nil, fpError)
-                
+
                 case let fpError as NSFileProviderError
                     where fpError.code == .syncAnchorExpired || fpError.code == .pageExpired || fpError.code == .excludedFromSync:
                     let noSuchItemError = NSError.fileProviderErrorForNonExistentItem(withIdentifier: identifier)
                     completionHandler(nil, noSuchItemError)
-                    
+
                 default:
                     let serverUnreachableError = NSFileProviderError.create(.serverUnreachable, from: error)
                     completionHandler(nil, serverUnreachableError)
@@ -89,7 +99,7 @@ public final class ItemProvider {
             completionHandler(nil, CocoaError(.userCancelled))
         }
     }
-    
+
     /// Synchronously returns a local item (or error, if item was not found locally).
     /// Creator is relevant only for root folder.
     public func localItem(
@@ -115,7 +125,7 @@ public final class ItemProvider {
         case .workingSet:
             Log.info("Getting item WORKING_SET does not make sense", domain: .fileProvider)
             return .failure(Errors.requestedItemForWorkingSet(identifier: identifier))
-            
+
         case .trashContainer:
             Log.info("Getting item TRASH does not make sense", domain: .fileProvider)
             return .failure(Errors.requestedItemForTrash(identifier: identifier))
@@ -144,7 +154,11 @@ public final class ItemProvider {
             }
             do {
                 let item = try NodeItem(node: node)
-                Log.debug("Got item \(~item)", domain: .fileProvider)
+                #if DEBUG
+                Log.debug("Got item \(item.filename), \(item.itemIdentifier)", domain: .fileProvider)
+                #else
+                Log.debug("Got item \(item.itemIdentifier)", domain: .fileProvider)
+                #endif
                 return .success(item)
             } catch {
                 return .failure(Errors.itemCannotBeCreated)
@@ -160,7 +174,7 @@ public final class ItemProvider {
         fileSystemSlot: FileSystemSlot,
         cloudSlot: any CloudSlotProtocol,
         pool: AsyncManagedObjectContextPool,
-        featureFlags: FeatureFlagsRepository?
+        featureFlags: DriveFeatureFlagsProvider?
     ) async -> Result<NSFileProviderItem, Error> {
         let localItemOrError = await pool.withContext { moc in
             self.localItem(for: identifier, creatorAddresses: creatorAddresses, fileSystemSlot: fileSystemSlot, moc: moc)
@@ -244,216 +258,16 @@ public final class ItemProvider {
             }
         }
     }
-    
-#if os(iOS)
-
-    /// Fetches contents, checking whether a node exists remotely if it doesn't exist locally, and asynchronously returns a Progress object.
-    // swiftlint:disable:next function_parameter_count
-    @discardableResult
-    public func fetchContents(
-        for itemIdentifier: NSFileProviderItemIdentifier,
-        version requestedVersion: NSFileProviderItemVersion? = nil,
-        nodeFetcher: (NSFileProviderItemIdentifier, NSManagedObjectContext) async -> Node?,
-        downloader: Downloader,
-        moc: NSManagedObjectContext,
-        useRefreshableDownloadOperation: Bool,
-        completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void) async -> Progress
-    {
-        Log.info("Start fetching contents for \(itemIdentifier)", domain: .fileProvider)
-
-        guard let file = await nodeFetcher(itemIdentifier, moc) as? File
-        else {
-            Log.error(error: Errors.nodeNotFound(identifier: itemIdentifier), domain: .fileProvider)
-            completionHandler(nil, nil, Errors.nodeNotFound(identifier: itemIdentifier))
-            return Progress { _ in
-                Log.info("Fetch contents for \(itemIdentifier) cancelled", domain: .fileProvider)
-                completionHandler(nil, nil, CocoaError(.userCancelled))
-            }
-        }
-
-        return getProgress(
-            for: file,
-            moc: moc,
-            downloader: downloader,
-            useRefreshableDownloadOperation: useRefreshableDownloadOperation,
-            completionHandler: completionHandler)
-    }
-
-    /// Fetches contents without checking whether a node exists remotely if it doesn't exist locally, and synchronously returns a Progress object.
-    // swiftlint:disable:next function_parameter_count
-    @discardableResult
-    public func legacyFetchContents(
-        for itemIdentifier: NSFileProviderItemIdentifier,
-        version requestedVersion: NSFileProviderItemVersion? = nil,
-        fileSystemSlot: FileSystemSlot,
-        downloader: Downloader,
-        moc: NSManagedObjectContext,
-        useRefreshableDownloadOperation: Bool,
-        completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void) -> Progress
-    {
-        Log.info("Start fetching contents for \(itemIdentifier)", domain: .fileProvider)
-
-        guard let fileId = NodeIdentifier(itemIdentifier) else {
-            Log.error(error: Errors.nodeIdentifierNotFound(identifier: itemIdentifier), domain: .fileProvider)
-            completionHandler(nil, nil, Errors.nodeIdentifierNotFound(identifier: itemIdentifier))
-            return Progress { _ in
-                Log.info("Fetch contents for \(itemIdentifier) cancelled", domain: .fileProvider)
-                completionHandler(nil, nil, CocoaError(.userCancelled))
-            }
-        }
-        guard let file = fileSystemSlot.getNode(fileId, moc: moc) as? File else {
-            Log.error(error: Errors.nodeNotFound(identifier: itemIdentifier), domain: .fileProvider)
-            completionHandler(nil, nil, Errors.nodeNotFound(identifier: itemIdentifier))
-            return Progress { _ in
-                Log.info("Fetch contents for \(itemIdentifier) cancelled", domain: .fileProvider)
-                completionHandler(nil, nil, CocoaError(.userCancelled))
-            }
-        }
-
-        return getProgress(
-            for: file,
-            moc: moc,
-            downloader: downloader,
-            useRefreshableDownloadOperation: useRefreshableDownloadOperation,
-            completionHandler: completionHandler)
-    }
-
-    private func getProgress(
-        for file: File,
-        moc: NSManagedObjectContext,
-        downloader: Downloader,
-        useRefreshableDownloadOperation: Bool,
-        completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void
-    ) -> Progress {
-        Log.info("- identifier \(file.identifier) stands for \(~file)", domain: .fileProvider)
-
-        // check if cyphertext of active revision is already available locally
-        if let revision = cachedRevision(for: file, on: moc) {
-            let task = Task { [weak self] in
-                do {
-                    guard !Task.isCancelled else { return }
-                    guard let clearUrl = try await self?.decryptor.decrypt(revision, on: moc) else { return }
-                    Log.info("Found cached cypherdata for \(~file), prepared cleartext at temp location", domain: .fileProvider)
-                    do {
-                        let item = try NodeItem(node: file)
-                        completionHandler(clearUrl, item, nil)
-                    } catch {
-                        completionHandler(nil, nil, error)
-                    }
-                } catch {
-                    guard !Task.isCancelled else { return }
-                    // if can not decrypted, proceed to download
-                    self?.downloadAndDecrypt(
-                        file,
-                        downloader: downloader,
-                        moc: moc,
-                        useRefreshableDownloadOperation: useRefreshableDownloadOperation,
-                        completionHandler: completionHandler
-                    )
-                }
-            }
-            return Progress { _ in
-                Log.info("Fetch contents for \(file.identifier) cancelled", domain: .fileProvider)
-                task.cancel()
-                completionHandler(nil, nil, CocoaError(.userCancelled))
-            }
-        } else {
-            // if not cached, proceed to download
-            return downloadAndDecrypt(
-                file,
-                downloader: downloader,
-                moc: moc,
-                useRefreshableDownloadOperation: useRefreshableDownloadOperation,
-                completionHandler: completionHandler
-            )
-        }
-    }
-    
-    @discardableResult
-    private func downloadAndDecrypt(
-        _ file: File,
-        downloader: Downloader,
-        moc: NSManagedObjectContext,
-        useRefreshableDownloadOperation: Bool,
-        completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void) -> Progress {
-            Log.info("Schedule download operation for \(~file)", domain: .fileProvider)
-            let operation = downloader.scheduleDownloadFileProvider(
-                cypherdataFor: file,
-                useRefreshableDownloadOperation: useRefreshableDownloadOperation
-            ) { [unowned self] result in
-                switch result {
-                case let .success(fileInOtherMoc):
-                    let file = fileInOtherMoc.in(moc: moc)
-
-                    guard let revision = cachedRevision(for: file, on: moc) else {
-                        Log.error(error: Errors.revisionNotFound, domain: .fileProvider)
-                        completionHandler(nil, nil, Errors.revisionNotFound)
-                        return
-                    }
-
-                    Task { [weak self] in
-                        do {
-                            guard let url = try await self?.decryptor.decrypt(revision, on: moc) else { return }
-
-                            Log.info("Prepared cleartext content of \(~file) at temp location", domain: .fileProvider)
-                            let item = try NodeItem(node: file)
-
-                            moc.performAndWait {
-#if os(macOS)
-                                file.activeRevision?.removeOldBlocks(in: moc)
-                                try? moc.saveOrRollback()
-#else
-                                moc.reset()
-#endif
-                            }
-                            completionHandler(url, item, nil)
-                        } catch {
-                            Log.error(error: error, domain: .fileProvider)
-                            completionHandler(nil, nil, error)
-                        }
-                    }
-
-                case let .failure(error):
-                    Log.error(error: error, domain: .fileProvider)
-                    completionHandler(nil, nil, error)
-                }
-            }
-
-            return (operation as? OperationWithProgress).map {
-                $0.progress.setOneTimeCancellationHandler { [weak operation] _ in
-                    Log.info("Download and decrypt operation cancelled", domain: .fileProvider)
-                    operation?.cancel()
-                    completionHandler(nil, nil, CocoaError(.userCancelled))
-                }
-            } ?? Progress { [weak operation] _ in
-                Log.info("Download and decrypt operation cancelled", domain: .fileProvider)
-                operation?.cancel()
-                completionHandler(nil, nil, CocoaError(.userCancelled))
-            }
-        }
-
-    private func cachedRevision(for file: File, on moc: NSManagedObjectContext) -> PDCore.Revision? {
-        return moc.performAndWait {
-            guard let revision = file.activeRevision else { return nil }
-            #if os(macOS)
-            return revision.blocksAreValid() ? revision : nil
-            #else
-            return revision.isAvailableLocally() ? revision : nil
-            #endif
-        }
-    }
-    
-#endif
 }
 
 #if os(macOS)
 extension ItemProvider {
-    
+
     private func enqueueInBatch(
         nodeId: NodeIdentifier,
         cloudSlot: any CloudSlotProtocol,
         pool: AsyncManagedObjectContextPool,
-        featureFlags: FeatureFlagsRepository?
+        featureFlags: DriveFeatureFlagsProvider?
     ) async throws {
         // Lock-protected so concurrent first-time access can't construct two batchers.
         let metadataBatcher: RequestBatcher<String, String, Void> = metadataBatcherLock.withLock {
@@ -491,7 +305,7 @@ extension ItemProvider {
         shareID: String,
         cloudSlot: CloudSlot?,
         pool: AsyncManagedObjectContextPool?,
-        featureFlags: FeatureFlagsRepository?
+        featureFlags: DriveFeatureFlagsProvider?
     ) async -> [String: Result<Void, Error>] {
         guard let cloudSlot, let pool else {
             Log.error("Metadata batch flush dropped — cloudSlot or pool deallocated", domain: .fileProvider)
@@ -519,8 +333,8 @@ extension ItemProvider {
             return Dictionary(uniqueKeysWithValues: linkIDs.map { ($0, .failure(error)) })
         }
     }
-    
-    private static func flushMetadataBatchOneAtATime(_ shareID: String, _ linkIDs: [String], _ pool: AsyncManagedObjectContextPool, _ cloudSlot: CloudSlot) async -> [String : Result<Void, any Error>] {
+
+    private static func flushMetadataBatchOneAtATime(_ shareID: String, _ linkIDs: [String], _ pool: AsyncManagedObjectContextPool, _ cloudSlot: CloudSlot) async -> [String: Result<Void, any Error>] {
         Log.info(
             "Metadata batch flush degrading to legacy per-item (share=\(shareID), \(linkIDs.count) links)",
             domain: .fileProvider

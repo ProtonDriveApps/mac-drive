@@ -16,8 +16,9 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import ApplicationServices
-import PDCore
 import AppKit
+import Combine
+import PDCore
 
 enum TestRunnerAction {
     case logIn(String, String)
@@ -33,6 +34,12 @@ enum TestRunnerAction {
     case keepOnlineOnly(String)
     case startFullResync
     case finishFullResync
+    case waitForFullResync
+#if HAS_QA_FEATURES
+    case simulateRefreshEventResync
+#endif
+    case setDomainReconnection(String)
+    case setScanEngine(String)
     case dumpDiagnostics(String)
     case openMenu
     case closeOnboardingWindow
@@ -79,6 +86,16 @@ enum TestRunnerAction {
             self = .startFullResync
         case "full_resync_finish":
             self = .finishFullResync
+        case "full_resync_wait":
+            self = .waitForFullResync
+#if HAS_QA_FEATURES
+        case "full_resync_refresh_event":
+            self = .simulateRefreshEventResync
+#endif
+        case let message where message.hasPrefix("set_domain_reconnection/"):
+            self = .setDomainReconnection(String(message.dropFirst("set_domain_reconnection/".count)))
+        case let message where message.hasPrefix("set_scan_engine/"):
+            self = .setScanEngine(String(message.dropFirst("set_scan_engine/".count)))
         case let message where message.hasPrefix("diagnostics/"):
             self = .dumpDiagnostics(String(message.dropFirst(12)))
         case "open_menu":
@@ -93,6 +110,15 @@ enum TestRunnerAction {
             self = .log(String(message.dropFirst(4)))
         default:
             return nil
+        }
+    }
+
+    /// Apple Event reply timeout for this action. Most actions finish quickly; the blocking
+    /// full-resync wait needs a window larger than the 1800s Phase 2 cap it can reach.
+    var timeout: TimeInterval {
+        switch self {
+        case .waitForFullResync: 1830
+        default: 180
         }
     }
 
@@ -143,10 +169,24 @@ enum TestRunnerAction {
             userActions.fileProvider.keepOnlineOnly(paths: paths.components(separatedBy: ":"))
 
         case .startFullResync:
-            userActions.resync.performFullResync()
+            await userActions.resync.performFullResync()
 
         case .finishFullResync:
             userActions.resync.finishFullResync()
+
+        case .waitForFullResync:
+            return await testRunner.waitForFullResync()
+
+#if HAS_QA_FEATURES
+        case .simulateRefreshEventResync:
+            await userActions.resync.simulateRefreshEventResync()
+#endif
+
+        case .setDomainReconnection(let value):
+            return testRunner.setDomainReconnectionOverride(value)
+
+        case .setScanEngine(let value):
+            return testRunner.setScanEngineOverride(value)
 
         case .openMenu:
             userActions.app.toggleStatusWindow(onlyOpen: true)
@@ -178,6 +218,7 @@ class TestRunner {
     private let appCoordinator: AppCoordinator
     private let userActions: UserActions
     private var testRunId: String?
+    private var syncStateObservation: AnyCancellable?
 
     init(coordinator: AppCoordinator) {
         self.appCoordinator = coordinator
@@ -206,25 +247,32 @@ class TestRunner {
 
         Log.trace("\(action)")
 
-        /// This method must stay synchronous (Apple Event reply contract), but `action.run` is async.
-        /// `SyncAwait.runOnMainLoop` spins the run loop while waiting so login/UI work can progress.
-        let resultString: String?
-        do {
-            resultString = try SyncAwait.runOnMainLoop(timeout: .seconds(180)) {
-                await action.run(self.userActions, self)
-            } ?? nil
-        } catch {
-            reportError("Action failed: \(error)", reply: reply)
-            return
+        /// This is necessary because this method is synchronous, and `reply` has to be modified before it exits -
+        /// but action.run() has to be asynchronous because otherwise we still wouldn't be able to wait until the action is completed.
+        let semaphore = DispatchSemaphore(value: 0)
+
+        var resultString: String?
+        Task.detached {
+            resultString = await action.run(self.userActions, self)
+            semaphore.signal()
         }
 
-        guard let resultString else {
-            reportError("Timed out while handling action: \(urlString)", reply: reply)
-            return
+        // Keep this handler synchronous (Apple Event reply contract), but do not hard-block
+        // the main thread: spin the run loop while waiting so login/UI work can progress.
+        let timeout: TimeInterval = action.timeout
+        let timeoutDate = Date().addingTimeInterval(timeout)
+        while semaphore.wait(timeout: .now()) != .success {
+            guard Date() < timeoutDate else {
+                reportError("Timed out while handling action: \(urlString)", reply: reply)
+                return
+            }
+            _ = RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.05))
         }
 
-        let responseDescriptor = NSAppleEventDescriptor(string: resultString)
-        reply.setParam(responseDescriptor, forKeyword: keyDirectObject)
+        if let resultString {
+            let responseDescriptor = NSAppleEventDescriptor(string: resultString)
+            reply.setParam(responseDescriptor, forKeyword: keyDirectObject)
+        }
     }
 
     /// If an error has occurred, the response will be prefixed with "Error: "
@@ -240,13 +288,28 @@ class TestRunner {
         writeTestRunId(testRunId)
         Log.configureAppForTesting(testRunId: testRunId)
         Log.info("Began logging test run \(testRunId)", domain: .testRunner)
+        startApplicationStateLogging()
+        writeSyncStateProperties(appCoordinator.appState)
     }
 
     fileprivate func endTest() {
         Log.info("Will stop logging test run \(testRunId ?? "n/a")", domain: .testRunner)
+        syncStateObservation = nil
         testRunId = nil
         deleteTestRunIdFile()
         Log.configureAppForTesting(testRunId: nil)
+    }
+
+    private func startApplicationStateLogging() {
+        syncStateObservation = appCoordinator.appState.objectWillChange
+            .sink { [weak self] in
+                // ObservableObject publishes before mutating. Defer the read so the file
+                // contains the state that triggered this notification.
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    self.writeSyncStateProperties(self.appCoordinator.appState)
+                }
+            }
     }
 
     /// Waits for login to complete and returns a result string
@@ -277,6 +340,100 @@ class TestRunner {
         let errorMessage = "Login timed out after \(timeout) seconds"
         Log.error(errorMessage, domain: .testRunner)
         return "ERROR: \(errorMessage)"
+    }
+
+    /// Blocks until the login/reconnection full resync reaches a terminal state, then reports the outcome.
+    /// Phase 1: fail if the resync has not started (left `.idle`) within 120s.
+    /// Phase 2: wait up to 1800s for `.completed` (→ "OK") or `.errored` (→ "ERROR: …").
+    fileprivate func waitForFullResync() async -> String {
+        Log.trace("Waiting for full resync", domain: .testRunner)
+
+        let pollInterval: TimeInterval = 1
+
+        // Phase 1: wait for the resync to start.
+        let startDeadline = Date().addingTimeInterval(120)
+        while true {
+            if case .idle = appCoordinator.appState.fullResyncState {
+                guard Date() < startDeadline else {
+                    let message = "ERROR: full resync did not start within 120s"
+                    Log.error(message, domain: .testRunner)
+                    return message
+                }
+                try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
+            } else {
+                break
+            }
+        }
+
+        // Phase 2: wait for a terminal state.
+        let completionDeadline = Date().addingTimeInterval(1800)
+        while true {
+            switch appCoordinator.appState.fullResyncState {
+            case .completed(_, let warning):
+                let message = warning.map { "OK (warning: \($0))" } ?? "OK"
+                Log.info("Full resync finished: \(message)", domain: .testRunner)
+                return message
+            case .errored(let error):
+                let message = "ERROR: \(error)"
+                Log.error(message, domain: .testRunner)
+                return message
+            default:
+                guard Date() < completionDeadline else {
+                    let message = "ERROR: full resync did not complete within 1800s"
+                    Log.error(message, domain: .testRunner)
+                    return message
+                }
+                try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
+            }
+        }
+    }
+
+    /// Sets the test-automation domain-reconnection override in `RuntimeConfiguration`, read by
+    /// `DomainOperationsService`. "on" forces reconnection, "off" forces removal, "ff" clears the
+    /// override (defer to the feature flag).
+    fileprivate func setDomainReconnectionOverride(_ value: String) -> String {
+        let forced: Bool?
+        switch value {
+        case "on":
+            forced = true
+        case "off":
+            forced = false
+        case "ff":
+            forced = nil
+        default:
+            return "ERROR: unknown set_domain_reconnection value '\(value)' (expected on|off|ff)"
+        }
+        do {
+            try RuntimeConfiguration.shared.setForceDomainReconnection(forced)
+        } catch {
+            return "ERROR: could not persist domain reconnection override: \(error)"
+        }
+        Log.info("Set domain reconnection override to \(value)", domain: .testRunner)
+        return "OK"
+    }
+
+    /// Sets the test-automation scan-engine override in `RuntimeConfiguration`, read by
+    /// `RefreshingNodesService` via an injected closure. "v2" forces the v2 engine, "v1" forces v1,
+    /// "ff" clears the override (defer to the feature flag).
+    fileprivate func setScanEngineOverride(_ value: String) -> String {
+        let forcedV2: Bool?
+        switch value {
+        case "v2":
+            forcedV2 = true
+        case "v1":
+            forcedV2 = false
+        case "ff":
+            forcedV2 = nil
+        default:
+            return "ERROR: unknown set_scan_engine value '\(value)' (expected v1|v2|ff)"
+        }
+        do {
+            try RuntimeConfiguration.shared.setForceSyncMetadataScanV2(forcedV2)
+        } catch {
+            return "ERROR: could not persist scan engine override: \(error)"
+        }
+        Log.info("Set scan engine override to \(value)", domain: .testRunner)
+        return "OK"
     }
 
     fileprivate func dump(diagnostics diagnosticsString: String) async {
@@ -343,7 +500,6 @@ class TestRunner {
             }
         }
 
-
         Task { @MainActor in
             if let window = NSApplication.shared.windows.first {
                 let fileURL = testLogDirectory.appendingPathComponent("\(filename)_icon.png")
@@ -371,7 +527,9 @@ class TestRunner {
                     "isSyncing",
                     "isEnumerating",
                     "itemEnumerationProgress",
-                    "globalSyncStateDescription"
+                    "globalSyncStateDescription",
+                    "fullResyncState",
+                    "fullResyncState.description"
                 ].contains($0.name)
             }
 

@@ -312,6 +312,7 @@ final class GroupContainerMigrator: GroupContainerMigratorProtocol {
     
     private func createWindow() -> NSWindow {
         let window = NSWindow()
+        window.isReleasedWhenClosed = false
         window.makeKeyAndOrderFront(nil)
         window.close()
         windowsForErrors.append(window)

@@ -137,20 +137,6 @@ struct QASettingsView: View {
 
                 GroupBox {
                     VStack(alignment: .leading, spacing: 16) {
-                        if vm.domainDisconnected {
-                            Button("Reconnect domain") {
-                                vm.sendNotificationToReconnectDomain()
-                            }
-                            .buttonStyle(.bordered)
-                            .frame(maxWidth: .infinity)
-                        } else {
-                            Button("Disconnect domain") {
-                                vm.sendNotificationToDisconnectDomain()
-                            }
-                            .buttonStyle(.bordered)
-                            .frame(maxWidth: .infinity)
-                        }
-                        
                         Button("Clear credentials and crash") {
                             vm.clearCredentials()
                         }
@@ -222,6 +208,19 @@ struct QASettingsView: View {
                             .pickerStyle(SegmentedPickerStyle())
 
                             Text("Backend feature flag value: \(vm.domainReconnectionFeatureFlagValue ? "true" : "false")")
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Sync scan engine:")
+                                .fontWeight(.bold)
+                            Picker("", selection: $vm.syncMetadataScanEngine) {
+                                ForEach(QASettingsViewModel.FeatureFlagOptions.allCases.map(\.rawValue), id: \.self) {
+                                    Text($0)
+                                }
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                            Text("'enabled' = use V2, 'disabled' = use V1, 'useFF' = follow the backend flag. Applies to the next resync.")
+                            Text("Backend feature flag value (V2 enabled): \(vm.syncMetadataScanV2EnabledFeatureFlagValue ? "true" : "false")")
                         }
                     }
                 } label: {
