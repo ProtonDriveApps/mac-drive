@@ -226,10 +226,10 @@ class UserActions {
             delegate?.dismissPromoBanner()
         }
 
-        func goToPromoPageOnWeb(email: String?) {
+        func goToPromoPageOnWeb(email: String?, trackingReference: String?) {
             // reuse LinkActions to go to drive dashboard
             Log.userAction(["email": email])
-            LinkActions().getMoreStorage(email: email)
+            LinkActions().getMoreStorage(email: email, trackingReference: trackingReference)
         }
     }
 
@@ -386,7 +386,6 @@ class UserActions {
     class LinkActions {
         private let driveWebsiteURL: URL = URL(string: "https://drive.proton.me")!
         private let manageAccountURL: URL = URL(string: "https://account.proton.me/drive/account-password")!
-        private let getMoreStorageURL: URL = URL(string: "https://account.proton.me/drive/dashboard")!
         private let termsAndConditionsURL: URL = URL(string: "https://proton.me/legal/terms-ios")!
         private let reportBugURL = URL(string: "https://proton.me/support/contact")!
 
@@ -419,9 +418,17 @@ class UserActions {
             open(url: manageAccountURL.appending(email: email))
         }
 
-        func getMoreStorage(email: String?) {
+        func getMoreStorage(email: String?, trackingReference: String? = nil) {
             Log.userAction()
-            open(url: getMoreStorageURL.appending(email: email))
+            open(url: Self.storageUpgradeURL(email: email, trackingReference: trackingReference))
+        }
+
+        static func storageUpgradeURL(email: String?, trackingReference: String? = nil) -> URL {
+            var url = URL(string: "https://account.proton.me/drive/dashboard")!.appending(email: email)
+            if let trackingReference {
+                url.append(queryItems: [URLQueryItem(name: "ref", value: trackingReference)])
+            }
+            return url
         }
 
         func showTermsAndConditions() {

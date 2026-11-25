@@ -60,7 +60,7 @@ extension SessionVault: @retroactive AccountClientProtocol, @unchecked Sendable 
         return getPublicKeys(for: emailAddress)
             .map { Data($0.utf8) }
     }
-
+    
     // MARK: - Private
 
     private func getProtonCoreAddress(addressId: String) -> Address? {

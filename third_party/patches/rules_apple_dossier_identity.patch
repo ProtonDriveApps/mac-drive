@@ -1,0 +1,30 @@
+diff --git a/apple/internal/platform_support.bzl b/apple/internal/platform_support.bzl
+--- a/apple/internal/platform_support.bzl
++++ b/apple/internal/platform_support.bzl
+@@ -168,6 +168,15 @@
+ 
+     return struct(
+         apple_fragment = apple_fragment,
++        # Pass only recipe identities to helpers without a rule context.
++        drive_cache_identity = {
++            key: value
++            for key, value in apple_platform_info.target_build_config.default_shell_env.items()
++            if key in [
++                "DRIVE_BUILD_HOST",
++                "DRIVE_BUILD_XCODE",
++            ]
++        },
+         build_settings = build_settings,
+         config_vars = config_vars,
+         cpp_fragment = cpp_fragment,
+diff --git a/apple/internal/partials/codesigning_dossier.bzl b/apple/internal/partials/codesigning_dossier.bzl
+--- a/apple/internal/partials/codesigning_dossier.bzl
++++ b/apple/internal/partials/codesigning_dossier.bzl
+@@ -202,6 +202,7 @@
+     common_combined_dossier_zip_args = {
+         "mnemonic": "CreateCombinedDossierZip",
++        "env": platform_prerequisites.drive_cache_identity,
+         "outputs": [output_combined_zip],
+         "progress_message": "Creating combined dossier zip for %s" % label_name,
+     }
+ 

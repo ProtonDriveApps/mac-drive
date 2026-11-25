@@ -40,7 +40,7 @@ public actor DriveSDKIntegrityErrorMonitor {
         let event = ObservabilityEvent(
             name: DriveSDKIntegrityObservabilityName.decryptionErrorsTotal.rawValue,
             labels: label,
-            version: .v1
+            version: .v2
         )
         environment.report(event)
     }
@@ -60,12 +60,12 @@ public actor DriveSDKIntegrityErrorMonitor {
         let event = ObservabilityEvent(
             name: DriveSDKIntegrityObservabilityName.verificationErrorsTotal.rawValue,
             labels: label,
-            version: .v1
+            version: .v2
         )
         environment.report(event)
     }
 
-    public func reportErroringUser(volumeType: String, userPlan: String) {
+    public func reportErroringUser(volumeType: String, userPlan: String, causedBy: DriveObservabilityCausedBy) {
         let current = dateResource.getDate()
         guard isAllowedToReportErroringUser(current: current) else { return }
         lastReportedDate = current
@@ -73,7 +73,8 @@ public actor DriveSDKIntegrityErrorMonitor {
             name: DriveSDKIntegrityObservabilityName.erroringUsersTotal.rawValue,
             labels: [
                 DriveSDKObservabilityLabelKey.volumeType.rawValue: volumeType,
-                DriveSDKObservabilityLabelKey.userPlan.rawValue: userPlan
+                DriveSDKObservabilityLabelKey.userPlan.rawValue: userPlan,
+                DriveSDKObservabilityLabelKey.causedBy.rawValue: causedBy.rawValue
             ],
             version: .v1
         )

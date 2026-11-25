@@ -1,0 +1,17 @@
+diff --git a/apple/testing/default_runner/macos_test_runner.template.sh b/apple/testing/default_runner/macos_test_runner.template.sh
+--- a/apple/testing/default_runner/macos_test_runner.template.sh
++++ b/apple/testing/default_runner/macos_test_runner.template.sh
+@@ -173,2 +173,13 @@
+ TEST_ENV="%(test_env)s"
++# Forward declared runtime values into the app, not the compilation graph.
++ENV_INHERIT=%(test_env_inherit)s
++for env_var in "${ENV_INHERIT[@]:-}"; do
++  if declare -p "$env_var" &>/dev/null; then
++    if [[ -n "$TEST_ENV" ]]; then
++      TEST_ENV="$TEST_ENV,$env_var=${!env_var}"
++    else
++      TEST_ENV="$env_var=${!env_var}"
++    fi
++  fi
++done
+ if [[ -n "$TEST_ENV" ]]; then

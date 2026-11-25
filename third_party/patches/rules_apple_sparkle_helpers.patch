@@ -1,0 +1,32 @@
+diff --git a/tools/imported_dynamic_framework_processor/imported_dynamic_framework_processor.py b/tools/imported_dynamic_framework_processor/imported_dynamic_framework_processor.py
+--- a/tools/imported_dynamic_framework_processor/imported_dynamic_framework_processor.py
++++ b/tools/imported_dynamic_framework_processor/imported_dynamic_framework_processor.py
+@@ -158,1 +158,1 @@
+-  os.chmod(temp_framework_path, 0o755 if executable else 0o644)
++  os.chmod(temp_framework_path, 0o755 if executable or os.access(framework_file, os.X_OK) else 0o644)
+@@ -379,3 +379,25 @@
+   # Attempt to sign the framework, check for an error when signing.
+   if not args.disable_signing:
++    # Sparkle documents separate signing for its nested helpers. Never use
++    # --deep signing: retain each helper's own vendor entitlements.
++    # Sign helpers before sealing the containing framework, with the same
++    # identity/profile lookup and timestamp policy as the enclosing action.
++    if framework_name == "Sparkle":
++      helper_root = version_dir if is_versioned_framework else args.temp_path
++      for relative in ("XPCServices/Installer.xpc", "XPCServices/Downloader.xpc",
++                       "Autoupdate", "Updater.app"):
++        helper = os.path.join(helper_root, relative)
++        if not os.path.exists(helper):
++          continue
++        nested = argparse.Namespace(**vars(args))
++        nested.target_to_sign = [helper]
++        nested.directory_to_sign = None
++        nested.signed_path = None
++        nested.force = True
++        nested.extra = ["--", "--options=runtime",
++                        "--preserve-metadata=entitlements"]
++        status_code = codesigningtool.find_identity_and_sign_bundle_paths(nested)
++        if status_code:
++          return status_code
++      args.extra = ["--", *(args.extra or ["--"])[1:], "--options=runtime"]
+     status_code = codesigningtool.find_identity_and_sign_bundle_paths(args)

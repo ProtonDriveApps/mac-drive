@@ -33,9 +33,9 @@ public struct NoConnectionView: View {
         refresh: @escaping () -> Void
     ) {
         _isUpdating = isUpdating
-        self.didAlreadyShow = didAlreadyShow
         self.config = config
         self.refresh = refresh
+        self.didAlreadyShow = didAlreadyShow
     }
     
     public var body: some View {
@@ -52,6 +52,7 @@ public struct NoConnectionView: View {
                         action: refresh
                     )
                     .fixedSize()
+                    .accessibilityIdentifier("placeholderView-refreshButton")
                     .padding(.top)
 
                     Spacer()

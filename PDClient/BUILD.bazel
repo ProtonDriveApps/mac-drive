@@ -1,0 +1,17 @@
+load("@rules_swift//swift:swift.bzl", "swift_library")
+
+package(default_visibility = ["//visibility:public"])
+
+swift_library(
+    name = "PDClient",
+    module_name = "PDClient",
+    srcs = glob(["PDClient/**/*.swift"]),
+    deps = [
+        "@swiftpkg_protoncore_ios//:ProtonCoreEnvironment",
+        "@swiftpkg_protoncore_ios//:ProtonCoreNetworking",
+        "@swiftpkg_protoncore_ios//:ProtonCoreServices",
+        "@swiftpkg_protoncore_ios//:ProtonCoreUtilities",
+        "@swiftpkg_sentry_cocoa//:Sentry",
+        "@swiftpkg_unleash_ios_sdk//:UnleashProxyClientSwift",
+    ],
+)

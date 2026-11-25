@@ -23,11 +23,8 @@ import Foundation
 /// family wait at `waitIfNeeded` until the window expires, instead of
 /// racing against an active rate-limit.
 public actor RateLimitGate: Sendable {
-    public typealias Now = @Sendable () -> Date
-    public typealias Sleep = @Sendable (Duration) async throws -> Void
-
-    private let now: Now
-    private let sleep: Sleep
+    private let dateResource: DateResource
+    private let sleepResource: TaskSleepResource
     private let defaultRetryAfterSeconds: TimeInterval
     private let maxJitterFactor: Double
     private var blockedUntil: [String: Date] = [:]
@@ -35,13 +32,13 @@ public actor RateLimitGate: Sendable {
     public init(
         defaultRetryAfterSeconds: TimeInterval = 30,
         maxJitterFactor: Double = 0.2,
-        now: @escaping Now = { Date.now },
-        sleep: @escaping Sleep = { try await Task.sleep(for: $0) }
+        dateResource: DateResource,
+        sleepResource: TaskSleepResource
     ) {
         self.defaultRetryAfterSeconds = defaultRetryAfterSeconds
         self.maxJitterFactor = maxJitterFactor
-        self.now = now
-        self.sleep = sleep
+        self.dateResource = dateResource
+        self.sleepResource = sleepResource
     }
 
     /// Suspends the caller until the family's blocked-until time has passed.
@@ -55,11 +52,11 @@ public actor RateLimitGate: Sendable {
     /// without recursing — the caller's next await (e.g. URLSession in
     /// `Client.attemptRequest`) will observe the cancellation.
     public func waitIfNeeded(family: String) async {
-        let nowDate = now()
+        let nowDate = dateResource.getDate()
         guard let until = blockedUntil[family], until > nowDate else { return }
         let delay = until.timeIntervalSince(nowDate)
         do {
-            try await sleep(.seconds(delay))
+            try await sleepResource.sleep(for: .seconds(delay))
         } catch {
             return
         }
@@ -73,7 +70,7 @@ public actor RateLimitGate: Sendable {
     public func recordRateLimited(retryAfter: TimeInterval?, family: String, source: String) {
         let base = max(0, retryAfter ?? defaultRetryAfterSeconds)
         let jittered = base + Self.jitter(base: base, maxFactor: maxJitterFactor)
-        let candidate = now().addingTimeInterval(jittered)
+        let candidate = dateResource.getDate().addingTimeInterval(jittered)
         let existing = blockedUntil[family] ?? .distantPast
         let chosen = max(existing, candidate)
         blockedUntil[family] = chosen

@@ -34,14 +34,20 @@ struct PhotoUpdateOperationStreamBuilder {
             }
         }
 
-        return NodeOperationStreamEngine(metadataUpdater: metadataUpdater).streamNodeResults(
+        return SDKOperationStreamEngine(metadataUpdater: metadataUpdater).streamNodeResults(
             moc: moc,
             applyFailureLogMessage: "Failed to apply local photo update results",
             invoke: { onNodeResult in
                 try await client.updatePhotos(updates, onNodeResult: onNodeResult)
             },
-            applyBatch: { batch, _ in
-                batch.compactMap { result in
+            applyBatch: { batch, moc in
+                try await metadataUpdater.finishPhotoTagsUpdates(
+                    updates: updates,
+                    results: batch,
+                    tagRepository: PhotoTagUpdateRepository(),
+                    moc: moc
+                )
+                return batch.compactMap { result in
                     guard result.error == nil else { return nil }
                     return AnyVolumeIdentifier(id: result.nodeUid.nodeID, volumeID: result.nodeUid.volumeID)
                 }

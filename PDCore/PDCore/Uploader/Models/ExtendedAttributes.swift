@@ -86,6 +86,8 @@ public class ExtendedAttributes: NSObject, Codable {
     
     public struct Camera: Codable, Equatable {
         public let fieldName = "Camera"
+        /// 2026.Sep.24 clarify in document!612
+        /// Camera.CaptureTime should be used in the UI to have the correct offset
         public let captureTime: String?
         public let device: String?
         public let orientation: Int?

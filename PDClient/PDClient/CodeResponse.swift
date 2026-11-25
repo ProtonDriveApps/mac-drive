@@ -19,4 +19,8 @@ import Foundation
 
 public struct CodeResponse: Codable {
     public let code: Int
+
+    public init(code: Int) {
+        self.code = code
+    }
 }

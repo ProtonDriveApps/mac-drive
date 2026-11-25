@@ -1,0 +1,19 @@
+# Make the small upstream fixes available to MODULE.bazel as declared inputs.
+exports_files([
+    "rules_apple_signing_fingerprint.patch",
+    "rules_apple_sparkle_helpers.patch",
+    "rules_apple_inherited_environment.patch",
+    "rules_apple_host_archive_name.patch",
+    "snapshot_testing_managed_references.patch",
+    "rules_apple_dossier_identity.patch",
+    "rules_python_policy_identity.patch",
+    "apple_support_private_tmp.patch",
+    "rules_swift_private_tmp.patch",
+    "rules_apple_bundle_order.patch",
+    "rules_apple_framework_timestamps.patch",
+    "rules_apple_bundle_environment.patch",
+    "rules_apple_archive_copy_environment.patch",
+    "rules_apple_native_asset_action.patch",
+    "rules_apple_native_storyboard_action.patch",
+    "swiftotp_explicit_crypto_product.patch",
+])

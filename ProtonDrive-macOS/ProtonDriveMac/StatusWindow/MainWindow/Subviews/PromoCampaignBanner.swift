@@ -32,7 +32,7 @@ struct PromoCampaignBanner: View {
                 Spacer()
                     .frame(width: 16)
                 Label(campaign.text, image: campaign.icon.imageName)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 14, weight: campaign.fontWeight))
                     .foregroundStyle(campaign.tintColor)
                 Spacer()
                 Button(
@@ -45,9 +45,24 @@ struct PromoCampaignBanner: View {
                     .frame(width: 16)
             }
             .contentShape(Rectangle())
-            .onTapGesture { self.actions.promo.goToPromoPageOnWeb(email: state.accountInfo?.email) }
+            .onTapGesture {
+                self.actions.promo.goToPromoPageOnWeb(
+                    email: state.accountInfo?.email,
+                    trackingReference: campaign.trackingReference
+                )
+            }
             .frame(minHeight: 36, maxHeight: 36)
-            .background(campaign.backgroundColor)
+            .background {
+                if let background = campaign.backgroundGradient {
+                    LinearGradient(
+                        gradient: background.gradient,
+                        startPoint: background.startPoint,
+                        endPoint: background.endPoint
+                    )
+                } else {
+                    campaign.backgroundColor
+                }
+            }
         }
     }
 }

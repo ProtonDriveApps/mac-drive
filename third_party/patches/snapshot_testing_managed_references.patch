@@ -1,0 +1,22 @@
+--- a/Sources/SnapshotTesting/AssertSnapshot.swift
++++ b/Sources/SnapshotTesting/AssertSnapshot.swift
+@@ -304,2 +304,8 @@
+-  let record = record ?? SnapshotTestingConfiguration.current?.record ?? _record
++  // Managed Bazel verification reads declared references and never records them.
++  // Override caller/configuration recording choices while grading references.
++  let managedRoot = ProcessInfo.processInfo.environment["DRIVE_SNAPSHOT_REFERENCE_ROOT"]
++  if managedRoot != nil && snapshotDirectory != nil {
++    return "Managed snapshots do not accept an explicit snapshotDirectory"
++  }
++  let record: SnapshotTestingConfiguration.Record = managedRoot != nil ? .never : (record ?? SnapshotTestingConfiguration.current?.record ?? _record)
+   return withSnapshotTesting(record: record) { () -> String? in
+@@ -317,1 +323,3 @@
+-        let snapshotsBaseUrl = fileUrl.deletingLastPathComponent()
++        let snapshotsBaseUrl = managedRoot.map {
++          URL(fileURLWithPath: $0, isDirectory: true)
++        } ?? fileUrl.deletingLastPathComponent()
+@@ -341,1 +349,3 @@
+-      try fileManager.createDirectory(at: snapshotDirectoryUrl, withIntermediateDirectories: true)
++      if managedRoot == nil {
++        try fileManager.createDirectory(at: snapshotDirectoryUrl, withIntermediateDirectories: true)
++      }

@@ -36,7 +36,6 @@ public protocol EventsSystemManager: AnyObject, MainVolumeEventsReferenceProtoco
     var eventProcessorIsRunning: Bool { get }
     
     #if os(iOS)
-    func appendSharedVolumesEventLoops(volumeIds: [String])
     func removeSharedVolumesEventLoops(volumeIds: [String])
     func removeAllSharedVolumesEventLoops()
     #endif
@@ -58,18 +57,6 @@ public protocol MainVolumeEventsReferenceProtocol {
 
 extension Tower: EventsSystemManager {
 
-    public func set(externalInvitationConverter: ExternalInvitationConvertProtocol) {
-#if os(iOS)
-        self.externalInvitationConverter = externalInvitationConverter
-#endif
-    }
-
-    public func set(nodeTreeOperator: NodeTreeOperatorProtocol) {
-        #if os(iOS)
-        self.nodeTreeOperator = nodeTreeOperator
-        #endif
-    }
-
     public func intializeEventsSystem(includeAllVolumes: Bool) throws {
         Log.trace()
         let moc = storage.backgroundContext
@@ -77,20 +64,6 @@ extension Tower: EventsSystemManager {
 
         #if os(macOS)
         initializeSingleVolumeEventLoop(volumeId: volumeIds.main)
-        #endif
-
-        #if os(iOS)
-        volumeIdsController.setMainVolume(id: volumeIds.main)
-        volumeIdsController.addSharedVolumes(ids: volumeIds.other)
-        initializeVolumeBasedEventLoop(mainVolumeId: volumeIds.main)
-        if !Constants.runningInExtension && includeAllVolumes {
-            if let photoVolumeId = volumeIds.photo {
-                initializePhotoVolumeEventLoop(volumeId: photoVolumeId)
-            }
-            // In FileProvider we don't need other volumes events, we only show main volume
-            // `includingSharedVolumes` should be true when FFs allow us to poll the shared volumes
-            appendSharedVolumesEventLoops(volumeIds: volumeIds.other)
-        }
         #endif
     }
 
@@ -147,46 +120,6 @@ extension Tower: EventsSystemManager {
     #endif
 
     #if os(iOS)
-    private func initializeVolumeBasedEventLoop(mainVolumeId: String) {
-        let factory = EventsFactory()
-        let referenceStorage = factory.makeVolumeReferenceStorage(tower: self, volumeId: mainVolumeId)
-        let mainVolumeEventsConveyor = factory.makeVolumeConveyor(tower: self, volumeId: mainVolumeId, referenceStorage: referenceStorage)
-        let loop = factory.makeEventsLoop(tower: self, conveyor: mainVolumeEventsConveyor, volumeId: mainVolumeId)
-        volumeEventsReferenceStorage = referenceStorage
-        self.mainVolumeEventsConveyor = mainVolumeEventsConveyor
-        coreEventManager.enable(loop: loop, for: mainVolumeId)
-    }
-
-    public func initializePhotoVolumeEventLoop(volumeId: String) {
-        guard let volumeEventsReferenceStorage else {
-            Log.error("Initializing photo volume loop before events storage", error: nil, domain: .events)
-            return
-        }
-
-        Log.info("Adding photo volume loop \(volumeId)", domain: .events)
-        let factory = EventsFactory()
-        let volumeConveyor = factory.makeVolumeConveyor(tower: self, volumeId: volumeId, referenceStorage: volumeEventsReferenceStorage)
-        let loop = factory.makeEventsLoop(tower: self, conveyor: volumeConveyor, volumeId: volumeId)
-        coreEventManager.enable(loop: loop, for: volumeId)
-        volumeIdsController.setPhotoVolume(id: volumeId)
-    }
-
-    public func appendSharedVolumesEventLoops(volumeIds: [String]) {
-        guard let volumeEventsReferenceStorage else {
-            Log.error("Initializing shared volume loop before events storage", error: nil, domain: .events)
-            return
-        }
-
-        Log.info("Adding shared volumes loops \(volumeIds)", domain: .events)
-        let factory = EventsFactory()
-        volumeIds.forEach { volumeId in
-            let volumeConveyor = factory.makeVolumeConveyor(tower: self, volumeId: volumeId, referenceStorage: volumeEventsReferenceStorage)
-            let loop = factory.makeEventsLoop(tower: self, conveyor: volumeConveyor, volumeId: volumeId)
-            coreEventManager.enable(loop: loop, for: volumeId)
-        }
-        volumeIdsController.addSharedVolumes(ids: volumeIds)
-    }
-
     public func removeSharedVolumesEventLoops(volumeIds: [String]) {
         Log.info("Removing shared volumes loops: \(volumeIds)", domain: .events)
         volumeIdsController.removeSharedVolumes(ids: volumeIds)

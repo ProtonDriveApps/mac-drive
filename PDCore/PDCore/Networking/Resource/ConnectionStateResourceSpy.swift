@@ -16,6 +16,7 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 import Combine
+import Foundation
 
 #if DEBUG
 public final class ConnectionStateResourceSpy: ConnectionStateResource {
@@ -28,6 +29,8 @@ public final class ConnectionStateResourceSpy: ConnectionStateResource {
 
     public var currentState: NetworkState { stateSubject.value }
     public var state: AnyPublisher<NetworkState, Never> { stateSubject.eraseToAnyPublisher() }
+
+    public var isConfirmedReachable: Bool { get async { currentState.isReachable } }
 
     public func startMonitoring() { startCallerCount += 1 }
     public func cancel() {}

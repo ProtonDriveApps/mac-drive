@@ -29,6 +29,7 @@ import ProtonCoreEnvironment
 
 final class Container {
     let login: Login
+    let unauthSessionProvider: UnauthSessionProvider
     private let authManager: AuthHelper
     private let api: PMAPIService
     private let humanVerifier: HumanCheckHelper
@@ -36,10 +37,12 @@ final class Container {
 
     init(clientApp: ClientApp,
          environment: Environment,
+         sessionFactory: SessionFactoryInterface,
          apiServiceDelegate: APIServiceDelegate,
          forceUpgradeDelegate: ForceUpgradeDelegate,
          minimumAccountType: AccountType,
-         offersCreateFreshSyncLocation: @escaping () -> Bool) {
+         offersCreateFreshSyncLocation: @escaping () -> Bool,
+         onUnauthSessionOutcome: @escaping UnauthSessionOutcomeCallback) {
         self.offersCreateFreshSyncLocation = offersCreateFreshSyncLocation
         if PMAPIService.trustKit == nil {
             let trustKit = TrustKit()
@@ -47,6 +50,7 @@ final class Container {
             PMAPIService.trustKit = trustKit
         }
         api = PMAPIService.createAPIServiceWithoutSession(environment: environment,
+                                                          sessionFactory: sessionFactory,
                                                           challengeParametersProvider: .empty)
         api.forceUpgradeDelegate = forceUpgradeDelegate
         api.serviceDelegate = apiServiceDelegate
@@ -57,12 +61,16 @@ final class Container {
         humanVerifier = HumanCheckHelper(apiService: api, clientApp: .drive)
         api.humanDelegate = humanVerifier
         login = LoginService(api: api, clientApp: clientApp, minimumAccountType: minimumAccountType)
+        unauthSessionProvider = UnauthSessionProvider(api: api, onOutcome: onUnauthSessionOutcome)
     }
 
     // MARK: Login view models
 
     func makeLoginViewModel() -> LoginViewModel {
-        return LoginViewModel(login: login, domain: self.api.signUpDomain, offersCreateFreshSyncLocation: offersCreateFreshSyncLocation)
+        return LoginViewModel(login: login,
+                              unauthSessionProvider: unauthSessionProvider,
+                              domain: self.api.signUpDomain,
+                              offersCreateFreshSyncLocation: offersCreateFreshSyncLocation)
     }
 
     func makeMailboxPasswordViewModel() -> MailboxPasswordViewModel {

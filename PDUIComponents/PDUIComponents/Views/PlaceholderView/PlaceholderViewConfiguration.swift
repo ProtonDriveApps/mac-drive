@@ -165,6 +165,12 @@ public extension PlaceholderViewConfiguration {
         message: Localization.disconnection_folder_message
     )
 
+    static let noConnectionGeneric = PlaceholderViewConfiguration(
+        image: .type(.genericError),
+        title: Localization.disconnection_view_title,
+        message: ""
+    )
+
     static let noConnectionInPhoto = PlaceholderViewConfiguration(
         image: .type(.genericError),
         title: Localization.disconnection_view_title,

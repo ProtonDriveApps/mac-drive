@@ -103,7 +103,9 @@ public struct PhotoAssetMetadata: Equatable {
     }
 
     public struct Camera: Equatable {
-        public let captureTime: Date?
+        /// 2026.Sep.24 clarify in document!612
+        /// ISO8601 capture time (includes offset when available). Use in the UI and upload xattr.
+        public let captureTime: String?
         public let device: String?
         public let modificationTime: Date?
         public let orientation: Int?
@@ -111,7 +113,7 @@ public struct PhotoAssetMetadata: Equatable {
         public let isFrontCamera: Bool
 
         public init(
-            captureTime: Date?,
+            captureTime: String?,
             device: String?,
             modificationTime: Date? = nil,
             orientation: Int?,

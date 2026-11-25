@@ -71,12 +71,6 @@ struct FooterView: View {
         .foregroundStyle(ColorProvider.TextNorm)
         .background(ColorProvider.BackgroundWeak)
     }
-
-    struct ToolbarItem {
-        let icon: String
-        let label: String
-        let action: () -> Void
-    }
 }
 
 #if HAS_QA_FEATURES

@@ -82,14 +82,6 @@ extension UploadsListing {
         self.childrenUploadingObserver.start()
     }
     
-    public func pauseUpload(file: File) {
-        guard let uploadID = file.uploadID else { return }
-        let sdkUploader = tower.sdkObjects.fileUploader
-        Task { @MainActor in
-            await sdkUploader.pause(identifier: file.genericIdentifier)
-        }
-    }
-    
     public func cancelUpload(file: File) {
         let sdkUploader = tower.sdkObjects.fileUploader
         Task.detached {

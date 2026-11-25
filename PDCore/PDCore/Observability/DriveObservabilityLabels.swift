@@ -49,6 +49,22 @@ enum DriveSDKObservabilityLabelKey: String {
     case uploadRoute
     case sizeClass
     case blockCount
+    case causedBy
+}
+
+public enum DriveObservabilityItemRecency: String, Encodable, Equatable {
+    case pastMonth = "past_month"
+    case pastYear = "past_year"
+    case since2024 = "since_2024"
+    case before2024 = "before_2024"
+    case unknown
+}
+
+public enum DriveObservabilityCausedBy: String, Encodable, Equatable {
+    case firstParty = "1p"
+    case thirdPartyWithSdk = "3p-sdk"
+    case thirdParty = "3p"
+    case unknown
 }
 
 public enum DriveObservabilityUploadRoute: String, Encodable, Equatable {

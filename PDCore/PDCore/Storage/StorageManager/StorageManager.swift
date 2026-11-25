@@ -412,7 +412,7 @@ public class StorageManager: NSObject, ManagedStorage, RecoverableStorage, Refre
             
             // in memory stores do not support the NSBatchDeleteRequest
             if self.mainContext.isInMemory {
-                [Node.self, Block.self, Revision.self, Volume.self, Share.self, Thumbnail.self, ShareURL.self, Photo.self, Device.self, PhotoRevision.self, ThumbnailBlob.self, Invitation.self, CoreDataAlbum.self, CoreDataAlbumListing.self, CoreDataPhotoListing.self].forEach { entity in
+                [Node.self, Block.self, Revision.self, Volume.self, Share.self, Thumbnail.self, ShareURL.self, Photo.self, Device.self, CoreDataDecryptedDevice.self, PhotoRevision.self, ThumbnailBlob.self, Invitation.self, CoreDataAlbum.self, CoreDataAlbumListing.self, CoreDataPhotoListing.self].forEach { entity in
                     let request = NSFetchRequest<NSManagedObject>(entityName: String(describing: entity))
                     do {
                         let result = try self.backgroundContext.fetch(request)
@@ -423,7 +423,7 @@ public class StorageManager: NSObject, ManagedStorage, RecoverableStorage, Refre
                     }
                 }
             } else {
-                [CoreDataPhotoListing.self, CoreDataAlbumListing.self, Node.self, Block.self, Revision.self, Volume.self, Share.self, Thumbnail.self, ShareURL.self, Photo.self, Device.self, PhotoRevision.self, ThumbnailBlob.self, Invitation.self, CoreDataAlbum.self].forEach { entity in
+                [CoreDataPhotoListing.self, CoreDataAlbumListing.self, Node.self, Block.self, Revision.self, Volume.self, Share.self, Thumbnail.self, ShareURL.self, Photo.self, Device.self, CoreDataDecryptedDevice.self, PhotoRevision.self, ThumbnailBlob.self, Invitation.self, CoreDataAlbum.self].forEach { entity in
                     let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: entity))
                     let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
                     deleteRequest.resultType = .resultTypeObjectIDs

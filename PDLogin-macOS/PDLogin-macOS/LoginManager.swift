@@ -45,18 +45,22 @@ public final class ConcreteLoginManager: LoginManager {
     public init(window: NSWindow,
                 clientApp: ClientApp,
                 environment: Environment,
+                sessionFactory: SessionFactoryInterface,
                 apiServiceDelegate: APIServiceDelegate,
                 forceUpgradeDelegate: ForceUpgradeDelegate,
                 minimumAccountType: AccountType,
                 offersCreateFreshSyncLocation: @escaping () -> Bool,
+                onUnauthSessionOutcome: @escaping UnauthSessionOutcomeCallback,
                 loginCompletion: @escaping LoginCompletionCallback) {
         self.loginCoordinatorDelegate = LoginManagerCoordinatorDelegate(loginCompletion)
         let container = Container(clientApp: clientApp,
                                   environment: environment,
+                                  sessionFactory: sessionFactory,
                                   apiServiceDelegate: apiServiceDelegate,
                                   forceUpgradeDelegate: forceUpgradeDelegate,
                                   minimumAccountType: minimumAccountType,
-                                  offersCreateFreshSyncLocation: offersCreateFreshSyncLocation)
+                                  offersCreateFreshSyncLocation: offersCreateFreshSyncLocation,
+                                  onUnauthSessionOutcome: onUnauthSessionOutcome)
 
         loginCoordinator = LoginCoordinator(container: container,
                                             delegate: loginCoordinatorDelegate,

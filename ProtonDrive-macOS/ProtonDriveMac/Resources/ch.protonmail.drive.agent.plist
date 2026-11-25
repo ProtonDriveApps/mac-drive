@@ -6,8 +6,16 @@
 	<string>ch.protonmail.drive.agent</string>
 	<key>BundleProgram</key>
 	<string>Contents/MacOS/Proton Drive</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>Contents/MacOS/Proton Drive</string>
+		<string>--relaunch-agent</string>
+	</array>
 	<key>KeepAlive</key>
-	<true/>
+	<dict>
+		<key>SuccessfulExit</key>
+		<false/>
+	</dict>
 	<key>ProcessType</key>
 	<string>Interactive</string>
 </dict>

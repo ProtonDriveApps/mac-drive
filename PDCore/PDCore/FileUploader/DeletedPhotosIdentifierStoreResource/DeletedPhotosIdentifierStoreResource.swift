@@ -29,6 +29,11 @@ public protocol DeletedPhotosIdentifierStoreResource {
     func getCloudIdentifiersAndError() -> [DeletedPhotoInfo]
     func reset()
 
+    /// Held in memory for the current session only, and not cleared by `reset()`.
+    func recordNonRetriableRejection(_ identifier: PhotoAssetMetadata.iOSPhotos)
+    func hasNonRetriableRejection(_ identifier: PhotoAssetMetadata.iOSPhotos) -> Bool
+    func clearNonRetriableRejections(_ identifiers: [PhotoAssetMetadata.iOSPhotos])
+
     var count: AnyPublisher<Int, Never> { get }
 }
 
@@ -36,6 +41,7 @@ public final class InMemoryDeletedPhotosIdentifierStoreResource: DeletedPhotosId
     private let accessQueue = DispatchQueue(label: "InMemoryDeletedPhotosIdentifierStoreResource", attributes: .concurrent)
     private let subject = CurrentValueSubject<Int, Never>(0)
     private var cloudIdentifiersAndError: [DeletedPhotoInfo] = []
+    private var nonRetriableRejections: Set<PhotoAssetMetadata.iOSPhotos> = []
 
     public var count: AnyPublisher<Int, Never> {
         subject.eraseToAnyPublisher()
@@ -74,6 +80,24 @@ public final class InMemoryDeletedPhotosIdentifierStoreResource: DeletedPhotosId
     public func getCloudIdentifiersAndError() -> [DeletedPhotoInfo] {
         accessQueue.sync {
             cloudIdentifiersAndError
+        }
+    }
+
+    public func recordNonRetriableRejection(_ identifier: PhotoAssetMetadata.iOSPhotos) {
+        accessQueue.async(flags: .barrier) {
+            self.nonRetriableRejections.insert(identifier.rounded())
+        }
+    }
+
+    public func hasNonRetriableRejection(_ identifier: PhotoAssetMetadata.iOSPhotos) -> Bool {
+        accessQueue.sync {
+            nonRetriableRejections.contains(identifier.rounded())
+        }
+    }
+
+    public func clearNonRetriableRejections(_ identifiers: [PhotoAssetMetadata.iOSPhotos]) {
+        accessQueue.async(flags: .barrier) {
+            self.nonRetriableRejections.subtract(identifiers.map { $0.rounded() })
         }
     }
 }

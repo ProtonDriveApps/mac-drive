@@ -1,0 +1,12 @@
+diff --git a/tools/imported_dynamic_framework_processor/imported_dynamic_framework_processor.py b/tools/imported_dynamic_framework_processor/imported_dynamic_framework_processor.py
+--- a/tools/imported_dynamic_framework_processor/imported_dynamic_framework_processor.py
++++ b/tools/imported_dynamic_framework_processor/imported_dynamic_framework_processor.py
+@@ -124,5 +124,6 @@
+         if os.path.islink(file_path):
+-          # Skip symlinks, since those were created by this tool.
+-          # It's safe to assume so because Bazel resolves symlinks.
++          # ditto preserves the link's own timestamp in the ZIP. Normalize it
++          # without touching its target (which may be outside the framework).
++          os.utime(file_path, (timestamp, timestamp), follow_symlinks=False)
+           continue
+         os.utime(file_path, (timestamp, timestamp))

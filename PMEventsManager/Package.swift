@@ -6,14 +6,13 @@ import PackageDescription
 let package = Package(
     name: "PMEventsManager",
     platforms: [
-        .iOS(.v16),
         .macOS(.v13)]
     ,
     products: [
         .library(name: "PMEventsManager", targets: ["PMEventsManager"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "37.3.0"),
+        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "38.0.0"),
     ],
     targets: [
         .target(

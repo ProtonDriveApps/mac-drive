@@ -6,7 +6,6 @@ import PackageDescription
 let package = Package(
     name: "PDClient",
     platforms: [
-        .iOS(.v16),
         .macOS(.v13),
     ],
     products: [
@@ -14,13 +13,10 @@ let package = Package(
     ],
     dependencies: [
 
-        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "37.3.0"),
-        .package(url: "https://github.com/ProtonMail/apple-fusion.git", exact: "2.1.5"),
-        .package(url: "https://github.com/getsentry/sentry-cocoa.git", exact: "9.15.0"),
-        .package(url: "https://github.com/Unleash/unleash-proxy-client-swift.git", exact: "2.4.0"),
-
-        // tests only
-        .package(url: "https://github.com/AliSoftware/OHHTTPStubs", exact: "9.1.0"),
+        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "38.0.0"),
+        .package(url: "https://github.com/ProtonMail/apple-fusion.git", exact: "2.1.6"),
+        .package(url: "https://github.com/getsentry/sentry-cocoa.git", exact: "9.35.0"),
+        .package(url: "https://github.com/Unleash/unleash-ios-sdk.git", exact: "2.5.2"),
     ],
     targets: [
         .target(
@@ -32,7 +28,7 @@ let package = Package(
                 .product(name: "ProtonCoreUtilities", package: "protoncore_ios"),
 
                 .product(name: "Sentry", package: "sentry-cocoa"),
-                .product(name: "UnleashProxyClientSwift", package: "unleash-proxy-client-swift"),
+                .product(name: "UnleashProxyClientSwift", package: "unleash-ios-sdk"),
             ],
             path: "PDClient"
         ),

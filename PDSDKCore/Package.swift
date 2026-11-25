@@ -6,35 +6,30 @@ import Foundation
 let SDK_PACKAGE: PackageDescription.Package.Dependency = if let localSDKPath = Config().localSDKPath {
     .package(name: "ProtonDriveSDK", path: localSDKPath)
 } else {
-    /// To use a new release of the SDK:
-    ///
-    /// Step 1 - Release the new version
-    /// a. Go to the pipeline for the commit you want to release
-    /// b. Run the "cs:deploy:spm" job - instead if pressing the Play icon, click the name and provide a semver value for the SDK_VERSION variable
-    /// c. Find the tag assigned to the new release at https://gitlab.protontech.ch/drive/sdk-swift/-/tags
-    /// d. Paste that tag below
-    /// e. Rebuild the app
+    /// To update the SDK dependency:
+    /// 1. Choose a published release branch in the SDK repository listed below.
+    /// 2. Update the branch here and in `third_party/Package.swift`.
+    /// 3. From the repository root, run `swift package --package-path third_party resolve`
+    ///    to refresh the lockfile, then rebuild the app.
     .package(name: "ProtonDriveSDK",
              url: "https://github.com/ProtonDriveApps/sdk-swift.git",
-             branch: "0.29.1")
+             branch: "0.32.1-rust")
 }
 
 let package = Package(
     name: "PDSDKCore",
     platforms: [
         .macOS(.v13),
-        .iOS(.v16)
     ],
     products: [
         .library(name: "PDSDKCore", targets: ["PDSDKCore"]),
-        .library(name: "PDSDKCoreiOS", targets: ["PDSDKCoreiOS"]),
     ],
     dependencies: [
         .package(name: "PDCore", path: "../PDCore"),
         .package(name: "PDLocalization", path: "../PDLocalization"),
         SDK_PACKAGE,
         .package(url: "https://github.com/AliSoftware/OHHTTPStubs", exact: "9.1.0"),
-        .package(url: "https://github.com/jpsim/Yams.git", from: "5.1.3") // Same setting from ProtonCore
+        .package(url: "https://github.com/jpsim/Yams.git", from: "5.4.0") // Same setting from ProtonCore
     ],
     targets: [
         .target(
@@ -45,14 +40,6 @@ let package = Package(
                 .product(name: "PDLocalization", package: "PDLocalization"),
             ],
             path: "PDSDKCore"
-        ),
-        .target(
-            name: "PDSDKCoreiOS",
-            dependencies: [
-                .target(name: "PDSDKCore"),
-                .product(name: "PDLocalization", package: "PDLocalization"),
-            ],
-            path: "PDSDKCoreiOS"
         ),
     ]
 )

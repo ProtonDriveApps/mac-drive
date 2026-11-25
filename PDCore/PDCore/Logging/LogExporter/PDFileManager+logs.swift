@@ -18,14 +18,23 @@
 import Foundation
 
 extension PDFileManager {
+    private static let logsWorkingDirectoryName = "1.WorkingDirectory"
+    private static let logsRotationDirectoryName = "2.RotationDirectory"
+    private static let logsArchiveDirectoryName = "3.ArchiveDirectory"
+
     public static func clearLogsDirectory() {
         try? FileManager.default.removeItem(at: PDFileManager.logsDirectory)
     }
 
     public static func bootstrapLogDirectory() throws {
-        _ = try PDFileManager.ensureDirectoryExists(logsWorkingDirectory)
-        _ = try PDFileManager.ensureDirectoryExists(logsRotationDirectory)
-        _ = try PDFileManager.ensureDirectoryExists(logsArchiveDirectory)
+        try bootstrapLogDirectory(at: logsDirectory)
+    }
+
+    /// Uses an explicit filesystem boundary so tests need not touch app-group logs.
+    static func bootstrapLogDirectory(at directory: URL) throws {
+        for name in [logsWorkingDirectoryName, logsRotationDirectoryName, logsArchiveDirectoryName] {
+            try ensureDirectoryExists(directory.appendingPathComponent(name, isDirectory: true))
+        }
     }
 
     public static var logsDirectory: URL {
@@ -35,9 +44,9 @@ extension PDFileManager {
         return logsDirectory
     }
 
-    public static let logsWorkingDirectory: URL = logsDirectory.appendingPathComponent("1.WorkingDirectory", isDirectory: true)
-    public static let logsRotationDirectory: URL = logsDirectory.appendingPathComponent("2.RotationDirectory", isDirectory: true)
-    public static let logsArchiveDirectory: URL = logsDirectory.appendingPathComponent("3.ArchiveDirectory", isDirectory: true)
+    public static let logsWorkingDirectory: URL = logsDirectory.appendingPathComponent(logsWorkingDirectoryName, isDirectory: true)
+    public static let logsRotationDirectory: URL = logsDirectory.appendingPathComponent(logsRotationDirectoryName, isDirectory: true)
+    public static let logsArchiveDirectory: URL = logsDirectory.appendingPathComponent(logsArchiveDirectoryName, isDirectory: true)
     public static let logsExportDirectory: URL = logsDirectory.appendingPathComponent("ExportDirectory", isDirectory: true)
     public static let observabilityEventsDirectory: URL = logsDirectory.appendingPathComponent("ObservabilityEvents", isDirectory: true)
 }

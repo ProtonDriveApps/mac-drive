@@ -1,0 +1,63 @@
+diff --git a/apple/testing/default_runner/macos_test_runner.template.sh b/apple/testing/default_runner/macos_test_runner.template.sh
+--- a/apple/testing/default_runner/macos_test_runner.template.sh
++++ b/apple/testing/default_runner/macos_test_runner.template.sh
+@@ -98,10 +98,50 @@
+   else
+     unzip -qq -d "${TEST_TMP_DIR}" "${TEST_HOST_PATH}"
+   fi
++  # The target/archive name need not match the packaged app or executable.
++  host_bundles=("$TEST_TMP_DIR"/*.app)
++  if [[ ${#host_bundles[@]} -ne 1 || ! -d "${host_bundles[0]}" ]]; then
++    echo "Expected exactly one packaged test host app" >&2
++    exit 1
++  fi
++  TEST_HOST_NAME=$(basename_without_extension "${host_bundles[0]}")
++  TEST_HOST_EXECUTABLE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "${host_bundles[0]}/Contents/Info.plist")
++
++  # Xcode augments sandboxed test hosts so XCTest can reach its helper and
++  # read the staged bundle. Change only this disposable copy, not the product.
++  test_entitlements="$TEST_TMP_DIR/test-host.entitlements"
++  /usr/bin/codesign -d --entitlements :- "${host_bundles[0]}" > "$test_entitlements" 2>/dev/null
++  if /usr/libexec/PlistBuddy -c 'Print :com.apple.security.app-sandbox' "$test_entitlements" | grep -q true; then
++    # Never silently downgrade a certificate-signed host to ad-hoc signing.
++    host_signature=$(/usr/bin/codesign -dvvv "${host_bundles[0]}" 2>&1)
++    if [[ -z "${DRIVE_TEST_SIGNING_IDENTITY:-}" && "$host_signature" != *"Signature=adhoc"* ]]; then
++      echo 'Set DRIVE_TEST_SIGNING_IDENTITY to re-sign the certificate-signed test host' >&2
++      exit 1
++    fi
++    /usr/libexec/PlistBuddy -c 'Add :com.apple.security.temporary-exception.mach-lookup.global-name array' "$test_entitlements" 2>/dev/null || true
++    /usr/libexec/PlistBuddy -c 'Add :com.apple.security.temporary-exception.mach-lookup.global-name:0 string com.apple.testmanagerd' "$test_entitlements"
++    /usr/libexec/PlistBuddy -c 'Add :com.apple.security.temporary-exception.files.absolute-path.read-only array' "$test_entitlements" 2>/dev/null || true
++    /usr/libexec/PlistBuddy -c "Add :com.apple.security.temporary-exception.files.absolute-path.read-only:0 string $TEST_TMP_DIR/" "$test_entitlements"
++    # Instrumented disposable hosts need write access only to their profile directory.
++    if [[ "${COVERAGE:-0}" -eq 1 ]]; then
++      /usr/libexec/PlistBuddy -c 'Add :com.apple.security.temporary-exception.files.absolute-path.read-write array' "$test_entitlements" 2>/dev/null || true
++      /usr/libexec/PlistBuddy -c "Add :com.apple.security.temporary-exception.files.absolute-path.read-write:0 string $TEST_TMP_DIR/llvm-coverage/" "$test_entitlements"
++    fi
++    # Bazel gives tests an isolated HOME; pass only the verified keychain,
++    # not the developer's home directory or broader shell environment.
++    signing_keychain=()
++    if [[ -n "${DRIVE_TEST_SIGNING_KEYCHAIN:-}" ]]; then
++      signing_keychain=(--keychain "$DRIVE_TEST_SIGNING_KEYCHAIN")
++    fi
++    /usr/bin/codesign --force --sign "${DRIVE_TEST_SIGNING_IDENTITY:--}" \
++      ${signing_keychain[@]+"${signing_keychain[@]}"} --options runtime --entitlements "$test_entitlements" "${host_bundles[0]}"
++    /usr/bin/codesign --verify --strict "${host_bundles[0]}"
++  fi
++
+ fi
+ 
+ # List of substitutions for the xctestrun template. This list is different
+ # depending on whether the test is running with or without a test host.
+ XCTESTRUN_TEST_BUNDLE_PATH="__TESTROOT__/$TEST_BUNDLE_NAME.xctest"
+ if [[ -n "$TEST_HOST_PATH" ]]; then
+-  XCTESTRUN_TEST_HOST_BINARY="__TESTROOT__/$TEST_HOST_NAME.app/Contents/MacOS/$TEST_HOST_NAME"
++  XCTESTRUN_TEST_HOST_BINARY="__TESTROOT__/$TEST_HOST_NAME.app/Contents/MacOS/$TEST_HOST_EXECUTABLE"
+@@ -266,1 +306,7 @@
++if [[ -n "${DRIVE_HOSTED_SUPERVISOR:-}" ]]; then
++  "${DRIVE_HOSTED_SUPERVISOR}" --output "$TEST_UNDECLARED_OUTPUTS_DIR" \
++    --xml "$XML_OUTPUT_FILE" -- "${args[@]}"
++  exit $?
++fi
++
+ xcodebuild test-without-building "${args[@]}" \

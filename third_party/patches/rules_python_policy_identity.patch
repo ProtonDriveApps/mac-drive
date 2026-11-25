@@ -1,0 +1,15 @@
+diff --git a/python/private/precompile.bzl b/python/private/precompile.bzl
+--- a/python/private/precompile.bzl
++++ b/python/private/precompile.bzl
+@@ -175,6 +175,11 @@
+     actions_run(
+         ctx,
+         executable = precompiler,
++        env = {
++            key: value
++            for key, value in ctx.configuration.default_shell_env.items()
++            if key in ["DRIVE_BUILD_HOST", "DRIVE_BUILD_XCODE"]
++        },
+         arguments = [precompile_request_args],
+         inputs = [src],
+         outputs = [pyc],

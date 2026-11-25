@@ -27,9 +27,23 @@ public enum PhotosFailureUserError: Error {
     case driveStorageFull
     case encryptionFailed
     case iCloudNotReachable
+    case invalidTimestamp
     case loadResourceFailed
     case missingPermission
     case nameValidationError
     case unknown
     case partiallyInAlbum
+}
+
+extension PhotosFailureUserError {
+    public var isRetriable: Bool {
+        switch self {
+        case .partiallyInAlbum:
+            return false
+        case .accessFileFailed, .connectionError, .corruptedAsset, .deviceStorageFull, .driveStorageFull,
+             .encryptionFailed, .iCloudNotReachable, .invalidTimestamp, .loadResourceFailed,
+             .missingPermission, .nameValidationError, .unknown:
+            return true
+        }
+    }
 }

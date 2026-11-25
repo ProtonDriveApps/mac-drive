@@ -104,6 +104,27 @@ enum Constants {
     static let appGroup: SettingsStorageSuite = .group(named: appContainerGroup)
 
     static func loadConfiguration() {
+        loadConfiguration(dynamicDomain: dynamicDomain(in: ProcessInfo.processInfo.environment))
+    }
+
+    /// The File Provider extension gets no launch environment: during UI tests, DEBUG builds use the
+    /// backend the app stored for the running test.
+    static func loadExtensionConfiguration() {
+#if DEBUG
+        loadExtensionConfiguration(environment: ProcessInfo.processInfo.environment,
+                                   uiTestSession: UITestSessionStore(userDefaults: appGroup.userDefaults))
+#else
+        loadConfiguration()
+#endif
+    }
+
+#if DEBUG
+    static func loadExtensionConfiguration(environment: [String: String], uiTestSession: UITestSessionStore) {
+        loadConfiguration(dynamicDomain: dynamicDomain(in: environment) ?? uiTestSession.read()?.dynamicDomain)
+    }
+#endif
+
+    static func loadConfiguration(dynamicDomain: String?) {
         if let dynamicDomain = dynamicDomain {
             let environment = Environment.custom(dynamicDomain)
             self.userApiConfig = Configuration(environment: environment, clientVersion: clientVersion)
@@ -186,8 +207,8 @@ enum Constants {
     private(set) static var userApiConfig: PDClient.APIService.Configuration!
     private static var shareLinkHost = (scheme: "", host: "")
 
-    private static var dynamicDomain: String? {
-        if let domain = ProcessInfo.processInfo.environment["DYNAMIC_DOMAIN"], !domain.isEmpty {
+    private static func dynamicDomain(in environment: [String: String]) -> String? {
+        if let domain = environment["DYNAMIC_DOMAIN"], !domain.isEmpty {
             return domain
         } else {
             return nil

@@ -52,6 +52,10 @@ final class LoginCoordinator: NSObject {
     }
 
     func start(with initialError: LoginError? = nil) {
+        Task { [container] in
+            await container.unauthSessionProvider.acquire()
+        }
+
         if windowController.window == nil {
             showInitialView(with: initialError)
         } else if initialError != nil {

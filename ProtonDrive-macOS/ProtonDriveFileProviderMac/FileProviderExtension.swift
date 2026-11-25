@@ -24,7 +24,7 @@ import PDFileProvider
 import ProtonCoreLog
 import ProtonCoreCryptoGoInterface
 import ProtonCoreUtilities
-import ProtonCoreCryptoPatchedGoImplementation
+import ProtonCoreCryptoDrivePatchedGoImplementation
 import PDFileProviderOperations
 import PMEventsManager
 import PDSDKCore
@@ -70,10 +70,12 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, NSFile
         sessionRelatedCommunicatorFactory: { sessionStore, authenticator, onSessionReceived in
             SessionRelatedCommunicatorForExtension(
                 userDefaultsConfiguration: .forFileProviderExtension(userDefaults: Constants.appGroup.userDefaults),
+                sleepResource: SystemTaskSleepResource(),
                 sessionStorage: sessionStore,
                 onChildSessionObtained: onSessionReceived
             )
         },
+        sessionFactory: DriveSessionFactory.makeForFileProviderExtension(),
         isDetailedLoggingEnabled: { RuntimeConfiguration.shared.includeTracesInLogs }
     )
 
@@ -100,13 +102,13 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, NSFile
     private var systemMetricsMonitor: SystemMetricsMonitor?
 
     required init(domain: NSFileProviderDomain) {
-        inject(cryptoImplementation: ProtonCoreCryptoPatchedGoImplementation.CryptoGoMethodsImplementation.instance)
+        inject(cryptoImplementation: ProtonCoreCryptoDrivePatchedGoImplementation.CryptoGoMethodsImplementation.instance)
         // Inject build type to enable build differentiation. (Build macros don't work in SPM)
         PDCore.Constants.buildType = Constants.buildType
 
         // the logger setup happens before the super.init, hence the captured `client` and `featureFlags` variables
         var featureFlags: PDCore.DriveFeatureFlagsProvider?
-        Constants.loadConfiguration()
+        Constants.loadExtensionConfiguration()
         configureCoreLoggerUsingEnvironmentFromConstants()
         FileProviderExtension.setupLogger { featureFlags }
 
@@ -746,17 +748,38 @@ extension FileProviderExtension {
                     request: NSFileProviderRequest,
                     completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress
     {
+#if AFTERIMAGE_TRACING
+        let afterimageRequest = AfterimageFileProviderRequest(
+            temporaryIdentifier: itemTemplate.itemIdentifier.rawValue,
+            isFolder: itemTemplate.isFolder
+        )
+        let completion: (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void = { item, fields, fetch, error in
+            afterimageRequest.complete(finalIdentifier: item?.itemIdentifier.rawValue, errorCode: (error as NSError?)?.code) {
+                completionHandler(item, fields, fetch, error)
+            }
+        }
+#else
+        let completion = completionHandler
+#endif
         guard resyncEnumerationService.fullResyncInProgress != true else {
             Log.info("createItem: exited early due to fullResyncInProgress being true", domain: .syncing)
             resyncEnumerationService.recordCannotSynchronizeEarlyExit()
-            completionHandler(nil, [], false, EarlyExit.error(reason: .fullResyncInProgress))
+            completion(nil, [], false, EarlyExit.error(reason: .fullResyncInProgress))
+#if AFTERIMAGE_TRACING
+            return afterimageRequest.returning(Progress())
+#else
             return Progress()
+#endif
         }
 
         if RecoveryCoordination.isInProgress {
             Log.info("createItem call exited early due to recovery in progress", domain: .fileProvider)
-            completionHandler(nil, [], false, EarlyExit.error(reason: .recoveryInProgress))
+            completion(nil, [], false, EarlyExit.error(reason: .recoveryInProgress))
+#if AFTERIMAGE_TRACING
+            return afterimageRequest.returning(Progress())
+#else
             return Progress()
+#endif
         }
 
         tower.storage.reloadStoreIfReplacedByMainApp()
@@ -769,12 +792,17 @@ extension FileProviderExtension {
             eventSource: .init(request),
             options: .init(options)
         ))))
-        return fileProviderOperations.createItem(basedOn: itemTemplate,
+        let progress = fileProviderOperations.createItem(basedOn: itemTemplate,
                                                  fields: fields,
                                                  contents: url,
                                                  options: options,
                                                  request: request,
-                                                 completionHandler: completionHandler)
+                                                 completionHandler: completion)
+#if AFTERIMAGE_TRACING
+        return afterimageRequest.returning(progress)
+#else
+        return progress
+#endif
     }
 
     func modifyItem(_ item: NSFileProviderItem,

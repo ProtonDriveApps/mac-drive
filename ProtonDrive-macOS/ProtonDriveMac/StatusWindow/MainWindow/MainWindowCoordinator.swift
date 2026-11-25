@@ -23,21 +23,26 @@ import PDCore
 /// Note: An instance of MainWindowCoordinator is created only after the menu bar status icon is clicked, and exists only as long as the window is open.
 @MainActor
 final class MainWindowCoordinator: NSObject, NSWindowDelegate {
-    private var window: NSWindow?
+    private(set) var window: NSWindow?
 
     let state: ApplicationState
     let userActions: UserActions
     private let resyncButtonContext: () -> FullResyncButtons.Context
+    private let isPointerOverStatusItem: () -> Bool
+    private let pointerLocation: () -> NSPoint
 
     init(_ state: ApplicationState,
          userActions: UserActions,
-         resyncButtonContext: @escaping () -> FullResyncButtons.Context = { .userInitiated }) {
+         resyncButtonContext: @escaping () -> FullResyncButtons.Context = { .userInitiated },
+         isPointerOverStatusItem: @escaping () -> Bool = { false },
+         pointerLocation: @escaping () -> NSPoint = { NSEvent.mouseLocation }) {
         self.state = state
         self.userActions = userActions
         self.resyncButtonContext = resyncButtonContext
+        self.isPointerOverStatusItem = isPointerOverStatusItem
+        self.pointerLocation = pointerLocation
     }
 
-    private var globalMouseAndKeyboardEventMonitor: Any?
     private var globalMouseEventMonitor: Any?
 
     /// Returns true if window was shown, not hidden.
@@ -66,10 +71,6 @@ final class MainWindowCoordinator: NSObject, NSWindowDelegate {
 
     func stop() {
         window?.close()
-        if let monitor = globalMouseAndKeyboardEventMonitor {
-            NSEvent.removeMonitor(monitor)
-            globalMouseAndKeyboardEventMonitor = nil
-        }
         if let monitor = globalMouseEventMonitor {
             NSEvent.removeMonitor(monitor)
             self.globalMouseEventMonitor = nil
@@ -109,31 +110,15 @@ final class MainWindowCoordinator: NSObject, NSWindowDelegate {
         window.delegate = self
         self.window = window
 
-        configureEvents(button: button)
+        configureEvents()
     }
 
-    private func configureEvents(button: NSButton) {
+    private func configureEvents() {
         NotificationCenter.default.addObserver(
             self, selector: #selector(checkWindowFocus),
             name: NSApplication.didBecomeActiveNotification,
             object: window
         )
-
-        self.globalMouseAndKeyboardEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .keyDown]) { [weak self, weak button] event in
-            guard let self = self, let button = button else {
-                return event
-            }
-            switch event.type {
-            case .leftMouseDown, .rightMouseDown:
-                if event.isStatusItemButtonClicked(button: button) {
-                    _ = self.toggleMenu(from: button)
-                }
-            default:
-                break
-            }
-
-            return event
-        }
 
         self.globalMouseEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
             guard let self = self else { return }
@@ -141,10 +126,15 @@ final class MainWindowCoordinator: NSObject, NSWindowDelegate {
         }
     }
 
-    private func handleGlobalMouseEvent(_ event: NSEvent) {
+    func handleGlobalMouseEvent(_ event: NSEvent) {
         guard let window = self.window else { return }
+        // Since macOS 27, clicks on our own status item also reach the global monitor. The status item action toggles the window.
+        guard !isPointerOverStatusItem() else {
+            Log.debug("Skipping stop: pointer over status item", domain: .application)
+            return
+        }
         let windowRect = window.frame
-        let screenLocation = NSEvent.mouseLocation
+        let screenLocation = pointerLocation()
         if !windowRect.contains(screenLocation) {
             self.stop()
         }
@@ -198,14 +188,5 @@ final class MainWindowCoordinator: NSObject, NSWindowDelegate {
 
     func windowDidResignKey(_ notification: Notification) {
         window?.orderOut(nil)
-    }
-}
-
-private extension NSEvent {
-
-    func isStatusItemButtonClicked(button: NSButton) -> Bool {
-        guard let window = window else { return false }
-        guard window.className.hasPrefix("NSStatusBar"), window.className.hasSuffix("Window") else { return false }
-        return window.contentView?.subviews.contains(button) ?? false
     }
 }

@@ -1,0 +1,16 @@
+diff --git a/apple/internal/processor.bzl b/apple/internal/processor.bzl
+--- a/apple/internal/processor.bzl
++++ b/apple/internal/processor.bzl
+@@ -459,9 +459,12 @@
+         bundletool = apple_xplat_toolchain_info.bundletool
+         actions.run(
+             executable = bundletool.files_to_run,
+             inputs = depset(bundletool_inputs),
++            # Include the explicitly configured action environment in the key.
++            # Our local Python runtime loads host libraries, including zlib.
++            use_default_shell_env = True,
+             mnemonic = "BundleApp",
+             progress_message = "Bundling %s" % label_name,
+             exec_group = xplat_exec_group,
+             **action_args
+         )

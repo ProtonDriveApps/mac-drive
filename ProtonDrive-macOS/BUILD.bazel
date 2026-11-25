@@ -1,0 +1,59 @@
+load("@rules_apple//apple:macos.bzl", "macos_application")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
+load("@rules_swift//swift:swift.bzl", "swift_library")
+load("//build_defs:plist_template.bzl", "plist_template")
+load("//build_defs:macos_release_variants.bzl", "macos_store_product")
+load("//build_defs:unsigned_handoff.bzl", "unsigned_handoff")
+load(":sources.bzl", "APP_SWIFT_SOURCES", "FILE_PROVIDER_SWIFT_SOURCES")
+
+package(default_visibility = ["//visibility:public"])
+
+macos_store_product(app_sources = APP_SWIFT_SOURCES, extension_sources = FILE_PROVIDER_SWIFT_SOURCES)
+
+unsigned_handoff(
+    name = "ProtonDriveMacStoreUnsignedHandoff",
+    product = ":ProtonDriveMacStore",
+    tags = ["manual"],
+)
+
+objc_library(
+    name = "ProtonDriveMacEntryPoint",
+    srcs = ["ProtonDriveMac/main.m"],
+    sdk_frameworks = ["Cocoa"],
+    alwayslink = True,
+)
+
+objc_library(
+    name = "SDKSystemLibraries",
+    sdk_frameworks = ["GSS"],
+    sdk_dylibs = ["sqlite3", "icucore"],
+)
+
+swift_library(
+    name = "ProtonDriveMacLauncherSources",
+    module_name = "ProtonDriveMacLauncher",
+    srcs = ["ProtonDriveMacLauncher/main.swift"],
+)
+
+macos_application(
+    name = "ProtonDriveMacLauncher",
+    bundle_id = "ch.protonmail.drive.launcher.ProtonDriveMacLauncher",
+    minimum_os_version = "13.0",
+    infoplists = [":LauncherInfo"],
+    entitlements = "ProtonDriveMacLauncher/ProtonDriveMacLauncher.entitlements",
+    codesignopts = ["--options=runtime"],
+    deps = [":ProtonDriveMacLauncherSources"],
+)
+
+plist_template(
+    name = "ch.protonmail.drive.agent",
+    src = "ProtonDriveMac/Resources/ch.protonmail.drive.agent.plist",
+    substitutions = {},
+)
+
+plist_template(
+    name = "LauncherInfo",
+    src = "//build_defs:Launcher-Info.plist",
+    version_file = "//:VERSION",
+    substitutions = {"<string>1.0</string>": "<string>$(MARKETING_VERSION)</string>"},
+)

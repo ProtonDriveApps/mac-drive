@@ -19,20 +19,35 @@ import SwiftUI
 import ProtonCoreUIFoundations
 
 public struct SimpleCloseButtonView: View {
-    public init(dismiss: @escaping () -> Void) {
+    private var dismiss: () -> Void
+    private let applyGlassStyle: Bool
+
+    public init(applyGlassStyle: Bool = true, dismiss: @escaping () -> Void) {
         self.dismiss = dismiss
+        self.applyGlassStyle = applyGlassStyle
     }
     
-    var dismiss: () -> Void
-    
     public var body: some View {
+        #if os(iOS)
+        if applyGlassStyle {
+            content
+                .modifier(GlassStyleModifier())
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+
+    private var content: some View {
         Button(action: self.dismiss) {
             IconProvider.cross
                 .resizable()
-                .frame(width: 24, height: 24, alignment: .bottom)
+                .frame(width: 24, height: 24, alignment: .center)
                 .foregroundColor(Color.IconNorm)
         }
-        .frame(width: 48, height: 48, alignment: .leading)
+        .frame(width: 48, height: 48, alignment: .center)
         .accessibility(identifier: "SimpleCloseButtonView.Button.Close")
     }
 }

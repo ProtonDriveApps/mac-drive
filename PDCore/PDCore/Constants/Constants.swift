@@ -114,7 +114,9 @@ public enum Constants {
 
     static let isUnitTest: Bool = {
         #if DEBUG
-        return ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        let environment = ProcessInfo.processInfo.environment
+        return environment["XCTestConfigurationFilePath"] != nil
+            || environment["DRIVE_NATIVE_XCTEST"] == "1"
         #else
         return false
         #endif

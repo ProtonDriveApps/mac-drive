@@ -51,7 +51,7 @@ struct NodeOperationStreamBuilder {
         cancellationToken: UUID,
         moc: NSManagedObjectContext
     ) -> AsyncThrowingStream<NodeOperationStreamEvent, Error> {
-        NodeOperationStreamEngine(metadataUpdater: metadataUpdater).stream(
+        SDKOperationStreamEngine(metadataUpdater: metadataUpdater).stream(
             operation: operation,
             nodes: nodes,
             cancellationToken: cancellationToken,

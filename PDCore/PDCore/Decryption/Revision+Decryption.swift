@@ -277,7 +277,7 @@ extension Revision {
 // MARK: - Decrypt path
 extension Revision {
     /// Construct path to temporary directory for normal file storage
-    /// - Parameter shouldCreate: iOS only. Should create the folder if it doesn't exist
+    /// - Parameter shouldCreate: Should create the folder if it doesn't exist
     public func temporaryClearURL(shouldCreate: Bool) throws -> URL {
         guard let moc else { throw Revision.noMOC() }
 #if os(iOS)
@@ -300,7 +300,7 @@ extension Revision {
     }
 
     /// Construct path to permanent directory, for file available offline
-    /// - Parameter shouldCreate: iOS only. Should create the folder if it doesn't exist
+    /// - Parameter shouldCreate: Should create the folder if it doesn't exist
     public func permanentClearURL(shouldCreate: Bool) throws -> URL {
         guard let moc else { throw Revision.noMOC() }
         #if os(iOS)

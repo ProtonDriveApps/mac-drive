@@ -20,6 +20,20 @@ import SwiftUI
 import ProtonCoreUIFoundations
 import UIKit
 
+@ViewBuilder
+private func dialogButton(_ button: DialogButton) -> some View {
+    let actionButton = Button(
+        button.title,
+        role: button.role == .destructive ? .destructive : nil,
+        action: button.action
+    )
+    if let accessibilityIdentifier = button.accessibilityIdentifier {
+        actionButton.accessibilityIdentifier(accessibilityIdentifier)
+    } else {
+        actionButton
+    }
+}
+
 extension View {
 
     @ViewBuilder
@@ -44,13 +58,7 @@ private struct DialogContainerModifier<Item: Identifiable>: ViewModifier {
 
     func body(content: Content) -> some View {
         Group {
-            if currentWidth == 0 {
-                content
-            } else if useCompactLayout() {
-                confirmationDialogLayout(content: content)
-            } else {
-                alertLayout(content: content)
-            }
+            alertLayout(content: content)
         }
         .modifier(
             GetWidthModifier(
@@ -66,38 +74,12 @@ private struct DialogContainerModifier<Item: Identifiable>: ViewModifier {
         )
     }
 
-    private func useCompactLayout() -> Bool {
-        // iPhone uses compact layout
-        // iPad uses alert
-        return !UIDevice.current.isIpad
-    }
-
-    @ViewBuilder
-    private func confirmationDialogLayout(content: Content) -> some View {
-        content
-            .confirmationDialog("", isPresented: isVisible) {
-                ForEach(model.buttons) { button in
-                    Button(
-                        button.title,
-                        role: button.role == .destructive ? .destructive : nil,
-                        action: button.action
-                    )
-                }
-            } message: {
-                Text(model.title)
-            }
-    }
-
     @ViewBuilder
     private func alertLayout(content: Content) -> some View {
         content
             .alert("", isPresented: isVisible) {
                 ForEach(model.buttons) { button in
-                    Button(
-                        button.title,
-                        role: button.role == .destructive ? .destructive : nil,
-                        action: button.action
-                    )
+                    dialogButton(button)
                 }
             } message: {
                 Text(model.title)
@@ -130,15 +112,22 @@ public struct DialogButton: Identifiable {
     public let title: String
     public let role: Role
     public let action: (() -> Void)
+    public let accessibilityIdentifier: String?
 
     public enum Role {
         case `default`
         case destructive
     }
 
-    public init(title: String, role: Role, action: @escaping (() -> Void) = {}) {
+    public init(
+        title: String,
+        role: Role,
+        accessibilityIdentifier: String? = nil,
+        action: @escaping (() -> Void) = {}
+    ) {
         self.title = title
         self.role = role
+        self.accessibilityIdentifier = accessibilityIdentifier
         self.action = action
     }
 
@@ -215,11 +204,7 @@ private struct DialogSheetContainerModifier: ViewModifier {
             ) {
                 if let item {
                     ForEach(item.buttons) { button in
-                        Button(
-                            button.title,
-                            role: button.role == .destructive ? .destructive : nil,
-                            action: button.action
-                        )
+                        dialogButton(button)
                     }
                 }
             } message: {
@@ -235,11 +220,7 @@ private struct DialogSheetContainerModifier: ViewModifier {
             .alert(item?.header ?? "", isPresented: isVisible) {
                 if let item {
                     ForEach(item.buttons) { button in
-                        Button(
-                            button.title,
-                            role: button.role == .destructive ? .destructive : nil,
-                            action: button.action
-                        )
+                        dialogButton(button)
                     }
                 }
             } message: {

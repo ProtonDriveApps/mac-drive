@@ -59,7 +59,7 @@ public enum ExternalFeatureFlag: String, CaseIterable, Codable {
     case docsCreateNewSheetOnMobileEnabled = "DocsCreateNewSheetOnMobileEnabled"
 
     // Payments
-    case driveiOSPaymentsV2 = "DriveiOSPaymentsV2"
+    case driveiOSPaymentsSDK = "DriveiOSPaymentsSDK"
     case driveMobileUpsellPlan = "DriveMobileUpsellPlan"
 
     // SDK
@@ -74,7 +74,10 @@ public enum ExternalFeatureFlag: String, CaseIterable, Codable {
     case driveiOSSDKTrashNode = "DriveiOSSDKTrashNode"
     case driveiOSSDKTrashOperations = "DriveiOSSDKTrashOperations" // delete, restore, empty trash
     case driveiOSSDKDevicesOperations = "DriveiOSSDKDevicesOperations" // rename, delete device
+    case driveiOSSDKDevices = "DriveiOSSDKDevices" // enumerate devices
     case driveiOSSDKLeaveSharedNode = "DriveiOSSDKLeaveSharedNode" // file and photo
+    case driveiOSSDKPhotosUpdate = "DriveiOSSDKPhotosUpdate" // add or remove photo tags
+    case driveiOSSDKPhotosSaveToTimeline = "DriveiOSSDKPhotosSaveToTimeline" // copy photos to photo stream
 
     // Full resync
     case driveSyncMetadataScanV2Enabled = "DriveSyncMetadataScanV2Enabled"
@@ -83,6 +86,7 @@ public enum ExternalFeatureFlag: String, CaseIterable, Codable {
     case driveiOSUnlimitedPickerSelection = "DriveiOSUnlimitedPickerSelection"
     case driveiOSDownloadMultiple = "DriveiOSDownloadMultiple"
     case driveiOSPhotosGridZoom = "DriveiOSPhotosGridZoom"
+    case driveiOSAudioRecording = "DriveiOSAudioRecording"
 }
 
 public extension ExternalFeatureFlag {

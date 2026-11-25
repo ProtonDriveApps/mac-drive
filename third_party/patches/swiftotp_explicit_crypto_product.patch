@@ -1,0 +1,11 @@
+--- a/Package.swift
++++ b/Package.swift
+@@ -15,7 +15,7 @@
+ ..< "4.0.0")
+     ],
+     targets: [
+-        .target(name: "SwiftOTP", dependencies: ["Crypto"], path: "SwiftOTP/"),
++        .target(name: "SwiftOTP", dependencies: [.product(name: "Crypto", package: "swift-crypto")], path: "SwiftOTP/"),
+         .testTarget(name: "SwiftOTPTests", dependencies: ["SwiftOTP"])
+     ]
+ )

@@ -63,12 +63,13 @@ struct SystemRelaunchAgentService: RegistrableAgent {
     }
 
     /// Registers a launchd agent so that the system relaunches the app after abnormal termination.
-    /// Calling this causes the new instance app to be launched, but we exit it right away in AppDelegate.init().
+    /// Calling this makes launchd start a second copy of the app, which waits in `main()` until this instance exits.
     func register() throws {
         try service.register()
     }
 
     /// Unregisters the launchd agent, preventing the system from relaunching the app.
+    /// It also ends the copy of the app that waits in `main()` for the instance lock.
     /// Note that calling this terminates the app, unless called from the `applicationShouldTerminate` method.
     func unregister() throws {
         try service.unregister()

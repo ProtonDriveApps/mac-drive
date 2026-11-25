@@ -30,31 +30,13 @@ struct EventsFactory {
     }
     #endif
 
-    #if os(iOS)
-    func makeVolumeReferenceStorage(tower: Tower, volumeId: String) -> VolumeEventsReferenceStorageProtocol {
-        let legacyStorage = LegacyEventsReferenceStorage(suite: tower.storageSuite)
-        return VolumeEventsReferenceStorage(legacyStorage: legacyStorage, suite: tower.storageSuite, mainVolumeId: volumeId)
-    }
-
-    func makeVolumeConveyor(tower: Tower, volumeId: String, referenceStorage: VolumeEventsReferenceStorageProtocol) -> EventsConveyor {
-        VolumeEventsConveyor(
-            storage: tower.eventStorageManager,
-            referenceStorage: referenceStorage,
-            serializer: ClientEventSerializer(),
-            volumeId: volumeId
-        )
-    }
-    #endif
-
     func makeEventsLoop(tower: Tower, conveyor: EventsConveyor, volumeId: String) -> DriveEventsLoop {
         Log.trace()
         let processor = DriveEventsLoopProcessor(
             volumeID: volumeId,
             cloudSlot: tower.cloudSlot,
             conveyor: conveyor,
-            storage: tower.storage,
-            externalInvitationConverter: tower.externalInvitationConverter,
-            nodeTreeOperator: tower.nodeTreeOperator
+            storage: tower.storage
         )
         return DriveEventsLoop(
             volumeID: volumeId,
@@ -71,17 +53,6 @@ struct EventsFactory {
         // Legacy events system
         SingleVolumeEventLoopsTimingController(interval: interval)
     }
-
-    #if os(iOS)
-    func makeMultipleVolumesTimingController(volumeIdsController: VolumeIdsControllerProtocol) -> EventLoopsTimingController {
-        MultipleVolumesEventLoopsTimingController(
-            volumeIdsController: volumeIdsController,
-            dateResource: PlatformCurrentDateResource(),
-            executionPolicy: EventLoopsExecutionPolicy(loopPolicy: EventLoopPriorityPolicy()),
-            stateResource: iOSApplicationRunningStateResource()
-        )
-    }
-    #endif
 
     // swiftlint:disable:next function_parameter_count
     func makeCoreEventsSystem(

@@ -32,7 +32,7 @@ public struct PhotoImportFactory {
             uploadClientUIDProvider: tower.sessionVault,
             skippable: skippable
         )
-        let nodeCacheService = ClientNodeFetchAndCacheService(client: tower.client, cacher: tower.cloudSlot, context: tower.storage.photosBackgroundContext)
+        let nodeCacheService = ClientNodeFetchAndCacheService(client: tower.client, storageManager: tower.storage, context: tower.storage.photosBackgroundContext)
         let cachedPhotoRepository = CachedPhotoRepository(storageManager: tower.storage, photosContext: managedObjectContext)
         let existingPhotoRepository = RemoteCachingExistingPhotoCompoundRepository(nodeCacheService: nodeCacheService, cachedPhotoRepository: cachedPhotoRepository)
         return CompoundPhotoCompoundImporter(importer: photoImporter, notificationCenter: NotificationCenter.default, moc: managedObjectContext, rootRepository: rootFolderRepository, existingPhotoRepository: existingPhotoRepository)

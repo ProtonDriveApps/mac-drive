@@ -1,0 +1,15 @@
+diff --git a/apple/internal/codesigning_support.bzl b/apple/internal/codesigning_support.bzl
+--- a/apple/internal/codesigning_support.bzl
++++ b/apple/internal/codesigning_support.bzl
+@@ -681,9 +681,11 @@
+     has_work = any([signing_command_lines, ipa_post_processor_path, should_compress])
+     if not has_work:
+         actions.run_shell(
+             command = "cp -p '%s' '%s'" % (input_archive.path, output_archive.path),
+             inputs = [input_archive],
++            # The copy-only path still runs a host shell and system utility.
++            use_default_shell_env = True,
+             mnemonic = mnemonic,
+             outputs = [output_archive],
+             progress_message = progress_message,
+         )

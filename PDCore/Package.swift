@@ -6,7 +6,6 @@ import PackageDescription
 let package = Package(
     name: "PDCore",
     platforms: [
-        .iOS(.v16),
         .macOS(.v13),
     ],
     products: [
@@ -19,11 +18,11 @@ let package = Package(
         .package(name: "PDUIComponents", path: "../PDUIComponents"),
         .package(name: "PDContacts", path: "../PDContacts"),
 
-        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "37.3.0"),
-        .package(url: "https://github.com/ProtonMail/apple-fusion.git", exact: "2.1.5"),
+        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "38.0.0"),
+        .package(url: "https://github.com/ProtonMail/apple-fusion.git", exact: "2.1.6"),
         .package(url: "https://github.com/ProtonMail/TrustKit.git", exact: "1.0.3"),
         .package(url: "https://github.com/ashleymills/Reachability.swift", exact: "5.2.4"),
-        .package(url: "https://github.com/weichsel/ZIPFoundation.git", exact: "0.9.20"),
+        .package(url: "https://github.com/weichsel/ZIPFoundation.git", exact: "0.9.21"),
     ],
     targets: [
         .target(
@@ -35,7 +34,6 @@ let package = Package(
 
                 .product(name: "ProtonCoreAuthentication", package: "protoncore_ios"),
                 .product(name: "ProtonCoreAPIClient", package: "protoncore_ios"),
-                .product(name: "ProtonCoreChallenge", package: "protoncore_ios", condition: .when(platforms: [.iOS])),
                 .product(name: "ProtonCoreCrypto", package: "protoncore_ios"),
                 .product(name: "ProtonCoreCryptoGoInterface", package: "protoncore_ios"),
                 .product(name: "ProtonCoreDataModel", package: "protoncore_ios"),

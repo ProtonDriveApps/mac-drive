@@ -34,8 +34,19 @@ public struct MenuButton: View {
                 .frame(width: 24, height: 24)
                 .foregroundColor(Color.IconNorm)
         })
-        .frame(width: 40, height: 40)
+        // On iOS 26 the toolbar puts the icon in a 44pt Liquid Glass circle, and a 40pt frame on top of that
+        // stretches it wider than tall. Matches MenuNavigationViewController's UIKit button.
+        .frame(width: usesGlassToolbar ? nil : 40, height: usesGlassToolbar ? nil : 40)
         .accessibility(identifier: "Button.BurgerMenu")
+    }
+
+    private var usesGlassToolbar: Bool {
+        #if os(iOS)
+        if #available(iOS 26.0, *) {
+            return true
+        }
+        #endif
+        return false
     }
 }
 
@@ -55,7 +66,7 @@ public struct BackButton: View {
                 .frame(width: 24, height: 24)
                 .foregroundColor(Color.IconNorm)
         })
-        .frame(width: 40, height: 40, alignment: .leading)
+        .frame(width: 40, height: 40)
         .accessibility(identifier: "Button.BackButton")
     }
 }

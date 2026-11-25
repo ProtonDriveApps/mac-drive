@@ -1,0 +1,9 @@
+diff --git a/tools/worker/swift_runner.cc b/tools/worker/swift_runner.cc
+--- a/tools/worker/swift_runner.cc
++++ b/tools/worker/swift_runner.cc
+@@ -688,4 +688,4 @@
+       std::filesystem::create_directories(macro_expansion_dir);
+ #if __APPLE__
+-      job_env_["TMPDIR"] = macro_expansion_dir;
++      job_env_["TMPDIR"] = std::filesystem::absolute(macro_expansion_dir).string();
+ #else

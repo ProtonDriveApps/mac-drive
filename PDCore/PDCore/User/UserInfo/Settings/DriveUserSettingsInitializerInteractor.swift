@@ -63,7 +63,7 @@ public final class DriveUserSettingsInitializerInteractor: DriveUserSettingsInit
     }
 
     private func performFetchAndCache() async throws {
-        guard connectionStateResource.currentState.isReachable else {
+        guard await connectionStateResource.isConfirmedReachable else {
             throw NetworkStateError.deviceIsOffline
         }
         let response = try await fetchUserSettingsResource.fetchUserSettings()

@@ -69,7 +69,9 @@ public final class SDKFileProviderOperations: FileProviderOperationsProtocol {
             fileVerifier: fileVerifier,
             observabilityReporter: observabilityReporter,
             folderRateLimiter: FolderRateLimiter(
-                folderStateProvider: CoreDataFolderStateProvider()
+                folderStateProvider: CoreDataFolderStateProvider(),
+                dateResource: PlatformCurrentDateResource(),
+                sleepResource: SystemTaskSleepResource()
             ),
             quotaLimiter: QuotaLimiter(
                 storage: UserDefaultsQuotaLimiterStorage(),

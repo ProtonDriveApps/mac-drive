@@ -1,0 +1,137 @@
+diff --git a/tools/xctoolrunner/BUILD b/tools/xctoolrunner/BUILD
+--- a/tools/xctoolrunner/BUILD
++++ b/tools/xctoolrunner/BUILD
+@@ -26,7 +26,10 @@ py_library(
+         "xctoolrunner.py",
+     ],
+     srcs_version = "PY3",
+-    deps = ["//tools/wrapper_common:execute"],
++    deps = [
++        "//tools/wrapper_common:execute",
++        "@@//native_build:asset_action",
++    ],
+ )
+ 
+ py_test(
+diff --git a/tools/xctoolrunner/xctoolrunner.py b/tools/xctoolrunner/xctoolrunner.py
+--- a/tools/xctoolrunner/xctoolrunner.py
++++ b/tools/xctoolrunner/xctoolrunner.py
+@@ -302,5 +302,13 @@
+ def actool(_, toolargs):
+   """Assemble the call to "xcrun actool"."""
++  if os.environ.get("DRIVE_NATIVE_ASSET_ISOLATION") == "1":
++    from native_build import asset_action
++    # Keep catalog-relative ownership when a declared file is a symlink.
++    toolargs = [os.path.abspath(a[_PATH_PREFIX_LEN:])
++                if a.startswith(_PATH_PREFIX) else a for a in toolargs]
++    return asset_action.run(toolargs)
++  if "--drive-native-inputs" in toolargs:
++    toolargs = toolargs[:toolargs.index("--drive-native-inputs")]
+   xcrunargs = ["xcrun", "actool"]
+   _apply_realpath(toolargs)
+   xcrunargs += toolargs
+diff --git a/apple/internal/resource_actions/actool.bzl b/apple/internal/resource_actions/actool.bzl
+--- a/apple/internal/resource_actions/actool.bzl
++++ b/apple/internal/resource_actions/actool.bzl
+@@ -625,6 +625,10 @@
+ 
+     args.add_all([xctoolrunner_support.prefixed_path(xcasset) for xcasset in xcassets])
+ 
++    # The opt-in native launcher stages exactly these declared files.
++    args.add("--drive-native-inputs")
++    args.add_all([xctoolrunner_support.prefixed_path(f.path) for f in asset_files])
++
+     apple_support.run(
+         actions = actions,
+         arguments = [args],
+diff --git a/tools/xctoolrunner/xctoolrunner.py b/tools/xctoolrunner/xctoolrunner.py
+--- a/tools/xctoolrunner/xctoolrunner.py
++++ b/tools/xctoolrunner/xctoolrunner.py
+@@ -454,3 +454,13 @@
+ def momc(args, toolargs):
+   """Assemble the call to "xcrun momc"."""
++  if "--drive-native-model-inputs" in toolargs:
++    if os.environ.get("DRIVE_NATIVE_MODEL_ISOLATION") == "1":
++      from native_build import model_action
++      toolargs = [os.path.abspath(a[_PATH_PREFIX_LEN:])
++                  if a.startswith(_PATH_PREFIX) else a for a in toolargs]
++      return model_action.run(toolargs)
++    toolargs = toolargs[:toolargs.index("--drive-native-model-inputs")]
++  elif os.environ.get("DRIVE_NATIVE_MODEL_ISOLATION") == "1" and "--action" not in toolargs:
++    raise ValueError("native model compilation requires declared inputs")
++
+   xcrunargs = ["xcrun", "momc"]
+diff --git a/apple/internal/resource_actions/datamodel.bzl b/apple/internal/resource_actions/datamodel.bzl
+--- a/apple/internal/resource_actions/datamodel.bzl
++++ b/apple/internal/resource_actions/datamodel.bzl
+@@ -63,6 +63,10 @@
+         xctoolrunner_support.prefixed_path(output_file.path),
+     ]
+ 
++    # Give the native launcher an exact packing list, not directory read access.
++    args += ["--drive-native-model-inputs"]
++    args += [xctoolrunner_support.prefixed_path(f.path) for f in input_files]
++
+     apple_support.run(
+         actions = actions,
+         apple_fragment = platform_prerequisites.apple_fragment,
+diff --git a/tools/xctoolrunner/xctoolrunner.py b/tools/xctoolrunner/xctoolrunner.py
+--- a/tools/xctoolrunner/xctoolrunner.py
++++ b/tools/xctoolrunner/xctoolrunner.py
+@@ -486,3 +486,11 @@
+ def mapc(_, toolargs):
+   """Assemble the call to "xcrun mapc"."""
++  if os.environ.get("DRIVE_NATIVE_MODEL_ISOLATION") == "1":
++    from native_build import model_action
++    toolargs = [os.path.abspath(a[_PATH_PREFIX_LEN:])
++                if a.startswith(_PATH_PREFIX) else a for a in toolargs]
++    return model_action.run(toolargs, compiler="mapc")
++  if "--drive-native-model-inputs" in toolargs:
++    toolargs = toolargs[:toolargs.index("--drive-native-model-inputs")]
++
+   xcrunargs = ["xcrun", "mapc"]
+diff --git a/apple/internal/resource_actions/datamodel.bzl b/apple/internal/resource_actions/datamodel.bzl
+--- a/apple/internal/resource_actions/datamodel.bzl
++++ b/apple/internal/resource_actions/datamodel.bzl
+@@ -96,6 +96,10 @@
+     args.add(xctoolrunner_support.prefixed_path(mappingmodel_path))
+     args.add(xctoolrunner_support.prefixed_path(output_file.path))
+ 
++    # Mapping models use the same declared-file staging contract as momc.
++    args.add("--drive-native-model-inputs")
++    args.add_all([xctoolrunner_support.prefixed_path(f.path) for f in input_files])
++
+     apple_support.run(
+         actions = actions,
+         arguments = [args],
+diff --git a/tools/xctoolrunner/xctoolrunner.py b/tools/xctoolrunner/xctoolrunner.py
+--- a/tools/xctoolrunner/xctoolrunner.py
++++ b/tools/xctoolrunner/xctoolrunner.py
+@@ -151,3 +151,13 @@
+ def ibtool(_, toolargs):
+   """Assemble the call to "xcrun ibtool"."""
++  if "--drive-native-xib-input" in toolargs:
++    if os.environ.get("DRIVE_NATIVE_XIB_ISOLATION") == "1":
++      from native_build import xib_action
++      toolargs = [os.path.abspath(a[_PATH_PREFIX_LEN:])
++                  if a.startswith(_PATH_PREFIX) else a for a in toolargs]
++      return xib_action.run(toolargs)
++    toolargs = toolargs[:toolargs.index("--drive-native-xib-input")]
++  elif os.environ.get("DRIVE_NATIVE_XIB_ISOLATION") == "1" and any(a.endswith(".xib") for a in toolargs):
++    raise ValueError("native XIB compilation requires its declared input")
++
+   xcrunargs = ["xcrun", "ibtool"]
+diff --git a/apple/internal/resource_actions/ibtool.bzl b/apple/internal/resource_actions/ibtool.bzl
+--- a/apple/internal/resource_actions/ibtool.bzl
++++ b/apple/internal/resource_actions/ibtool.bzl
+@@ -186,6 +186,10 @@
+         xctoolrunner_support.prefixed_path(input_file.path),
+     ])
+ 
++    # Only this XIB is declared; the launcher must not copy its siblings.
++    args.add("--drive-native-xib-input")
++    args.add(xctoolrunner_support.prefixed_path(input_file.path))
++
+     apple_support.run(
+         actions = actions,
+         arguments = [args],

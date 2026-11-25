@@ -1,0 +1,5 @@
+package(default_visibility = ["//visibility:public"])
+exports_files(["VERSION"])
+alias(name = "ProtonDriveMac", actual = "//ProtonDrive-macOS:ProtonDriveMacStore")
+alias(name = "ProtonDriveFileProviderMac", actual = "//ProtonDrive-macOS:ProtonDriveFileProviderMacStore")
+alias(name = "ProtonDriveMacLauncher", actual = "//ProtonDrive-macOS:ProtonDriveMacLauncher")

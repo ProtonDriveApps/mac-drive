@@ -15,21 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
-import Foundation
+import PDClient
 
-public protocol DateResource {
-    func getDate() -> Date
-    func getPastDate() -> Date
-}
-
-public final class PlatformCurrentDateResource: DateResource {
-    public init() {}
-
-    public func getDate() -> Date {
-        return Date()
-    }
-
-    public func getPastDate() -> Date {
-        Date.distantPast
-    }
-}
+public typealias DateResource = PDClient.DateResource
+public typealias PlatformCurrentDateResource = PDClient.PlatformCurrentDateResource

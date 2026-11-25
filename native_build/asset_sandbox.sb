@@ -1,0 +1,43 @@
+;; Diagnostic profile, not production Bazel policy or a complete host identity.
+;; Start closed: compiler inputs and tool/runtime reads are explicit exceptions.
+(version 1)
+(deny default)
+(debug deny)
+(allow process-fork)
+(allow process-exec)
+(allow signal (target self))
+(allow sysctl-read)
+;; Native process startup reads the root directory; this is not a subpath grant.
+(allow file-read* (literal "/"))
+;; Foundation resolves /private temporary paths through these symlinks.
+(allow file-read-metadata (literal "/tmp") (literal "/var"))
+;; actool resolves its installed Xcode path through this directory.
+(allow file-read-metadata (literal "/Applications") (literal (param "XCODE_BUNDLE")))
+;; Foundation resolves APFS firmlinks during initialization.
+(allow file-read* (literal "/usr/share/firmlinks"))
+;; ibtoold's plugin loader requests this installed developer framework.
+;; This is a host dependency to fingerprint, not a generic /Library grant.
+(allow file-read* (subpath "/Library/Developer/PrivateFrameworks/CoreSimulator.framework"))
+;; dyld identifies ROCKit as a required CoreSimulator dependency.
+(allow file-read* (subpath "/Library/Developer/PrivateFrameworks/ROCKit.framework"))
+(allow file-read* (subpath "/Library/Developer/PrivateFrameworks/DVTDownloads.framework"))
+(allow file-read* (subpath "/Library/Developer/PrivateFrameworks/CoreDevice.framework"))
+(allow file-read* (subpath "/Library/Developer/PrivateFrameworks/CoreDeviceUtilities.framework"))
+;; /System's MobileDevice path is a symlink to this separately installed content.
+(allow file-read* (subpath "/Library/Apple/System/Library/PrivateFrameworks/MobileDevice.framework"))
+(allow file-read* (subpath "/Library/Apple/System/Library/PrivateFrameworks/Mercury.framework"))
+;; These are broad, read-only runtime exceptions; they remain platform inputs.
+(allow file-read*
+    (subpath "/System/Library")
+    (subpath "/usr/lib")
+    (subpath "/private/var/db/dyld")
+    (subpath (param "XCODE"))
+    (subpath (param "CATALOG"))
+    (literal (param "TOOL"))
+    (literal "/dev/null")
+    (literal "/dev/random")
+    (literal "/dev/urandom"))
+;; STATE is private to one invocation. No home, shared tmp, sibling results,
+;; network, Unix sockets or Mach lookup exceptions are granted here.
+(allow file-read* file-write* (subpath (param "STATE")))
+(allow file-write* (literal "/dev/null"))

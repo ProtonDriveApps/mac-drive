@@ -74,9 +74,10 @@ public class CoreDataPhotoImporter: PhotoImporter {
         coreDataPhoto.signatureEmail = signersKit.address.email
         coreDataPhoto.nameSignatureEmail = signersKit.address.email
         coreDataPhoto.uploadID = uuid
-        coreDataPhoto.createdDate = asset.metadata.camera.captureTime ?? Date()
+        let captureDate = ISO8601DateFormatter.date(asset.metadata.camera.captureTime) ?? Date()
+        coreDataPhoto.createdDate = captureDate
         coreDataPhoto.modifiedDate = asset.metadata.iOSPhotos.modificationTime ?? Date()
-        coreDataPhoto.captureTime = asset.metadata.camera.captureTime ?? Date()
+        coreDataPhoto.captureTime = captureDate
         coreDataPhoto.tags = asset.tags
 
         // Temporary values
@@ -106,6 +107,7 @@ public class CoreDataPhotoImporter: PhotoImporter {
         coreDataPhotoRevision.uploadSize = asset.dataSize
         coreDataPhotoRevision.uploadResourceTypeValue = asset.resourceType
         coreDataPhotoRevision.signatureAddress = signersKit.address.email
+        coreDataPhotoRevision.contentHash = asset.contentHash.isEmpty ? nil : asset.contentHash
 
         // Relationships
         coreDataPhotoRevision.file = coreDataPhoto // This adds the current coreDataRevision to File's revisions
@@ -144,8 +146,8 @@ public class CoreDataPhotoImporter: PhotoImporter {
             modificationTime: asset.metadata.iOSPhotos.modificationTime
         )
         metadata = metadata.copy(with: iOSPhoto)
-        skippable.recordFiles(identifier: iOSPhoto, filesToUpload: pendingFiles)
-        skippable.markAsSkippable(oldIOSPhoto, skippableFiles: pendingFiles)
+        skippable.setPendingFiles([iOSPhoto: pendingFiles])
+        skippable.decrementPendingFiles([oldIOSPhoto: pendingFiles])
         return metadata
     }
 

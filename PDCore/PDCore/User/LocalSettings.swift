@@ -56,6 +56,7 @@ public class LocalSettings: NSObject {
     @SettingsStorage("QuotaState") public var quotaStateValue: Int?
 
     @SettingsStorage("tagsMigrationFinished") var tagsMigrationFinishedValue: Bool?
+    @SettingsStorage("didCleanUpUnusedPhotoCleartext") public var didCleanUpUnusedPhotoCleartext: Bool?
     @SettingsStorage("isTagsMigrationSheetShownValue") private var isTagsMigrationSheetShownValue: Bool?
 
     // Photo tab for b2b user
@@ -66,6 +67,9 @@ public class LocalSettings: NSObject {
 
     // Checklist
     @SettingsStorage("driveChecklistStatusDataValue") private var driveChecklistStatusDataValue: Data?
+
+    // Home screen quick actions
+    @SettingsStorage("recentFileIdentifiersValue") public var recentFileIdentifiersValue: [String]?
     // ⚠️ Disclaimer: when adding new `@SettingsStorage` variable, make sure you configure its suite in initializer.
 
     // drive/me/settings
@@ -126,9 +130,11 @@ public class LocalSettings: NSObject {
         self._didShowEditorPermissionsTooltip.configure(with: suite)
         self._didFetchFeatureFlags.configure(with: suite)
         self._promotedNewFeaturesValue.configure(with: suite)
+        self._recentFileIdentifiersValue.configure(with: suite)
         self._photoVolumeMigrationLastShownDate.configure(with: suite)
         self._quotaStateValue.configure(with: suite)
         self._tagsMigrationFinishedValue.configure(with: suite)
+        self._didCleanUpUnusedPhotoCleartext.configure(with: suite)
         self._isTagsMigrationSheetShownValue.configure(with: suite)
         self._iOSRefactoredFinderValue.configure(with: suite)
 
@@ -257,6 +263,7 @@ public class LocalSettings: NSObject {
         self.showPhotoUpsellInNextLaunch = nil
         self.driveEntitlementsValue = nil
         self.driveEntitlementsUpdatedTimeValue = nil
+        self.recentFileIdentifiersValue = nil
         if cleanUserSpecificSettings {
             promotedNewFeaturesValue = nil
             quotaStateValue = nil
@@ -269,6 +276,7 @@ public class LocalSettings: NSObject {
         photoVolumeMigrationLastShownDate = nil
         driveChecklistStatusDataValue = nil
         tagsMigrationFinishedValue = nil
+        didCleanUpUnusedPhotoCleartext = nil
         self.layout = nil
         self.sort = nil
         self.revisionRetentionDays = nil
@@ -411,11 +419,6 @@ public class LocalSettings: NSObject {
     public var driveiOSDebugMode: Bool {
         get { featureFlagCatalog.driveiOSDebugMode }
         set { featureFlagCatalog.driveiOSDebugMode = newValue }
-    }
-
-    public var driveiOSPaymentsV2: Bool {
-        get { featureFlagCatalog.driveiOSPaymentsV2 }
-        set { featureFlagCatalog.driveiOSPaymentsV2 = newValue }
     }
 
     public var driveMobileUpsellPlan: Bool {

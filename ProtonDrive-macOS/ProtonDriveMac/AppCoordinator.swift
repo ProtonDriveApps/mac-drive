@@ -29,7 +29,7 @@ import PDCore
 import PDLocalization
 import PDLogin_macOS
 import Combine
-import ProtonCoreCryptoPatchedGoImplementation
+import ProtonCoreCryptoDrivePatchedGoImplementation
 
 /// Coordinates all the app's dependencies and responsibilities.
 ///
@@ -170,6 +170,7 @@ class AppCoordinator: NSObject, ObservableObject {
             keychain: DriveKeychain.shared,
             logging: { Log.info($0, domain: .storage) }
         )
+        let sessionFactory = DriveSessionFactory.makeForApp()
         let initialServices = InitialServices(
             userDefault: Constants.appGroup.userDefaults,
             clientConfig: Constants.userApiConfig,
@@ -178,10 +179,12 @@ class AppCoordinator: NSObject, ObservableObject {
             sessionRelatedCommunicatorFactory: { sessionStore, authenticator, _ in
                 SessionRelatedCommunicatorForMainApp(
                     userDefaultsConfiguration: .forFileProviderExtension(userDefaults: Constants.appGroup.userDefaults),
+                    sleepResource: SystemTaskSleepResource(),
                     sessionStorage: sessionStore,
                     authenticator: authenticator
                 )
             },
+            sessionFactory: sessionFactory,
             isDetailedLoggingEnabled: { RuntimeConfiguration.shared.includeTracesInLogs }
         )
         let networkStateService = ConnectedNetworkStateInteractor(resource: initialServices.connectionStateResource)
@@ -189,6 +192,7 @@ class AppCoordinator: NSObject, ObservableObject {
         let driveCoreAlertListener = DriveCoreAlertListener(client: initialServices.networkClient)
         let loginBuilder = ConcreteLoginManagerBuilder(
             environment: Constants.userApiConfig.environment,
+            sessionFactory: sessionFactory,
             apiServiceDelegate: initialServices.networkClient,
             forceUpgradeDelegate: initialServices.networkClient)
 
@@ -352,6 +356,13 @@ class AppCoordinator: NSObject, ObservableObject {
         Log.trace()
 
         await setUpApplicationEventObserver()
+
+        // UI automation must start on login independently of any restored
+        // session or the availability of that session's backend.
+        if Constants.isInUITests {
+            await configureForUITests()
+            return
+        }
 
         if self.initialServices.isLoggedIn {
             try await startLoggedIn()
@@ -1306,7 +1317,7 @@ extension AppCoordinator {
     }
 
     @MainActor
-    private func signOutSession() async -> UUID {
+    private func signOutSession(revokeRemoteSession: Bool = true) async -> UUID {
         if let pendingSignOut { return await pendingSignOut.value }
 
         let generation = beginSession()
@@ -1318,7 +1329,8 @@ extension AppCoordinator {
             applicationEventObserver.stopMonitoring(dueToSignOut: true)
             await volumeLockLifecycleController.reset()
             await signOutAsync(domainOperationsService: domainOperationsService,
-                               generation: generation, forceRemoveDomain: forceRemoveDomain)
+                               generation: generation, forceRemoveDomain: forceRemoveDomain,
+                               revokeRemoteSession: revokeRemoteSession)
             didLogout()
             pendingSignOut = nil
             return generation
@@ -1328,7 +1340,7 @@ extension AppCoordinator {
     }
 
     @MainActor
-    private func signOutAsync(domainOperationsService: DomainOperationsServiceProtocol, generation: UUID, forceRemoveDomain: Bool) async {
+    private func signOutAsync(domainOperationsService: DomainOperationsServiceProtocol, generation: UUID, forceRemoveDomain: Bool, revokeRemoteSession: Bool) async {
         if let tower = postLoginServices?.tower {
             // Remove the domain entirely when the user asked to, otherwise just disconnect the extension.
             if forceRemoveDomain {
@@ -1346,10 +1358,12 @@ extension AppCoordinator {
             initialServices.featureFlagsRepository.resetFlags(for: userId)
             initialServices.featureFlagsRepository.clearUserId()
         }
-        await Tower.removeSessionInBE(
-            sessionVault: initialServices.sessionVault,
-            authenticator: initialServices.authenticator
-        ) // Before sessionVault clean to have the credential
+        if revokeRemoteSession {
+            await Tower.removeSessionInBE(
+                sessionVault: initialServices.sessionVault,
+                authenticator: initialServices.authenticator
+            ) // Before sessionVault clean to have the credential
+        }
         guard generation == sessionGeneration else { return }
         initialServices.sessionVault.signOut()
         initialServices.sessionRelatedCommunicator.clearStateOnSignOut()
@@ -1610,7 +1624,7 @@ extension AppCoordinator {
         // Reverse the LSUIElement = 1 setting in the info.plist,
         // allowing the status item to be selected in UITests
         _ = await MainActor.run { NSApp.setActivationPolicy(.regular) }
-        await signOutAsync()
+        _ = await signOutSession(revokeRemoteSession: false)
         await showLoginWindow()
     }
 }
@@ -1641,18 +1655,32 @@ extension AppCoordinator: NSWindowDelegate {
 
 extension AppCoordinator: UserActionsDelegate {
     func toggleStatusWindow(from backup_button: NSButton? = nil, onlyOpen: Bool) {
-        Task { @MainActor in
-            if mainWindowCoordinator?.isOpen == true && onlyOpen {
-                Log.trace("Not continuing because already open")
-                return
+        guard Thread.isMainThread else {
+            Task { @MainActor in
+                toggleStatusWindowOnMainActor(from: backup_button, onlyOpen: onlyOpen)
             }
+            return
+        }
 
-            prepareMainWindowCoordinator()
+        MainActor.assumeIsolated {
+            toggleStatusWindowOnMainActor(from: backup_button, onlyOpen: onlyOpen)
+        }
+    }
 
-            let button = menuBarCoordinator?.button ?? backup_button ?? NSButton()
+    @MainActor
+    private func toggleStatusWindowOnMainActor(from backup_button: NSButton?, onlyOpen: Bool) {
+        if mainWindowCoordinator?.isOpen == true && onlyOpen {
+            Log.trace("Not continuing because already open")
+            return
+        }
 
-            let didOpenWindow = mainWindowCoordinator?.toggleMenu(from: button)
-            if didOpenWindow == true {
+        prepareMainWindowCoordinator()
+
+        let button = menuBarCoordinator?.button ?? backup_button ?? NSButton()
+
+        let didOpenWindow = mainWindowCoordinator?.toggleMenu(from: button)
+        if didOpenWindow == true {
+            Task { @MainActor in
                 try await applicationEventObserver.refreshItems()
             }
         }
@@ -1682,6 +1710,9 @@ extension AppCoordinator: UserActionsDelegate {
                     if trigger.isLoginReconnection { return .loginReconnection }
                     if trigger.isRefreshEvent { return .automatic }
                     return .userInitiated
+                },
+                isPointerOverStatusItem: { [weak self] in
+                    self?.menuBarCoordinator?.isPointerOverStatusItem ?? false
                 }
             )
         }
@@ -1929,6 +1960,9 @@ extension AppCoordinator: UserActionsDelegate {
                 in: appWindow,
                 offersCreateFreshSyncLocation: { [weak self] in
                     self?.domainOperationsService.hasDomainReconnectionCapabilityIfKnown ?? false
+                },
+                onUnauthSessionOutcome: { outcome in
+                    Log.info("Unauth session before login: \(outcome)", domain: .networking)
                 },
                 completion: { [weak self] result, createFreshSyncLocation in
                     guard let self = self else { return }

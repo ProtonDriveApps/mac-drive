@@ -1,0 +1,11 @@
+--- a/tools/bundletool/bundletool.py
++++ b/tools/bundletool/bundletool.py
+@@ -150,3 +150,7 @@
+     if os.path.isdir(src):
+-      for root, _, files in os.walk(src):
++      for root, directories, files in os.walk(src):
++        # Filesystem enumeration order is not part of the action's inputs.
++        # Sort both the traversal frontier and each directory's file entries.
++        directories.sort()
++        files.sort()
+         relpath = os.path.relpath(root, src)

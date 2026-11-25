@@ -157,7 +157,7 @@ public struct TemporalMetadata: Codable {
     public init(metadata: PhotoAssetMetadata) {
         self.location = metadata.location.map { ExtendedAttributes.Location(latitude: $0.latitude, longitude: $0.longitude) }
         self.camera = ExtendedAttributes.Camera(
-            captureTime: ISO8601DateFormatter.string(metadata.camera.captureTime),
+            captureTime: metadata.camera.captureTime,
             device: metadata.camera.device,
             orientation: metadata.camera.orientation,
             subjectCoordinates: ExtendedAttributes.SubjectCoordinates(subjectCoordinates: metadata.camera.subjectCoordinates)
@@ -256,5 +256,11 @@ extension Photo {
         ]
 
         return MimeType(value: mimeType).isRaw || knownRawMimeTypes.contains(mime) || knownRawExtensions.contains(fileExtension)
+    }
+
+    /// Reparents all children of `photo` onto this photo. Deleting `photo` would otherwise cascade to its children.
+    public func takeOverChildren(of photo: Photo) {
+        photo.children.forEach { addToChildren($0) }
+        photo.children = []
     }
 }

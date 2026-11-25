@@ -6,7 +6,6 @@ import PackageDescription
 let package = Package(
     name: "PDFileProvider",
     platforms: [
-        .iOS(.v16),
         .macOS(.v13),
     ],
     products: [
@@ -19,7 +18,7 @@ let package = Package(
         .package(name: "PMEventsManager", path: "../PMEventsManager"),
 
         .package(url: "https://github.com/AliSoftware/OHHTTPStubs", exact: "9.1.0"),
-        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "37.3.0"),
+        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "38.0.0"),
     ],
     targets: [
         .target(

@@ -167,7 +167,7 @@ extension GeneralSettings: ProtonUserSettingsStarterInteractorProtocol {
     }
 
     private func fetchAndStoreUserSettings() async throws {
-        guard connectionStateResource.currentState.isReachable else {
+        guard await connectionStateResource.isConfirmedReachable else {
             throw NetworkStateError.deviceIsOffline
         }
         let response: GetGeneralSettingsResponse = try await fetchGeneralSettingsAsync()

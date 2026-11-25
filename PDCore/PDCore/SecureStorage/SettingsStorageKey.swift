@@ -22,6 +22,7 @@ public struct SettingsStorageKey {
 
     public static let photosSkippableCacheKey = SettingsStorageKey(value: "skippable-icloud-ids")
     public static let photosListAnchorsCacheKey = SettingsStorageKey(value: "photos-list-anchors")
+    public static let interruptedPhotoUploadsKey = SettingsStorageKey(value: "interrupted-photo-uploads")
 
     public static var keysExcludedFromWiping = [
         photosSkippableCacheKey

@@ -42,6 +42,7 @@ final class LoginViewModel: ObservableObject {
     }
 
     private let login: Login
+    private let unauthSessionProvider: UnauthSessionProvider
     private let domain: String
     private let shouldShowCreateFreshSyncLocationOptionProvider: () -> Bool
 
@@ -49,8 +50,12 @@ final class LoginViewModel: ObservableObject {
     /// not loaded yet), so a snapshot would go stale. Reading the provider each time reflects current state.
     var shouldShowCreateFreshSyncLocationOption: Bool { shouldShowCreateFreshSyncLocationOptionProvider() }
 
-    init(login: Login, domain: String, offersCreateFreshSyncLocation: @escaping () -> Bool) {
+    init(login: Login,
+         unauthSessionProvider: UnauthSessionProvider,
+         domain: String,
+         offersCreateFreshSyncLocation: @escaping () -> Bool) {
         self.login = login
+        self.unauthSessionProvider = unauthSessionProvider
         self.domain = domain
         self.shouldShowCreateFreshSyncLocationOptionProvider = offersCreateFreshSyncLocation
 
@@ -72,8 +77,10 @@ final class LoginViewModel: ObservableObject {
 
         let username = username
         let password = password
+        let unauthSessionProvider = unauthSessionProvider
         // ProtonCore's login call blocks the calling thread (SRP crypto + synchronous networking).
         Task.detached { [weak self] in
+            await unauthSessionProvider.acquire()
             self?.login.login(username: username, password: password, intent: nil, challenge: nil) { [weak self] result in
                 Task { @MainActor in
                     switch result {

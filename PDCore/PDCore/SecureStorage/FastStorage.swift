@@ -37,27 +37,3 @@ public struct FastStorage<T> {
         }
     }
 }
-
-@propertyWrapper
-struct FastCollectionStorage<T> where T: Codable {
-    let key: String
-
-    init(_ key: String) {
-        self.key = key
-    }
-
-    var wrappedValue: [T] {
-        get {
-            guard let data = UserDefaults.standard.object(forKey: key) as? Data else { return [] }
-            return (try? PropertyListDecoder().decode([T].self, from: data)) ?? []
-        }
-        set {
-            guard !newValue.isEmpty,
-                let data = try? PropertyListEncoder().encode(newValue) else
-            {
-                return UserDefaults.standard.removeObject(forKey: key)
-            }
-            UserDefaults.standard.set(data, forKey: key)
-        }
-    }
-}

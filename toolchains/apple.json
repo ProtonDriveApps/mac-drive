@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "host": {
+    "architecture": "arm64"
+  },
+  "sdks": {
+    "macosx": {
+      "version": "27.2"
+    }
+  }
+}

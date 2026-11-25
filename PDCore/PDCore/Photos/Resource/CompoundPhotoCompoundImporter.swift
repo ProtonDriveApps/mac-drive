@@ -104,8 +104,7 @@ public final class CompoundPhotoCompoundImporter: PhotoCompoundImporter {
 
         for secondaryAsset in compound.secondary {
             let secondary = try importer.import(secondaryAsset, folder: folder, encryptingFolder: encryptingFolder)
-            secondary.parent = main
-            main.addToChildren(secondary)
+            attach(secondary, to: main)
         }
 
         // Uses the new created upload id, or the id from the BE if already committed
@@ -121,9 +120,17 @@ public final class CompoundPhotoCompoundImporter: PhotoCompoundImporter {
             }
             childrenNames.append(secondaryAsset.filename)
             let secondary = try importer.import(secondaryAsset, folder: folder, encryptingFolder: encryptingFolder)
-            secondary.parent = main
-            main.addToChildren(secondary)
+            attach(secondary, to: main)
         }
+    }
+
+    private func attach(_ secondary: Photo, to main: Photo) {
+        guard secondary !== main else {
+            Log.warning("Skipping secondary photo identical to compound main, uploadID: \(main.uploadID?.uuidString ?? main.id)", domain: .photosProcessing)
+            return
+        }
+        secondary.parent = main
+        main.addToChildren(secondary)
     }
     
     private func getEncryptingFolder() throws -> EncryptingFolder {

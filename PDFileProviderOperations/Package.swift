@@ -19,7 +19,7 @@ let package = Package(
         .package(name: "PDCore", path: "../PDCore"),
         .package(name: "PDSDKCore", path: "../PDSDKCore"),
         .package(name: "PDFileProvider", path: "../PDFileProvider"),
-        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "37.3.0"),
+        .package(url: "https://github.com/ProtonMail/protoncore_ios.git", exact: "38.0.0"),
         .package(url: "https://github.com/AliSoftware/OHHTTPStubs", exact: "9.1.0"),
     ],
     targets: [

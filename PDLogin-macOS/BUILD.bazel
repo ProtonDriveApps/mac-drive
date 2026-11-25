@@ -1,0 +1,28 @@
+load("@rules_swift//swift:swift.bzl", "swift_library")
+load("@rules_apple//apple:resources.bzl", "apple_resource_bundle")
+load("@rules_swift_package_manager//swiftpkg:build_defs.bzl", "resource_bundle_infoplist")
+
+package(default_visibility = ["//visibility:public"])
+
+swift_library(
+    name = "PDLogin-macOS",
+    module_name = "PDLogin_macOS",
+    srcs = glob(["PDLogin-macOS/**/*.swift"]) + ["//build_defs:PDLoginBundle.swift"],
+    deps = [
+        "//PDLocalization",
+        # LoginView imports this module directly; declare it explicitly.
+        "//PDUIComponents",
+        "@swiftpkg_protoncore_ios//:ProtonCoreHumanVerification",
+        "@swiftpkg_protoncore_ios//:ProtonCoreLoginUI",
+    ],
+    data = [":PDLoginResources"],
+)
+
+resource_bundle_infoplist(name = "resource_info", region = "en")
+
+apple_resource_bundle(
+    name = "PDLoginResources",
+    bundle_name = "PDLogin-macOS_PDLogin-macOS",
+    infoplists = [":resource_info"],
+    resources = glob(["PDLogin-macOS/Resources/**"]),
+)

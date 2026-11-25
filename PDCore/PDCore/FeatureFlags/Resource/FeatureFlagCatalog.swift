@@ -98,8 +98,8 @@ public final class FeatureFlagCatalog {
 
     @PersistedFeatureFlag(.driveiOSDebugMode)
     var driveiOSDebugMode: Bool
-    @PersistedFeatureFlag(.driveiOSPaymentsV2)
-    var driveiOSPaymentsV2: Bool
+    @PersistedFeatureFlag(.driveiOSPaymentsSDK)
+    var driveiOSPaymentsSDK: Bool
     @PersistedFeatureFlag(.driveMobileUpsellPlan)
     var driveMobileUpsellPlan: Bool
 
@@ -128,6 +128,8 @@ public final class FeatureFlagCatalog {
     var driveiOSSDKTrashOperations: Bool
     @PersistedFeatureFlag(.driveiOSSDKDevicesOperations)
     var driveiOSSDKDevicesOperations: Bool
+    @PersistedFeatureFlag(.driveiOSSDKDevices)
+    var driveiOSSDKDevices: Bool
     @PersistedFeatureFlag(.driveClientTestsEnabled)
     var driveClientTestsEnabled: Bool
     @PersistedFeatureFlag(.driveiOSUnlimitedPickerSelection)
@@ -138,6 +140,12 @@ public final class FeatureFlagCatalog {
     var driveiOSPhotosGridZoom: Bool
     @PersistedFeatureFlag(.driveiOSSDKLeaveSharedNode)
     var driveiOSSDKLeaveSharedNode: Bool
+    @PersistedFeatureFlag(.driveiOSSDKPhotosUpdate)
+    var driveiOSSDKPhotosUpdate: Bool
+    @PersistedFeatureFlag(.driveiOSSDKPhotosSaveToTimeline)
+    var driveiOSSDKPhotosSaveToTimeline: Bool
+    @PersistedFeatureFlag(.driveiOSAudioRecording)
+    var driveiOSAudioRecording: Bool
 
     private var lookupTable: LookupTable!
 
@@ -218,7 +226,7 @@ extension FeatureFlagCatalog {
             .docsSheetsEnabled,
             .docsSheetsDisabled,
             .docsCreateNewSheetOnMobileEnabled,
-            .driveiOSPaymentsV2,
+            .driveiOSPaymentsSDK,
             .driveMacDecryptPassphraseIterativeDisabled
         ]
         let userSpecificFlags: [ExternalFeatureFlag] = [
@@ -233,11 +241,15 @@ extension FeatureFlagCatalog {
             .driveiOSSDKTrashNode,
             .driveiOSSDKTrashOperations,
             .driveiOSSDKDevicesOperations,
+            .driveiOSSDKDevices,
             .driveClientTestsEnabled,
             .driveiOSUnlimitedPickerSelection,
             .driveiOSDownloadMultiple,
             .driveiOSPhotosGridZoom,
-            .driveiOSSDKLeaveSharedNode
+            .driveiOSSDKLeaveSharedNode,
+            .driveiOSSDKPhotosUpdate,
+            .driveiOSSDKPhotosSaveToTimeline,
+            .driveiOSAudioRecording
         ]
         return (generalFlags, userSpecificFlags)
     }

@@ -25,6 +25,11 @@ protocol SingleInstanceLocking {
     ///            `false` if another process already holds it (second instance).
     ///            Also returns `true` on any filesystem error (fail-open).
     func acquireLock() -> Bool
+
+    /// Blocks until this process holds the exclusive instance lock.
+    /// - Returns: `true` once this process holds the lock,
+    ///            `false` if the lock file can't be opened or locked. Unlike `acquireLock()`, it doesn't fail open.
+    func waitForLock() -> Bool
 }
 
 /// Uses POSIX `flock(2)` to ensure only one instance of the app runs at a time.
@@ -102,6 +107,35 @@ final class FlockInstanceLock: SingleInstanceLocking {
         return true
     }
 
+    func waitForLock() -> Bool {
+        guard fileDescriptor == -1 else {
+            return true
+        }
+
+        let fd = open(lockFileURL.path, O_WRONLY | O_CREAT, 0o600)
+        guard fd >= 0 else {
+            let openErrno = errno
+            writeLog("Can't wait for the lock: open() failed with errno \(openErrno) (\(errnoDescription(for: openErrno))).")
+            return false
+        }
+
+        // Without LOCK_NB, flock() sleeps until the holder releases the lock, which the kernel does when it exits.
+        var result: Int32
+        repeat {
+            result = flock(fd, LOCK_EX)
+        } while result != 0 && errno == EINTR
+
+        guard result == 0 else {
+            let flockErrno = errno
+            close(fd)
+            writeLog("Can't wait for the lock: flock() failed with errno \(flockErrno) (\(errnoDescription(for: flockErrno))).")
+            return false
+        }
+
+        fileDescriptor = fd
+        return true
+    }
+
     deinit {
         if fileDescriptor >= 0 {
             close(fileDescriptor)
@@ -149,5 +183,46 @@ final class FlockInstanceLock: SingleInstanceLocking {
 
         let output = existingLines.joined(separator: "\n") + "\n"
         try? output.data(using: .utf8)?.write(to: logFileURL, options: .atomic)
+    }
+}
+
+/// Called from `main.m` before `NSApplicationMain`, so a second copy of the app never creates an `NSApplication`:
+/// macOS runs TCC preflight checks for every `NSApplication` created.
+@objc(SingleInstanceGate)
+final class SingleInstanceGate: NSObject {
+
+    /// Passed by `ch.protonmail.drive.agent.plist` to the copy that launchd starts for the relaunch agent.
+    static let relaunchAgentArgument = "--relaunch-agent"
+
+    /// Holds the lock for the entire process lifetime.
+    /// The kernel releases the lock automatically on process exit (including SIGKILL).
+    private static let instanceLock: SingleInstanceLocking = FlockInstanceLock(
+        containerGroupIdentifier: Constants.appContainerGroup
+    )
+
+    enum Decision {
+        case launch
+        case exitAsDuplicate
+        case exitToRetry
+    }
+
+    static func decide(arguments: [String], lock: SingleInstanceLocking) -> Decision {
+        if arguments.contains(relaunchAgentArgument) {
+            return lock.waitForLock() ? .launch : .exitToRetry
+        }
+        return lock.acquireLock() ? .launch : .exitAsDuplicate
+    }
+
+    @objc static func ensureSingleInstance() {
+        switch decide(arguments: CommandLine.arguments, lock: instanceLock) {
+        case .launch:
+            return
+        case .exitAsDuplicate:
+            assert(false, "Exiting because another instance is already running.")
+            exit(0)
+        case .exitToRetry:
+            // launchd restarts the relaunch agent's copy after a non-zero exit (KeepAlive.SuccessfulExit is false).
+            exit(1)
+        }
     }
 }

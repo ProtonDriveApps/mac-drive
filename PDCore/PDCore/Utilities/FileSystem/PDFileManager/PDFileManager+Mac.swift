@@ -16,6 +16,7 @@
 // along with Proton Drive. If not, see https://www.gnu.org/licenses/.
 
 #if os(macOS)
+import CryptoKit
 import Foundation
 
 extension PDFileManager {
@@ -27,28 +28,34 @@ extension PDFileManager {
         return url.appendingPathComponent(filename)
     }
     
-    /// Construct a clear data path that stores files in the app group’s temporary directory.
+    /// Look up a node's cleartext file in the disposable cache; optionally create its folder.
     public static func prepareTempURLForFile(
         identifier: NodeIdentifier,
         named filename: String,
         shouldCreate: Bool
     ) -> URL {
-        let filename = filename.filenameSanitizedForFilesystem()
-        let url = self.cleartextCacheDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        self.createIfNeeded(url)
-        return url.appendingPathComponent(filename)
+        revisionCacheURL(root: cleartextCacheDirectory, identifier: identifier, filename: filename, shouldCreate: shouldCreate)
     }
     
-    /// Construct a clear data path that stores files in the app group’s directory.
+    /// Look up a node's cleartext file in persistent app-group storage; optionally create its folder.
     public static func preparePermanentURLForFile(
         identifier: NodeIdentifier,
         named filename: String,
         shouldCreate: Bool
     ) -> URL {
-        let filename = filename.filenameSanitizedForFilesystem()
-        var url = self.cleartextCacheDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        self.createIfNeeded(url)
-        return url.appendingPathComponent(filename)
+        revisionCacheURL(root: permanentDataDirectory, identifier: identifier, filename: filename, shouldCreate: shouldCreate)
+    }
+
+    private static func revisionCacheURL(root: URL, identifier: NodeIdentifier, filename: String, shouldCreate: Bool) -> URL {
+        // Length-prefix identifiers so different volume/node pairs cannot have the same input.
+        // Hashing also prevents identifiers from becoming filesystem path components.
+        let key = "\(identifier.volumeID.utf8.count):\(identifier.volumeID)\(identifier.nodeID.utf8.count):\(identifier.nodeID)"
+        let directoryName = SHA256.hash(data: Data(key.utf8)).map { String(format: "%02x", $0) }.joined()
+        let directory = root.appendingPathComponent(directoryName, isDirectory: true)
+        if shouldCreate {
+            createIfNeeded(directory)
+        }
+        return directory.appendingPathComponent(filename.filenameSanitizedForFilesystem())
     }
     
     public static func copyDatabases(from source: URL, to destination: URL) throws {

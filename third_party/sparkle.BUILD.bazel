@@ -1,0 +1,15 @@
+load("@build_bazel_rules_apple//apple:apple.bzl", "apple_dynamic_xcframework_import")
+
+# The SwiftPM adapter downloads and verifies the binary artifact described by
+# the pinned package before applying this BUILD override.
+exports_files([
+    "pkg_info.json",
+    "remote/archive/Sparkle-for-Swift-Package-Manager.zip/bin/generate_appcast",
+    "remote/archive/Sparkle-for-Swift-Package-Manager.zip/bin/sign_update",
+])
+
+apple_dynamic_xcframework_import(
+    name = "Sparkle",
+    xcframework_imports = glob(["remote/archive/Sparkle-for-Swift-Package-Manager.zip/Sparkle.xcframework/**"]),
+    visibility = ["//visibility:public"],
+)

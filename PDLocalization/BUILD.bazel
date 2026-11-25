@@ -1,0 +1,24 @@
+load("@rules_swift//swift:swift.bzl", "swift_library")
+load("@rules_apple//apple:resources.bzl", "apple_resource_bundle")
+load("@rules_swift_package_manager//swiftpkg:build_defs.bzl", "resource_bundle_infoplist")
+
+package(default_visibility = ["//visibility:public"])
+
+swift_library(
+    name = "PDLocalization",
+    module_name = "PDLocalization",
+    srcs = glob(["Sources/*.swift"]) + ["//build_defs:PDLocalizationBundle.swift"],
+    data = [":PDLocalizationResources"],
+)
+
+resource_bundle_infoplist(
+    name = "resource_info",
+    region = "en",
+)
+
+apple_resource_bundle(
+    name = "PDLocalizationResources",
+    bundle_name = "PDLocalization_PDLocalization",
+    infoplists = [":resource_info"],
+    resources = glob(["Sources/Resources/*.xcstrings"]),
+)

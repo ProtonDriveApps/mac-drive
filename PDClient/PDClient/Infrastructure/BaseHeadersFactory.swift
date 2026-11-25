@@ -53,9 +53,11 @@ public final class DriveBaseHeadersFactory: BaseHeadersFactory {
         return features.joined(separator: ",")
     }
 
+    /// iOS is permanently on payments v2. The `driveiOSPaymentsSDK` condition belongs to the change
+    /// that actually routes purchases through the SDK, so that the header and the behaviour switch together.
     private func isPaymentsV2Enabled() -> Bool {
         #if os(iOS)
-        return featureFlags?.isEnabled(flag: .driveiOSPaymentsV2) ?? false
+        return true
         #else
         return false
         #endif

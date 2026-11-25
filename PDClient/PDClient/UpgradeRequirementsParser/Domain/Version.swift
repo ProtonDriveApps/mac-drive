@@ -23,18 +23,19 @@ public struct Version: Comparable, CustomStringConvertible {
     public let patch: Int
 
     public init?(_ string: String) {
-        let parts = string.split(separator: ".")
-        
+        // Ignore any pre-release/build suffix, e.g. "0.25.0-rust" is treated as "0.25.0".
+        let core = string.prefix { $0 != "-" }
+        let parts = core.split(separator: ".")
+
         guard
             parts.count == 3,
             let major = Int(parts[0]),
             let minor = Int(parts[1]),
             let patch = Int(parts[2])
         else {
-            assertionFailure("The version should be parseable")
             return nil
         }
-        
+
         self.major = major
         self.minor = minor
         self.patch = patch

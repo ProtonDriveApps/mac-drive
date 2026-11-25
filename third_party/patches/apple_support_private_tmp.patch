@@ -1,0 +1,20 @@
+diff --git a/xcode/xcode_configure.bzl b/xcode/xcode_configure.bzl
+--- a/xcode/xcode_configure.bzl
++++ b/xcode/xcode_configure.bzl
+@@ -136,6 +136,8 @@
+         "env",
+         "-i",
+         "DEVELOPER_DIR={}".format(env.get("DEVELOPER_DIR", default = "")),
++        "TMPDIR={}".format(env.get("TMPDIR", default = "/tmp")),
++        "HOME={}".format(env.get("HOME", default = "")),
+         "xcrun",
+         "--sdk",
+         "macosx",
+diff --git a/crosstool/universal_exec_tool.bzl b/crosstool/universal_exec_tool.bzl
+--- a/crosstool/universal_exec_tool.bzl
++++ b/crosstool/universal_exec_tool.bzl
+@@ -31,3 +31,3 @@
+ env -i \
+-  DEVELOPER_DIR="$${DEVELOPER_DIR:-}" \
++  DEVELOPER_DIR="$${DEVELOPER_DIR:-}" TMPDIR="$${TMPDIR:-/tmp}" HOME="$${HOME:-}" \
+   xcrun \

@@ -81,10 +81,39 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
 
     // MARK: - Status item
 
+    static let statusItemActionEvents: NSEvent.EventTypeMask = [.leftMouseDown, .rightMouseDown]
+
+    enum StatusItemClickAction {
+        case toggleStatusWindow
+        case showMenu
+        case none
+    }
+
+    static func clickAction(eventType: NSEvent.EventType?,
+                            modifierFlags: NSEvent.ModifierFlags,
+                            isInUITests: Bool) -> StatusItemClickAction {
+        if isInUITests {
+            return .showMenu
+        }
+
+        switch eventType {
+        case .leftMouseDown:
+            return modifierFlags.contains(.option) ? .showMenu : .toggleStatusWindow
+        case .rightMouseDown:
+            return .showMenu
+        default:
+            return .none
+        }
+    }
+
+    var isPointerOverStatusItem: Bool {
+        statusItem.button?.window?.frame.contains(NSEvent.mouseLocation) ?? false
+    }
+
     private func makeStatusItem() -> NSStatusItem {
         let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem.button!.image = statusItemImage()
-        statusItem.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        statusItem.button?.sendAction(on: Self.statusItemActionEvents)
         statusItem.button?.action = #selector(statusItemTapped(_:))
         statusItem.button?.target = self
         statusItem.button?.setAccessibilityIdentifier("Proton Drive")
@@ -104,8 +133,12 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
         Log.trace("\(menuIconStatus), \(iconName), \(activityIndicatorEnabled)")
 
         let margin = 2
-        let size = Int(NSStatusBar.system.thickness) - margin * 2
-        return NSImage(named: iconName)!.resize(newWidth: size, newHeight: size)
+        let size = NSStatusBar.system.thickness - CGFloat(margin * 2)
+        // Keep the PDF representation so the icon stays sharp at any menu bar size.
+        // Copy to avoid mutating the shared cached `NSImage`.
+        let image = NSImage(named: iconName)!.copy() as! NSImage
+        image.size = NSSize(width: size, height: size)
+        return image
     }
 
     private func statusItemImageName(_ status: ApplicationSyncStatus) -> String {
@@ -134,21 +167,23 @@ final class MenuBarCoordinator: NSObject, ObservableObject, NSMenuDelegate {
     }
 
     @objc func statusItemTapped(_ sender: NSButton) {
-        Log.trace()
-        
-        if Constants.isInUITests {
-            showOldMenu()
-            return
-        }
+        let event = NSApp.currentEvent
+        let action = Self.clickAction(eventType: event?.type,
+                                      modifierFlags: event?.modifierFlags ?? [],
+                                      isInUITests: Constants.isInUITests)
+        Log.trace("eventType: \(event.map { "\($0.type.rawValue)" } ?? "nil"), action: \(action)")
 
-        if let statusButton = statusItem.button,
-           let event = NSApp.currentEvent,
-           event.type == .leftMouseUp,
-           !event.modifierFlags.contains(.option)
-        {
-            userActions.app.toggleStatusWindow(from: statusButton)
-        } else {
+        switch action {
+        case .toggleStatusWindow:
+            if let statusButton = statusItem.button {
+                userActions.app.toggleStatusWindow(from: statusButton)
+            } else {
+                showOldMenu()
+            }
+        case .showMenu:
             showOldMenu()
+        case .none:
+            break
         }
     }
     

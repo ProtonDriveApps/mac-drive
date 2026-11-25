@@ -27,6 +27,7 @@ import ProtonCoreNetworking
 import ProtonCoreDataModel
 import ProtonCoreFeatureFlags
 import ProtonCorePayments
+import ProtonCoreUtilities
 
 typealias ResponseError = ProtonCoreNetworking.ResponseError
 
@@ -60,6 +61,8 @@ public class Tower: NSObject {
     public let entitlementsManager: EntitlementsManagerProtocol
     private let resyncMetadataRepositoryStoreURL: URL
     private var cancellables = Set<AnyCancellable>()
+    private var didSubscribeToCleanUpNotifications = false
+    private let isCleaningUpCache = Atomic<Bool>(false)
     public let uploadedBytesCounterResource: BytesCounterResource
     public let clientConfiguration: PDClient.APIService.Configuration
 
@@ -68,11 +71,8 @@ public class Tower: NSObject {
     #endif
 
     // internal for Tower+Events.swift
-    var externalInvitationConverter: ExternalInvitationConvertProtocol?
-    var nodeTreeOperator: NodeTreeOperatorProtocol?
     var storageSuite: SettingsStorageSuite
     var mainVolumeEventsConveyor: EventsConveyor?
-    var volumeEventsReferenceStorage: VolumeEventsReferenceStorageProtocol?
     let coreEventManager: CoreEventLoopManager
     let eventObservers: [EventsListener]
     let eventProcessingMode: DriveEventsLoopMode
@@ -173,7 +173,7 @@ public class Tower: NSObject {
         self.addressManager = AddressManager(authenticator: authenticator, sessionVault: sessionVault)
         self.authenticator = authenticator
 
-        let rateLimitGate = RateLimitGate()
+        let rateLimitGate = RateLimitGate(dateResource: PlatformCurrentDateResource(), sleepResource: SystemTaskSleepResource())
         self.rateLimitGate = rateLimitGate
         self.upgradeRequirementsParser = UpgradeRequirementsParser()
         #if os(iOS)
@@ -232,11 +232,7 @@ public class Tower: NSObject {
         self.eventProcessingMode = eventProcessingMode
         volumeIdsController = VolumeIdsController()
         let eventsFactory = EventsFactory()
-        #if os(iOS)
-        eventsTimingController = eventsFactory.makeMultipleVolumesTimingController(volumeIdsController: volumeIdsController)
-        #else
         eventsTimingController = eventsFactory.makeSingleVolumeTimingController(interval: eventLoopInterval)
-        #endif
         self.coreEventManager = eventsFactory.makeCoreEventsSystem(appGroup: appGroup, sessionVault: sessionVault, generalSettings: generalSettings, paymentsSecureStorage: paymentsStorage, network: network, timingController: eventsTimingController, contactAdapter: contactAdapter, entitlementsManager: entitlementsManager)
         eventStorageManager = eventStorage
 
@@ -740,6 +736,9 @@ extension Tower {
 extension Tower {
     #if os(iOS)
     public func subscribeToCleanUpNotifications() {
+        guard !didSubscribeToCleanUpNotifications else { return }
+        didSubscribeToCleanUpNotifications = true
+
         NotificationCenter.default.publisher(for: .nukeCache)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] notification in
@@ -761,12 +760,32 @@ extension Tower {
     }
     #endif
 
+    /// A nuke can be posted many times at once, e.g. once per node when a batch of decryptions fails.
+    private func beginCacheCleanUp() -> Bool {
+        var didBegin = false
+        isCleaningUpCache.mutate { isCleaningUp in
+            guard !isCleaningUp else { return }
+            isCleaningUp = true
+            didBegin = true
+        }
+        return didBegin
+    }
+
+    private func endCacheCleanUp() {
+        isCleaningUpCache.mutate { $0 = false }
+    }
+
     /// Clears local cache without clearing the user session
     @objc private func reloadCache(notification: Notification) {
-        cancellables.removeAll()
         let reason = notification.userInfo?["reason"]
+        guard beginCacheCleanUp() else {
+            Log.info("Tower - ignoring nuke Cache, one is already running (\(reason ?? "no reason"))", domain: .application)
+            return
+        }
+        cancellables.removeAll()
         Task {
             await destroyCache(strategy: .cleanEverythingButUserSpecificSettings)
+            endCacheCleanUp()
             if let reason {
                 Log.info("Tower - nuked Cache due to \(reason)", domain: .application)
             } else {
@@ -777,9 +796,14 @@ extension Tower {
     }
 
     @objc private func reloadCacheExcludingEvents() {
+        guard beginCacheCleanUp() else {
+            Log.info("Tower - ignoring nuke CacheExcludingEvent, one is already running", domain: .application)
+            return
+        }
         cancellables.removeAll()
         Task {
             await destroyCache(strategy: .cleanOnlyMetadataDB)
+            endCacheCleanUp()
             Log.info("Tower - nuked CacheExcludingEvent", domain: .application)
             NotificationCenter.default.post(name: .restartApplication, object: nil)
         }

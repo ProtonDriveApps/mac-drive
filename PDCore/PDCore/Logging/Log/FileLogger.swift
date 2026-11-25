@@ -68,7 +68,6 @@ public class FileLogger: FileLoggerProtocol {
     /// Write all the logs for a single run of the application to a separate file.
     private let oneFilePerRun: Bool
 
-    // TODO: https://jira.protontech.ch/browse/DRVIOS-2126
     private var fileLogName: String {
         var baseName: String = "log-ProtonDrive"
         if PDCore.Constants.runningInExtension {

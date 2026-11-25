@@ -22,7 +22,11 @@ public protocol PhotosSkippableStorage {
     subscript(index: Identifier) -> Int? { get set }
 
     func checkSkippableStatus(identifier: Identifier) -> SkippableStatus
-    func batchMarkAsSkippable(data: [Identifier: Int])
+    /// Overwrites the pending-file count of each identifier. Pass 0 to mark an asset fully
+    /// skippable. To account for individual files finishing, use `decrementPendingFiles`.
+    func setPendingFiles(data: [Identifier: Int])
+    /// Subtracts the given number of files from each identifier's pending count, clamped at 0.
+    func decrementPendingFiles(data: [Identifier: Int])
     func clean()
     func cacheCount() -> Int
     #if DEBUG
@@ -44,6 +48,7 @@ public enum SkippableStatus {
 public class UserDefaultsPhotosSkippableStorage: PhotosSkippableStorage {
     typealias Store = [String: Int]
     private static let delimiter = "@"
+    private static let reportedIdentifiersLimit = 5
     
     @SettingsStorage(SettingsStorageKey.photosSkippableCacheKey.value) private var store: Store?
     private let queue = DispatchQueue(label: "SkippableStorage", qos: .userInteractive, attributes: .concurrent)
@@ -73,9 +78,11 @@ public class UserDefaultsPhotosSkippableStorage: PhotosSkippableStorage {
         }
     }
     
-    public func batchMarkAsSkippable(data: [Identifier: Int]) {
+    public func setPendingFiles(data: [Identifier: Int]) {
+        guard !data.isEmpty else { return }
         queue.async(flags: .barrier) { [weak self] in
             for (identifier, value) in data {
+                Log.debug("Skippable status of \(identifier) set to \(value)", domain: .photosProcessing)
                 let tmp = InMemoryData(
                     cloudIdentifier: identifier.identifier,
                     data: [identifier.modificationTime: value]
@@ -86,6 +93,48 @@ public class UserDefaultsPhotosSkippableStorage: PhotosSkippableStorage {
         }
     }
     
+    public func decrementPendingFiles(data: [Identifier: Int]) {
+        guard !data.isEmpty else { return }
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self else { return }
+            var unknownIdentifiers: [String] = []
+            for (identifier, decrementBy) in data {
+                let probe = InMemoryData(identifier: identifier)
+                let current = self.inMemorySet.first(where: { $0 == probe })?
+                    .fileNeedsToBeUploaded(on: identifier.modificationTime)
+                guard let current else {
+                    // Nothing recorded (cache cleaned, fresh install, or the asset was modified
+                    // since it was recorded). Callers subtract files they are done with, so the
+                    // remainder is 0 — storing `decrementBy` would claim that many files are still
+                    // pending and keep the asset out of `.skippable` forever.
+                    unknownIdentifiers.append(identifier.identifier)
+                    Log.debug("Identifier \(identifier) not found in skippable table, recorded as skippable", domain: .photosProcessing)
+                    self.inMemorySet.mergeableInsert(
+                        InMemoryData(cloudIdentifier: identifier.identifier, data: [identifier.modificationTime: 0])
+                    )
+                    continue
+                }
+                let remaining = max(0, current - decrementBy)
+                Log.debug("Skippable status of \(identifier) updated to \(remaining)", domain: .photosProcessing)
+                self.inMemorySet.mergeableInsert(
+                    InMemoryData(cloudIdentifier: identifier.identifier, data: [identifier.modificationTime: remaining])
+                )
+            }
+            if !unknownIdentifiers.isEmpty {
+                // One report for the whole batch. Expected after the cache is cleaned, but a spike
+                // means keys are drifting between what the pipeline records and what the uploader
+                // reports, which is what keeps assets from ever becoming skippable.
+                var context = LogContext(unknownIdentifiers.count, forKey: "count")
+                // Capped: send just a handful of identifiers. Sentry would trim them anyway.
+                context["cloudIdentifiers"] = unknownIdentifiers.prefix(Self.reportedIdentifiersLimit).joined(separator: ", ")
+                context["trimmedListOfIdentifiers"] = unknownIdentifiers.count > Self.reportedIdentifiersLimit
+                Log.error("Identifiers not found in skippable table", domain: .photosProcessing, context: context)
+            }
+            // Single write for the whole batch.
+            self.saveSetToStore(self.inMemorySet)
+        }
+    }
+
     public func checkSkippableStatus(identifier: Identifier) -> SkippableStatus {
         let tmp = InMemoryData(identifier: identifier)
         

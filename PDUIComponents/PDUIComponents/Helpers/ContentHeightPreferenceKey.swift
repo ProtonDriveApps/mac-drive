@@ -17,28 +17,6 @@
 
 import SwiftUI
 
-struct NameStackHeightPreferenceKey: PreferenceKey {
-    typealias Value = CGFloat
-    
-    static var defaultValue: Value = .zero
-    
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
-struct NameStackHeightModifier: ViewModifier {
-    private var sizeView: some View {
-        GeometryReader { geometry in
-            Color.clear.preference(key: NameStackHeightPreferenceKey.self, value: geometry.size.height)
-        }
-    }
-
-    func body(content: Content) -> some View {
-        content.background(sizeView)
-    }
-}
-
 public struct ContentHeightPreferenceKey: PreferenceKey {
     public typealias Value = CGFloat
     

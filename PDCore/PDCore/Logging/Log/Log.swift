@@ -100,6 +100,7 @@ public struct LogDomain: Equatable, Hashable {
     public static let shareExtension = LogDomain(name: "shareExtension")
     public static let itemProviderLoader = LogDomain(name: "itemProviderLoader")
     public static let nodeOperation = LogDomain(name: "nodeOperation")
+    public static let recorder = LogDomain(name: "recorder")
 
     public static let iOSDomains: Set<LogDomain> = [
         .applicationBootstrap,
@@ -142,7 +143,8 @@ public struct LogDomain: Equatable, Hashable {
         .shareExtension,
         .itemProviderLoader,
         .syncing,
-        .nodeOperation
+        .nodeOperation,
+        .recorder
     ]
 
     /// If both params are empty, returns all domains

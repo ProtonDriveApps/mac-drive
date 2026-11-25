@@ -285,7 +285,11 @@ extension SparkleAppUpdateService {
         }
         
         switch reason {
-        case .onLatestVersion, .onNewerThanLatestVersion, .systemIsTooNew, .systemIsTooOld:
+        case .onLatestVersion,
+             .onNewerThanLatestVersion,
+             .systemIsTooNew,
+             .systemIsTooOld,
+             .hardwareDoesNotSupportARM64:
             setServiceStateToUpToDate()
         case .unknown:
             handleUserIndependentErrorWithShorterRetry(error: error)
@@ -352,7 +356,6 @@ extension SparkleAppUpdateService {
              .downgradeError,
              .relaunchError,
              .installationAuthorizeLaterError,
-             .installationRootInteractiveError,
              .installationWriteNoPermissionError:
             handleUserFacingErrorWithShorterRetry(error: nsError)
         case .installationCanceledError:

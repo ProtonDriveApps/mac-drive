@@ -1,0 +1,2 @@
+exports_files(glob(["*.swift", "*.plist", "*.bzl"]), visibility = ["//visibility:public"])
+config_setting(name = "optimized", values = {"compilation_mode": "opt"}, visibility = ["//visibility:public"])

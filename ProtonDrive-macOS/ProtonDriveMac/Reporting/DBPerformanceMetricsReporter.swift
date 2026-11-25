@@ -39,6 +39,8 @@ final class DBPerformanceMetricsReporter: PerformanceMetricsReporter {
     private let downloadResource: DownloadSpeedMetricResource
     private let reportAggregator: PerformanceMetricsReportAggregating
     private let shouldCleanOnStartup: Bool
+    private let reportLock = NSLock()
+    private var lastReport: Task<Void, Never>?
 
     init(
         repository: PeformanceMeasurementRepository,
@@ -134,42 +136,52 @@ private extension DBPerformanceMetricsReporter {
     func reportIfNeeded() {
         Log.trace()
 
-        Task { [self] in
-            do {
-                let measurements = try [
-                    PerformanceOperationType.upload: await repository.fetchUnreportedMeasurements(for: .upload),
-                    PerformanceOperationType.download: await repository.fetchUnreportedMeasurements(for: .download)
-                ]
+        // A report starts only after the previous one has marked its measurements as reported,
+        // otherwise both read and send the same measurements.
+        reportLock.withLock {
+            let previousReport = lastReport
+            lastReport = Task { [self] in
+                await previousReport?.value
+                await report()
+            }
+        }
+    }
 
-                let report = reportAggregator.buildReport(from: measurements)
+    func report() async {
+        do {
+            let measurements = try [
+                PerformanceOperationType.upload: await repository.fetchUnreportedMeasurements(for: .upload),
+                PerformanceOperationType.download: await repository.fetchUnreportedMeasurements(for: .download)
+            ]
 
-                guard !report.isEmpty else { return }
+            let report = reportAggregator.buildReport(from: measurements)
 
-                report.forEach { operation, perPipelineReport in
-                    switch operation {
-                    case .download:
-                        perPipelineReport.forEach { pipeline, speed in
-                            downloadResource.sendMetric(
-                                speed: speed,
-                                isBackground: true,
-                                pipeline: pipeline
-                            )
-                        }
-                    case .upload:
-                        perPipelineReport.forEach { pipeline, speed in
-                            uploadResource.sendMetric(
-                                speed: speed,
-                                isBackground: true,
-                                pipeline: pipeline
-                            )
-                        }
+            guard !report.isEmpty else { return }
+
+            report.forEach { operation, perPipelineReport in
+                switch operation {
+                case .download:
+                    perPipelineReport.forEach { pipeline, speed in
+                        downloadResource.sendMetric(
+                            speed: speed,
+                            isBackground: true,
+                            pipeline: pipeline
+                        )
+                    }
+                case .upload:
+                    perPipelineReport.forEach { pipeline, speed in
+                        uploadResource.sendMetric(
+                            speed: speed,
+                            isBackground: true,
+                            pipeline: pipeline
+                        )
                     }
                 }
-
-                try await repository.markAsReported(measurements.values.flatMap { $0 })
-            } catch {
-                Log.error(error: error, domain: .metrics)
             }
+
+            try await repository.markAsReported(measurements.values.flatMap { $0 })
+        } catch {
+            Log.error(error: error, domain: .metrics)
         }
     }
 

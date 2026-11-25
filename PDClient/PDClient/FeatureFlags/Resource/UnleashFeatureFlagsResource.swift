@@ -18,16 +18,18 @@
 import Combine
 import Foundation
 import UnleashProxyClientSwift
+import class ProtonCoreUtilities.Atomic
 
 public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
 
-    private let session: UnleashPollerSession
+    private let session: PollerSession
     private let configurationResolver: ExternalFeatureFlagConfigurationResolver
     private var poller: Poller?
     private var client: UnleashClient?
     private let updateSubject = PassthroughSubject<Void, Never>()
     private let refreshInterval: Int
     private var cancellables = Set<AnyCancellable>()
+    private let hasFetched = Atomic<Bool>(false)
 
     public var updatePublisher: AnyPublisher<Void, Never> {
         updateSubject
@@ -37,7 +39,7 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
 
     public init(
         refreshInterval: Int,
-        session: UnleashPollerSession,
+        session: PollerSession,
         configurationResolver: ExternalFeatureFlagConfigurationResolver
     ) {
         self.refreshInterval = refreshInterval
@@ -46,22 +48,27 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
     }
 
     public func start(completionHandler: @escaping (Error?) -> Void) {
-        guard client == nil else {
+        // A second fetch sends `If-None-Match`, and Unleash completes a 304 without posting
+        // `ready` or `update`, so anyone awaiting an event would hang.
+        guard !hasFetched.value else {
             completionHandler(Errors.clientAlreadyStarted)
             return
         }
 
-        guard let configuration = try? configurationResolver.makeConfiguration(refreshInterval: refreshInterval) else {
-            logError?(Errors.unableToFetchConfiguration.localizedDescription)
-            completionHandler(Errors.unableToFetchConfiguration)
-            return
+        if client == nil {
+            guard let configuration = try? configurationResolver.makeConfiguration(refreshInterval: refreshInterval) else {
+                logError?(Errors.unableToFetchConfiguration.localizedDescription)
+                completionHandler(Errors.unableToFetchConfiguration)
+                return
+            }
+
+            poller = Poller(refreshInterval: configuration.refreshInterval, unleashUrl: configuration.url, apiKey: configuration.apiKey, session: session, appName: "Proton Drive", connectionId: UUID())
+            client = UnleashClient(unleashUrl: configuration.url.absoluteString, clientKey: configuration.apiKey, refreshInterval: configuration.refreshInterval, disableMetrics: true, environment: configuration.environment, poller: poller)
+            subscribeToUpdates()
         }
 
-        poller = Poller(refreshInterval: configuration.refreshInterval, unleashUrl: configuration.url, apiKey: configuration.apiKey, session: session, appName: "Proton Drive", connectionId: UUID())
-        client = UnleashClient(unleashUrl: configuration.url.absoluteString, clientKey: configuration.apiKey, refreshInterval: configuration.refreshInterval, disableMetrics: true, environment: configuration.environment, poller: poller)
-
+        // `UnleashClient.start` stops its previous poller, so retrying doesn't leak a timer.
         startClient(completionHandler: completionHandler)
-        subscribeToUpdates()
     }
 
     public func stop() {
@@ -69,6 +76,7 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
         client?.unsubscribe(name: "ready")
         client?.stop()
         client = nil
+        hasFetched.mutate { $0 = false }
     }
 
     private func startClient(completionHandler: @escaping (Error?) -> Void) {
@@ -77,6 +85,10 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
         // the Swift Concurrency executor for some detached Task), the timer won't repeat.
         DispatchQueue.main.async { [weak self] in
             self?.client?.start { error in
+                let error = error.map(Self.restoringTransportFailure)
+                if error == nil {
+                    self?.hasFetched.mutate { $0 = true }
+                }
                 completionHandler(error)
                 if let error {
                     logError?(error.localizedDescription)
@@ -85,6 +97,13 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
                 }
             }
         }
+    }
+
+    private static func restoringTransportFailure(_ error: Error) -> Error {
+        guard let pollerError = error as? PollerError, case .noResponse = pollerError else {
+            return error
+        }
+        return URLError(.notConnectedToInternet)
     }
 
     private func subscribeToUpdates() {
@@ -123,7 +142,7 @@ public final class UnleashFeatureFlagsResource: ExternalFeatureFlagsResource {
     }
 
     enum Errors: String, LocalizedError {
-        case clientAlreadyStarted = "Feature flag client already started"
+        case clientAlreadyStarted = "Unleash client has already fetched the flags"
         case unableToFetchConfiguration = "Unable to get refresh interval from the configuration"
 
         var errorDescription: String? { rawValue }

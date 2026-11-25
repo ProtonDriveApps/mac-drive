@@ -30,24 +30,18 @@ final class DriveEventsLoopProcessor: DriveEventsLoopProcessorType {
     private let cloudSlot: CloudSlotProtocol
     private let conveyor: EventsConveyor
     private let storage: StorageManager
-    private let externalInvitationConverter: ExternalInvitationConvertProtocol?
-    private let nodeTreeOperator: NodeTreeOperatorProtocol?
     private let myPhotoVolumeID: String?
 
     internal init(
         volumeID: String,
         cloudSlot: CloudSlotProtocol,
         conveyor: EventsConveyor,
-        storage: StorageManager,
-        externalInvitationConverter: ExternalInvitationConvertProtocol?,
-        nodeTreeOperator: NodeTreeOperatorProtocol?
+        storage: StorageManager
     ) {
         self.volumeID = volumeID
         self.cloudSlot = cloudSlot
         self.conveyor = conveyor
         self.storage = storage
-        self.externalInvitationConverter = externalInvitationConverter
-        self.nodeTreeOperator = nodeTreeOperator
         myPhotoVolumeID = storage.getPhotosVolumeId(in: storage.backgroundContext)
     }
 
@@ -171,30 +165,11 @@ extension DriveEventsLoopProcessor {
                 Log.info("Processing delete event. Node: \(identifier.any()) not found", domain: .events)
                 return []
             }
-            #if os(iOS)
-            nodeTreeOperator?.performDeleteLocalCached(on: [node])
-            #endif
-
             moc.delete(node)
             return [node.identifier, node.parentNode?.identifier].compactMap { $0 }
             
         case .create, .updateMetadata:
             let nodes = cloudSlot.update([event.link], of: shareId, in: moc)
-
-            #if os(iOS)
-            let trashedNodes = nodes.filter { $0.state == .deleted }
-            nodeTreeOperator?.handleTrash(on: trashedNodes, in: moc)
-            nodes
-                .filter({ $0.state != .deleted })
-                .forEach { node in
-                    guard let parent = node.parentNode else {
-                        Log.info("Processing \(event.eventType) event. Parent node not found for \(identifier.any())", domain: .events)
-                        return
-                    }
-                    node.setIsInheritingOfflineAvailable(parent.isInheritingOfflineAvailable || parent.isMarkedOfflineAvailable)
-                }
-            processEventData(event: event)
-            #endif
 
             var affectedNodes = nodes.compactMap(\.parentLink).map(\.identifier)
             affectedNodes.append(contentsOf: nodes.map(\.identifier))
@@ -211,7 +186,6 @@ extension DriveEventsLoopProcessor {
                 storage.removeOutdatedCache(of: revision)
                 file.activeRevision = nil
                 _ = cloudSlot.update([event.link], of: shareId, in: moc)
-                removeCachedFileForFileProvider(file: file)
             }
             return [file.identifier]
         }
@@ -225,21 +199,6 @@ extension DriveEventsLoopProcessor {
         storage.finishedFetchingTrash = false
     }
 
-    private func processEventData(event: Event) {
-        guard let data = event.data else { return }
-        if let externalInvitationSignup = data.externalInvitationSignup,
-           let shareID = event.link.sharingDetails?.shareID {
-            Task {
-                do {
-                    try await externalInvitationConverter?.execute(
-                        parameters: .init(shareID: shareID, externalInvitationID: externalInvitationSignup)
-                    )
-                } catch {
-                    Log.error("Failed to convert external invitation to internal", error: error, domain: .sharing)
-                }
-            }
-        }
-    }
 }
 
 extension DriveEventsLoopProcessor {
@@ -282,34 +241,4 @@ extension DriveEventsLoopProcessor {
         CoreDataAlbum.fetch(identifier: identifier, in: moc)
     }
 
-    /// When accessing a file through a file provider, it serves the cached version instead of downloading the latest data.
-    /// Remove cached file to make sure user can see correct data
-    private func removeCachedFileForFileProvider(file: File) {
-        #if os(iOS)
-        guard var url = PDFileManager.getFileProviderStorageURL() else {
-            return
-        }
-
-        let nodeIdentifier = file.identifier
-
-        guard let filename = try? file.decryptName() else {
-            Log.debug("Skip removing cached file for FileProvider because decryptName failed", domain: .events)
-            return
-        }
-
-        url.appendPathComponent(PDFileManager.getUserID(), isDirectory: true)
-        url.appendPathComponent(nodeIdentifier.volumeID, isDirectory: true)
-        url.appendPathComponent(nodeIdentifier.nodeID, isDirectory: true)
-        url.appendPathComponent(filename, isDirectory: false)
-        guard FileManager.default.fileExists(atPath: url.path) else { return }
-        do {
-            try FileManager.default.removeItem(at: url)
-        } catch {
-            Log.debug(
-                "Failed to delete cache file for ***.\(url.pathExtension), error: \(error.localizedDescription)",
-                domain: .events
-            )
-        }
-        #endif
-    }
 }

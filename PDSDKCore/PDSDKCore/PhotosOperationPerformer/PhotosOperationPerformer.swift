@@ -271,7 +271,7 @@ extension PhotosOperationPerformer {
             name: attributes.name,
             fileURL: attributes.fileURL,
             fileSize: attributes.fileSize,
-            modificationDate: attributes.modificationDate,
+            modificationDate: attributes.uploadableModificationDate,
             captureTime: attributes.captureTime,
             mainPhotoUid: attributes.mainPhotoUid,
             mediaType: attributes.mediaType,
@@ -333,7 +333,7 @@ extension PhotosOperationPerformer {
                 size: Int(attributes.fileSize),
                 fileURL: attributes.fileURL,
                 creationDate: attributes.captureTime.timeIntervalSince1970,
-                modificationDate: attributes.modificationDate.timeIntervalSince1970,
+                modificationDate: attributes.uploadableModificationDate.timeIntervalSince1970,
                 result: result,
                 moc: moc
             )
@@ -344,7 +344,7 @@ extension PhotosOperationPerformer {
                 size: Int(attributes.fileSize),
                 fileURL: attributes.fileURL,
                 creationDate: attributes.captureTime.timeIntervalSince1970,
-                modificationDate: attributes.modificationDate.timeIntervalSince1970,
+                modificationDate: attributes.uploadableModificationDate.timeIntervalSince1970,
                 result: result,
                 moc: moc
             )
@@ -462,6 +462,8 @@ extension PhotosOperationPerformer {
         try await client.cancelFindPhotoDuplicates(cancellationToken: cancellationToken)
     }
 
+    /// Use `/favorite` endpoint to add the favorite tag
+    /// Use `/tags` for all other tags and remove favorite tag
     public func updatePhotos(
         _ updates: [PhotoTagsUpdate],
         moc: NSManagedObjectContext
@@ -472,6 +474,25 @@ extension PhotosOperationPerformer {
             updates: updates,
             moc: moc
         )
+    }
+
+    /// Copies photos into the photo stream (timeline). Results are keyed by the source photo uid.
+    public func savePhotosToTimeline(
+        photoUids: [SDKNodeUid],
+        cancellationToken: UUID,
+        moc: NSManagedObjectContext
+    ) -> AsyncThrowingStream<NodeOperationStreamEvent, Error> {
+        SaveToTimelineOperationStreamBuilder.makeSavePhotosToTimelineStream(
+            metadataUpdater: metadataUpdater,
+            client: client,
+            photoUids: photoUids,
+            cancellationToken: cancellationToken,
+            moc: moc
+        )
+    }
+
+    public func cancelSavePhotosToTimeline(cancellationToken: UUID) async throws {
+        try await client.cancelSavePhotosToTimeline(cancellationToken: cancellationToken)
     }
 }
 

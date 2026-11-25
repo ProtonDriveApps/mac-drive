@@ -50,6 +50,15 @@ public final class DeviceRenamer: NodeRenamerProtocol {
         }
     }
 
+    /// Only used when `DriveiOSSDKDevices` is enabled, the legacy flow goes through `rename(_:to:mimeType:moc:)`.
+    public func rename(device identifier: DeviceIdentifier, to newName: String) async throws {
+        guard let nodeOperationPerformer else {
+            throw CoreDataDevice.InvalidState(message: "Renaming a device requires the SDK")
+        }
+        let validatedNewName = try newName.validateNodeName(validator: NameValidations.iosName)
+        try await nodeOperationPerformer.renameDevice(identifier: identifier, newName: validatedNewName)
+    }
+
     private func legacyRename(_ node: Node, to newName: String, mimeType: String?, moc: NSManagedObjectContext) async throws {
         let validatedNewName = try newName.validateNodeName(validator: NameValidations.iosName)
 

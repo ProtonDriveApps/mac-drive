@@ -35,6 +35,8 @@ public final class ObservabilityReporter: ObservabilityReporterProtocol {
         guard let isPaid = dependencies.userInfoController.currentUser?.isPaid else { return "unknown" }
         return isPaid ? "paid" : "free"
     }
+    /// Integrity event payloads no longer carry a volume type, but the erroring users metric still requires the label.
+    private let integrityVolumeType = VolumeType.unknown.stringValue
 
     public init(dependencies: Dependencies) {
         self.dependencies = dependencies
@@ -78,36 +80,49 @@ public final class ObservabilityReporter: ObservabilityReporterProtocol {
     }
 
     private func reportDecryptionError(payload: DecryptionErrorEventPayload) async {
-        let volumeType = payload.volumeType.stringValue
         let field = payload.field.stringValue
+        let recency = DriveObservabilityItemRecency(payload.recency)
+        let causedBy = DriveObservabilityCausedBy(payload.createdBy)
         await dependencies.integrityErrorMonitor.reportDecryptionError(
             uid: payload.uid,
             label: .init(
-                volumeType: volumeType,
                 field: field,
-                fromBefore2024: payload.fromBefore2024.string
+                recency: recency,
+                causedBy: causedBy
             )
         )
-        if payload.fromBefore2024 == false {
-            await dependencies.integrityErrorMonitor.reportErroringUser(volumeType: volumeType, userPlan: userPlan)
+        if recency.countsTowardsErroringUsers {
+            await dependencies.integrityErrorMonitor.reportErroringUser(
+                volumeType: integrityVolumeType,
+                userPlan: userPlan,
+                causedBy: causedBy
+            )
 
-            Log.error("volumeType: \(volumeType), field: \(field), error: \(payload.error ?? "unknown")", domain: .sdk)
+            Log.error(
+                "recency: \(recency.rawValue), causedBy: \(causedBy.rawValue), field: \(field), error: \(payload.error ?? "unknown")",
+                domain: .sdk
+            )
         }
     }
 
     private func reportVerificationError(payload: VerificationErrorEventPayload) async {
-        let volumeType = payload.volumeType.stringValue
+        let recency = DriveObservabilityItemRecency(payload.recency)
+        let causedBy = DriveObservabilityCausedBy(payload.createdBy)
         await dependencies.integrityErrorMonitor.reportVerificationError(
             uid: payload.uid,
             label: .init(
-                volumeType: volumeType,
                 field: payload.field.stringValue,
                 addressMatchingDefaultShare: payload.addressMatchingDefaultShare.string,
-                fromBefore2024: payload.fromBefore2024.string
+                recency: recency,
+                causedBy: causedBy
             )
         )
-        if payload.fromBefore2024 == false && payload.addressMatchingDefaultShare {
-            await dependencies.integrityErrorMonitor.reportErroringUser(volumeType: volumeType, userPlan: userPlan)
+        if recency.countsTowardsErroringUsers && payload.addressMatchingDefaultShare {
+            await dependencies.integrityErrorMonitor.reportErroringUser(
+                volumeType: integrityVolumeType,
+                userPlan: userPlan,
+                causedBy: causedBy
+            )
         }
     }
 
@@ -314,6 +329,43 @@ extension DownloadError {
             return "unknown"
         case .validationError:
             return "validation_error"
+        }
+    }
+}
+
+extension DriveObservabilityItemRecency {
+    /// Items predating 2024 were created by a crypto stack we no longer ship, so they are excluded from the erroring users metric.
+    var countsTowardsErroringUsers: Bool {
+        self != .before2024
+    }
+
+    init(_ sdkRecency: ItemRecency) {
+        switch sdkRecency {
+        case .pastMonth:
+            self = .pastMonth
+        case .pastYear:
+            self = .pastYear
+        case .since2024:
+            self = .since2024
+        case .before2024:
+            self = .before2024
+        case .unspecified, .unrecognized:
+            self = .unknown
+        }
+    }
+}
+
+extension DriveObservabilityCausedBy {
+    init(_ sdkCreator: ItemCreator) {
+        switch sdkCreator {
+        case .firstParty:
+            self = .firstParty
+        case .thirdPartyWithSdk:
+            self = .thirdPartyWithSdk
+        case .thirdPartyWithoutSdk:
+            self = .thirdParty
+        case .unspecified, .unrecognized:
+            self = .unknown
         }
     }
 }

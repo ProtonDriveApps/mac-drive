@@ -7,7 +7,6 @@ let package = Package(
     name: "PDLocalization",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v16),
         .macOS(.v13)
     ],
     products: [

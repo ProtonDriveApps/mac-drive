@@ -66,7 +66,12 @@ extension PDFileManager {
     
     /// Removes parent directories of data considered disposable
     public static func destroyCaches() {
-        try? FileManager.default.contentsOfDirectory(at: FileManager.default.temporaryDirectory, includingPropertiesForKeys: nil).forEach { childURL in
+        destroyCaches(in: FileManager.default.temporaryDirectory, appGroupTemporaryDirectory: appGroupTemporaryDirectory)
+    }
+
+    /// Keeps cleanup scoped to the supplied roots; callers must own their contents.
+    static func destroyCaches(in temporaryDirectory: URL, appGroupTemporaryDirectory: URL) {
+        try? FileManager.default.contentsOfDirectory(at: temporaryDirectory, includingPropertiesForKeys: nil).forEach { childURL in
             try? FileManager.default.removeItem(at: childURL)
         }
         try? FileManager.default.removeItem(at: appGroupTemporaryDirectory)

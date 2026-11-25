@@ -97,9 +97,9 @@ public struct NotificationBanner: View {
     private var background: some View {
         switch style {
         case .normal:
-            ColorProvider.BackgroundSecondary
+            ColorProvider.BackgroundSecondary as Color
         case .inverted:
-            ColorProvider.NotificationNorm
+            ColorProvider.NotificationNorm as Color
         case .transparent:
             BlurredBackgroundProgressView()
         }

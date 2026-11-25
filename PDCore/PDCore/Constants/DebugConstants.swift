@@ -24,6 +24,9 @@ public struct UITestsFlag {
 
     public static let uiTests = UITestsFlag(content: "--uitests")
     public static let featureFlagsOverrides = UITestsFlag(content: "--feature_flags_overrides")
+    public static let appVersionOverride = UITestsFlag(content: "--app_version_override")
+    public static let simulateOffline = UITestsFlag(content: "--simulate_offline")
+    public static let simulateUnreachableAPIWithReachableConnectivity = UITestsFlag(content: "--simulate_unreachable_api")
 
     public init(content: String) {
         self.content = content

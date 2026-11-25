@@ -33,7 +33,7 @@ public final class DownloadSpeedContainer {
             downloader: sdkFileDownloader,
             processEligibilityController: processEligibilityController,
             bytesCounterResource: sdkFileDownloader.bytesCounterResource,
-            timerResource: iOSPausableTimerResource(duration: DownloadSpeedConstants.tickInterval),
+            timerResource: AppPausableTimerResource(duration: DownloadSpeedConstants.tickInterval),
             metricResource: ObservabilityDownloadSpeedMetricResource(),
             pipeline: .default
         )
@@ -42,7 +42,7 @@ public final class DownloadSpeedContainer {
             downloader: sdkPhotoDownloader,
             processEligibilityController: processEligibilityController,
             bytesCounterResource: sdkPhotoDownloader.bytesCounterResource,
-            timerResource: iOSPausableTimerResource(duration: DownloadSpeedConstants.tickInterval),
+            timerResource: AppPausableTimerResource(duration: DownloadSpeedConstants.tickInterval),
             metricResource: ObservabilityDownloadSpeedMetricResource(),
             pipeline: .default
         )

@@ -24,30 +24,43 @@ import ProtonCoreEnvironment
 
 public protocol LoginManagerBuilder {
     @MainActor
-    func build(in window: NSWindow, offersCreateFreshSyncLocation: @escaping () -> Bool, completion: @escaping LoginCompletionCallback) -> LoginManager
+    func build(in window: NSWindow,
+               offersCreateFreshSyncLocation: @escaping () -> Bool,
+               onUnauthSessionOutcome: @escaping UnauthSessionOutcomeCallback,
+               completion: @escaping LoginCompletionCallback) -> LoginManager
 }
 
 public class ConcreteLoginManagerBuilder: LoginManagerBuilder {
     private let environment: Environment
+    private let sessionFactory: SessionFactoryInterface
     private let apiServiceDelegate: APIServiceDelegate
     private let forceUpgradeDelegate: ForceUpgradeDelegate
 
-    public init(environment: Environment, apiServiceDelegate: APIServiceDelegate, forceUpgradeDelegate: ForceUpgradeDelegate) {
+    public init(environment: Environment,
+                sessionFactory: SessionFactoryInterface,
+                apiServiceDelegate: APIServiceDelegate,
+                forceUpgradeDelegate: ForceUpgradeDelegate) {
         self.environment = environment
+        self.sessionFactory = sessionFactory
         self.apiServiceDelegate = apiServiceDelegate
         self.forceUpgradeDelegate = forceUpgradeDelegate
     }
 
     @MainActor
-    public func build(in window: NSWindow, offersCreateFreshSyncLocation: @escaping () -> Bool, completion: @escaping LoginCompletionCallback) -> LoginManager {
+    public func build(in window: NSWindow,
+                      offersCreateFreshSyncLocation: @escaping () -> Bool,
+                      onUnauthSessionOutcome: @escaping UnauthSessionOutcomeCallback,
+                      completion: @escaping LoginCompletionCallback) -> LoginManager {
         ConcreteLoginManager(
             window: window,
             clientApp: .drive,
             environment: environment,
+            sessionFactory: sessionFactory,
             apiServiceDelegate: apiServiceDelegate,
             forceUpgradeDelegate: forceUpgradeDelegate,
             minimumAccountType: .external,
             offersCreateFreshSyncLocation: offersCreateFreshSyncLocation,
+            onUnauthSessionOutcome: onUnauthSessionOutcome,
             loginCompletion: completion
         )
     }

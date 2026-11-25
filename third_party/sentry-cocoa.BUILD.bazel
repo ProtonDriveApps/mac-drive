@@ -1,0 +1,41 @@
+load("@build_bazel_rules_apple//apple:apple.bzl", "apple_static_xcframework_import")
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_bundle")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library", "swift_library_group")
+load("@rules_swift_package_manager//swiftpkg:build_defs.bzl", "resource_bundle_infoplist")
+
+package(default_visibility = ["//visibility:public"])
+
+resource_bundle_infoplist(
+    name = "SentryPrivacyInfoplist",
+)
+
+apple_resource_bundle(
+    name = "SentryPrivacy",
+    bundle_name = "Sentry_Privacy",
+    infoplists = [":SentryPrivacyInfoplist"],
+    resources = glob([
+        "remote/archive/Sentry.xcframework.zip/Sentry.xcframework/macos-*/Sentry.framework/Versions/A/Resources/PrivacyInfo.xcprivacy",
+    ], allow_empty = False),
+)
+
+apple_static_xcframework_import(
+    name = "SentryBinary",
+    alwayslink = True,
+    xcframework_imports = glob(["remote/archive/Sentry.xcframework.zip/Sentry.xcframework/**"]),
+)
+
+swift_library(
+    name = "SentryCppHelper",
+    module_name = "SentryCppHelper",
+    package_name = "Sentry",
+    srcs = glob(["Sources/SentryCppHelper/**/*.swift"]),
+    copts = ["-DSWIFT_PACKAGE", "-Xcc", "-DSWIFT_PACKAGE", "-swift-version", "5"],
+    linkopts = ["-lc++"],
+    always_include_developer_search_paths = True,
+    alwayslink = True,
+)
+
+swift_library_group(
+    name = "Sentry",
+    deps = [":SentryBinary", ":SentryCppHelper", ":SentryPrivacy"],
+)

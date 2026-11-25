@@ -8,6 +8,11 @@
 
 #import <Cocoa/Cocoa.h>
 
+// Implemented in SingleInstanceLock.swift.
+@interface SingleInstanceGate : NSObject
++ (void)ensureSingleInstance;
+@end
+
 void runAppUsingAppDelegateStub(NSString *);
 
 int main(int argc, char *argv[])
@@ -22,6 +27,7 @@ int main(int argc, char *argv[])
     } else if (NSClassFromString(integrationTestsAppDelegateClassName) != nil) {
         runAppUsingAppDelegateStub(integrationTestsAppDelegateClassName);
     } else {
+        [SingleInstanceGate ensureSingleInstance];
         return NSApplicationMain(argc,(const char **) argv);
     }
 }

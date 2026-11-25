@@ -64,15 +64,11 @@ public final class NetworkOfflineDetector {
 }
 
 public class SyncReporter {
-    private let tower: Tower
+    private let metadataStorage: StorageManager
     private let manager: NSFileProviderManager
     private let syncStorage: SyncStorageManager
     private let syncStateMapper = SyncStateMapper()
 
-    /// Enqueues an async operation for the given item, guaranteeing that operations
-    /// for the same `itemId` execute in the order they were enqueued.
-    /// Operations for different items run concurrently. Delegates to the shared per-id serializer
-    /// so every SyncItem writer shares one ordering.
     private func enqueue(for itemId: String, operation: @escaping @Sendable () async -> Void) {
         syncStorage.enqueueWrite(for: itemId, operation)
     }
@@ -80,13 +76,21 @@ public class SyncReporter {
     // must be called within NSManagedObject
     var nodeInformationExtractor: NodeInformationExtractor?
 
-    public init(
+    public convenience init(
         tower: Tower,
         manager: NSFileProviderManager
     ) {
-        self.tower = tower
+        self.init(
+            metadataStorage: tower.storage,
+            syncStorage: tower.syncStorage ?? SyncStorageManager(suite: .group(named: Constants.appGroup)),
+            manager: manager
+        )
+    }
+
+    init(metadataStorage: StorageManager, syncStorage: SyncStorageManager, manager: NSFileProviderManager) {
+        self.metadataStorage = metadataStorage
         self.manager = manager
-        self.syncStorage = tower.syncStorage ?? SyncStorageManager(suite: .group(named: Constants.appGroup))
+        self.syncStorage = syncStorage
     }
 
     // MARK: File operations
@@ -179,13 +183,20 @@ public class SyncReporter {
         }
         Log.trace()
 
-        enqueue(for: item.itemIdentifier.id) { [self] in
-            if let temporaryItem,
-                shouldReconcileCreatedItem(item: item, possibleError: possibleError, during: operation, temporaryItem: temporaryItem) {
+        let temporaryItemToResolve = temporaryItem.flatMap {
+            shouldReconcileCreatedItem(item: item, possibleError: possibleError, during: operation, temporaryItem: $0) ? $0 : nil
+        }
+        var ids = [item.itemIdentifier.id]
+        if let temporaryItemToResolve {
+            // Resolve must wait for the temporary row's insert, which can stall in shortLocation.
+            ids.append(temporaryItemToResolve.itemIdentifier.id)
+        }
+        syncStorage.enqueueWrite(for: ids) { [self] in
+            if let temporaryItemToResolve {
 
                 await resolve(
                     createdItem: item,
-                    against: temporaryItem,
+                    against: temporaryItemToResolve,
                     operation: operation,
                     location: ""
                 )
@@ -344,9 +355,9 @@ public class SyncReporter {
 
         await cleanUpExpiredItems()
 
-        let result: (String, String, Int, Bool)? = await tower.storage.backgroundContextPool.withContext { context in
+        let result: (String, String, Int, Bool)? = await metadataStorage.backgroundContextPool.withContext { context in
             guard let nodeIdentifier = NodeIdentifier(rawValue: itemIdentifier.rawValue),
-                  let node = tower.storage.fetchNode(id: nodeIdentifier, moc: context) else {
+                  let node = metadataStorage.fetchNode(id: nodeIdentifier, moc: context) else {
                 Log.trace("guard")
                 return nil
             }
@@ -607,9 +618,9 @@ public class SyncReporter {
         for itemIdentifier: NSFileProviderItemIdentifier
     ) async -> (filename: String, mimeType: String, size: Int)? {
         guard let nodeInformationExtractor else { return nil }
-        return await tower.storage.backgroundContextPool.withContext { context in
+        return await metadataStorage.backgroundContextPool.withContext { context in
             guard let nodeIdentifier = NodeIdentifier(rawValue: itemIdentifier.rawValue),
-                  let node = tower.storage.fetchNode(id: nodeIdentifier, moc: context) else {
+                  let node = metadataStorage.fetchNode(id: nodeIdentifier, moc: context) else {
                 Log.trace("guard: node not found")
                 return nil
             }

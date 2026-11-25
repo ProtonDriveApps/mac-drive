@@ -18,15 +18,20 @@
 import Foundation
 
 public struct DriveSDKIntegrityVerificationErrorLabel: Encodable, Equatable {
-    let volumeType: String
     let field: String
     let addressMatchingDefaultShare: String
-    let fromBefore2024: String
+    let recency: DriveObservabilityItemRecency
+    let causedBy: DriveObservabilityCausedBy
 
-    public init(volumeType: String, field: String, addressMatchingDefaultShare: String, fromBefore2024: String) {
-        self.volumeType = volumeType
+    public init(
+        field: String,
+        addressMatchingDefaultShare: String,
+        recency: DriveObservabilityItemRecency,
+        causedBy: DriveObservabilityCausedBy
+    ) {
         self.field = field
         self.addressMatchingDefaultShare = addressMatchingDefaultShare
-        self.fromBefore2024 = fromBefore2024
+        self.recency = recency
+        self.causedBy = causedBy
     }
 }

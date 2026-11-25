@@ -1,0 +1,209 @@
+# Generated from SDK 0.29.1-rust by rules_swift_package_manager 1.23.0.
+# Source membership audited against the pinned 0.32.1-rust upgrade.
+# ELI5: select needed archive members instead of force-loading duplicate runtime
+# objects bundled by the SDK. This is normal SwiftPM-style archive extraction.
+load("@build_bazel_rules_apple//apple:apple.bzl", "apple_static_xcframework_import")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library", "swift_library_group")
+load("@rules_license//rules:license.bzl", "license")
+load("@rules_license//rules:package_info.bzl", "package_info")
+load("@rules_swift_package_manager//swiftpkg/internal:minimum_os_transition.bzl", "spm_minimum_os_target")
+
+package(
+    default_package_metadata = [
+        ":license.rspm",
+        ":package_info.rspm",
+    ],
+)
+
+exports_files(["pkg_info.json"])
+
+# ELI5: the SDK manifest links one bootstrap object for the target CPU. Name
+# that file as an input instead of searching Xcode's SourcePackages folders.
+config_setting(
+    name = "macos_arm64_bootstrap",
+    constraint_values = ["@platforms//os:macos", "@platforms//cpu:aarch64"],
+)
+config_setting(
+    name = "macos_x86_64_bootstrap",
+    constraint_values = ["@platforms//os:macos", "@platforms//cpu:x86_64"],
+)
+cc_library(
+    name = "SDKBootstrapper",
+    srcs = select({
+        ":macos_arm64_bootstrap": ["Resources/libbootstrapperdll.osx-arm64.o"],
+        ":macos_x86_64_bootstrap": ["Resources/libbootstrapperdll.osx-x64.o"],
+        "//conditions:default": [],
+    }),
+    alwayslink = True,
+)
+
+apple_static_xcframework_import(
+    name = "CProtonDriveSDK.rspm.__impl",
+    alwayslink = False,
+    tags = ["manual"],
+    visibility = ["//:__subpackages__"],
+    xcframework_imports = glob(["remote/archive/CProtonDriveSDK.xcframework.zip/CProtonDriveSDK.xcframework/**"]),
+)
+
+license(
+    name = "license.rspm",
+    license_text = "LICENSE.md",
+)
+
+package_info(
+    name = "package_info.rspm",
+    package_name = "ProtonDriveSDK",
+    package_url = "https://github.com/ProtonDriveApps/sdk-swift.git",
+    package_version = "",
+)
+
+spm_minimum_os_target(
+    name = "CProtonDriveSDK.rspm",
+    deps = [":CProtonDriveSDK.rspm.__impl"],
+    ios_minimum_os = "16.0",
+    macos_minimum_os = "13.0",
+    tvos_minimum_os = "15.0",
+    visibility = ["//:__subpackages__"],
+    visionos_minimum_os = "1.0",
+    watchos_minimum_os = "8.0",
+)
+
+spm_minimum_os_target(
+    name = "ProtonDriveSDK.rspm",
+    deps = [":ProtonDriveSDK.rspm.__impl"],
+    ios_minimum_os = "16.0",
+    macos_minimum_os = "13.0",
+    tvos_minimum_os = "15.0",
+    visibility = ["//:__subpackages__"],
+    visionos_minimum_os = "1.0",
+    watchos_minimum_os = "8.0",
+)
+
+spm_minimum_os_target(
+    name = "ProtonDriveSDKTestingToolkit.rspm",
+    deps = [":ProtonDriveSDKTestingToolkit.rspm.__impl"],
+    ios_minimum_os = "16.0",
+    macos_minimum_os = "13.0",
+    tvos_minimum_os = "15.0",
+    visibility = ["//:__subpackages__"],
+    visionos_minimum_os = "1.0",
+    watchos_minimum_os = "8.0",
+)
+
+swift_library(
+    name = "ProtonDriveSDK.rspm.__impl",
+    always_include_developer_search_paths = True,
+    alwayslink = True,
+    copts = [
+        "-DSWIFT_PACKAGE",
+        "-Xcc",
+        "-DSWIFT_PACKAGE",
+        "-strict-concurrency=complete",
+    ],
+    deps = [
+        "@swiftpkg_sdk_swift//:CProtonDriveSDK.rspm",
+        "@swiftpkg_swift_protobuf//:SwiftProtobuf",
+        ":SDKBootstrapper",
+    ],
+    features = [
+        "swift.propagate_generated_module_map",
+        "swift.enable_v6",
+    ],
+    generates_header = True,
+    linkopts = [
+        "-framework",
+        "GSS",
+        "-lsqlite3",
+        "-licucore",
+    ],
+    module_name = "ProtonDriveSDK",
+    package_name = "ProtonDriveSDK",
+    srcs = [
+        "Sources/CancellationTokenSource.swift",
+        "Sources/Client/ProtonDriveClient/AccountClient.swift",
+        "Sources/Client/ProtonDriveClient/HttpClientProtocol.swift",
+        "Sources/Client/ProtonDriveClient/Networking/HttpClientRequestProcessor.swift",
+        "Sources/Client/ProtonDriveClient/Networking/HttpClientResponseProcessor.swift",
+        "Sources/Client/ProtonDriveClient/Networking/Model/BoxedCancellableTask.swift",
+        "Sources/Client/ProtonDriveClient/Networking/Model/BoxedDownloadStream.swift",
+        "Sources/Client/ProtonDriveClient/Networking/Model/BoxedRawBuffer.swift",
+        "Sources/Client/ProtonDriveClient/Networking/Model/BoxedStreamingData.swift",
+        "Sources/Client/ProtonDriveClient/Networking/Model/StreamForUpload.swift",
+        "Sources/Client/ProtonDriveClient/ProtonDriveClient.swift",
+        "Sources/Client/ProtonDriveClient/ProtonDriveClientConfiguration.swift",
+        "Sources/Client/ProtonDriveClient/cDeviceEnumerationCallback.swift",
+        "Sources/Client/ProtonDriveClient/cDriveEventEnumerationCallback.swift",
+        "Sources/Client/ProtonDriveClient/cNodeUidEnumerationCallback.swift",
+        "Sources/Client/ProtonDriveSearchService/cSearchHitEnumerationCallback.swift",
+        "Sources/Client/ProtonPhotosClient/ProtonPhotosClient.swift",
+        "Sources/Client/ProtonPhotosClient/cAlbumItemEnumerationCallback.swift",
+        "Sources/Client/ProtonPhotosClient/cGenerateSha1CallbackForFindDuplicates.swift",
+        "Sources/Client/ProtonPhotosClient/cNodeResultEnumerationCallback.swift",
+        "Sources/Client/ProtonPhotosClient/cTimelineItemEnumerationCallback.swift",
+        "Sources/Client/ProtonSDKClient.swift",
+        "Sources/Client/SDKClientProvider.swift",
+        "Sources/FileOperations/Downloads/DownloadOperation.swift",
+        "Sources/FileOperations/Downloads/DownloadThumbnailsManager.swift",
+        "Sources/FileOperations/Downloads/DownloadsManager.swift",
+        "Sources/FileOperations/Downloads/PhotoDownloadsManager.swift",
+        "Sources/FileOperations/Downloads/cThumbnailEnumerationCallback.swift",
+        "Sources/FileOperations/OperationType.swift",
+        "Sources/FileOperations/OperationalResilience.swift",
+        "Sources/FileOperations/SeekableOutputStream.swift",
+        "Sources/FileOperations/Uploads/PhotoUploadsManager.swift",
+        "Sources/FileOperations/Uploads/UploadOperation.swift",
+        "Sources/FileOperations/Uploads/UploadsManager.swift",
+        "Sources/Generated/proton.drive.sdk.pb.swift",
+        "Sources/Plumbing/BoxedContinuation.swift",
+        "Sources/Plumbing/CallbackHandleRegistry.swift",
+        "Sources/Plumbing/FeatureFlags.swift",
+        "Sources/Plumbing/InternalTypes.swift",
+        "Sources/Plumbing/InteropRequest.swift",
+        "Sources/Plumbing/Message+Packaging.swift",
+        "Sources/Plumbing/PhotoTag.swift",
+        "Sources/Plumbing/ProgressCallbackWrapper.swift",
+        "Sources/Plumbing/PublicTypes.swift",
+        "Sources/Plumbing/SDKRequestHandler.swift",
+        "Sources/Plumbing/SDKResponseHandler.swift",
+        "Sources/Plumbing/StreamCallbackWrapper.swift",
+        "Sources/ProtonDriveSDKError/AdditionalErrorData.swift",
+        "Sources/ProtonDriveSDKError/ProtonDriveSDKDriveError.swift",
+        "Sources/ProtonDriveSDKError/ProtonDriveSDKError.swift",
+        "Sources/TelemetryAndLogging/Logger.swift",
+        "Sources/TelemetryAndLogging/LoggerTypes.swift",
+        "Sources/TelemetryAndLogging/Telemetry.swift",
+        "Sources/TelemetryAndLogging/TelemetryTypes.swift",
+    ],
+    tags = ["manual"],
+    visibility = ["//:__subpackages__"],
+)
+
+swift_library(
+    name = "ProtonDriveSDKTestingToolkit.rspm.__impl",
+    always_include_developer_search_paths = True,
+    alwayslink = True,
+    copts = [
+        "-DSWIFT_PACKAGE",
+        "-Xcc",
+        "-DSWIFT_PACKAGE",
+    ],
+    features = ["swift.enable_v6"],
+    module_name = "ProtonDriveSDKTestingToolkit",
+    package_name = "ProtonDriveSDK",
+    srcs = ["TestingToolkit/PlaceholderTestingToolkit.swift"],
+    tags = ["manual"],
+    visibility = ["//:__subpackages__"],
+)
+
+swift_library_group(
+    name = "ProtonDriveSDK",
+    deps = ["@swiftpkg_sdk_swift//:ProtonDriveSDK.rspm"],
+    visibility = ["//visibility:public"],
+)
+
+swift_library_group(
+    name = "ProtonDriveSDKTestingToolkit",
+    deps = ["@swiftpkg_sdk_swift//:ProtonDriveSDKTestingToolkit.rspm"],
+    visibility = ["//visibility:public"],
+)

@@ -149,6 +149,7 @@ public final class FileOperationPerformer: FileOperationCancelPerformerProtocol,
                         let newName = try await getAvailableName(
                             parentFolderUid: parentFolderUid,
                             name: name,
+                            target: .file,
                             cancellationToken: cancellationToken
                         )
                         return try await self.uploadFile(
@@ -539,7 +540,8 @@ extension FileOperationPerformer {
 
                 let newFolderName = try await getAvailableName(
                     parentFolderUid: parentFolderUid,
-                    name: folderName
+                    name: folderName,
+                    target: .folder
                 )
                 return try await self.createFolder(
                     parentFolderUid: parentFolderUid,
@@ -558,11 +560,13 @@ extension FileOperationPerformer {
     public func getAvailableName(
         parentFolderUid: SDKNodeUid,
         name: String,
+        target: SDKAvailableNameTarget,
         cancellationToken: UUID = UUID()
     ) async throws -> String {
         try await client.getAvailableName(
             parentFolderUid: parentFolderUid,
             name: name,
+            target: target,
             cancellationToken: cancellationToken
         )
     }
@@ -640,9 +644,27 @@ extension FileOperationPerformer {
     ) async throws {
         try await metadataUpdater.withOperation { _ in
             let _ = try await client.renameDevice(deviceUid: identifier.sdk, newName: newName, cancellationToken: cancellationToken)
-            // TODO: client returns `Device`, with new database we don't need metadataUpdater
-            try await metadataUpdater.finishRenameDevice(identifier: identifier, moc: moc)
+            try await metadataUpdater.finishRenameDevice(identifier: identifier, decryptedName: newName, moc: moc)
         }
+    }
+
+    /// Devices that fail to be parsed by the SDK are skipped.
+    public func enumerateDevices(cancellationToken: UUID) -> AsyncThrowingStream<ProtonDriveSDK.Device, Error> {
+        SDKOperationStreamEngine(metadataUpdater: metadataUpdater).operationStream(
+            invoke: { [client] onDevice in
+                try await client.enumerateDevices(cancellationToken: cancellationToken) { result in
+                    // A failure only concerns one device, the enumeration goes on
+                    if case .failure(let error) = result {
+                        Log.error("Failed to enumerate device", error: error, domain: .sdk)
+                        return
+                    }
+                    onDevice(result)
+                }
+            },
+            onCancel: { [client] in
+                try? await client.cancelEnumerateDevices(cancellationToken: cancellationToken)
+            }
+        )
     }
 }
 

@@ -17,15 +17,13 @@
 
 import CoreData
 import Foundation
+import PDClient
 @preconcurrency import PDCore
 import PDFileProvider
 
 /// Per-folder, in-memory rate limiter for parents that the backend has rejected
 /// with TOO_MANY_CHILDREN (200300) or NESTING_TOO_DEEP (200301).
 public actor FolderRateLimiter: FolderRateLimiting {
-    public typealias Now = @Sendable () -> Date
-    public typealias Sleep = @Sendable (Duration) async throws -> Void
-
     private struct Entry {
         var blockedUntil: Date
         var attemptCount: Int
@@ -33,8 +31,8 @@ public actor FolderRateLimiter: FolderRateLimiting {
         var snapshot: Int?
     }
 
-    private let now: Now
-    private let sleep: Sleep
+    private let dateResource: DateResource
+    private let sleepResource: TaskSleepResource
     private let folderStateProvider: FolderStateProvider
     private let baseBackoff: TimeInterval
     private let multiplier: Double
@@ -49,16 +47,16 @@ public actor FolderRateLimiter: FolderRateLimiting {
         multiplier: Double = 2.0,
         maxBackoff: TimeInterval = 3600,
         immediateFailThreshold: TimeInterval = 10,
-        now: @escaping Now = { Date.now },
-        sleep: @escaping Sleep = { try await Task.sleep(for: $0) }
+        dateResource: DateResource,
+        sleepResource: TaskSleepResource
     ) {
         self.folderStateProvider = folderStateProvider
         self.baseBackoff = baseBackoff
         self.multiplier = multiplier
         self.maxBackoff = maxBackoff
         self.immediateFailThreshold = immediateFailThreshold
-        self.now = now
-        self.sleep = sleep
+        self.dateResource = dateResource
+        self.sleepResource = sleepResource
     }
 
     /// Wait for the folder's window to clear, run the operation, then either
@@ -86,11 +84,11 @@ public actor FolderRateLimiter: FolderRateLimiting {
 
     func waitOrFail(folder: NodeIdentifier, in moc: NSManagedObjectContext) async throws {
         guard let entry = entries[folder] else { return }
-        let remaining = entry.blockedUntil.timeIntervalSince(now())
+        let remaining = entry.blockedUntil.timeIntervalSince(dateResource.getDate())
         guard remaining > 0 else { return }
 
         if remaining <= immediateFailThreshold {
-            try await sleep(.seconds(remaining))
+            try await sleepResource.sleep(for: .seconds(remaining))
             return
         }
 
@@ -108,7 +106,7 @@ public actor FolderRateLimiter: FolderRateLimiting {
     ) async -> TimeInterval {
         let attemptCount = (entries[folder]?.attemptCount ?? 0) + 1
         let backoff = min(maxBackoff, baseBackoff * pow(multiplier, Double(attemptCount - 1)))
-        let blockedUntil = now().addingTimeInterval(backoff)
+        let blockedUntil = dateResource.getDate().addingTimeInterval(backoff)
         // Write attempt count and blockedUntil before suspending so concurrent
         // failures observe an updated count and grow the backoff correctly.
         entries[folder] = Entry(blockedUntil: blockedUntil, attemptCount: attemptCount, reason: reason, snapshot: nil)
@@ -116,7 +114,7 @@ public actor FolderRateLimiter: FolderRateLimiting {
         // Optional chain is intentional: if clear(folder:) was called from another task
         // while suspended above, the entry is already gone and the write is a no-op.
         entries[folder]?.snapshot = snapshot
-        return blockedUntil.timeIntervalSince(now())
+        return blockedUntil.timeIntervalSince(dateResource.getDate())
     }
 
     func clear(folder: NodeIdentifier) {
@@ -125,7 +123,7 @@ public actor FolderRateLimiter: FolderRateLimiting {
 
     func remainingDelay(for folder: NodeIdentifier) -> TimeInterval? {
         guard let entry = entries[folder] else { return nil }
-        let remaining = entry.blockedUntil.timeIntervalSince(now())
+        let remaining = entry.blockedUntil.timeIntervalSince(dateResource.getDate())
         return remaining > 0 ? remaining : nil
     }
 

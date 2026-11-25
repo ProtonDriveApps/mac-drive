@@ -245,7 +245,7 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
         }
     }
 
-    private func createSmallUploadRequest(
+    func createSmallUploadRequest(
         url: URL,
         components: URLComponents,
         method: String,
@@ -542,9 +542,10 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
             assertionFailure("PMAPIService must have service delegate set")
         }
         
-        updatedHeaders.append((HTTPHeaderName.sessionUID, [sessionUID]))
+        var requestSessionUID = sessionUID
         switch await fetchAuthCredentials() {
         case .found(let credentials):
+            requestSessionUID = credentials.sessionID
             updatedHeaders.append((HTTPHeaderName.authorization, ["Bearer \(credentials.accessToken)"]))
         case .notFound, .wrongConfigurationNoDelegate:
             if (authDelegate as? PMAPIClient)?.isSignedIn() == true {
@@ -553,6 +554,7 @@ extension PMAPIService: MetadataUpdaterAwareHttpCallExecutor {
             break
         }
         
+        updatedHeaders.append((HTTPHeaderName.sessionUID, [requestSessionUID]))
         var request = URLRequest(url: URL(string: url)!)
         request.timeoutInterval = 604_800
         request.httpMethod = method

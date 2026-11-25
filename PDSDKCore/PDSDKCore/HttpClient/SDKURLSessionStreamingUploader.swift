@@ -50,7 +50,9 @@ final class SDKURLSessionStreamingUploader: @unchecked Sendable {
                 let uploadTask = session.uploadTask(withStreamedRequest: streamedRequest)
 
                 let streamingDelegate = StreamingDelegate(
-                    streamForUpload: streamForUpload,
+                    bodyStreamSource: UploadBodyStreamSource(input: streamForUpload.input) {
+                        streamForUpload.openOutputStream()
+                    },
                     delegate: urlSessionDelegate
                 ) { [weak self] data, response, error in
                     guard let self else {
@@ -60,7 +62,11 @@ final class SDKURLSessionStreamingUploader: @unchecked Sendable {
                     self.delegate = nil
                     boxedContinuation.resume(returning: result)
                 }
-                streamForUpload.onStreamError = { [weak self] error in
+                streamForUpload.onStreamError = { [weak self, weak uploadTask] error in
+                    // The producer cannot supply any more body data for this
+                    // attempt. Cancel the task so CFNetwork does not retry the
+                    // request and ask for a body stream that was already consumed.
+                    uploadTask?.cancel()
                     guard let self else {
                         return
                     }
@@ -131,22 +137,29 @@ struct URLSessionInvalidRepresentationError: Error {}
 
 final class StreamingDelegate: NSObject, URLSessionDataDelegate {
 
-    let streamForUpload: StreamForUpload
+    private let bodyStreamSource: UploadBodyStreamSource
     let delegate: URLSessionTaskDelegate?
     var responseData: Data = Data()
     let completionBlock: (Data?, URLResponse?, Error?) -> Void
 
-    init(streamForUpload: StreamForUpload,
+    init(bodyStreamSource: UploadBodyStreamSource,
          delegate: URLSessionTaskDelegate?,
          completionBlock: @escaping (Data?, URLResponse?, Error?) -> Void) {
-        self.streamForUpload = streamForUpload
+        self.bodyStreamSource = bodyStreamSource
         self.delegate = delegate
         self.completionBlock = completionBlock
     }
 
     func urlSession(_ session: URLSession, needNewBodyStreamForTask task: URLSessionTask) async -> InputStream? {
-        streamForUpload.openOutputStream()
-        return streamForUpload.input
+        guard let body = bodyStreamSource.takeBodyStream() else {
+            // URLSession asks for a new body stream when it retries a task, but
+            // a producer-backed body is one-shot and cannot be replayed. Cancel
+            // rather than returning a consumed stream (which CFNetwork asserts
+            // on) or returning nil forever (which re-asks in a tight loop).
+            task.cancel()
+            return nil
+        }
+        return body
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {

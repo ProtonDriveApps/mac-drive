@@ -23,7 +23,7 @@ import UserNotifications
 import ProtonCoreFeatureFlags
 import ProtonCoreServices
 import ProtonCoreCryptoGoInterface
-import ProtonCoreCryptoPatchedGoImplementation
+import ProtonCoreCryptoDrivePatchedGoImplementation
 import ProtonCoreLog
 import PMEventsManager
 
@@ -38,27 +38,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let observationCenter: PDCore.UserDefaultsObservationCenter
     private var systemMetricsMonitor: SystemMetricsMonitor?
 
-    /// Holds the flock-based instance lock for the entire process lifetime.
-    /// The kernel releases the lock automatically on process exit (including SIGKILL).
-    private static let instanceLock: SingleInstanceLocking = FlockInstanceLock(
-        containerGroupIdentifier: Constants.appContainerGroup
-    )
-
     override init() {
         if RuntimeConfiguration.shared.enableTestAutomation {
             relaunchService.appDidLaunch()
         }
         
-        // Atomic kernel-level guard: flock(2) prevents a second instance from running.
-        // Returns false only when another process definitively holds the lock (EWOULDBLOCK).
-        // Fail-opens on any filesystem error to avoid blocking app launch.
-        if !Self.instanceLock.acquireLock() {
-            assert(false, "Exiting because another instance is already running.")
-            exit(0)
-        }
         Log.trace()
         
-        inject(cryptoImplementation: ProtonCoreCryptoPatchedGoImplementation.CryptoGoMethodsImplementation.instance)
+        inject(cryptoImplementation: ProtonCoreCryptoDrivePatchedGoImplementation.CryptoGoMethodsImplementation.instance)
         
         // this must be done before the first access to the user defaults
         GroupContainerMigrator.instance.checkIfMigrationIsNessesary()
@@ -115,6 +102,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             keychainCleared = true
         }
         
+#if DEBUG
+        UITestSessionStore(userDefaults: Constants.appGroup.userDefaults)
+            .updateAtLaunch(arguments: CommandLine.arguments, environment: ProcessInfo.processInfo.environment)
+#endif
         Constants.loadConfiguration()
         Self.configureCoreLogger()
         

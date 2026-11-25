@@ -1,0 +1,10 @@
+load("@rules_python//python:py_library.bzl", "py_library")
+
+# The patched Apple wrapper imports this library. Keeping our code here avoids
+# maintaining a second copy inside the upstream patch.
+py_library(
+    name = "asset_action",
+    srcs = ["__init__.py", "asset_action.py", "model_action.py", "xib_action.py", "storyboard_action.py"],
+    data = [":asset_sandbox.sb"],
+    visibility = ["//visibility:public"],
+)

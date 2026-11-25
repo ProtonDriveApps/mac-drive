@@ -1,0 +1,6 @@
+exports_files(["Package.swift", "Package.resolved"])
+exports_files(["sdk-swift.BUILD.bazel"])
+exports_files(["defusedxml.BUILD.bazel"])
+
+exports_files(["sentry-cocoa.BUILD.bazel"])
+exports_files(["sparkle.BUILD.bazel"])

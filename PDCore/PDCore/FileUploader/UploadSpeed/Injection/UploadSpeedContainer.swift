@@ -31,7 +31,7 @@ public final class UploadSpeedContainer {
             uploadingQueue: sdkUploader,
             processEligibilityController: processEligibilityController,
             bytesCounterResource: sdkUploader.bytesCounterResource,
-            timerResource: iOSPausableTimerResource(duration: UploadSpeedConstants.tickInterval),
+            timerResource: AppPausableTimerResource(duration: UploadSpeedConstants.tickInterval),
             metricResource: ObservabilityUploadSpeedMetricResource(),
             pipeline: .default
         )
@@ -39,7 +39,7 @@ public final class UploadSpeedContainer {
             uploadingQueue: sdkPhotoUploader,
             processEligibilityController: processEligibilityController,
             bytesCounterResource: sdkPhotoUploader.bytesCounterResource,
-            timerResource: iOSPausableTimerResource(duration: UploadSpeedConstants.tickInterval),
+            timerResource: AppPausableTimerResource(duration: UploadSpeedConstants.tickInterval),
             metricResource: ObservabilityUploadSpeedMetricResource(),
             pipeline: .default
         )

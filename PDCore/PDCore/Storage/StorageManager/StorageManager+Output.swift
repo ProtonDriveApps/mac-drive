@@ -625,6 +625,16 @@ public extension StorageManager {
         return NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: nil, cacheName: nil)
     }
 
+    func subscriptionToDecryptedDevices(moc: NSManagedObjectContext) -> NSFetchedResultsController<CoreDataDecryptedDevice> {
+        let fetchRequest = CoreDataDecryptedDevice.fetchRequest()
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(key: #keyPath(CoreDataDecryptedDevice.createTime), ascending: false),
+            NSSortDescriptor(key: #keyPath(CoreDataDecryptedDevice.id), ascending: true)
+        ]
+
+        return NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: nil, cacheName: nil)
+    }
+
     func subscriptionToSharedWithMe(sorting: SortPreference, moc: NSManagedObjectContext) -> NSFetchedResultsController<Node> {
         return NSFetchedResultsController(
             fetchRequest: self.requestNodesSharedWithMeRoot(sorting: sorting, moc: moc),
@@ -1106,6 +1116,66 @@ extension StorageManager {
         }
     }
     
+    /// Fetches photos that are their own parent.
+    /// Which is a bug of importer, this will fetch the offended photos.
+    public func fetchSelfParentedPhotos(moc: NSManagedObjectContext) -> [CoreDataPhoto] {
+        moc.performAndWait {
+            guard let volumeID = getPhotosVolumeId(in: moc) else { return [] }
+
+            let unfinishedStates: [NSNumber] = [
+                NSNumber(value: Photo.State.uploading.rawValue),
+                NSNumber(value: Photo.State.cloudImpediment.rawValue),
+                NSNumber(value: Photo.State.paused.rawValue),
+                NSNumber(value: Photo.State.interrupted.rawValue)
+            ]
+
+            let fetchRequest = NSFetchRequest<CoreDataPhoto>(entityName: "Photo")
+            fetchRequest.fetchBatchSize = 100
+            fetchRequest.predicate = NSPredicate(
+                format: "%K == %@ AND %K IN %@ AND %K != nil",
+                #keyPath(Photo.volumeID), volumeID,
+                #keyPath(Photo.stateRaw), unfinishedStates,
+                #keyPath(Photo.parent)
+            )
+
+            // The self-reference is compared in memory: relating a relationship back to the object
+            // that holds it is not expressible as a fetch predicate.
+            return ((try? moc.fetch(fetchRequest)) ?? []).filter { $0.parent === $0 }
+        }
+    }
+
+    public func fetchIdentifiersOfPhotosNotAvailableOffline(
+        offset: Int,
+        limit: Int,
+        moc: NSManagedObjectContext
+    ) -> [NodeIdentifier] {
+        moc.performAndWait {
+            let fetchRequest = NSFetchRequest<NSDictionary>(entityName: "Photo")
+            fetchRequest.resultType = .dictionaryResultType
+            fetchRequest.propertiesToFetch = [#keyPath(Node.id), #keyPath(Node.volumeID)]
+            fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+                NSPredicate(format: "%K == %d", #keyPath(Photo.stateRaw), Photo.State.active.rawValue),
+                NSPredicate(
+                    format: "%K == NO AND %K == NO",
+                    #keyPath(Photo.isMarkedOfflineAvailable),
+                    #keyPath(Photo.isInheritingOfflineAvailable)
+                )
+            ])
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: #keyPath(Node.id), ascending: true)]
+            fetchRequest.fetchLimit = limit
+            fetchRequest.fetchOffset = offset
+
+            let results = (try? moc.fetch(fetchRequest)) ?? []
+            return results.compactMap { result in
+                guard
+                    let id = result[#keyPath(Node.id)] as? String,
+                    let volumeID = result[#keyPath(Node.volumeID)] as? String
+                else { return nil }
+                return NodeIdentifier(id, "", volumeID)
+            }
+        }
+    }
+
     /// Fetches photos in recoverable upload states to be normalized during bootstrap.
     /// Includes both primary and child photos in the photos volume.
     public func fetchPhotosForInterruptedStateRecovery(moc: NSManagedObjectContext) -> [CoreDataPhoto] {
@@ -1127,6 +1197,17 @@ extension StorageManager {
             )
 
             return (try? moc.fetch(fetchRequest)) ?? []
+        }
+    }
+
+    /// Returns those of `uploadIDs` that still belong to a photo with a pending upload.
+    public func fetchExistingPhotoUploadIDs(_ uploadIDs: Set<UUID>, moc: NSManagedObjectContext) -> Set<UUID> {
+        guard !uploadIDs.isEmpty else { return [] }
+        return moc.performAndWait {
+            let fetchRequest = NSFetchRequest<CoreDataPhoto>(entityName: "Photo")
+            fetchRequest.predicate = NSPredicate(format: "%K IN %@", #keyPath(Photo.uploadID), Array(uploadIDs))
+            let photos = (try? moc.fetch(fetchRequest)) ?? []
+            return Set(photos.compactMap(\.uploadID))
         }
     }
 

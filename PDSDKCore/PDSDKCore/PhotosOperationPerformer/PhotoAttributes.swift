@@ -34,17 +34,30 @@ public struct PhotoAttributes {
     /// nil when this is main photo
     public let mainPhotoUid: SDKNodeUid?
     public let mediaType: String
-    public let modificationDate: Date
     /// photo name with file extension
     public let name: String
+    /// HMAC of `name` with the photo root hash key
+    public let nameHash: String
     /// Photo root folder identifier
     public let parentFolderIdentifier: SDKNodeUid
     /// Photo tags
     public let tags: [Int]
     public let uploadID: UUID
+    
+    /// `PHAsset.modificationDate` as the photo library reported it, `nil` included. Part of the
+    /// skippable-cache key, so it must stay exactly what the library pipeline recorded.
+    public let assetModificationTime: Date?
+    /// Stored modification date, with `nil` already substituted by the import time. Kept private:
+    /// it is only the input for `uploadableModificationDate`, and callers reaching for a raw date
+    /// want either that or `assetModificationTime`.
+    private let modificationDate: Date
+    /// `modificationDate` brought inside the range the backend accepts. Use this for anything sent
+    /// to the backend or written to the metadata DB, never for cache keys.
+    public let uploadableModificationDate: Date
 
     public init(
         additionalMetadata: [AdditionalMetadata],
+        assetModificationTime: Date?,
         captureTime: Date,
         childrenCount: Int,
         cloudIdentifier: String,
@@ -55,11 +68,13 @@ public struct PhotoAttributes {
         mediaType: String,
         modificationDate: Date,
         name: String,
+        nameHash: String,
         parentFolderIdentifier: SDKNodeUid,
         tags: [Int],
         uploadID: UUID
     ) {
         self.additionalMetadata = additionalMetadata
+        self.assetModificationTime = assetModificationTime
         self.captureTime = captureTime
         self.childrenCount = childrenCount
         self.cloudIdentifier = cloudIdentifier
@@ -70,8 +85,12 @@ public struct PhotoAttributes {
         self.mediaType = mediaType
         self.modificationDate = modificationDate
         self.name = name
+        self.nameHash = nameHash
         self.parentFolderIdentifier = parentFolderIdentifier
         self.tags = tags
         self.uploadID = uploadID
+        self.uploadableModificationDate = modificationDate.validPhotoTimestamp
+            ?? captureTime.validPhotoTimestamp
+            ?? modificationDate.clampedToValidPhotoTimestamp
     }
 }

@@ -1,0 +1,14 @@
+diff --git a/tools/codesigningtool/codesigningtool.py b/tools/codesigningtool/codesigningtool.py
+--- a/tools/codesigningtool/codesigningtool.py
++++ b/tools/codesigningtool/codesigningtool.py
+@@ -259,3 +259,10 @@
+ def _find_codesign_identities(identity=None):
+   """Finds code signing identities on the current system."""
++  # codesign accepts certificate SHA1 fingerprints as well as names. Match
++  # fingerprints exactly, never as substrings of another certificate's CN.
++  if identity and re.fullmatch(r"[A-Fa-f0-9]{40}", identity):
++    return [
++        candidate for candidate in _find_codesign_identities()
++        if candidate.upper() == identity.upper()
++    ]
+   ids = []

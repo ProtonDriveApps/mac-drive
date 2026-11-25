@@ -1,0 +1,115 @@
+module(
+    # This is the name Bazel uses for this build-definition repository.
+    name = "build_system_experimentation",
+    # The experiment is not a published library yet, so it starts at 0.0.0.
+    version = "0.0.0",
+)
+
+# Think of these as build-system packages. They teach Bazel how to find Xcode,
+# compile Swift, and assemble Apple applications. Keep them pinned so every
+# developer and CI uses exactly the same instructions.
+bazel_dep(name = "apple_support", version = "2.11.0")
+bazel_dep(name = "rules_apple", version = "5.4.0")
+bazel_dep(name = "rules_swift", version = "4.2.2")
+bazel_dep(name = "rules_swift_package_manager", version = "1.26.0")
+bazel_dep(name = "rules_cc", version = "0.2.28")
+bazel_dep(name = "platforms", version = "1.1.0")
+# Already selected transitively; expose the same pinned Python rules for our
+# native-action helper rather than relying on an undeclared repository mapping.
+bazel_dep(name = "rules_python", version = "2.5.1")
+
+# Python compilation keeps its clean environment, but carries our host and Xcode cache
+# identity labels. Think of them as recipe version stickers, not shell settings.
+single_version_override(
+    module_name = "rules_python",
+    version = "2.5.1",
+    patches = ["//third_party/patches:rules_python_policy_identity.patch"],
+    patch_strip = 1,
+)
+
+# Xcode discovery starts with an empty environment. Preserve our private scratch
+# paths, and give Swift macro workers an absolute temporary directory.
+single_version_override(
+    module_name = "apple_support",
+    version = "2.11.0",
+    patches = ["//third_party/patches:apple_support_private_tmp.patch"],
+    patch_strip = 1,
+)
+single_version_override(
+    module_name = "rules_swift",
+    version = "4.2.2",
+    patches = ["//third_party/patches:rules_swift_private_tmp.patch"],
+    patch_strip = 1,
+)
+
+# Keep the same Apple rules release, but apply our ZIP ordering/environment fixes
+# whenever Bazel fetches it. Think of the patches as extra pages in the recipe:
+# everyone gets the same change, without editing their downloaded tool cache.
+single_version_override(
+    module_name = "rules_apple",
+    version = "5.4.0",
+    patches = [
+        "//third_party/patches:rules_apple_signing_fingerprint.patch",
+        "//third_party/patches:rules_apple_sparkle_helpers.patch",
+        "//third_party/patches:rules_apple_bundle_order.patch",
+        "//third_party/patches:rules_apple_framework_timestamps.patch",
+        "//third_party/patches:rules_apple_bundle_environment.patch",
+        "//third_party/patches:rules_apple_dossier_identity.patch",
+        "//third_party/patches:rules_apple_archive_copy_environment.patch",
+        "//third_party/patches:rules_apple_native_asset_action.patch",
+        "//third_party/patches:rules_apple_native_storyboard_action.patch",
+        "//third_party/patches:rules_apple_host_archive_name.patch",
+        "//third_party/patches:rules_apple_inherited_environment.patch",
+    ],
+    # Patch paths start with a/ or b/; remove that first folder when applying.
+    patch_strip = 1,
+)
+
+# Local packages live in this repository and own native BUILD.bazel targets.
+# Only external Swift dependencies use the SwiftPM adapter below.
+
+# Translate the exact external Swift package pins into native Bazel targets.
+swift_deps = use_extension("@rules_swift_package_manager//:extensions.bzl", "swift_deps")
+swift_deps.from_package(
+    swift = "//third_party:Package.swift",
+    resolved = "//third_party:Package.resolved",
+    declare_swift_package = False,
+)
+use_repo(swift_deps, "swiftpkg_protoncore_ios", "swiftpkg_sentry_cocoa", "swiftpkg_unleash_ios_sdk")
+use_repo(swift_deps, "swiftpkg_zipfoundation", "swiftpkg_trustkit", "swiftpkg_reachability.swift")
+use_repo(swift_deps, "swiftpkg_sdk_swift")
+use_repo(swift_deps, "swiftpkg_sparkle")
+use_repo(swift_deps, "swiftpkg_cryptoswift")
+use_repo(swift_deps, "swiftpkg_ohhttpstubs", "swiftpkg_yams")
+
+swift_deps.configure_package(
+    name = "sparkle",
+    build_file = "//third_party:sparkle.BUILD.bazel",
+)
+
+# The SDK archive contains duplicate runtime members; preserve ordinary archive
+# extraction instead of the adapter's default force-load behavior.
+swift_deps.configure_package(
+    name = "sdk-swift",
+    build_file = "//third_party:sdk-swift.BUILD.bazel",
+)
+
+swift_deps.configure_package(
+    name = "sentry-cocoa",
+    build_file = "//third_party:sentry-cocoa.BUILD.bazel",
+)
+
+# SwiftOTP's product name differs from its dependency's package identity.
+swift_deps.configure_package(
+    name = "swiftotp",
+    patches = ["//third_party/patches:swiftotp_explicit_crypto_product.patch"],
+    patch_args = ["-p1"],
+)
+
+# Snapshot baselines are test inputs, like an answer sheet: never rewrite them
+# while grading. The managed runner supplies the declared resource-bundle path.
+swift_deps.configure_package(
+    name = "swift-snapshot-testing",
+    patches = ["//third_party/patches:snapshot_testing_managed_references.patch"],
+    patch_args = ["-p1"],
+)

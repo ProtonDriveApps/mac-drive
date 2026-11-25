@@ -24,6 +24,7 @@ import ProtonCoreChallenge
 #endif
 import ProtonCoreFeatureFlags
 import ProtonCoreKeymaker
+import ProtonCoreNetworking
 import ProtonCoreServices
 import ProtonCoreAuthentication
 import ProtonCoreObservability
@@ -74,14 +75,21 @@ public class InitialServices {
                             mainKeyProvider: MainKeyProvider,
                             autoLocker: Autolocker?,
                             sessionRelatedCommunicatorFactory: @escaping SessionRelatedCommunicatorFactory,
+                            sessionFactory: SessionFactoryInterface,
                             isDetailedLoggingEnabled: (() -> Bool)? = nil) {
-        let networking = Self.makeNetworking(environment: clientConfig.environment)
-        let monitor = MonitorConnectionStateResource(doh: networking.dohInterface)
+        let networking = Self.makeNetworking(environment: clientConfig.environment, sessionFactory: sessionFactory)
+        let monitor: ConnectionStateResource
+        #if DEBUG
+        let debugMonitor = DebugConnectionStateResource(
+            wrapping: MonitorConnectionStateResource(doh: networking.dohInterface)
+        )
+        debugMonitor.startObservingSimulationCommands()
+        monitor = debugMonitor
+        #else
+        monitor = MonitorConnectionStateResource(doh: networking.dohInterface)
+        #endif
         #if os(iOS)
         monitor.startMonitoring()
-        #endif
-        #if DEBUG
-        monitor.startObservingSimulationCommands()
         #endif
         self.init(
             userDefault: userDefault,
@@ -109,7 +117,7 @@ public class InitialServices {
         self.sessionRelatedCommunicatorFactory = sessionRelatedCommunicatorFactory
         self.localSettings = LocalSettings.shared
 
-        let networking = networking ?? Self.makeNetworking(environment: clientConfig.environment)
+        let networking = networking ?? Self.makeNetworking(environment: clientConfig.environment, sessionFactory: SessionFactory.instance)
 
         let (sessionVault, serviceDelegate, authenticator, communicator, featureFlagsRepository, pushNotificationService) =
             Self.makeServices(
@@ -156,6 +164,20 @@ public class InitialServices {
         }
         #endif
 
+        // In the extension, performInitialSetup consumes a child session waiting in the locker. A request sent before
+        // that has no credential, so ProtonCore acquires an unauth session and may set networkService.sessionUID to it
+        // after the child session UID.
+        let isChildSessionWaiting = PDCore.Constants.runningInExtension && userDefault.childSessionReady
+        Task {
+            await communicator.performInitialSetup()
+            if isChildSessionWaiting {
+                try? await featureFlagsRepository.fetchFlags()
+            }
+        }
+        if isChildSessionWaiting {
+            return
+        }
+
         networkService.acquireSessionIfNeeded { result in
             switch result {
             case .success:
@@ -167,16 +189,22 @@ public class InitialServices {
                 // servers not reachable, need to display banner
                 Log.error(error: error, domain: .networking)
             }
+            // The backend answers 401 to requests without a session, so fetch the flags once the session request has finished.
+            Task {
+                try? await featureFlagsRepository.fetchFlags()
+            }
         }
     }
 
-    private static func makeNetworking(environment: ProtonCoreEnvironment.Environment) -> PMAPIService {
+    private static func makeNetworking(environment: ProtonCoreEnvironment.Environment, sessionFactory: SessionFactoryInterface) -> PMAPIService {
 #if os(iOS)
         PMAPIService.createAPIServiceWithoutSession(environment: environment,
+                                                    sessionFactory: sessionFactory,
                                                     challengeParametersProvider: .forAPIService(clientApp: .drive,
                                                                                                 challenge: PMChallenge()))
 #else
         PMAPIService.createAPIServiceWithoutSession(environment: environment,
+                                                    sessionFactory: sessionFactory,
                                                     challengeParametersProvider: .empty)
 #endif
     }
@@ -227,9 +255,6 @@ public class InitialServices {
         featureFlagsRepository.setUserId(userID ?? "")
         featureFlagsRepository.setFlagOverride(CoreFeatureFlagType.dynamicPlan, true)
         featureFlagsRepository.resetFlagOverride(CoreFeatureFlagType.easyDeviceMigrationDisabled)
-        Task {
-            try? await featureFlagsRepository.fetchFlags()
-        }
         
 #if DEBUG
         let isRunningUITests = DebugConstants.commandLineContains(flags: [.uiTests])
@@ -244,10 +269,6 @@ public class InitialServices {
         }
 #endif
         let pushNotificationService: PushNotificationServiceProtocol? = nil
-
-        Task {
-            await sessionRelatedCommunicator.performInitialSetup()
-        }
 
         return (sessionVault, serviceDelegate, authenticator, sessionRelatedCommunicator, featureFlagsRepository, pushNotificationService)
     }

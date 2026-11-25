@@ -2243,25 +2243,25 @@
               "few" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Што вы хочаце зрабіць з гэтым элементамі?,%d"
+                  "value" : "Што вы хочаце зрабіць з гэтым элементамі?, %d"
                 }
               },
               "many" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Што вы хочаце зрабіць з гэтым элементамі?,%d"
+                  "value" : "Што вы хочаце зрабіць з гэтым элементамі?, %d"
                 }
               },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Што вы хочаце зрабіць з гэтым элементам?,%d"
+                  "value" : "Што вы хочаце зрабіць з гэтым элементам?, %d"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Што вы хочаце зрабіць з гэтым элементамі?,%d"
+                  "value" : "Што вы хочаце зрабіць з гэтым элементамі?, %d"
                 }
               }
             }
@@ -2321,13 +2321,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Hvad vil du gøre med dette element?,%d"
+                  "value" : "Hvad ønsker du at gøre med dette element?,%d"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Hvad vil du gøre med disse elementer?,%d"
+                  "value" : "Hvad ønsker du at gøre med disse elementer?,%d"
                 }
               }
             }
@@ -2339,13 +2339,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Was soll mit diesem Element geschehen? %d"
+                  "value" : "Was möchtest du mit diesem Eintrag tun?,%d"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Was soll mit diesen Elementen geschehen? %d"
+                  "value" : "Was möchtest du mit diesen Einträgen tun?,%d"
                 }
               }
             }
@@ -2423,6 +2423,24 @@
             }
           }
         },
+        "fi" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Mitä haluaisit tehdä tälle kohteelle: %d"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Mitä haluaisit tehdä näille kohteille: %d"
+                }
+              }
+            }
+          }
+        },
         "fr" : {
           "variations" : {
             "plural" : {
@@ -2441,19 +2459,61 @@
             }
           }
         },
+        "hu" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Mit szeretne tenni ezzel az elemmel?,%d"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Mit szeretne tenni ezzel az elemmel?,%d"
+                }
+              }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Apa yang ingin Anda lakukan dengan item ini?,%d"
+                }
+              }
+            }
+          }
+        },
         "it" : {
           "variations" : {
             "plural" : {
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Cosa vuoi fare con questo elemento?, %d"
+                  "value" : "Cosa vuoi fare con questo elemento? %d"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Cosa vuoi fare con questi elementi?, %d"
+                  "value" : "Cosa vuoi fare con questi elementi? %d"
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "これらのアイテム​をどうしますか？、%d"
                 }
               }
             }
@@ -2465,7 +2525,7 @@
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "이 항목으로 어떤 작업을 수행할까요?,%d"
+                  "value" : "이 항목으로 어떤 작업을 수행하시겠습니까?,%d"
                 }
               }
             }
@@ -2507,6 +2567,24 @@
             }
           }
         },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "O que gostaria de fazer com este item? %d"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "O que gostaria de fazer com estes itens? %d"
+                }
+              }
+            }
+          }
+        },
         "pt-BR" : {
           "variations" : {
             "plural" : {
@@ -2531,19 +2609,49 @@
               "few" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Ce doriți să faceți cu aceste articole?, %d"
+                  "value" : "Ce doriți să faceți cu aceste articole (%d)?"
                 }
               },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Ce doriți să faceți cu acest articol?, %d"
+                  "value" : "Ce doriți să faceți cu acest articol (%d)?"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Ce doriți să faceți cu aceste articole?, %d"
+                  "value" : "Ce doriți să faceți cu aceste articole (%d)?"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Что вы хотите сделать с этими элементами?,%d"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Что вы хотите сделать с этими элементами?, %d"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Что вы хотите сделать с этим элементом?,%d"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Что вы хотите сделать с этими элементами?, %d"
                 }
               }
             }
@@ -2597,13 +2705,55 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Що ви хочете зробити з цими елементами?, %d"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Що ви хочете зробити з цими елементами?, %d"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Що ви хочете зробити з цим елементом?, %d"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Що ви хочете зробити з цими елементами?, %d"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "您想如何处理这些项目？,%d"
+                  "value" : "您想用此商品做什么？，%d"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "您想對這些項目做什麼？%d"
                 }
               }
             }
@@ -3261,24 +3411,6 @@
             }
           }
         },
-        "ka" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "ამ ფოტოზე წვდომას დაკარგავთ. თუ ჯერ არ შეგი­ნახავთ, შეინახეთ ის თქვენი ფოტოების ქრონიკაში, სანამ ალბომიდან წაშლით."
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "ამ %d ფოტოზე წვდომას დაკარგავთ. თუ ჯერ არ შეგი­ნახავთ, შეინახეთ ისინი თქვენი ფოტოების ქრონიკაში, სანამ ალბომიდან წაშლით."
-                }
-              }
-            }
-          }
-        },
         "ko" : {
           "variations" : {
             "plural" : {
@@ -3339,7 +3471,7 @@
               "many" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Stracisz dostęp do %d zdjęć. Jeśli chcesz je zachować, zapisz je na osi czasu przed ich usunięciem z albumu."
+                  "value" : "Stracisz dostęp do %d zdjęcia. Jeśli chcesz je zachować, zapisz je na osi czasu przed ich usunięciem z albumu."
                 }
               },
               "one" : {
@@ -3935,7 +4067,7 @@
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esteu segurs que voleu suprimir l'àlbum “%@”? Les fotos no se suprimiran."
+            "value" : "Segur que voleu suprimir l'àlbum «%@»? Les fotos no s'eliminaran."
           }
         },
         "cs" : {
@@ -3947,19 +4079,19 @@
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Er du sikker på du vil slette albummet “%@”? Billederne slettes ikke."
+            "value" : "Er du sikker på, at du vil slette albummet “%@”? Billederne vil ikke blive slettet."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Möchtest du das Album „%@“ wirklich löschen? Die darin enthaltenen Fotos werden nicht gelöscht."
+            "value" : "Bist du sicher, dass du das Album „%@“ löschen möchtest? Die Fotos werden nicht gelöscht."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Είστε σίγουροι ότι θέλετε να διαγράψετε το άλμπουμ \"%@\"; Οι φωτογραφίες δε θα διαγραφούν."
+            "value" : "Είστε βέβαιοι ότι θέλετε να διαγράψετε το άλμπουμ \"%@\"; Οι φωτογραφίες δε θα διαγραφούν."
           }
         },
         "en" : {
@@ -3971,7 +4103,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¿Seguro que deseas eliminar el álbum «%@»? Las fotos no se eliminarán."
+            "value" : "¿Estás seguro de que deseas eliminar el álbum «%@»? Las fotos no se eliminarán."
           }
         },
         "es-419" : {
@@ -3980,16 +4112,46 @@
             "value" : "¿En verdad desea eliminar el álbum «%@»? Las fotos no se eliminarán."
           }
         },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haluatko varmasti poistaa albumin ”%@”? Kuvia ei poisteta."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Êtes-vous sûr de vouloir supprimer l'album « %@ » ? Les photos ne seront pas supprimées."
           }
         },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biztos, hogy törölni szeretné a(z) \"%@\" albumot? A fotók nem kerülnek törlésre."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apakah Anda yakin ingin menghapus album “%@”? Foto yang terkandung di dalamnya tidak akan dihapus."
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sei sicuro di voler eliminare l'album “%@”? Le foto non verranno eliminate."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アルバム「%@」を削除してもよろしいですか？写真は削除されません。"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "მართლა გნებავთ, წაშალოთ ალბომი \"%@\"? ფოტოები არ წაიშლება."
           }
         },
         "ko" : {
@@ -4007,7 +4169,19 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Weet u zeker dat u het album “%@” wilt verwijderen? De foto's worden niet verwijderd."
+            "value" : "Weet u zeker dat u het album%@wilt verwijderen? De foto's worden niet verwijderd."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czy na pewno chcesz usunąć album “%@”? Zdjęcia nie zostaną usunięte."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tem certeza de que deseja eliminar o álbum «%@»? As fotos não serão eliminadas."
           }
         },
         "pt-BR" : {
@@ -4019,13 +4193,19 @@
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sigur ștergeți albumul „%@”? Fotografiile nu vor fi șterse."
+            "value" : "Sigur doriți să ștergeți albumul „%@”? Fotografiile nu vor fi șterse."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вы уверены, что хотите удалить альбом “%@”? Фотографии не будут удалены."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Naozaj chcete vymazať album „%@“? Fotografie sa nevymažú."
+            "value" : "Naozaj chcete odstrániť album „%@“? Fotografie sa nevymažú."
           }
         },
         "sv" : {
@@ -4040,10 +4220,22 @@
             "value" : "“%@” albümünü silmek istediğinize emin misiniz? Fotoğraflar silinmeyecek."
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Упевнені, що хочете видалити альбом «%@»? Фотографії не буде видалено."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确定要删除相册“%@”吗？照片不会被删除。"
+            "value" : "您确定要删除相册“%@”吗？照片不会被删除。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您確定要刪除相簿「%@」？相片將不會被刪除。"
           }
         }
       }
@@ -4097,7 +4289,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eliminar “%@”"
+            "value" : "Eliminar «%@»"
           }
         },
         "es-419" : {
@@ -4118,10 +4310,34 @@
             "value" : "Supprimer « %@ »"
           }
         },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%@\" törlése"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hapus “%@”"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Elimina “%@”"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」を削除"
+          }
+        },
+        "ka" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%@\"-ის წაშლა"
           }
         },
         "ko" : {
@@ -4139,7 +4355,19 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verwijder \"%@\""
+            "value" : "Verwijder %@”"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń “%@”"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminar «%@»"
           }
         },
         "pt-BR" : {
@@ -4152,6 +4380,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ștergere „%@”"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить “%@”"
           }
         },
         "sk" : {
@@ -4172,10 +4406,22 @@
             "value" : "\"%@\" albümünü sil"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити «%@»"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "删除“%@”"
+            "value" : "删除 ”%@”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除「%@」"
           }
         }
       }
@@ -4676,6 +4922,12 @@
             "value" : "Twoje urządzenie nie ma połączenia"
           }
         },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O seu dispositivo não tem conexão."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4686,6 +4938,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dispozitivul nu are conexiune"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваше устройство не подключено"
           }
         },
         "sk" : {
@@ -4706,10 +4964,22 @@
             "value" : "Aygıtınızın internet bağlantısı yok"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш пристрій не має підключення"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "您的设备未连接"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的裝置沒有連線"
           }
         }
       }
@@ -5204,13 +5474,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Archivo"
+                  "value" : "%d archivo"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Archivos"
+                  "value" : "%d archivos"
                 }
               }
             }
@@ -5240,13 +5510,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Fichier"
+                  "value" : "%d fichier"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Fichiers"
+                  "value" : "%d fichiers"
                 }
               }
             }
@@ -5384,25 +5654,43 @@
               "few" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Plików"
+                  "value" : "%d pliki"
                 }
               },
               "many" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Plików"
+                  "value" : "%d plików"
                 }
               },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Plik"
+                  "value" : "%d plik"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Pliki"
+                  "value" : "%d plików"
+                }
+              }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ficheiro"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ficheiros"
                 }
               }
             }
@@ -5450,6 +5738,36 @@
             }
           }
         },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Файла"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Файлов"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Файл"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Файлов"
+                }
+              }
+            }
+          }
+        },
         "sk" : {
           "variations" : {
             "plural" : {
@@ -5474,7 +5792,7 @@
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d súborov"
+                  "value" : "%d súbory"
                 }
               }
             }
@@ -5516,6 +5834,36 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d файли"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d файлів"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d файл"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d файлів"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
@@ -5523,6 +5871,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 个文件"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個檔案"
                 }
               }
             }
@@ -5552,7 +5912,7 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d папку"
+                  "value" : "%d папка"
                 }
               },
               "other" : {
@@ -5600,7 +5960,7 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d složka"
+                  "value" : "%d složku"
                 }
               },
               "other" : {
@@ -5744,13 +6104,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Dossier"
+                  "value" : "%d dossier"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Dossiers"
+                  "value" : "%d dossiers"
                 }
               }
             }
@@ -5888,31 +6248,31 @@
               "few" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Folderów"
+                  "value" : "%d foldery"
                 }
               },
               "many" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Folderów"
+                  "value" : "%d folderów"
                 }
               },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Folder"
+                  "value" : "%d folder"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Folderów"
+                  "value" : "%d folderów"
                 }
               }
             }
           }
         },
-        "pt-BR" : {
+        "pt" : {
           "variations" : {
             "plural" : {
               "one" : {
@@ -5925,6 +6285,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d pastas"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Pasta"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Pastas"
                 }
               }
             }
@@ -5954,6 +6332,36 @@
             }
           }
         },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Папки"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Папок"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Папка"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Папок"
+                }
+              }
+            }
+          }
+        },
         "sk" : {
           "variations" : {
             "plural" : {
@@ -5978,7 +6386,7 @@
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d priečinkov"
+                  "value" : "%d priečinky"
                 }
               }
             }
@@ -6020,6 +6428,36 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d теки"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d тек"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d тека"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d тек"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
@@ -6027,6 +6465,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 个文件夹"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個資料夾"
                 }
               }
             }
@@ -9020,25 +9470,25 @@
               "few" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "У альбом дададзены %d элементы"
+                  "value" : "%d элементы дададзены ў альбом"
                 }
               },
               "many" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "У альбом дададзены %d элементаў"
+                  "value" : "%d элементаў дададзены ў альбом"
                 }
               },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "У альбом дададзены %d элемент"
+                  "value" : "%d элемент дададзены ў альбом"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "У альбом дададзены %d элементаў"
+                  "value" : "%d элементаў дададзены ў альбом"
                 }
               }
             }
@@ -9050,13 +9500,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "S'ha afegit %d element a l'àlbum"
+                  "value" : "S'ha afegit %d element a l'àlbum."
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "S'han afegit %d elements a l'àlbum"
+                  "value" : "S'han afegit %d elements a l'àlbum."
                 }
               }
             }
@@ -9236,6 +9686,36 @@
             }
           }
         },
+        "hu" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elem hozzáadva az albumhoz"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elem hozzáadva az albumhoz"
+                }
+              }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item ditambahkan ke album"
+                }
+              }
+            }
+          }
+        },
         "it" : {
           "variations" : {
             "plural" : {
@@ -9249,6 +9729,36 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d elementi aggiunti all'album"
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個のアイテムがアルバムに追加されました"
+                }
+              }
+            }
+          }
+        },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ალბომში ჩაემატა %d ელემენტი"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ალბომში ჩაემატა %d ელემენტი"
                 }
               }
             }
@@ -9302,7 +9812,37 @@
             }
           }
         },
-        "pt-BR" : {
+        "pl" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementów dodanych do albumu"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementów dodanych do albumu"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d element dodany do albumu"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementów dodanych do albumu"
+                }
+              }
+            }
+          }
+        },
+        "pt" : {
           "variations" : {
             "plural" : {
               "one" : {
@@ -9315,6 +9855,24 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d itens adicionados ao álbum"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item adicionado do álbum"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d itens adicionados do álbum"
                 }
               }
             }
@@ -9344,6 +9902,36 @@
             }
           }
         },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элемента добавлены в альбом"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элементов добавлены в альбом"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элемент добавлен в альбом"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элементов добавлены в альбом"
+                }
+              }
+            }
+          }
+        },
         "sk" : {
           "variations" : {
             "plural" : {
@@ -9368,7 +9956,7 @@
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d položiek pridaných do albumu"
+                  "value" : "%d položky pridané do albumu"
                 }
               }
             }
@@ -9410,13 +9998,55 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементи додано до альбому"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів додано до альбому"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елемент додано до альбому"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів додано до альбому"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "已将 %d 项添加到相册"
+                  "value" : "%d 项目已添加到相册"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "新增 %d 個項目至相簿"
                 }
               }
             }
@@ -9434,25 +10064,25 @@
               "few" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "У плынь дадзены %d элементы"
+                  "value" : "%d элементы дададзены ў вашу плынь"
                 }
               },
               "many" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "У плынь дадзены %d элементаў"
+                  "value" : "%d элементаў дададзены ў вашу плынь"
                 }
               },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "У плынь дадзены %d элемент"
+                  "value" : "%d элемент дададзены ў вашу плынь"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "У плынь дадзены %d элементаў"
+                  "value" : "%d элементаў дададзены ў вашу плынь"
                 }
               }
             }
@@ -9464,13 +10094,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "S'ha afegit %d element al vostre flux"
+                  "value" : "%d element afegit a l'estríming"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "S'han afegit %d elements al vostre flux"
+                  "value" : "%d elements afegits a l'estríming"
                 }
               }
             }
@@ -9512,13 +10142,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d element føjet til din stream"
+                  "value" : "%d element tilføjet din stream"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d elementer føjet til din stream"
+                  "value" : "%d elementer tilføjet din stream"
                 }
               }
             }
@@ -9530,13 +10160,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Eintrag zu deiner Sammlung hinzugefügt"
+                  "value" : "%d Eintrag zu deinem Stream hinzugefügt"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Einträge zu deiner Sammlung hinzugefügt"
+                  "value" : "%d Einträge zu deinem Stream hinzugefügt"
                 }
               }
             }
@@ -9584,13 +10214,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Se ha añadido %d elemento a tu secuencia"
+                  "value" : "Se han añadido %d elemento a tu flujo."
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Se han añadido %d elementos a tu secuencia"
+                  "value" : "Se han añadido %d elementos a tu flujo."
                 }
               }
             }
@@ -9602,13 +10232,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d elemento añadido a su flujo"
+                  "value" : "Se agregó %d elemento a su flujo."
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d elementos añadidos a su flujo"
+                  "value" : "Se agregaron %d elementos a su flujo."
                 }
               }
             }
@@ -9620,13 +10250,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d kohde lisättiin virtaasi"
+                  "value" : "%d kohde lisätty virtaasi"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d kohdetta lisättiin virtaasi"
+                  "value" : "%d kohdetta lisätty virtaasi"
                 }
               }
             }
@@ -9650,6 +10280,36 @@
             }
           }
         },
+        "hu" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elem hozzáadva a videózáshoz"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elem hozzáadva a videózáshoz"
+                }
+              }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item ditambahkan ke alir Anda"
+                }
+              }
+            }
+          }
+        },
         "it" : {
           "variations" : {
             "plural" : {
@@ -9663,6 +10323,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d elementi aggiunti al tuo stream"
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個のアイテムがストリームに追加されました"
                 }
               }
             }
@@ -9686,13 +10358,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d element lagt til i strømmen"
+                  "value" : "%d element lagt til i din fotostrøm"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d elementer lagt til i strømmen"
+                  "value" : "%d elementer lagt til i din fotostrøm"
                 }
               }
             }
@@ -9704,13 +10376,61 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d item toegevoegd aan uw stream"
+                  "value" : "%d item toegevoegd aan uw fotostream"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d items toegevoegd aan uw stream"
+                }
+              }
+            }
+          }
+        },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Dodano %d elementy do osi czasu"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Dodano %d elementów do osi czasu"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Dodano %d element do osi czasu"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Dodano %d elementów do osi czasu"
+                }
+              }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item adicionado ao seu fluxo"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d itens adicionados ao seu fluxo"
                 }
               }
             }
@@ -9753,6 +10473,36 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "Articole adăugate în fluxul foto: %d"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элемента добавлены в вашу ленту"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элементов добавлены в вашу ленту"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элемент добавлен в вашу ленту"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элементов добавлены в вашу ленту"
                 }
               }
             }
@@ -9806,13 +10556,55 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементи додано до трансляції"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів додано до трансляції"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елемент додано до трансляції"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів додано до трансляції"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "已将 %d 项添加到您的动态"
+                  "value" : "%d 项已添加到您的照片流"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "新增 %d 個項目至您的影音串流"
                 }
               }
             }
@@ -9860,7 +10652,7 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d element ja existeix"
+                  "value" : "%d element ja existeix."
                 }
               },
               "other" : {
@@ -9926,13 +10718,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Eintrag ist bereits vorhanden"
+                  "value" : "%d Eintrag existiert bereits"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Einträge sind bereits vorhanden"
+                  "value" : "%d Einträge existieren bereits"
                 }
               }
             }
@@ -9980,13 +10772,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Ya existe %d elemento"
+                  "value" : "Ya existe %d elemento."
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Ya existen %d elementos"
+                  "value" : "Ya existen %d elementos."
                 }
               }
             }
@@ -9998,13 +10790,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Ya existe %d elemento"
+                  "value" : "Ya existe %d elemento."
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Ya existen %d elementos"
+                  "value" : "Ya existen %d elementos."
                 }
               }
             }
@@ -10046,6 +10838,36 @@
             }
           }
         },
+        "hu" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elem már létezik"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elem már létezik"
+                }
+              }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item sudah ada"
+                }
+              }
+            }
+          }
+        },
         "it" : {
           "variations" : {
             "plural" : {
@@ -10064,13 +10886,25 @@
             }
           }
         },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個のアイテムはすでに存在しています"
+                }
+              }
+            }
+          }
+        },
         "ko" : {
           "variations" : {
             "plural" : {
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d개 항목이 이미 추가되어 있습니다"
+                  "value" : "%d개 항목이 이미 존재함"
                 }
               }
             }
@@ -10107,6 +10941,54 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d items bestaan al"
+                }
+              }
+            }
+          }
+        },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementy już istnieją"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementów już istnieje"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d element już istnieje"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementów już istnieje"
+                }
+              }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item já existe."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d itens já existem."
                 }
               }
             }
@@ -10149,6 +11031,36 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "Articole deja existente: %d"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элемента уже существует"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элементов уже существует"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элемент уже существует"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элементов уже существует"
                 }
               }
             }
@@ -10220,13 +11132,55 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементи вже існує"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів уже існує"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елемент уже існує"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів уже існує"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d 项已存在"
+                  "value" : "%d 个项目已存在"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "已存在 %d 個項目"
                 }
               }
             }
@@ -10394,13 +11348,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d elemento no se ha subido por completo"
+                  "value" : "%d elemento no se ha cargado completamente"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d elementos no se han subido por completo"
+                  "value" : "%d elementos no están completamente cargados"
                 }
               }
             }
@@ -10460,6 +11414,36 @@
             }
           }
         },
+        "hu" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elem nincs teljesen feltöltve"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elem nincs teljesen feltöltve"
+                }
+              }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item belum sepenuhnya diunggah"
+                }
+              }
+            }
+          }
+        },
         "it" : {
           "variations" : {
             "plural" : {
@@ -10473,6 +11457,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d elementi non sono stati caricati completamente"
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個のアイテムは完全にアップロードされていません"
                 }
               }
             }
@@ -10514,13 +11510,61 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d item is niet volledig opgeladen"
+                  "value" : "%d item is niet volledig geüpload"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d items zijn niet volledig opgeladen"
+                  "value" : "%d items zijn niet volledig geüpload"
+                }
+              }
+            }
+          }
+        },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementy nie zostały w pełni przesłane"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementów nie zostało w pełni przesłanych"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d element nie został w pełni przesłany"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementów nie zostało w pełni przesłanych"
+                }
+              }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item não está totalmente enviado"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d itens não estão totalmente enviados"
                 }
               }
             }
@@ -10563,6 +11607,36 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "Articole neîncărcate complet: %d"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элемента не полностью загружены"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элементов не полностью загружены"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элемент не полностью загружен"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элементов не полностью загружены"
                 }
               }
             }
@@ -10616,13 +11690,55 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементи не повністю вивантажено"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів не повністю вивантажено"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елемент не повністю вивантажено"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів не повністю вивантажено"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d 项尚未完成上传"
+                  "value" : "%d 项未能完全上传"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 項目未完全上載"
                 }
               }
             }
@@ -10736,13 +11852,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Eintrag konnte nicht hinzugefügt werden"
+                  "value" : "%d Eintrag konnte nicht entfernt werden"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Einträge konnten nicht hinzugefügt werden"
+                  "value" : "%d Einträge konnten nicht entfernt werden"
                 }
               }
             }
@@ -10856,6 +11972,36 @@
             }
           }
         },
+        "hu" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elemet nem sikerült hozzáadni"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elemet nem sikerült hozzáadni"
+                }
+              }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item gagal ditambahkan"
+                }
+              }
+            }
+          }
+        },
         "it" : {
           "variations" : {
             "plural" : {
@@ -10869,6 +12015,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "Impossibile aggiungere %d elementi"
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d個のアイテムの追加に失敗しました"
                 }
               }
             }
@@ -10922,6 +12080,54 @@
             }
           }
         },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Dodanie %d elementów nie powiodło się"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Dodanie %d elementów nie powiodło się"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Dodanie %d elementu nie powiodło się"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Dodanie %d elementów nie powiodło się"
+                }
+              }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Erro ao adicionar %d item"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Erro ao adicionar %d itens"
+                }
+              }
+            }
+          }
+        },
         "pt-BR" : {
           "variations" : {
             "plural" : {
@@ -10959,6 +12165,36 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "Eșuare adăugare articole: %d"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не удалось добавить %d элемента"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не удалось добавить %d элементов"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не удалось добавить %d элемент"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не удалось добавить %d элементов"
                 }
               }
             }
@@ -11030,13 +12266,55 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося додати %d елементи"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося додати %d елементів"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося додати %d елемент"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося додано %d елементів"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d 项添加失败"
+                  "value" : "%d 个项目添加失败"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個項目新增失敗"
                 }
               }
             }
@@ -11054,25 +12332,25 @@
               "few" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Не ўдалося выдаліць %d элементы"
+                  "value" : "Збой выдалення %d элементаў"
                 }
               },
               "many" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Не ўдалося выдаліць %d элементаў"
+                  "value" : "Збой выдалення %d элементаў"
                 }
               },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Не ўдалося выдаліць %d элемент"
+                  "value" : "Збой выдалення %d элемента"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Не ўдалося выдаліць %d элементаў"
+                  "value" : "%d элементаў не ўдалося выдаліць"
                 }
               }
             }
@@ -11270,6 +12548,36 @@
             }
           }
         },
+        "hu" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elemet nem sikerült eltávolítani"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elemet nem sikerült eltávolítani"
+                }
+              }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item gagal dihapus"
+                }
+              }
+            }
+          }
+        },
         "it" : {
           "variations" : {
             "plural" : {
@@ -11283,6 +12591,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "Impossibile rimuovere %d elementi"
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d個のアイテムの削除に失敗しました"
                 }
               }
             }
@@ -11336,6 +12656,54 @@
             }
           }
         },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Usunięcie %d elementów nie powiodło się"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Usunięcie %d elementów nie powiodło się"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Usunięcie %d elementu nie powiodło się"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Usunięcie %d elementów nie powiodło się"
+                }
+              }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Erro ao remover %d item"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Erro ao remover %d itens"
+                }
+              }
+            }
+          }
+        },
         "pt-BR" : {
           "variations" : {
             "plural" : {
@@ -11373,6 +12741,36 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "Eșuare eliminare articole: %d"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не удалось удалить %d элемента"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не удалось удалить %d элементов"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не удалось удалить %d элемент"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не удалось удалить %d элементов"
                 }
               }
             }
@@ -11444,13 +12842,55 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося видалити %d елементи"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося видалити %d елементів"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося видалити %d елемент"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Не вдалося видалити %d елементів"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d 项移除失败"
+                  "value" : "%d 个项目删除失败"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個項目移除失敗"
                 }
               }
             }
@@ -11528,7 +12968,7 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d položka"
+                  "value" : "%d položku"
                 }
               },
               "other" : {
@@ -11618,13 +13058,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Elemento"
+                  "value" : "%d elemento"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Elementos"
+                  "value" : "%d elementos"
                 }
               }
             }
@@ -11642,7 +13082,7 @@
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Elementos"
+                  "value" : "%d elementos"
                 }
               }
             }
@@ -11672,13 +13112,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Élément"
+                  "value" : "%d élément"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Éléments"
+                  "value" : "%d éléments"
                 }
               }
             }
@@ -11696,7 +13136,7 @@
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Elem"
+                  "value" : "%d Elemek"
                 }
               }
             }
@@ -11738,7 +13178,7 @@
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d 個のアイテム"
+                  "value" : "%d個のアイテム"
                 }
               }
             }
@@ -11798,13 +13238,61 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Item"
+                  "value" : "%d item"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Items"
+                  "value" : "%d items"
+                }
+              }
+            }
+          }
+        },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementy"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementów"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d element"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementów"
+                }
+              }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d itens"
                 }
               }
             }
@@ -11852,6 +13340,36 @@
             }
           }
         },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Элемента"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Элементов"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Элемент"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d Элементов"
+                }
+              }
+            }
+          }
+        },
         "sk" : {
           "variations" : {
             "plural" : {
@@ -11876,7 +13394,7 @@
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d položiek"
+                  "value" : "%d položky"
                 }
               }
             }
@@ -11918,6 +13436,36 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементи"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елемент"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
@@ -11925,6 +13473,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d 个项目"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 項目"
                 }
               }
             }
@@ -11942,25 +13502,25 @@
               "few" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "З альбома выдалены %d элементы"
+                  "value" : "%d элементы выдалены з альбома"
                 }
               },
               "many" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "З альбома выдалены %d элементаў"
+                  "value" : "%d элементаў выдалены з альбома"
                 }
               },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "З альбома выдалены %d элемент"
+                  "value" : "%d элемент выдалены з альбома"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "З альбома выдалены %d элементаў"
+                  "value" : "%d элементаў выдалены з альбома"
                 }
               }
             }
@@ -11972,13 +13532,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "S'ha eliminat %d element de l'àlbum"
+                  "value" : "S'ha suprimit %d element de l'àlbum."
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "S'han eliminat %d elements de l'àlbum"
+                  "value" : "S'han suprimit %d elements de l'àlbum."
                 }
               }
             }
@@ -12056,13 +13616,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d στοιχείο καταργήθηκε από το άλμπουμ"
+                  "value" : "%d στοιχείο αφαιρέθηκε από το άλμπουμ"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d στοιχεία καταργήθηκαν από το άλμπουμ"
+                  "value" : "%d στοιχεία αφαιρέθηκαν από το άλμπουμ"
                 }
               }
             }
@@ -12158,6 +13718,36 @@
             }
           }
         },
+        "hu" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elem eltávolítva az albumból"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elem eltávolítva az albumból"
+                }
+              }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item dihapus dari album"
+                }
+              }
+            }
+          }
+        },
         "it" : {
           "variations" : {
             "plural" : {
@@ -12171,6 +13761,36 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d elementi rimossi dall'album"
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個のアイテムがアルバムから削除されました"
+                }
+              }
+            }
+          }
+        },
+        "ka" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ელემენტი წაიშალა მასივიდან"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d ელემენტი წაიშალა მასივიდან"
                 }
               }
             }
@@ -12224,6 +13844,54 @@
             }
           }
         },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementów usuniętych z albumu"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementów usuniętych z albumu"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d element usunięty z albumu"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elementów usuniętych z albumu"
+                }
+              }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item removido do álbum"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d itens removidos do álbum"
+                }
+              }
+            }
+          }
+        },
         "pt-BR" : {
           "variations" : {
             "plural" : {
@@ -12266,6 +13934,36 @@
             }
           }
         },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элемента удалены из в альбома"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элементов удалены из в альбома"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элемент удален из в альбома"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элементов удалены из в альбома"
+                }
+              }
+            }
+          }
+        },
         "sk" : {
           "variations" : {
             "plural" : {
@@ -12290,7 +13988,7 @@
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d položiek odstránených z albumu"
+                  "value" : "%d položky odstránené z albumu"
                 }
               }
             }
@@ -12332,13 +14030,55 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементи видалено з альбому"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів видалено з альбому"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елемент видалено з альбому"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів видалено з альбому"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d 项从相册移除"
+                  "value" : "%d 项目已从相册中删除"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "已從相簿移除 %d 個項目"
                 }
               }
             }
@@ -12356,25 +14096,25 @@
               "few" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "З плыні выдалены %d элементы"
+                  "value" : "%d элементы выдалены з плыні"
                 }
               },
               "many" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "З плыні выдалены %d элементаў"
+                  "value" : "%d элементаў выдалены з плыні"
                 }
               },
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "З плыні выдалены %d элемент"
+                  "value" : "%d элемент выдалены з плыні"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "З плыні выдалены %d элементаў"
+                  "value" : "%d элементаў выдалены з плыні"
                 }
               }
             }
@@ -12386,13 +14126,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "S'ha eliminat %d element del flux"
+                  "value" : "%d element eliminat del flux"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "S'han eliminat %d elements del flux"
+                  "value" : "%d elements eliminats del flux"
                 }
               }
             }
@@ -12452,13 +14192,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Eintrag aus der Sammlung entfernt"
+                  "value" : "%d Eintrag aus dem Stream entfernt"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d Einträge aus der Sammlung entfernt"
+                  "value" : "%d Einträge aus dem Stream entfernt"
                 }
               }
             }
@@ -12506,13 +14246,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Se ha eliminado %d elemento de tu secuencia"
+                  "value" : "%d elemento eliminado del flujo"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Se han eliminado %d elementos de tu secuencia"
+                  "value" : "%d elementos eliminados del flujo"
                 }
               }
             }
@@ -12542,13 +14282,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d kohde poistettiin virrasta"
+                  "value" : "%d kohde poistettu virrasta"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d kohdetta poistettiin virrasta"
+                  "value" : "%d kohdetta poistettu virrasta"
                 }
               }
             }
@@ -12572,6 +14312,36 @@
             }
           }
         },
+        "hu" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elem eltávolítva a videózásból"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d elem eltávolítva a videózásból"
+                }
+              }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item dihapus dari alir"
+                }
+              }
+            }
+          }
+        },
         "it" : {
           "variations" : {
             "plural" : {
@@ -12585,6 +14355,18 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%d elementi rimossi dallo stream"
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d 個のアイテムがストリームから削除されました"
                 }
               }
             }
@@ -12638,6 +14420,54 @@
             }
           }
         },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Usunięto %d elementy z osi czasu"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Usunięto %d elementów z osi czasu"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Usunięto %d element z osi czasu"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Usunięto %d elementów z osi czasu"
+                }
+              }
+            }
+          }
+        },
+        "pt" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d item removido do fluxo"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d itens removidos do fluxo"
+                }
+              }
+            }
+          }
+        },
         "pt-BR" : {
           "variations" : {
             "plural" : {
@@ -12675,6 +14505,36 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "Articole eliminate din fluxul foto: %d"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элемента удалены из ленты"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элементов удалены из ленты"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элемент удален из в ленты"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d элементов удалены из ленты"
                 }
               }
             }
@@ -12728,13 +14588,55 @@
             }
           }
         },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементи видалено з трансляції"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів видалено з трансляції"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елемент видалено з трансляції"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d елементів видалено з трансляції"
+                }
+              }
+            }
+          }
+        },
         "zh-Hans" : {
           "variations" : {
             "plural" : {
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%d 项从动态移除"
+                  "value" : "%d 项已从您的照片流中移除"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "已從照片串流移除 %d 個項目"
                 }
               }
             }

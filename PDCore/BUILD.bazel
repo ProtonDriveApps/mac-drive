@@ -1,0 +1,55 @@
+load("@rules_swift//swift:swift.bzl", "swift_library")
+load("@rules_apple//apple:resources.bzl", "apple_resource_bundle")
+load("@rules_swift_package_manager//swiftpkg:build_defs.bzl", "resource_bundle_infoplist")
+
+package(default_visibility = ["//visibility:public"])
+
+swift_library(
+    name = "PDCore",
+    module_name = "PDCore",
+    srcs = glob(["PDCore/**/*.swift"]) + ["//build_defs:PDCoreBundle.swift"],
+    defines = ["RESOURCES_ARE_IMPORTED_BY_SPM"] + select({
+        "//build_defs:optimized": [],
+        "//conditions:default": ["INCLUDES_DB_IN_BUGREPORT"],
+    }),
+    deps = [
+        "//PDClient",
+        "//PMEventsManager",
+        "//PDLocalization",
+        "@swiftpkg_reachability.swift//:Reachability",
+        "@swiftpkg_trustkit//:TrustKit",
+        "@swiftpkg_zipfoundation//:ZIPFoundation",
+    ] + ["@swiftpkg_protoncore_ios//:" + name for name in [
+        "ProtonCoreAuthentication",
+        "ProtonCoreAPIClient",
+        "ProtonCoreCrypto",
+        "ProtonCoreCryptoGoInterface",
+        "ProtonCoreDataModel",
+        "ProtonCoreEnvironment",
+        "ProtonCoreFeatureFlags",
+        "ProtonCoreKeyManager",
+        "ProtonCoreKeymaker",
+        "ProtonCoreNetworking",
+        "ProtonCoreObservability",
+        "ProtonCorePayments",
+        "ProtonCorePushNotifications",
+        "ProtonCoreServices",
+        "ProtonCoreTelemetry",
+        "ProtonCoreUtilities",
+    ]],
+    data = [":PDCoreResources"],
+)
+
+resource_bundle_infoplist(name = "resource_info", region = "en")
+
+apple_resource_bundle(
+    name = "PDCoreResources",
+    bundle_name = "PDCore_PDCore",
+    infoplists = [":resource_info"],
+    resources = glob([
+        "PDCore/CoreData/Metadata.xcdatamodeld/**",
+        "PDCore/EventsProcessor/Storage/Events/EventStorageModel.xcdatamodeld/**",
+        "PDCore/EventsProcessor/Storage/Events/Events to Events v1.17.xcmappingmodel/**",
+        "PDCore/Syncing/SyncModel.xcdatamodeld/**",
+    ]),
+)

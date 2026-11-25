@@ -19,24 +19,24 @@ import PDClient
 import CoreData
 
 public protocol NodeFetchAndCacheService {
-    func fetchAndCache(_ id: NodeIdentifier) async throws
+    func fetchAndCache(_ id: any VolumeIdentifiable) async throws
 }
 
 public class ClientNodeFetchAndCacheService: NodeFetchAndCacheService {
     private let client: Client
-    private let cacher: CloudSlotProtocol
+    private let storageManager: StorageManager
     private let context: NSManagedObjectContext
 
-    public init(client: Client, cacher: CloudSlotProtocol, context: NSManagedObjectContext) {
+    public init(client: Client, storageManager: StorageManager, context: NSManagedObjectContext) {
         self.client = client
-        self.cacher = cacher
+        self.storageManager = storageManager
         self.context = context
     }
     
-    public func fetchAndCache(_ id: NodeIdentifier) async throws {
-        let link = try await client.getLink(shareID: id.shareID, linkID: id.nodeID, breadcrumbs: .startCollecting())
+    public func fetchAndCache(_ id: any VolumeIdentifiable) async throws {
+        let response = try await client.getMetadata(forLinks: [id.id], inVolume: id.volumeID)
         try await context.perform {
-            try self.cacher.update(links: [link], shareId: id.shareID, managedObjectContext: self.context)
+            self.storageManager.updateLinks(response.links, in: self.context)
             try self.context.saveOrRollback()
         }
     }

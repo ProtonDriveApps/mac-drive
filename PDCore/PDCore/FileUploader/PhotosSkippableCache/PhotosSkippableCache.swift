@@ -19,11 +19,11 @@ import Foundation
 
 public protocol PhotosSkippableCache {
     typealias Identifier = PhotoAssetMetadata.iOSPhotos
-    func markAsSkippable(_ identifier: Identifier, skippableFiles: Int)
-    /// [Identifier: skippableFiles]
+    /// Sets the number of expected (remaining) files to be backed up
+    func setPendingFiles(_ data: [Identifier: Int])
+    /// Decrements the number of expected (remaining) files to be backed up
+    func decrementPendingFiles(_ data: [Identifier: Int])
     func pendingFiles(identifier: Identifier) -> Int?
-    func batchMarkAsSkippable(_ data: [Identifier: Int])
-    func recordFiles(identifier: Identifier, filesToUpload: Int)
     func isSkippable(_ identifier: Identifier) -> Bool
     func checkSkippableStatus(_ identifier: Identifier) -> SkippableStatus
     func clean()
@@ -44,27 +44,29 @@ public final class ConcretePhotosSkippableCache: PhotosSkippableCache {
     private func prepare(_ identifier: Identifier) -> Identifier {
         identifier.rounded()
     }
-
-    public func recordFiles(identifier: Identifier, filesToUpload: Int) {
-        let identifier = prepare(identifier)
-        storage[identifier] = filesToUpload
-        Log.debug("Skippable status of \(identifier) reset to \(filesToUpload)", domain: .photosProcessing)
+    
+    /// Sets the number of expected (remaining) files to be backed up
+    public func setPendingFiles(_ data: [Identifier: Int]) {
+        var result: [Identifier: Int] = [:]
+        for (id, value) in data {
+            let id = prepare(id)
+            result[id] = value
+        }
+        storage.setPendingFiles(data: result)
+    }
+    
+    /// Decrements the number of expected (remaining) files to be backed up
+    public func decrementPendingFiles(_ data: [Identifier: Int]) {
+        var result: [Identifier: Int] = [:]
+        for (id, filesToDiscount) in data {
+            result[prepare(id), default: 0] += filesToDiscount
+        }
+        storage.decrementPendingFiles(data: result)
     }
 
     public func pendingFiles(identifier: Identifier) -> Int? {
         let identifier = prepare(identifier)
         return storage[identifier]
-    }
-
-    public func markAsSkippable(_ identifier: Identifier, skippableFiles: Int) {
-        let identifier = prepare(identifier)
-        guard storage[identifier] != nil else {
-            Log.error("Identifier not found in skippable table", domain: .photosProcessing, context: LogContext("Identifier: \(identifier.rounded())"))
-            storage[identifier] = skippableFiles
-            return
-        }
-        storage[identifier] = max(0, storage[identifier]! - skippableFiles)
-        Log.debug("Skippable status of \(identifier) updated to " + String(describing: storage[identifier]), domain: .photosProcessing)
     }
     
     public func isSkippable(_ identifier: Identifier) -> Bool {
@@ -85,15 +87,6 @@ public final class ConcretePhotosSkippableCache: PhotosSkippableCache {
         storage.cacheCount()
     }
 
-    public func batchMarkAsSkippable(_ data: [Identifier: Int]) {
-        var result: [Identifier: Int] = [:]
-        for (id, value) in data {
-            let id = prepare(id)
-            result[id] = value
-        }
-        storage.batchMarkAsSkippable(data: result)
-    }
-
     public func clean() {
         storage.clean()
     }
@@ -106,42 +99,39 @@ public final class ConcretePhotosSkippableCache: PhotosSkippableCache {
 }
 
 extension PhotosSkippableCache {
-    public func recordFiles(identifier: PhotoIdentifier, filesToUpload: Int) {
-        let iOSPhotos = PhotoAssetMetadata.iOSPhotos(identifier: identifier.cloudIdentifier, modificationTime: identifier.modifiedDate)
-        recordFiles(identifier: iOSPhotos, filesToUpload: filesToUpload)
-    }
-    
-    public func markAsSkippable(_ identifier: PhotoIdentifier, skippableFiles: Int) {
-        let iOSPhotos = PhotoAssetMetadata.iOSPhotos(identifier: identifier.cloudIdentifier, modificationTime: identifier.modifiedDate)
-        markAsSkippable(iOSPhotos, skippableFiles: skippableFiles)
-    }
-    
     public func isSkippable(_ identifier: PhotoIdentifier) -> Bool {
-        let iOSPhotos = PhotoAssetMetadata.iOSPhotos(identifier: identifier.cloudIdentifier, modificationTime: identifier.modifiedDate)
-        return isSkippable(iOSPhotos)
+        isSkippable(Identifier(identifier))
     }
     
     public func checkSkippableStatus(_ identifier: PhotoIdentifier) -> SkippableStatus {
-        let iOSPhotos = PhotoAssetMetadata.iOSPhotos(identifier: identifier.cloudIdentifier, modificationTime: identifier.modifiedDate)
-        return checkSkippableStatus(iOSPhotos)
+        checkSkippableStatus(Identifier(identifier))
     }
     
-    public func batchMarkAsSkippable(_ data: [PhotoIdentifier: Int]) {
+    public func setPendingFiles(_ data: [PhotoIdentifier: Int]) {
         var result: [Identifier: Int] = [:]
         for (identifier, value) in data {
-            let iOSPhotos = PhotoAssetMetadata.iOSPhotos(
-                identifier: identifier.cloudIdentifier,
-                modificationTime: identifier.modifiedDate
-            )
-            result[iOSPhotos] = value
+            result[Identifier(identifier)] = value
         }
-        batchMarkAsSkippable(result)
+        setPendingFiles(result)
+    }
+
+    public func decrementPendingFiles(_ data: [PhotoIdentifier: Int]) {
+        var result: [Identifier: Int] = [:]
+        for (identifier, filesToDiscount) in data {
+            // Two identifiers can share one asset, so discounts add up rather than overwrite.
+            result[Identifier(identifier), default: 0] += filesToDiscount
+        }
+        decrementPendingFiles(result)
+    }
+}
+
+extension PhotoAssetMetadata.iOSPhotos {
+    init(_ identifier: PhotoIdentifier) {
+        self.init(identifier: identifier.cloudIdentifier, modificationTime: identifier.modifiedDate)
     }
 }
 
 public final class BlankPhotosSkippableCache: PhotosSkippableCache {
-    public func markAsSkippable(_ identifier: Identifier, skippableFiles: Int) { }
-    public func recordFiles(identifier: Identifier, filesToUpload: Int) { }
     public func pendingFiles(identifier: Identifier) -> Int? { 1 }
     public func discard() { }
     public init() { }
@@ -152,7 +142,8 @@ public final class BlankPhotosSkippableCache: PhotosSkippableCache {
     public func checkSkippableStatus(_ identifier: Identifier) -> SkippableStatus {
         .newAsset
     }
-    public func batchMarkAsSkippable(_ data: [Identifier: Int]) {}
+    public func setPendingFiles(_ data: [Identifier: Int]) {}
+    public func decrementPendingFiles(_ data: [Identifier: Int]) {}
 
     public func clean() {}
     public func cacheCount() -> Int { 0 }

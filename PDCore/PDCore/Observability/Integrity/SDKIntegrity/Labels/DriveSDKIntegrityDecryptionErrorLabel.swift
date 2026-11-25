@@ -18,17 +18,17 @@
 import Foundation
 
 public struct DriveSDKIntegrityDecryptionErrorLabel: Encodable, Equatable {
-    let volumeType: String
     let field: String
-    let fromBefore2024: String
+    let recency: DriveObservabilityItemRecency
+    let causedBy: DriveObservabilityCausedBy
 
     public init(
-        volumeType: String,
         field: String,
-        fromBefore2024: String
+        recency: DriveObservabilityItemRecency,
+        causedBy: DriveObservabilityCausedBy
     ) {
-        self.volumeType = volumeType
         self.field = field
-        self.fromBefore2024 = fromBefore2024
+        self.recency = recency
+        self.causedBy = causedBy
     }
 }

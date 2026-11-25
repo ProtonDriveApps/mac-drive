@@ -69,33 +69,3 @@ public struct ShareUrlCustomPasswordInfo {
         self.encryptedUrlPassword = encryptedUrlPassword
     }
 }
-
-struct UpdateShareURLEndpoint: Endpoint {
-    public struct Response: Codable {
-        var code: Int
-        var shareURL: ShareURLMeta
-    }
-
-    var request: URLRequest
-
-    init(id: ShareURLMeta.ID, shareID: Share.ShareID, parameters: UpdateShareURLParameters, service: APIService, credential: ClientCredential) {
-        // url
-        var url = service.url(of: "/shares")
-        url.appendPathComponent(shareID)
-        url.appendPathComponent("/urls")
-        url.appendPathComponent(id)
-
-        // request
-        var request = URLRequest(url: url)
-        request.httpMethod = "PUT"
-
-        // headers
-        var headers = service.baseHeaders
-        headers.merge(service.authHeaders(credential), uniquingKeysWith: { $1 })
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-
-        request.httpBody = try? JSONEncoder().encode(parameters)
-
-        self.request = request
-    }
-}

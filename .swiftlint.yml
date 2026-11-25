@@ -32,6 +32,11 @@ opt_in_rules:
   - file_header
 
 excluded:
+  - .build
+  - .state
+  - Logs
+  - SanitizedLogs
+  - diagnostics
   - Carthage
   - Pods
   - "*/*Test*" # all tests and test utils are excluded for now

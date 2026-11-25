@@ -18,7 +18,6 @@
 import Combine
 import Foundation
 import PDCore
-import PDFileProviderOperations
 import ProtonCoreUtilities
 
 final class DBPerformanceMeasurementCollector: ProgressPerformanceCollector {

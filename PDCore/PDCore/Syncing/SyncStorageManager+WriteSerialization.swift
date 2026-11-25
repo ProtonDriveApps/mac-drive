@@ -23,30 +23,38 @@ import Foundation
 
 public extension SyncStorageManager {
 
-    /// Serializes writes for a given `SyncItem` id. Operations enqueued for the same id run in the
-    /// order they were enqueued; operations for different ids run concurrently. This guarantees the
-    /// row converges to the last enqueued write regardless of task scheduling.
     func enqueueWrite(for id: String, _ operation: @escaping @Sendable () async -> Void) {
+        enqueueWrite(for: [id], operation)
+    }
+
+    /// Orders the write after all earlier writes and before all later writes that share any of its IDs.
+    func enqueueWrite(for ids: [String], _ operation: @escaping @Sendable () async -> Void) {
+        let ids = Array(Set(ids))
         writeChainLock.lock()
         defer { writeChainLock.unlock() }
-        let previous = writeChains[id]
+        let previous = ids.compactMap { writeChains[$0] }
         let token = UUID()
-        writeChainTokens[id] = token
-        writeChains[id] = Task {
-            await previous?.value
+        let task = Task {
+            for task in previous {
+                await task.value
+            }
             await operation()
-            self.completeWrite(for: id, token: token)
+            self.completeWrite(for: ids, token: token)
+        }
+        for id in ids {
+            writeChainTokens[id] = token
+            writeChains[id] = task
         }
     }
 
-    /// Drops the chain entry for `id` once its last enqueued operation drains, bounding memory.
-    /// A token mismatch means a newer write was enqueued meanwhile, so the entry is left in place.
-    private func completeWrite(for id: String, token: UUID) {
+    private func completeWrite(for ids: [String], token: UUID) {
         writeChainLock.lock()
         defer { writeChainLock.unlock() }
-        guard writeChainTokens[id] == token else { return }
-        writeChains[id] = nil
-        writeChainTokens[id] = nil
+        // A newer write may have taken over only some of these IDs.
+        for id in ids where writeChainTokens[id] == token {
+            writeChains[id] = nil
+            writeChainTokens[id] = nil
+        }
     }
 }
 
@@ -67,10 +75,9 @@ public extension SyncStorageManager {
         return Array(writeChains.values)
     }
 
-    /// Number of active per-id write chains. Test-only.
     var activeWriteChainCount: Int {
         writeChainLock.lock()
-        
+        defer { writeChainLock.unlock() }
         return writeChains.count
     }
 }
